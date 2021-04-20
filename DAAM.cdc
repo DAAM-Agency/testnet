@@ -1,4 +1,6 @@
-Import NonFungibleToken from 0xNFTADDRESS
+import NonFungibleToken from 0xNFTADDRESS
+import DAAMCopyright
+
 
 pub contract DAAM_Agency: NonFungibleToken {
     access(contract) var nftIDCounter
@@ -31,57 +33,84 @@ pub contract DAAM_Agency: NonFungibleToken {
         pub let format: String      // File format
         pub let creator: &{Profile} // Artist
         // Collection NFT belongs to, nill means belongs to no collection. Collection is on DAAM
-        pub let collection: &{Collection} 
+        pub let series: &{Collection} 
         pub let agency: String      // Sold from Gallery or Online // CHANGE TO NFT ??
         pub let isPhysical: Bool    // Does this have a physical counter-part        
-        pub let about: String         // About NFT, Blurb or website
+        pub let about: String        // About NFT, Blurb or website
+        pub let copyrightIncluded: Bool
 
-        access(contract) let totalMint: UInt32   // Total number of mints of this NFT     
-        access(contract) let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
+        //access(contract) let totalMint: UInt32   // Total number of mints of this NFT     
+        //access(contract) let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
 
         access(private) let copyrightsIncluded: Bool    // Copyrights Included
 
         init(
-            title:String, format:String, creator:&{Profile}, collection:&{Collection}, agenct:String,
+            title:String, format:String, creator:&{Profile}, series:&{Collection}, agenct:String,
             isPhysical:Bool, about:String, copyrightsIncluded: Bool) {           
                 self.title = title!
                 self.creator = creator!
-                self.collection = collection
+                self.series = series
                 self.agency = agency
                 self.isPhysical = isPhysical
-                self.about = about                
-                self.copyrightsIncluded = copyrightsIncluded // Copyright Variables
+                self.about = about
+                // Copyright Variables         
+                self.copyrightsIncluded = copyrightsIncluded
             }           
         }
 
-        pub resource Art {
+        pub resource ArtNFT {
             pub let nftID: UIInt32      // Unique ID
             pub let content_format: String
             pub let content: String
             pub let thumbnail_format: String
             pub let thumbnail: String
             pub let bio: NFTData
-
+            pub let CopyRightStatus: CapabilityPath
+            
             init(bio: NFTData) {
                 self.nftID = nftIDCounter!
                 DAAM_Agency.nftIDCounter = DAAM_Agency.nftIDCounter + 1     
                 self.bio = NFTData!
+
+                AuthAccount.save()
+
+
+                self.CopyRightStatus = privateAccount.getCapability<&
+
+                
                 // self.about.mintID = DAAM_Agency.[Collection].minted
                 // DAAM_Agency.[NFT].minted = DAAM_Agency.[Collection].minted + 1
                 // self.about.totalMint = DAAM_Agency.[Collection].totalmint
             }      
         }
 
-        pub resource Collection {
+        pub resource interface NFTReceiver {
+            pub fun deposit(token: @ArtNFT)
+            pub fun getIDs(): [UInt32]
+            pub fun idExists(id: UInt32): Bool
+        }
+
+        pub resource Collection: NFTReciver {
             pub let collectionID: UInt32
             pub let name: String
-            pub var collection: @{UInt32: Art}
+            pub var ownedNFTs: @{UInt32: Art}
 
             init(name: String) {
                 self.collectionID = DAAM_Agency.CollectionIDCounter
                 self.DAAM_Agency.CollectionIDCounter = DAAM_Agency.CollectionIDCounter + 1
-                self.name = name
-            }        
+                self.name = name{
+                self.ownedNFTs <- {}
+            }
+
+            pub fun withdraw(withdrawID: UInt32): @ArtNFT {
+                let nft <- self.ownedNFTs.remove(key: withdrawID)!
+                return <- nft
+            }
+
+            pub fun deposit(token: @ArtNFT) { self.ownedNFTs[token.id] <- token! }
+            pub fun getIDs()     : [UInt32] { return self.ownedNFTs.keys }
+            
+            // pub fun createEmptyCollection(): @Collection { return <- create Collection("") } 
         }
     }
     init() {
