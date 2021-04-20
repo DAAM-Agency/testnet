@@ -1,6 +1,15 @@
 Import NonFungibleToken from 0xNFTADDRESS
 
-pub contract DAAM_Agency: NonFungibleToken {  
+pub contract DAAM_Agency: NonFungibleToken {
+    access(contract) var nftIDCounter
+    access(private) enum CopyRightStatus: {
+        pub case Fraud
+        pub case Claim
+        pub case Unverified
+        pub case Verified
+    }
+    access(private) var copyrightsVerified = {UInt32: CopyRightStatus}    
+    
 // Events
     pub event ContractInitialized()                    // Contract Initialization
     pub event NFTCreated(data: GetData)                // New NFT created
@@ -14,50 +23,65 @@ pub contract DAAM_Agency: NonFungibleToken {
 
 // Serial Numbers
     access(contract) var nftIDCounter: UInt32
-    access(contract) var Collection_Id: UInt32
+    access(contract) var CollectionIDCounter: UInt32
     access(contract) var Series_Id: UInt32
 
     pub struct NFTData {
-        pub let nftID: UIInt32      // Unique ID
         pub let title: String       // Title
         pub let format: String      // File format
         pub let creator: &{Profile} // Artist
         // Collection NFT belongs to, nill means belongs to no collection. Collection is on DAAM
         pub let collection: &{Collection} 
         pub let agency: String      // Sold from Gallery or Online // CHANGE TO NFT ??
-        pub let isPhysical: bool    // Does this have a physical counter-part        
-        pub let bio: String         // About NFT, Blurb or website
+        pub let isPhysical: Bool    // Does this have a physical counter-part        
+        pub let about: String         // About NFT, Blurb or website
 
-        pub let totalMint: UInt32   // Total number of mints of this NFT     
-        pub let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
+        access(contract) let totalMint: UInt32   // Total number of mints of this NFT     
+        access(contract) let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
 
-        pub var copyrightsVerified: UInt8   // Copyright Verified; CHANGE TO ENUM, YES,NO,CLAIM MADE
-        pub let copyrightsIncluded: bool    // Copyrights Included
+        access(private) let copyrightsIncluded: Bool    // Copyrights Included
 
         init(
             title:String, format:String, creator:&{Profile}, collection:&{Collection}, agenct:String,
-            isPhysical:bool, bio:String, copyrightsIncluded: bool) {
-                self.nftID = nftIDCounter
-                DAAM_Agency.nftIDCounter = DAAM_Agency.nftIDCounter + 1
-                //self.mintID =
-                //self.totalMint = 
-                self.title = title
-                self.creator = creator
+            isPhysical:Bool, about:String, copyrightsIncluded: Bool) {           
+                self.title = title!
+                self.creator = creator!
                 self.collection = collection
                 self.agency = agency
                 self.isPhysical = isPhysical
-                self.bio = bio
-                //self.copyrightsVerified =
-                self.copyrightsIncluded = copyrightsIncluded
+                self.about = about                
+                self.copyrightsIncluded = copyrightsIncluded // Copyright Variables
             }           
         }
 
-        pub resource Art{
+        pub resource Art {
+            pub let nftID: UIInt32      // Unique ID
             pub let content_format: String
             pub let content: String
             pub let thumbnail_format: String
             pub let thumbnail: String
-            pub let about: NFTData           
+            pub let bio: NFTData
+
+            init(bio: NFTData) {
+                self.nftID = nftIDCounter!
+                DAAM_Agency.nftIDCounter = DAAM_Agency.nftIDCounter + 1     
+                self.bio = NFTData!
+                // self.about.mintID = DAAM_Agency.[Collection].minted
+                // DAAM_Agency.[NFT].minted = DAAM_Agency.[Collection].minted + 1
+                // self.about.totalMint = DAAM_Agency.[Collection].totalmint
+            }      
+        }
+
+        pub resource Collection {
+            pub let collectionID: UInt32
+            pub let name: String
+            pub var collection: @{UInt32: Art}
+
+            init(name: String) {
+                self.collectionID = DAAM_Agency.CollectionIDCounter
+                self.DAAM_Agency.CollectionIDCounter = DAAM_Agency.CollectionIDCounter + 1
+                self.name = name
+            }        
         }
     }
     init() {
