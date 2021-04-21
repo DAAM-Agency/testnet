@@ -95,7 +95,9 @@ import DAAMCopyright from ./DAAMCopyright.cdc
                 return <- nft
             }
 
-            pub fun deposit(token: @ArtNFT) { self.ownedNFTs[token.id] <- token! }
+            pub fun deposit(token: @NonFungibleToken.NFT) {
+                let token <- token as! @Art.NFT  // <= Don't forgrt to check NFT from NonFungileToken !!!
+                self.ownedNFTs[token.id] <- token! }
             pub fun getIDs()     : [UInt32] { return self.ownedNFTs.keys }
             
             // pub fun createEmptyCollection(): @Collection { return <- create Collection("") } 
