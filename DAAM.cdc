@@ -1,5 +1,5 @@
 import NonFungibleToken from 0xNFTADDRESS
-import DAAMCopyright from ./DAAMCopyright.cdc as DMCopyright
+import DAAMCopyright from ./DAAMCopyright.cdc
   
 // Events
     pub event ContractInitialized()                    // Contract Initialization
@@ -26,14 +26,11 @@ import DAAMCopyright from ./DAAMCopyright.cdc as DMCopyright
         pub let agency: String      // Sold from Gallery or Online // CHANGE TO NFT ??
         pub let isPhysical: Bool    // Does this have a physical counter-part        
         pub let about: String        // About NFT, Blurb or website
-        pub let copyrightIncluded: Bool
+        access(contract) copyright: Copyright
 
         //access(contract) let totalMint: UInt32   // Total number of mints of this NFT     
         //access(contract) let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
         
-        // Copyrights Included
-        pub let copyrightsIncluded: Bool    
-
         init(
             title:String, format:String, creator:&{Profile}, series:&{Collection}, agenct:String,
             isPhysical:Bool, about:String, copyrightsIncluded: Bool) {           
@@ -44,8 +41,16 @@ import DAAMCopyright from ./DAAMCopyright.cdc as DMCopyright
                 self.isPhysical = isPhysical
                 self.about = about
                 // Copyright Variables         
-                self.copyrightsIncluded = copyrightsIncluded
+                self.copyright = Copyright(copyrightsIncluded)
             }           
+        }
+
+        pub struct Copyright {
+            pub let included: Bool
+            access(contract) var status: CapabilityPath
+            init(_ included: Bool) {
+                self.status = AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified)!
+                self.included = included
         }
 
         pub resource ArtNFT {
@@ -55,20 +60,12 @@ import DAAMCopyright from ./DAAMCopyright.cdc as DMCopyright
             pub let thumbnail_format: String
             pub let thumbnail: String
             pub let bio: NFTData
-            access(contract) var CopyRightStatus: CapabilityPath
             
             init(bio: NFTData) {
                 self.nftID = nftIDCounter!
                 DAAM_Agency.nftIDCounter = DAAM_Agency.nftIDCounter + 1     
                 self.bio = NFTData!
 
-                AuthAccount.save()
-
-
-                self.copyrightStatus = AuthAccount.link<&{Copyright}>(/public/DAAM/copyright,
-                to: /storage/copyright)
-
-                
                 // self.about.mintID = DAAM_Agency.[Collection].minted
                 // DAAM_Agency.[NFT].minted = DAAM_Agency.[Collection].minted + 1
                 // self.about.totalMint = DAAM_Agency.[Collection].totalmint

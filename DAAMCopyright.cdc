@@ -9,29 +9,52 @@ pub contract DAAMCopyright {
 
     pub var copyrightInformation: {UInt32: String} 
 
-    pub resource interface Copyright {
-        pub let status: CopyrightStatus
-        pub fun status(): CopyrightStatus
-        init(_ status: CopyrightStatus) { self.status = status }
-    }
-
+    pub resource interface CopyrightInterface { pub fun status(): CopyrightStatus }
     // Types of Copyright statuses
-    access(contract) resource Fraud:      Copyright { init(CopyrightStatus.Fraud)      }
-    access(contract) resource Claim:      Copyright { init(CopyrightStatus.Claim)      }
-    access(contract) resource Unverified: Copyright { init(CopyrightStatus.Unverified) }
-    access(contract) resource Verified:   Copyright { init(CopyrightStatus.Verified)   }
+    pub resource Fraud: CopyrightInterface      {pub fun status(): CopyrightStatus {return CopyrightStatus.Fraud}}
+    pub resource Claim: CopyrightInterface      {pub fun status(): CopyrightStatus {return CopyrightStatus.Claim}}
+    pub resource Unverified: CopyrightInterface {pub fun status(): CopyrightStatus {return CopyrightStatus.Unverified}}
+    pub resource Verified: CopyrightInterface   {pub fun status(): CopyrightStatus {return CopyrightStatus.Verified}}
 
-    pub getCopyrightInfo(id: UInt32): String { return copyrightInformation[id] }
+    //pub fun getCopyrightInfo(id: UInt32): String { return self.copyrightInformation[id]? }
 
     init() {
-        AuthAccount.save(<- create Fraud(),      to: /storage/Copyright/Fraud)
-        AuthAccount.save(<- create Claim(),      to: /storage/Copyright/Claim)
-        AuthAccount.save(<- create Unverified(), to: /storage/Copyright/Unverifed)
-        AuthAccount.save(<- create Verified(),   to: /storage/Copyright/Verified)
-
-        AuthAccount.link<&{Copyright}>(/public/Copyright/Fraud,      target: /storage/Copyright/Fraud)
-        AuthAccount.link<&{Copyright}>(/public/Copyright/Claim,      target: /storage/Copyright/Claim)
-        AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified, target: /storage/Copyright/Unverified)
-        AuthAccount.link<&{Copyright}>(/public/Copyright/Verified,   target: /storage/Copyright/Verified)
+        self.copyrightInformation = {}
+        self.account.save(<- create Fraud(), to: /storage/Fraud)
+        self.account.save(<- create Claim(), to: /storage/Claim)
+        self.account.save(<- create Unverified(), to: /storage/Unverifed)
+        self.account.save(<- create Verified(),   to: /storage/Verified)
     }
+
+    access(self) fun setCopyrightCap(status: CopyrightStatus): Capability<CopyrightInterface> {
+    // Test the value of the parameter `n`
+        switch status {
+        case CopyrightStatus.Fraud:
+            // If the value of variable `n` is equal to `1`,
+            // then return the string "one"
+            return self.account.link<{&CopyrightInterface}>(/public/Copyright, target: /storage/Fraud)
+        /*case CopyrightStatus.Claim:
+            // If the value of variable `n` is equal to `2`,
+            // then return the string "two"
+            return "two"
+        case CopyrightStatus.Unverified:
+            // If the value of variable `n` is equal to `2`,
+            // then return the string "two"
+            return "two"
+        case CopyrightStatus.Verified:
+            // If the value of variable `n` is neither equal to `1` nor to `2`,
+            // then return the string "other"
+            return "other"*/
+        }
+        return 
+    }
+
+
+  
+        //return self.account.link<&{CopyrightInterface}>(/public/Copyright, target: /storage/Fraud)
+    
+        //AuthAccount.link<&{Copyright}>(/public/Copyright/Claim,      target: /storage/Copyright/Claim)
+        //AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified, target: /storage/Copyright/Unverified)
+        //AuthAccount.link<&{Copyright}>(/public/Copyright/Verified,   target: /storage/Copyright/Verified)
+    
 }
