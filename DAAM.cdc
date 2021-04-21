@@ -1,17 +1,6 @@
 import NonFungibleToken from 0xNFTADDRESS
-import DAAMCopyright
-
-
-pub contract DAAM_Agency: NonFungibleToken {
-    access(contract) var nftIDCounter
-    access(private) enum CopyRightStatus: {
-        pub case Fraud
-        pub case Claim
-        pub case Unverified
-        pub case Verified
-    }
-    access(private) var copyrightsVerified = {UInt32: CopyRightStatus}    
-    
+import DAAMCopyright from ./DAAMCopyright.cdc as DMCopyright
+  
 // Events
     pub event ContractInitialized()                    // Contract Initialization
     pub event NFTCreated(data: GetData)                // New NFT created
@@ -41,8 +30,9 @@ pub contract DAAM_Agency: NonFungibleToken {
 
         //access(contract) let totalMint: UInt32   // Total number of mints of this NFT     
         //access(contract) let mintID: UInt32      // Placing in totalMints, the first minited=1, the second=2, so forth
-
-        access(private) let copyrightsIncluded: Bool    // Copyrights Included
+        
+        // Copyrights Included
+        pub let copyrightsIncluded: Bool    
 
         init(
             title:String, format:String, creator:&{Profile}, series:&{Collection}, agenct:String,
@@ -65,7 +55,7 @@ pub contract DAAM_Agency: NonFungibleToken {
             pub let thumbnail_format: String
             pub let thumbnail: String
             pub let bio: NFTData
-            pub let CopyRightStatus: CapabilityPath
+            access(contract) var CopyRightStatus: CapabilityPath
             
             init(bio: NFTData) {
                 self.nftID = nftIDCounter!
@@ -75,7 +65,8 @@ pub contract DAAM_Agency: NonFungibleToken {
                 AuthAccount.save()
 
 
-                self.CopyRightStatus = privateAccount.getCapability<&
+                self.copyrightStatus = AuthAccount.link<&{Copyright}>(/public/DAAM/copyright,
+                to: /storage/copyright)
 
                 
                 // self.about.mintID = DAAM_Agency.[Collection].minted
