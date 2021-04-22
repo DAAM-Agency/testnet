@@ -35,13 +35,13 @@ pub contract DAAM: NonFungibleToken {
         pub let file: String               // File           
         pub let creator: String//&Profile.ReadOnly   // TODO FIX Artist        
         pub let about: String                // About NFT, Blurb or website
-        pub let isPhysical: Bool             // Does this have a physical counter-part
+        pub let isPhysical: String             // Does this have a physical counter-part
         pub let series: String      // If, Part of which series  TODO FIX UPGRADE to NFT
         pub let agency: String               // Sold from which Gallery or Online // UPGRADE to NFT
         pub let thumbnail_format: String     // Thumbnail format
         pub let thumbnail: String            // Thumbnail             
 
-        init(title:String, format:String, file: String, creator:String, about:String, physical:Bool,
+        init(title:String, format:String, file: String, creator:String, about:String, physical:String,
             series:String, agency:String, thumbnail_format:String, thumbnail:String) {
             self.title = title
             self.format = format
@@ -56,9 +56,31 @@ pub contract DAAM: NonFungibleToken {
         }
 
         pub fun saveMetadata(): {String:String} {
-            return {}
-        }  
-    }
+            let metadata = {
+                "title": self.title,
+                "format": self.format,
+                "file": self.file,
+                "creator": self.creator,
+                "about": self.about,
+                "physical": self.isPhysical,
+                "series": self.series,
+                "agency": self.agency,
+                "thumbnail format": self.thumbnail_format,
+                "thumbnail": self.thumbnail
+            }
+            return metadata
+        }// saveMetadata
+    }// Metadata
+
+    /*pub struct Copyright {
+        pub let included: Bool
+        access(contract) var status: CapabilityPath
+
+        init(_ included: Bool) {
+            self.status = AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified)!
+            self.included = included
+        } // Copyright init
+    } // Copyright struct*/
 
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens
