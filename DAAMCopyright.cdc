@@ -16,7 +16,9 @@ pub contract DAAMCopyright {
         pub var copyright_status: CopyrightStatus  // status contains the current Copyright status
         pub fun status(): CopyrightStatus  { return self.copyright_status  }  //  get status
         
-        init(_ copyright: CopyrightStatus) { self.copyright_status = copyright } // initialize status
+        init(_ copyright: CopyrightStatus) {
+            self.copyright_status = copyright // initialize status
+        }
 
         pub fun createCopyright(_ target: StoragePath) { // Used to create 
             DAAMCopyright.account.save(<- create Copyright(self.copyright_status), to: target)
@@ -26,16 +28,25 @@ pub contract DAAMCopyright {
     // DAAMCopyrigt initialization
     init() {
         self.copyrightInformation = {}
-        
+        // Frauf
         let Fraud <- create Copyright(CopyrightStatus.FRAUD)
         Fraud.createCopyright(/storage/Fraud)
         destroy Fraud
-        //let Claim <- Copyright.createCopyright(CopyrightStatus.CLAIM, target: storage/claim)
-        //let Unverified <- Copyright.createCopyright(CopyrightStatus.UNVERIDFIED, target: storage/unverified)
-        //let Verified   <- Copyright.createCopyright(CopyrightStatus.VERIDIED,    target: storage/verified)
+        // Claim
+        let Claim <- create Copyright(CopyrightStatus.CLAIM)
+        Claim.createCopyright(/storage/Claim)
+        destroy Claim
+        // Unverified, basically unknown, no image search
+        let Unverified <- create Copyright(CopyrightStatus.UNVERIDFIED)
+        Unverified.createCopyright(/storage/Unverified)
+        destroy Unverified
+        // Verified
+        let Verified <- create Copyright(CopyrightStatus.VERIDIED)
+        Verified.createCopyright(/storage/Verified)
+        destroy Verified
     }
 
-    /*fun setCopyrightCap(status: CopyrightStatus, ): Capability<{CopyrightInterface}> {
+    /*fun getCopyrightCapability(: CopyrightStatus, ): Capability<{CopyrightInterface}> {
         access(contract) var storagePath: StoragePath
         switch self.copyright_status {
             case CopyrightStatus.Fraud: storagePath = /storage/Fraud
