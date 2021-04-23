@@ -1,5 +1,6 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import Profile from 0xf8d6e0586b0a20c7
+import DAAMCopyright from 0xf8d6e0586b0a20c7
 
 // This is an example implementation of a Flow Non-Fungible Token
 // It is not part of the official standard but it assumed to be
@@ -22,9 +23,11 @@ pub contract DAAM: NonFungibleToken {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64                      // Unique ID
         pub let metadata: {String: String}
+        pub var copyright: CapabilityPath
         init(initID: UInt64, metadata: {String:String}) {            
             self.id = initID
-            self.metadata = metadata            
+            self.metadata = metadata
+            self.copyright = DAAMCopyright.getCapability(/public/Copyright)       
         }// NFT init       
     }
 
@@ -72,10 +75,9 @@ pub contract DAAM: NonFungibleToken {
         }// saveMetadata
     }// Metadata
 
-    /*pub struct Copyright {
+   /*pub struct Copyright {
         pub let included: Bool
-        access(contract) var status: CapabilityPath
-
+        access(self) var status: CapabilityPath
         init(_ included: Bool) {
             self.status = AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified)!
             self.included = included

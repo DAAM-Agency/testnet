@@ -8,9 +8,6 @@ pub contract DAAMCopyright {
     }
     pub var copyrightInformation: {UInt32: String}
 
-    // DAAMCopyright function (Do we really need this ?!?)
-    //pub fun getCopyrightInfo(id: UInt32): String { return self.copyrightInformation[id] }
-
     // Copyright (Resource)
     pub resource Copyright {
         pub var copyright_status: CopyrightStatus  // status contains the current Copyright status
@@ -27,6 +24,7 @@ pub contract DAAMCopyright {
     
     // DAAMCopyrigt initialization
     init() {
+        self.copyright_status = CopyrightStatus.Unverified
         self.copyrightInformation = {}
         // Frauf
         let Fraud <- create Copyright(CopyrightStatus.FRAUD)
@@ -44,17 +42,27 @@ pub contract DAAMCopyright {
         let Verified <- create Copyright(CopyrightStatus.VERIDIED)
         Verified.createCopyright(/storage/Verified)
         destroy Verified
-    }
+    }//DAAMCopyrigt init
 
-    /*fun getCopyrightCapability(: CopyrightStatus, ): Capability<{CopyrightInterface}> {
-        access(contract) var storagePath: StoragePath
-        switch self.copyright_status {
+    pub fun setCopyrightCapability(_ copyright_status: CopyrightStatus): Capability<Copyright> {
+        //var storagePath: StoragePath   /// BUG !!!!
+        var bgg = 3
+        var b = 3
+        switch copyright_status {
             case CopyrightStatus.Fraud: storagePath = /storage/Fraud
             case CopyrightStatus.Claim: storagePath = /storage/Claim
             case CopyrightStatus.Unverified: storagePath = /storage/Unverified
             case CopyrightStatus.Verified:   storagePath = /storage/Verified
         }
-        self.copyrightInformation[] = 
         return self.account.link<{&CopyrightInterface}>(storagePath , target: /public/Copyright)!
-        }*/
-}
+    }
+
+    /*access(account) fun getCopyrightInformation(_ id: Uint64): String {
+        return copyrightInformation[id]
+    }
+
+    access(account) fun setCopyrightInformation(_ id: Uint64, info: String): String {
+        return copyrightInformation[id] = info
+    }*/
+
+}// DAAMCopyrigt
