@@ -3,8 +3,8 @@ pub contract DAAMCopyright {
     pub enum CopyrightStatus: Int128 {
             pub case FRAUD
             pub case CLAIM
-            pub case UNVERIDFIED
-            pub case VERIDIED
+            pub case UNVERIFIED
+            pub case VERIFIED
     }
     pub var copyrightInformation: {UInt32: String}
 
@@ -32,11 +32,11 @@ pub contract DAAMCopyright {
         Claim.createCopyright(/storage/Claim)
         destroy Claim
         // Unverified, basically unknown, no image search
-        let Unverified <- create Copyright(CopyrightStatus.UNVERIDFIED)
+        let Unverified <- create Copyright(CopyrightStatus.UNVERIFIED)
         Unverified.createCopyright(/storage/Unverified)
         destroy Unverified
         // Verified
-        let Verified <- create Copyright(CopyrightStatus.VERIDIED)
+        let Verified <- create Copyright(CopyrightStatus.VERIFIED)
         Verified.createCopyright(/storage/Verified)
         destroy Verified       
     }//DAAMCopyright init
@@ -48,9 +48,9 @@ pub contract DAAMCopyright {
                 return  DAAMCopyright.account.link<&Copyright>(/public/Fraud, target: /storage/Fraud)
             case CopyrightStatus.CLAIM.rawValue as? Int:
                 return DAAMCopyright.account.link<&Copyright>(/public/Claim, target: /storage/Claim)
-            case CopyrightStatus.UNVERIDFIED.rawValue as? Int:
+            case CopyrightStatus.UNVERIFIED.rawValue as? Int:
                 return DAAMCopyright.account.link<&Copyright>(/public/Unverifed, target: /storage/Unverifed)
-            case CopyrightStatus.VERIDIED.rawValue as? Int:
+            case CopyrightStatus.VERIFIED.rawValue as? Int:
                 return DAAMCopyright.account.link<&Copyright>(/public/Verified,  target: /storage/Verified)
             default: return nil
         }   

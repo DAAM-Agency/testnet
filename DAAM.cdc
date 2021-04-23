@@ -23,11 +23,11 @@ pub contract DAAM: NonFungibleToken {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64                      // Unique ID
         pub let metadata: {String: String}
-        pub var copyright: CapabilityPath
+        pub var copyright: Capability<&DAAMCopyright.Copyright>?
         init(initID: UInt64, metadata: {String:String}) {            
             self.id = initID
             self.metadata = metadata
-            self.copyright = DAAMCopyright.getCapability(/public/Copyright)       
+            self.copyright = DAAMCopyright.setCopyright(copyright: DAAMCopyright.CopyrightStatus.UNVERIFIED)  // NEED TO BORROW    
         }// NFT init       
     }
 
@@ -75,16 +75,7 @@ pub contract DAAM: NonFungibleToken {
         }// saveMetadata
     }// Metadata
 
-   /*pub struct Copyright {
-        pub let included: Bool
-        access(self) var status: CapabilityPath
-        init(_ included: Bool) {
-            self.status = AuthAccount.link<&{Copyright}>(/public/Copyright/Unverified)!
-            self.included = included
-        } // Copyright init
-    } // Copyright struct*/
-
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+   pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
         init () { self.ownedNFTs <- {}  } // NFT is a resource type with an `UInt64` ID field
@@ -129,21 +120,15 @@ pub contract DAAM: NonFungibleToken {
 	}
 
 	init() {
-        
         self.totalSupply = 0  // Initialize the total supply        
         let collection <- create Collection()  // Create a Collection resource and save it to storage
         self.account.save(<-collection, to: /storage/DAAM)
 
         // create a public capability for the collection
-        self.account.link<&{NonFungibleToken.CollectionPublic}>(
-            /public/DAAM,
-            target: /storage/DAAM
-        )
+        self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAM, target: /storage/DAAM)
         
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
         self.account.save(<-minter, to: /storage/NFTMinter)
-
-        emit ContractInitialized()
+        emit ContractInitialized()        // emiter
 	}
 }
-
