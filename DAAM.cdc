@@ -23,11 +23,11 @@ pub contract DAAM: NonFungibleToken {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64                      // Unique ID
         pub let metadata: {String: String}
-        pub var copyright: Capability<&DAAMCopyright.Copyright>?
-        init(initID: UInt64, metadata: {String:String}) {            
+        access(self) var copyright: &DAAMCopyright.Copyright
+        init(initID: UInt64, metadata: {String:String}) {         
             self.id = initID
             self.metadata = metadata
-            self.copyright = DAAMCopyright.setCopyright(copyright: DAAMCopyright.CopyrightStatus.UNVERIFIED)  // NEED TO BORROW    
+            self.copyright = DAAMCopyright.setCopyright(copyright: DAAMCopyright.CopyrightStatus.UNVERIFIED)
         }// NFT init       
     }
 
@@ -56,7 +56,7 @@ pub contract DAAM: NonFungibleToken {
             self.agency = agency
             self.thumbnail_format = thumbnail_format
             self.thumbnail = thumbnail            
-        }
+        }// Metadata init
 
         pub fun saveMetadata(): {String:String} {
             let metadata = {
@@ -95,19 +95,15 @@ pub contract DAAM: NonFungibleToken {
             emit Deposit(id: id, to: self.owner?.address)
             destroy oldToken
         }
-
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
-
         // borrowNFT gets a reference to an NFT in the collection so that the caller can read its metadata and call its methods
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return &self.ownedNFTs[id] as &NonFungibleToken.NFT }
-
         destroy() { destroy self.ownedNFTs }
     }
 
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create Collection() }
-
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
@@ -123,10 +119,8 @@ pub contract DAAM: NonFungibleToken {
         self.totalSupply = 0  // Initialize the total supply        
         let collection <- create Collection()  // Create a Collection resource and save it to storage
         self.account.save(<-collection, to: /storage/DAAM)
-
         // create a public capability for the collection
-        self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAM, target: /storage/DAAM)
-        
+        self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAM, target: /storage/DAAM)        
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
         self.account.save(<-minter, to: /storage/NFTMinter)
         emit ContractInitialized()        // emiter
