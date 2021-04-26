@@ -16,7 +16,7 @@ pub contract DAAM: NonFungibleToken {
     pub var totalSupply: UInt64
 
     // Serial Numbers Generation
-    //access(contract) var collectionIDCounter: UInt64
+    access(contract) var collectionIDCounter: UInt64
     //access(contract) var seriesIDCounter: UInt64
 
     // NFT
@@ -75,10 +75,50 @@ pub contract DAAM: NonFungibleToken {
         }// saveMetadata
     }// Metadata
 
+    pub resource Admin {
+        // createSet creates a new Set resource and stores it in the sets mapping in the DAAM contract
+        pub fun createSet(name: String) {            
+            var newSet <- create Collection (name: name)  // Create the new Set            
+            DAAM.sets[newSet.setID] <-! newSet  // Store it in the sets mapping field
+        }
+
+        // borrowSet returns a reference to a set in the DAAM contract so that the admin can call methods on it
+        pub fun borrowSet(setID: UInt32): &Set {
+            pre { DAAM.sets[setID] != nil: "Cannot borrow Set: The Set doesn't exist" }
+            
+            // Get a reference to the Set and return it use `&` to indicate the reference to the object and type
+            return &DAAM.sets[setID] as &Set
+        }
+
+        // startNewSeries ends the current series by incrementing
+        // the series number, meaning that Moments minted after this
+        // will use the new series number
+        pub fun startNewSeries(): UInt32 {
+            // End the current series and start a new one
+            // by incrementing the DAAM series number
+            DAAM.currentSeries = DAAM.currentSeries + UInt32(1)
+            emit NewSeriesStarted(newCurrentSeries: DAAM.currentSeries)
+            return DAAM.currentSeries
+        }
+
+        
+        pub fun createNewAdmin(): @Admin {    // createNewAdmin creates a new Admin resource
+            return <-create Admin()
+        }
+    }
+
+
    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
-        // dictionary of NFT conforming tokens
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
-        init () { self.ownedNFTs <- {}  } // NFT is a resource type with an `UInt64` ID field
+        pub let name: String
+        pub let id: UInt64
+        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT} // dictionary of NFT conforming tokens
+        
+        init (name: String) {
+            self.name = name
+            self.id = DAAM.collectionIDCounter
+            DAAM.collectionIDCounter = DAAM.collectionIDCounter + 1 as UInt64
+            self.ownedNFTs <- {}
+        } // NFT is a resource type with an `UInt64` ID field
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -116,13 +156,15 @@ pub contract DAAM: NonFungibleToken {
 	}
 
 	init() {
-        self.totalSupply = 0  // Initialize the total supply        
-        let collection <- create Collection()  // Create a Collection resource and save it to storage
+        self.totalSupply = 0            // Initialize the total supply
+        self.collectionIDCounter = 0    // Initialize Collection counter     
+        let collection <- create Collection(name: "Vault")  // Create a Collection resource and save it to storage
         self.account.save(<-collection, to: /storage/DAAM)
         // create a public capability for the collection
-        self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAM, target: /storage/DAAM)        
+        self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAM, target: /storage/DAAMCollection)        
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
         self.account.save(<-minter, to: /storage/NFTMinter)
         emit ContractInitialized()        // emiter
 	}
 }
+ 
