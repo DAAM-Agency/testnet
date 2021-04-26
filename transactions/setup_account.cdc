@@ -1,6 +1,6 @@
 // Transaction3.cdc
 
-import DAAM from 0x02
+import DAAM from 0xf8d6e0586b0a20c7
 
 // This transaction configures a user's account
 // to use the NFT contract by creating a new empty collection,

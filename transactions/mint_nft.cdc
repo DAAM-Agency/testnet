@@ -1,6 +1,6 @@
 // Transaction2.cdc
 
-import DAAM from 0x02
+import DAAM from 0xf8d6e0586b0a20c7 
 
 // This transaction allows the Minter account to mint an NFT
 // and deposit it into its collection.

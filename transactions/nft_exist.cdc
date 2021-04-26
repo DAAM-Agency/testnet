@@ -1,6 +1,6 @@
 // Transaction1.cdc
 
-import DAAM from 0x01
+import DAAM from 0xf8d6e0586b0a20c7
 
 // This transaction checks if an NFT exists in the storage of the given account
 // by trying to borrow from it
