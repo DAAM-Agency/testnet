@@ -1,7 +1,7 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM from 0xf8d6e0586b0a20c7
 import DAAMAdminReceiver from 0xf8d6e0586b0a20c7
-
+/* 
 // This script uses the NFTMinter resource to mint a new NFT
 // It must be run with the account that has the minter resource
 // stored in /storage/NFTMinter
@@ -31,14 +31,43 @@ transaction(recipient: Address /* , metadata: DAAM.Metadata*/) {
         thumbnail_format: "thumbnail format",
         thumbnail: "thumbnail"
         )
-        //let vault = DAAMAdminReceiver
+
         // Borrow the recipient's public NFT collection referenc
-        let receiver = getAccount(recipient).getCapability(/public/DAAMVault)
-            //.borrow<&{DAAMAdminReceiver.Vault}>()
-            .borrow<&{NonFungibleToken.CollectionPublic}>()  // TODO BUG HERE  Could not get receiver reference to the NFT Collection
+        //let ggg = 
+        let receiver = getAccount(DAAMAdminReceiver).getCapability(/public/DAAMVault)
+            .borrow<&DAAMAdminReceiver.Vault>()? 
+            //.borrow<&{NonFungibleToken.CollectionPublic}>()?  // TODO BUG HERE  Could not get receiver reference to the NFT Collection
             //?? panic("Could not get receiver reference to the NFT Collection")
             
         // Mint the NFT and deposit it to the recipient's collection
         self.minter.mintNFT(recipient: receiver, metadata: metadata)
+    }
+}
+
+*/
+
+transaction(recipient: Address) {    
+    let adminRef: &DAAM.Admin  // local variable for the admin reference
+
+    prepare(acct: AuthAccount) {       
+        self.adminRef = acct.borrow<&DAAM.Admin>(from: /storage/DAAMAdmin)!
+    } // borrow a reference to the Admin resource in storage
+
+    execute {
+        
+        //let setRef = self.adminRef.borrowSet(setID: setID)  // Borrow a reference to the specified set
+        
+        // Mint a new NFT
+        //let moment1 <- setRef.mintMoment(playID: playID)
+
+        // get the public account object for the recipient
+        //let recipient = getAccount(recipient)
+
+        // get the Collection reference for the receiver
+        //let receiverRef = recipient.getCapability(/public/DAAMCollection).borrow<&{DAAM.Collection}>()
+            ?? panic("Cannot borrow a reference to the recipient's moment collection")
+
+        // deposit the NFT in the receivers collection
+        receiverRef.deposit(token: <-moment1)
     }
 }

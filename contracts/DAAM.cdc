@@ -78,12 +78,18 @@ pub contract DAAM: NonFungibleToken {
     }// Metadata
     /************************************************************/
     pub resource Admin {
-        pub fun createNewCollection(): @Collection { return <- create Collection ()  }// Create the new collection     
+        /*pub fun createSet(name: String) {
+            // Create the new Set
+            var newSet <- create Set(name: name)
 
-        // borrowSet returns a reference to a set in the DAAM contract so that the admin can call methods on it
-        /*pub fun borrowCollection(id: UInt64): &Collection {
-            pre { DAAM.collection[setID] != nil: "Cannot borrow Set: The Set doesn't exist" }
-            
+            // Store it in the sets mapping field
+            TopShot.sets[newSet.setID] <-! newSet
+        }
+        pub fun createCollection(): @Collection { return <- create Collection ()  }// Create the new collection     
+
+       // borrowCollection returns a reference to a set in the DAAM contract so that the admin can call methods on it
+        pub fun borrowCollection(id: UInt64): &Collection {
+            pre { DAAM.collection[setID] != nil: "Cannot borrow Set: The Set doesn't exist" }            
             // Get a reference to the Set and return it use `&` to indicate the reference to the object and type
             return &DAAM.sets[setID] as &Set
         }*/
@@ -97,11 +103,11 @@ pub contract DAAM: NonFungibleToken {
         pub var name: String
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT} // dictionary of NFT conforming tokens
         
-        init () {
+        init (name: String) {
             self.id = DAAM.collectionIDCounter
             DAAM.collectionIDCounter = DAAM.collectionIDCounter + 1 as UInt64
             self.ownedNFTs <- {}
-            self.name = ""
+            self.name = name
         } // NFT is a resource type with an `UInt64` ID field
         access(contract) fun setName(name: String) { self.name = name}
 
@@ -139,13 +145,11 @@ pub contract DAAM: NonFungibleToken {
 	}// NFTMinter
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection() }
-    pub fun createNewCollection(name: String): @DAAM.Collection {
-        var collection <- create DAAM.Collection()
-        collection.setName(name: name)
-        return <- collection
-    }
-   
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection("") }
+    //pub fun createEmptyCollection(name: String): @NonFungibleToken.Collection { return <- create DAAM.Collection(name) }
+    // TODO, can not override with current version of Cadence
+    pub fun createNewCollection(name: String): @NonFungibleToken.Collection { return <- create DAAM.Collection(name) }
+
 	init() { // DAAM init
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
