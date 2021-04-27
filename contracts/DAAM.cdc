@@ -17,8 +17,7 @@ pub contract DAAM: NonFungibleToken {
     
     // Serial Numbers Generation
     access(contract) var collectionIDCounter: UInt64
-    access(contract) var vaultIDCounter: UInt64
-    
+        
     //access(contract) var seriesIDCounter: UInt64
 
     /************************************************************/
@@ -125,21 +124,6 @@ pub contract DAAM: NonFungibleToken {
         destroy() { destroy self.ownedNFTs }
     }
     /************************************************************/
-    pub resource Vault {
-        pub let name: String
-        pub let id: UInt64
-        pub var vault: @{String: NonFungibleToken.Collection}
-
-        init(name: String, collection: @NonFungibleToken.Collection, collection_name: String) {
-            self.name = name
-            self.id = DAAM.vaultIDCounter
-            DAAM.vaultIDCounter = DAAM.vaultIDCounter + 1 as UInt64
-            self.vault <- {collection_name: <-collection}
-        }
-
-        destroy() { destroy self.vault }
-    }
-    /************************************************************/
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
@@ -157,8 +141,7 @@ pub contract DAAM: NonFungibleToken {
 	init() { // DAAM init
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
-        self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
-        
+                
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        
         // create a public capability for the collection
 
