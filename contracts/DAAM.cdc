@@ -140,7 +140,7 @@ pub contract DAAM: NonFungibleToken {
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection() }
-    pub fun createNewCollection(name: String): @NonFungibleToken.Collection {
+    pub fun createNewCollection(name: String): @DAAM.Collection {
         var collection <- create DAAM.Collection()
         collection.setName(name: name)
         return <- collection

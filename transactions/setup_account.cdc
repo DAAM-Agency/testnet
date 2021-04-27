@@ -6,19 +6,12 @@ import DAAM from 0xf8d6e0586b0a20c7
 // to use the NFT contract by creating a new empty collection,
 // storing it in their account storage, and publishing a capability
 transaction {
-    prepare(acct: AuthAccount) {
-
-        // Create a new empty collection
-        let collection <- DAAM.createEmptyCollection()
-
-        // store the empty NFT Collection in account storage
-        acct.save<@DAAM.Collection>(<-collection, to: /storage/DAAMCollection)
-
-        log("Collection created for account 1")
-
+    prepare(acct: AuthAccount) {       
+        let collection <- DAAM.createNewCollection(name: "") // Create a new empty collection        
+        acct.save<@DAAM.Collection>(<-collection, to: /storage/DAAMCollection) // store the empty NFT Collection in account storage
+        log("Collection created for account")
         // create a public capability for the Collection
-        acct.link<&{DAAM.DAAMReceiver}>(/public/DAAMReceiver, target: /storage/DAAMCollection)
-
+        acct.link<&DAAM.Collection>(/public/DAAMCollection, target: /storage/DAAMCollection)
         log("Capability created")
     }
 }
