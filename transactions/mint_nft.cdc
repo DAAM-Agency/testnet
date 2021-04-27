@@ -1,37 +1,46 @@
-// Transaction2.cdc
-
+import NonFungibleToken from 0xf8d6e0586b0a20c7
+import DAAM from 0xf8d6e0586b0a20c7
 import DAAMAdminReceiver from 0xf8d6e0586b0a20c7
 
-// This transaction allows the Minter account to mint an NFT
-// and deposit it into its collection.
+// This script uses the NFTMinter resource to mint a new NFT
+// It must be run with the account that has the minter resource
+// stored in /storage/NFTMinter
 
-transaction {
+transaction(recipient: Address /* , metadata: DAAM.Metadata*/) {
 
-    // The reference to the collection that will be receiving the NFT
-    let receiverRef: &{DAAMAdminReceiver}
+    // local variable for storing the minter reference
+    let minter: &DAAM.NFTMinter
 
-    // The reference to the Minter resource stored in account storage
-    let minterRef: &DAAM.NFTMinter
+    prepare(signer: AuthAccount) {
 
-    prepare(acct: AuthAccount) {
-        // Get the owner's collection capability and borrow a reference
-        self.receiverRef = acct.getCapability<&{DAAMAdminReceiver}>(/public/DAAMAdmin)
-            .borrow()
-            ?? panic("Could not borrow receiver reference")
-        
-        // Borrow a capability for the NFTMinter in storage
-        self.minterRef = acct.borrow<&DAAM.NFTMinter>(from: /storage/NFTMinter)
-            ?? panic("could not borrow minter reference")
+        // borrow a reference to the NFTMinter resource in storage
+        self.minter = signer.borrow<&DAAM.NFTMinter>(from: /storage/NFTMinter)
+            ?? panic("Could not borrow a reference to the NFT minter")
     }
 
     execute {
-        // Use the minter reference to mint an NFT, which deposits
-        // the NFT into the collection that is sent as a parameter.
-        let newNFT <- self.minterRef.mintNFT()
+        let metadata = DAAM.Metadata( 
+        title  : "Title",
+        format : "format",
+        file   : "file",     
+        creator: "creator",        
+        about  : "about",
+        physical: "False",
+        series : "series",
+        agency : "Agency",
+        thumbnail_format: "thumbnail format",
+        thumbnail: "thumbnail"
+        )
 
-        self.receiverRef.deposit(token: <-newNFT)
 
-        log("NFT Minted and deposited to Account 2's Collection")
+        // Borrow the recipient's public NFT collection reference
+        let receiver = getAccount(recipient)
+            .getCapability(/public/DAAMVault)
+            //.borrow<&{DAAMAdminReceiver.Vault}>()
+            .borrow<&{NonFungibleToken.CollectionPublic}>()  // TODO BUG HERE  Could not get receiver reference to the NFT Collection
+            ?? panic("Could not get receiver reference to the NFT Collection")
+
+        // Mint the NFT and deposit it to the recipient's collection
+        self.minter.mintNFT(recipient: receiver, metadata: metadata)
     }
 }
-
