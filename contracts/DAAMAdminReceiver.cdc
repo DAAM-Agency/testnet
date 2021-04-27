@@ -16,12 +16,16 @@ pub contract DAAMAdminReceiver {
     pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     
     init() {
-            self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
-            let collection_name = "D.A.A.M Collection"
-            let collection <- DAAM.createEmptyCollection()  // Put a new Collection in storage
-            let vault <- create Vault(name: "D.A.A.M Vault", collection: <- collection, collection_name: collection_name)
-            self.account.save<@Vault>(<-vault, to: /storage/DAAMVault)
-            self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)                
+        let vault_name = "The D.A.A.M Vault"
+        let collection_name = "The D.A.A.M Collection"
+        self.vaultIDCounter = 0  // Initialize Vault counter acts as increamental serial number
+
+        var collection <- DAAM.createNewCollection(name: collection_name)  // Put a new Collection in storage
+        var daam <- create Vault(name: vault_name)
+        daam.vault[daam.name] <-! collection
+        
+        self.account.save<@Vault>(<-daam, to: /storage/DAAMVault)
+        self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)                
     }
     /************************************************************/
     pub resource Vault {
@@ -29,14 +33,14 @@ pub contract DAAMAdminReceiver {
         pub let id: UInt64
         pub var vault: @{String: NonFungibleToken.Collection}
 
-        init(name: String, collection: @NonFungibleToken.Collection, collection_name: String) {
+        init(name: String) {
             DAAMAdminReceiver.vaultIDCounter = 0
             self.name = name
             self.id = DAAMAdminReceiver.vaultIDCounter
             DAAMAdminReceiver.vaultIDCounter = DAAMAdminReceiver.vaultIDCounter + 1 as UInt64
-            self.vault <- {collection_name: <-collection}
+            self.vault <- {}
         }
 
-        destroy() { destroy self.vault }
+        destroy() { destroy self.vault } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
     }
 }

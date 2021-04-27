@@ -94,13 +94,16 @@ pub contract DAAM: NonFungibleToken {
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         //pub let name: String
         pub let id: UInt64
+        pub var name: String
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT} // dictionary of NFT conforming tokens
         
         init () {
             self.id = DAAM.collectionIDCounter
             DAAM.collectionIDCounter = DAAM.collectionIDCounter + 1 as UInt64
             self.ownedNFTs <- {}
+            self.name = ""
         } // NFT is a resource type with an `UInt64` ID field
+        access(contract) fun setName(name: String) { self.name = name}
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -137,6 +140,11 @@ pub contract DAAM: NonFungibleToken {
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection() }
+    pub fun createNewCollection(name: String): @NonFungibleToken.Collection {
+        var collection <- create DAAM.Collection()
+        collection.setName(name: name)
+        return <- collection
+    }
    
 	init() { // DAAM init
         self.totalSupply         = 0  // Initialize the total supply

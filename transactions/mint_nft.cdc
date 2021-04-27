@@ -31,12 +31,12 @@ transaction(recipient: Address /* , metadata: DAAM.Metadata*/) {
         thumbnail_format: "thumbnail format",
         thumbnail: "thumbnail"
         )
-        // Borrow the recipient's public NFT collection reference
-        let receiver = getAccount(recipient)
-            .getCapability(/public/DAAMVault)
+        //let vault = DAAMAdminReceiver
+        // Borrow the recipient's public NFT collection referenc
+        let receiver = getAccount(recipient).getCapability(/public/DAAMVault)
             //.borrow<&{DAAMAdminReceiver.Vault}>()
             .borrow<&{NonFungibleToken.CollectionPublic}>()  // TODO BUG HERE  Could not get receiver reference to the NFT Collection
-            ?? panic("Could not get receiver reference to the NFT Collection")
+            //?? panic("Could not get receiver reference to the NFT Collection")
             
         // Mint the NFT and deposit it to the recipient's collection
         self.minter.mintNFT(recipient: receiver, metadata: metadata)
