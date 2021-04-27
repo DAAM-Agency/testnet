@@ -1,7 +1,6 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM from 0xf8d6e0586b0a20c7
-import DAAMAdminReceiver from 0xf8d6e0586b0a20c7
-/* 
+
 // This script uses the NFTMinter resource to mint a new NFT
 // It must be run with the account that has the minter resource
 // stored in /storage/NFTMinter
@@ -33,10 +32,9 @@ transaction(recipient: Address /* , metadata: DAAM.Metadata*/) {
         )
 
         // Borrow the recipient's public NFT collection referenc
-        //let ggg = 
-        let receiver = getAccount(DAAMAdminReceiver).getCapability(/public/DAAMVault)
-            .borrow<&DAAMAdminReceiver.Vault>()? 
-            //.borrow<&{NonFungibleToken.CollectionPublic}>()?  // TODO BUG HERE  Could not get receiver reference to the NFT Collection
+        let receiver = getAccount(recipient).getCapability(/public/DAAMVault)
+        let borrow = receiver.borrow<&DAAM.Vault>()?
+            //.borrow<&{NonFungibleToken.CollectionPublic}>()// TODO BUG HERE  Could not get receiver reference to the NFT Collection
             //?? panic("Could not get receiver reference to the NFT Collection")
             
         // Mint the NFT and deposit it to the recipient's collection
@@ -44,7 +42,7 @@ transaction(recipient: Address /* , metadata: DAAM.Metadata*/) {
     }
 }
 
-*/
+/*
 
 transaction(recipient: Address) {    
     let adminRef: &DAAM.Admin  // local variable for the admin reference
@@ -55,7 +53,7 @@ transaction(recipient: Address) {
 
     execute {
         
-        //let setRef = self.adminRef.borrowSet(setID: setID)  // Borrow a reference to the specified set
+        let setRef = self.adminRef.borrowSet(setID: setID)  // Borrow a reference to the specified set
         
         // Mint a new NFT
         //let moment1 <- setRef.mintMoment(playID: playID)
@@ -70,4 +68,4 @@ transaction(recipient: Address) {
         // deposit the NFT in the receivers collection
         receiverRef.deposit(token: <-moment1)
     }
-}
+} */
