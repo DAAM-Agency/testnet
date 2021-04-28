@@ -18,8 +18,8 @@ pub contract DAAM: NonFungibleToken {
     // Serial Numbers Generation
     access(contract) var collectionIDCounter: UInt64
     access(self)     var vaultIDCounter     : UInt64
-
-    pub var daam: @{String: Vault}
+    
+    pub var vault: @{UInt64: Vault}
     //pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     /************************************************************/
     // NFT
@@ -85,11 +85,12 @@ pub contract DAAM: NonFungibleToken {
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT} // dictionary of NFT conforming tokens
         
         init (name: String) {
-            self.id = DAAM.collectionIDCounter
             DAAM.collectionIDCounter = DAAM.collectionIDCounter + 1 as UInt64
-            self.ownedNFTs <- {}
+            self.id = DAAM.collectionIDCounter
             self.name = name
+            self.ownedNFTs <- {}            
         } // NFT is a resource type with an `UInt64` ID field
+       
         access(contract) fun setName(name: String) { self.name = name}
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -126,22 +127,21 @@ pub contract DAAM: NonFungibleToken {
 	}// NFTMinter
     /************************************************************/
     pub resource Admin {
-        /*pub fun createSet(name: String) {
-            // Create the new Set
-            var newSet <- create Set(name: name)
-
-            // Store it in the sets mapping field
-            TopShot.sets[newSet.setID] <-! newSet
-        } */
+        // Store it in the sets mapping field
+        pub fun AddVault(vault: @Vault) { DAAM.vault[vault.id] <-! vault }
+        
         //pub fun createCollection(): @Collection { return <- create Collection ()  }// Create the new collection     
 
         //borrowCollection returns a reference to a set in the DAAM contract so that the admin can call methods on it
-        /*pub fun borrowCollection(id: UInt64): &Collection {
-            pre { DAAM.collection[setID] != nil: "Cannot borrow Set: The Set doesn't exist" }            
-            // Get a reference to the Set and return it use `&` to indicate the reference to the object and type
-            return &DAAM.sets[setID] as &Set
+        /*pub fun borrowCollection(collection: String): &Collection {            
+            //pre { DAAM.vault[0 as UInt64].collection[collection] != nil: "Cannot borrow Set: The Set doesn't exist" }            
+            
+            
+            //let vault <- DAAM.vault[0 as UInt64]
+            //let collection <- DAAM.vault    [0].collection[collection]         ?? panic("Collection doesn't exist!")
+            
+            return collection["hhh"] //.borrow<&Collection>()
         }*/
-
         //pub fun createNewAdmin(): @Admin { return <-create Admin() }   // createNewAdmin creates a new Admin resource
     }
     /************************************************************/
@@ -157,8 +157,9 @@ pub contract DAAM: NonFungibleToken {
             self.collection <- {}
         }
 
-        pub fun addCollection(name: String, collection: @NonFungibleToken.Collection) {
-            self.collection[name] <-! collection
+        pub fun createCollection(name: String) {
+            var newCollection <- create Collection(name: name) // Create the new Collection           
+            self.collection[name] <-! newCollection            // Store it in the Vault.collection mapping field
         }
 
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
@@ -167,10 +168,11 @@ pub contract DAAM: NonFungibleToken {
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection("") }
     //pub fun createEmptyCollection(name: String): @NonFungibleToken.Collection { return <- create DAAM.Collection(name) }
-    // TODO, can not override with current version of Cadence
-    pub fun createNewCollection(name: String): @NonFungibleToken.Collection { return <- create DAAM.Collection(name) }
+
+
 
 	init() { // DAAM init
+        self.vault <- {}
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
         self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
@@ -178,24 +180,23 @@ pub contract DAAM: NonFungibleToken {
         let vault_name = "The D.A.A.M Vault"
         let collection_name = "The D.A.A.M Collection"
 
-        self.daam <- {}        
-        var collection <- DAAM.createNewCollection(name: collection_name)  // Put a new Collection in storage
-        var vaults <- create Vault(name: vault_name)
-        vaults.collection[collection_name] <-! collection
-        self.daam[vault_name] <-! vaults
+        var vault <- create Vault(name: vault_name)
+        var admin <- create Admin()
+        vault.createCollection(name: collection_name)
+        admin.AddVault(vault: <- vault)
+        self.account.save<@Admin>(<- create Admin(), to: /storage/DAAMAdmin)
+        destroy admin
         
         //self.account.save<@Vault>(<-daam, to: /storage/DAAMVault)
         //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
         
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        
-        // create a public capability for the collection
-
-        self.account.save<@Admin>(<- create Admin(), to: /storage/DAAMAdmin)
+        // create a public capability for the collection */        
         
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
         self.account.save(<-minter, to: /storage/NFTMinter)
 
-        emit ContractInitialized()        // emiter
+        emit ContractInitialized()        // emiter 
 	}
 }
  
