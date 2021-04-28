@@ -19,6 +19,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionIDCounter: UInt64
     access(self)     var vaultIDCounter     : UInt64
 
+    pub var daam: @{String: Vault}
     //pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     /************************************************************/
     // NFT
@@ -134,7 +135,7 @@ pub contract DAAM: NonFungibleToken {
         } */
         //pub fun createCollection(): @Collection { return <- create Collection ()  }// Create the new collection     
 
-        // borrowCollection returns a reference to a set in the DAAM contract so that the admin can call methods on it
+        //borrowCollection returns a reference to a set in the DAAM contract so that the admin can call methods on it
         /*pub fun borrowCollection(id: UInt64): &Collection {
             pre { DAAM.collection[setID] != nil: "Cannot borrow Set: The Set doesn't exist" }            
             // Get a reference to the Set and return it use `&` to indicate the reference to the object and type
@@ -156,6 +157,10 @@ pub contract DAAM: NonFungibleToken {
             self.collection <- {}
         }
 
+        pub fun addCollection(name: String, collection: @NonFungibleToken.Collection) {
+            self.collection[name] <-! collection
+        }
+
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
     }
     /************************************************************/ // DAAM Top Level    
@@ -168,17 +173,19 @@ pub contract DAAM: NonFungibleToken {
 	init() { // DAAM init
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
-        self.vaultIDCounter = 0  // Initialize Vault counter acts as increamental serial number
+        self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
         
         let vault_name = "The D.A.A.M Vault"
         let collection_name = "The D.A.A.M Collection"
 
+        self.daam <- {}        
         var collection <- DAAM.createNewCollection(name: collection_name)  // Put a new Collection in storage
-        var daam <- create Vault(name: vault_name)
-        daam.collection[collection_name] <-! collection
+        var vaults <- create Vault(name: vault_name)
+        vaults.collection[collection_name] <-! collection
+        self.daam[vault_name] <-! vaults
         
-        self.account.save<@Vault>(<-daam, to: /storage/DAAMVault)
-        self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
+        //self.account.save<@Vault>(<-daam, to: /storage/DAAMVault)
+        //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
         
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        
         // create a public capability for the collection
