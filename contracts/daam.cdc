@@ -25,10 +25,11 @@ pub contract DAAM: NonFungibleToken {
     // NFT
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64                      // Unique ID
-        pub let metadata: {String: String}
+        pub let metadata: Metadata
         access(self) var copyright: &DAAMCopyright.Copyright
-        init(initID: UInt64, metadata: {String: String}) {         
-            self.id = initID
+        init(metadata: Metadata) {
+            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64   
+            self.id = DAAM.totalSupply
             self.metadata = metadata
             self.copyright = DAAMCopyright.setCopyright(copyright: DAAMCopyright.CopyrightStatus.UNVERIFIED)
         }// NFT init       
@@ -60,22 +61,6 @@ pub contract DAAM: NonFungibleToken {
             self.thumbnail_format = thumbnail_format
             self.thumbnail = thumbnail            
         }// Metadata init
-
-        pub fun saveMetadata(): {String:String} {
-            let metadata = {
-                "title": self.title,
-                "format": self.format,
-                "file": self.file,
-                "creator": self.creator,
-                "about": self.about,
-                "physical": self.isPhysical,
-                "series": self.series,
-                "agency": self.agency,
-                "thumbnail format": self.thumbnail_format,
-                "thumbnail": self.thumbnail
-            }
-            return metadata
-        }// saveMetadata
     }// Metadata
     /************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
@@ -84,10 +69,10 @@ pub contract DAAM: NonFungibleToken {
         pub var name: String
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT} // dictionary of NFT conforming tokens
         
-        init (name: String) {
+        init () {
             DAAM.collectionIDCounter = DAAM.collectionIDCounter + 1 as UInt64
             self.id = DAAM.collectionIDCounter
-            self.name = name
+            self.name = ""
             self.ownedNFTs <- {}            
         } // NFT is a resource type with an `UInt64` ID field
        
@@ -121,71 +106,70 @@ pub contract DAAM: NonFungibleToken {
                 
         destroy() { destroy self.ownedNFTs }
     }
-    /************************************************************/
+    /************************************************************/ // NFTMinter
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
-		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-            let data = metadata.saveMetadata()   	
-			var newNFT <- create NFT(initID: DAAM.totalSupply, metadata: data)  // create a new NFT	
+		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) { 	
+			var newNFT <- create NFT(metadata: metadata)  // create a new NFT
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
 		}
-	}// NFTMinter
+	}
     /************************************************************/
     pub resource Admin {
         // Store it in the sets mapping field
         pub fun AddVault(vault: @Vault) { DAAM.vault[vault.id] <-! vault }
         
         pub fun borrowVault(id: UInt64): &Vault {
-            pre {
-                DAAM.vault[id] != nil: "Cannot borrow Vault: The Vault doesn't exist"
-            }            
+            pre { DAAM.vault[id] != nil: "Cannot borrow Vault: The Vault doesn't exist" }            
             // Get a reference to the Set and return it use `&` to 
             // indicate the reference to the object and type
             return &DAAM.vault[id] as &Vault
-        }      
-       
+        }
+
         //pub fun createNewAdmin(): @Admin { return <-create Admin() }   // createNewAdmin creates a new Admin resource
     }
     /************************************************************/
     pub resource Vault {
         pub let name: String
         pub let id: UInt64
-        pub var collection: @{String: NonFungibleToken.Collection}
+        pub var collection: @{String: Collection}
 
         init(name: String) {
             self.name = name
             DAAM.vaultIDCounter = DAAM.vaultIDCounter + 1 as UInt64
             self.id = DAAM.vaultIDCounter            
             self.collection <- {}
-        }
+        }        
 
-        pub fun createCollection(name: String) {
-            var newCollection <- create Collection(name: name) // Create the new Collection           
-            self.collection[name] <-! newCollection            // Store it in the Vault.collection mapping field
-        }
+        pub fun createCollection(name: String) { self.collection[name] <-! create Collection() } // Create the new Collection           
 
-        pub fun borrowCollection(name: String): &Collection {
-            let vault <- DAAM.vault[0 as UInt64]
-            let collection = &self.collection["GGG"]
+        /*pub fun borrowCollection(name: String): &Collection {
+            pre { self.collection[name] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
+            return &self.collection[name] as &Collection
 
             //destroy collection
             //destroy vault
-            return collection //as &NonFungibleToken.Collection
-        }
+            //return &collection //as &DAAM.Collection //&NonFungibleToken.Collection
+        }*/
 
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
     }
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        return <- create DAAM.Collection("")
+        return <-create Collection( )
     }
 
-    pub fun createNewCollection(name: String): @NonFungibleToken.Collection {
-        return <- create DAAM.Collection(name)
+    pub fun createNewCollection(name: String): @Collection {
+        var collection <- create Collection()
+        collection.setName(name: name)
+        return <- collection
     }
+
+    pub fun createVault(name: String): @Vault { return <- create Vault(name: name) }
+
+    pub fun createNFT(metadata: DAAM.Metadata): @NFT { return <- create NFT(metadata: metadata) }
     
     init() { // DAAM init
         self.vault <- {}

@@ -10,7 +10,7 @@ import DAAM from 0xf8d6e0586b0a20c7
 // playID: the ID of a play from which a new moment is minted
 // recipientAddr: the Flow address of the account receiving the newly minted moment
 
-transaction(setID: UInt32, playID: UInt32, recipientAddr: Address) {
+transaction() {
     // local variable for the admin reference
     let adminRef: &DAAM.Admin
 
@@ -20,21 +20,21 @@ transaction(setID: UInt32, playID: UInt32, recipientAddr: Address) {
     }
 
     execute {
-        let id = 0 as UInt64
+        //let mainVault = 0 as UInt64
         // Borrow a reference to the specified vault
-        let vaultRef = self.adminRef.borrowVault(id: id)
+        //let vaultRef = self.adminRef.borrowVault(id: mainVault)
 
         // Mint a new NFT
-        let moment1 <- VaultRef.mintMoment(playID: playID)
+        self.adminRef.addNFT()
 
         // get the public account object for the recipient
         let recipient = getAccount(recipientAddr)
 
         // get the Collection reference for the receiver
-        let receiverRef = recipient.getCapability(/public/MomentCollection).borrow<&{TopShot.MomentCollectionPublic}>()
-            ?? panic("Cannot borrow a reference to the recipient's moment collection")
+        //let receiverRef = recipient.getCapability(/public/MomentCollection).borrow<&{TopShot.MomentCollectionPublic}>()
+            //?? panic("Cannot borrow a reference to the recipient's moment collection")
 
         // deposit the NFT in the receivers collection
-        receiverRef.deposit(token: <-moment1)
+        //receiverRef.deposit(token: <-moment1)
     }
 }

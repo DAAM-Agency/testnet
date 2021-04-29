@@ -7,10 +7,17 @@ import DAAM             from 0xf8d6e0586b0a20c7
 // empty collection, storing it in their account storage, and publishing a capability
 
 transaction {
-    prepare(acct: AuthAccount) {       
-        let collection <- DAAM.createNewCollection(name: "My Collection") // Create a new empty collection        
-        acct.save<@NonFungibleToken.Collection>(<-collection, to: /storage/DAAMVault) // store the empty NFT Collection in account storage
+    prepare(acct: AuthAccount) {
+        let vault_name = "My D.A.A.M Vault"
+        let collection_name = "My D.A.A.M Collection"
+        var vault <- DAAM.createVault(name: vault_name)
+        log("Vault created for account")
+
+        let collection <- DAAM.createNewCollection(name: collection_name) // Create a new empty collection
+        vault.collection[collection_name] <-! collection
+        acct.save<@DAAM.Vault>(<-vault, to: /storage/DAAMVault) // store the empty NFT Collection in account storage
         log("Collection created for account")
+        
         // create a public capability for the Collection
         acct.link<&DAAM.Collection>(/public/DAAMVault, target: /storage/DAAMVault)
         log("Capability created")
