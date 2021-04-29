@@ -117,7 +117,7 @@ pub contract DAAM: NonFungibleToken {
                 self.ownedNFTs[id] != nil : "Cannot borrow NFT: The NFT doesn't exist"
             }
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
-        }
+        }        
                 
         destroy() { destroy self.ownedNFTs }
     }
@@ -164,6 +164,15 @@ pub contract DAAM: NonFungibleToken {
         pub fun createCollection(name: String) {
             var newCollection <- create Collection(name: name) // Create the new Collection           
             self.collection[name] <-! newCollection            // Store it in the Vault.collection mapping field
+        }
+
+        pub fun borrowCollection(name: String): &Collection {
+            let vault <- DAAM.vault[0 as UInt64]
+            let collection = &self.collection["GGG"]
+
+            //destroy collection
+            //destroy vault
+            return collection //as &NonFungibleToken.Collection
         }
 
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
