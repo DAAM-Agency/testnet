@@ -9,10 +9,10 @@ import DAAM             from 0xf8d6e0586b0a20c7
 transaction {
     prepare(acct: AuthAccount) {       
         let collection <- DAAM.createNewCollection(name: "My Collection") // Create a new empty collection        
-        acct.save<@NonFungibleToken.Collection>(<-collection, to: /storage/DAAMCollection) // store the empty NFT Collection in account storage
+        acct.save<@NonFungibleToken.Collection>(<-collection, to: /storage/DAAMVault) // store the empty NFT Collection in account storage
         log("Collection created for account")
         // create a public capability for the Collection
-        acct.link<&DAAM.Collection>(/public/DAAMCollection, target: /storage/DAAMCollection)
+        acct.link<&DAAM.Collection>(/public/DAAMVault, target: /storage/DAAMVault)
         log("Capability created")
     }
 }
