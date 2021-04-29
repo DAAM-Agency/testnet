@@ -142,6 +142,7 @@ pub contract DAAM: NonFungibleToken {
             
             return collection["hhh"] //.borrow<&Collection>()
         }*/
+       
         //pub fun createNewAdmin(): @Admin { return <-create Admin() }   // createNewAdmin creates a new Admin resource
     }
     /************************************************************/
@@ -166,12 +167,15 @@ pub contract DAAM: NonFungibleToken {
     }
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <- create DAAM.Collection("") }
-    //pub fun createEmptyCollection(name: String): @NonFungibleToken.Collection { return <- create DAAM.Collection(name) }
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+        return <- create DAAM.Collection("")
+    }
 
-
-
-	init() { // DAAM init
+    pub fun createNewCollection(name: String): @NonFungibleToken.Collection {
+        return <- create DAAM.Collection(name)
+    }
+    
+    init() { // DAAM init
         self.vault <- {}
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
