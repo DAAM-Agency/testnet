@@ -110,8 +110,15 @@ pub contract DAAM: NonFungibleToken {
         }
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
+        
         // borrowNFT gets a reference to an NFT in the collection so that the caller can read its metadata and call its methods
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return &self.ownedNFTs[id] as &NonFungibleToken.NFT }
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
+            pre {
+                self.ownedNFTs[id] != nil : "Cannot borrow NFT: The NFT doesn't exist"
+            }
+            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+        }
+                
         destroy() { destroy self.ownedNFTs }
     }
     /************************************************************/
@@ -130,18 +137,14 @@ pub contract DAAM: NonFungibleToken {
         // Store it in the sets mapping field
         pub fun AddVault(vault: @Vault) { DAAM.vault[vault.id] <-! vault }
         
-        //pub fun createCollection(): @Collection { return <- create Collection ()  }// Create the new collection     
-
-        //borrowCollection returns a reference to a set in the DAAM contract so that the admin can call methods on it
-        /*pub fun borrowCollection(collection: String): &Collection {            
-            //pre { DAAM.vault[0 as UInt64].collection[collection] != nil: "Cannot borrow Set: The Set doesn't exist" }            
-            
-            
-            //let vault <- DAAM.vault[0 as UInt64]
-            //let collection <- DAAM.vault    [0].collection[collection]         ?? panic("Collection doesn't exist!")
-            
-            return collection["hhh"] //.borrow<&Collection>()
-        }*/
+        pub fun borrowVault(id: UInt64): &Vault {
+            pre {
+                DAAM.vault[id] != nil: "Cannot borrow Vault: The Vault doesn't exist"
+            }            
+            // Get a reference to the Set and return it use `&` to 
+            // indicate the reference to the object and type
+            return &DAAM.vault[id] as &Vault
+        }      
        
         //pub fun createNewAdmin(): @Admin { return <-create Admin() }   // createNewAdmin creates a new Admin resource
     }
