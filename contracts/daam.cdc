@@ -110,9 +110,11 @@ pub contract DAAM: NonFungibleToken {
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
-		pub fun mintNFT(metadata: Metadata) { 	
-			//var newNFT <-   // create a new NFT
-            DAAM.vault[0 as UInt64]?.borrowCollection(name: "D.A.A.M Verification")?.deposit(token: <- create NFT(metadata: metadata))!
+		pub fun mintNFT(metadata: Metadata) {
+            pre { DAAM.vault[0 as UInt64]  != nil: "Cannot borrow Vault: The Vault doesn't exist" }
+            let collection_name = "The D.A.A.M Collection"
+            let vaultRef = &DAAM.vault[0 as UInt64] as &Vault
+            vaultRef.borrowCollection(name: collection_name).deposit(token: <- create NFT(metadata: metadata))
             //recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 		}
 	}
@@ -179,10 +181,8 @@ pub contract DAAM: NonFungibleToken {
         var admin <- create Admin()
         vault.createCollection(name: collection_name)
         admin.AddVault(vault: <- vault)
-        self.account.save<@Admin>(<- create Admin(), to: /storage/DAAMAdmin)
+        self.account.save<@Admin>(<-admin, to: /storage/DAAMAdmin)
 
-        destroy admin        
-        
         //self.account.save<@Vault>(<-vault, to: /storage/DAAMVault)
         //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
         
