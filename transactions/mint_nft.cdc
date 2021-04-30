@@ -20,21 +20,22 @@ transaction() {
     }
 
     execute {
-        //let mainVault = 0 as UInt64
-        // Borrow a reference to the specified vault
-        //let vaultRef = self.adminRef.borrowVault(id: mainVault)
-
-        // Mint a new NFT
-        self.adminRef.addNFT()
-
-        // get the public account object for the recipient
-        let recipient = getAccount(recipientAddr)
-
-        // get the Collection reference for the receiver
-        //let receiverRef = recipient.getCapability(/public/MomentCollection).borrow<&{TopShot.MomentCollectionPublic}>()
-            //?? panic("Cannot borrow a reference to the recipient's moment collection")
-
-        // deposit the NFT in the receivers collection
-        //receiverRef.deposit(token: <-moment1)
+        let metadata = DAAM.Metadata( 
+        title: "Title", 
+        format : "format",
+        file   : "file",     
+        creator: "creator",        
+        about  : "about",
+        physical: "False",
+        series : "series",
+        agency : "Agency",
+        thumbnail_format: "thumbnail format",
+        thumbnail: "thumbnail"
+        )     
+        
+        let minter <- DAAM.createMinter()
+        minter.mintNFT(metadata: metadata)
+        destroy minter
     }
+
 }

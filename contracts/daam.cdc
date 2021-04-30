@@ -110,9 +110,10 @@ pub contract DAAM: NonFungibleToken {
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
-		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) { 	
-			var newNFT <- create NFT(metadata: metadata)  // create a new NFT
-			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+		pub fun mintNFT(metadata: Metadata) { 	
+			//var newNFT <-   // create a new NFT
+            DAAM.vault[0 as UInt64]?.borrowCollection(name: "D.A.A.M Verification")?.deposit(token: <- create NFT(metadata: metadata))!
+            //recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 		}
 	}
     /************************************************************/
@@ -144,22 +145,16 @@ pub contract DAAM: NonFungibleToken {
 
         pub fun createCollection(name: String) { self.collection[name] <-! create Collection() } // Create the new Collection           
 
-        /*pub fun borrowCollection(name: String): &Collection {
+        pub fun borrowCollection(name: String): &Collection {
             pre { self.collection[name] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
             return &self.collection[name] as &Collection
-
-            //destroy collection
-            //destroy vault
-            //return &collection //as &DAAM.Collection //&NonFungibleToken.Collection
-        }*/
+        }
 
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
     }
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        return <-create Collection( )
-    }
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <-create Collection() }
 
     pub fun createNewCollection(name: String): @Collection {
         var collection <- create Collection()
@@ -167,9 +162,9 @@ pub contract DAAM: NonFungibleToken {
         return <- collection
     }
 
-    pub fun createVault(name: String): @Vault { return <- create Vault(name: name) }
-
-    pub fun createNFT(metadata: DAAM.Metadata): @NFT { return <- create NFT(metadata: metadata) }
+    pub fun createVault(name: String)      : @Vault     { return <- create Vault(name    : name)     }
+    pub fun createNFT  (metadata: Metadata): @NFT       { return <- create NFT  (metadata: metadata) }
+    pub fun createMinter()                 : @NFTMinter { return <- create NFTMinter()               }
     
     init() { // DAAM init
         self.vault <- {}
@@ -185,9 +180,10 @@ pub contract DAAM: NonFungibleToken {
         vault.createCollection(name: collection_name)
         admin.AddVault(vault: <- vault)
         self.account.save<@Admin>(<- create Admin(), to: /storage/DAAMAdmin)
-        destroy admin
+
+        destroy admin        
         
-        //self.account.save<@Vault>(<-daam, to: /storage/DAAMVault)
+        //self.account.save<@Vault>(<-vault, to: /storage/DAAMVault)
         //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
         
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        

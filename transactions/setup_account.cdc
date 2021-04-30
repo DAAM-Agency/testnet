@@ -10,16 +10,15 @@ transaction {
     prepare(acct: AuthAccount) {
         let vault_name = "My D.A.A.M Vault"
         let collection_name = "My D.A.A.M Collection"
+        
         var vault <- DAAM.createVault(name: vault_name)
-        log("Vault created for account")
-
-        let collection <- DAAM.createNewCollection(name: collection_name) // Create a new empty collection
-        vault.collection[collection_name] <-! collection
+        log("Vault created for account")        
+        vault.createCollection(name: collection_name) // Create a new empty collection
         acct.save<@DAAM.Vault>(<-vault, to: /storage/DAAMVault) // store the empty NFT Collection in account storage
         log("Collection created for account")
         
         // create a public capability for the Collection
-        acct.link<&DAAM.Collection>(/public/DAAMVault, target: /storage/DAAMVault)
+        acct.link<&DAAM.Vault>(/public/DAAMVault, target: /storage/DAAMVault)
         log("Capability created")
     }
 }
