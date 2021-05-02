@@ -203,7 +203,7 @@ pub contract DAAM: NonFungibleToken {
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <-create Collection() }
 
-    pub fun createAddArtist(_ artist: Address) {
+    pub fun addArtist(_ artist: Address) {
         pre { artist != nil: "Invalid address" }
         let profileCap = getAccount(artist).getCapability<&{Profile.Public}>(Profile.publicPath).borrow()!
         let vaultCap   = getAccount(0xf8d6e0586b0a20c7).getCapability<&DAAM.Vault>(DAAM.vaultPublicPath).borrow()!
