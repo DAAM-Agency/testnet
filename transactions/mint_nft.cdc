@@ -12,7 +12,7 @@ transaction() {
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.borrow<&DAAM.NFTMinter>(from: /storage/DAAMMinter)
+        self.minter = signer.borrow<&DAAM.NFTMinter>(from: DAAM.minterStorage)
             ?? panic("Could not borrow a reference to the NFT minter")
     }
 
@@ -32,13 +32,13 @@ transaction() {
         log("Metadata completed")
 
         // Borrow the recipient's public NFT collection reference
-        let receiver = getAccount(0xf8d6e0586b0a20c7)
+        /*let receiver = getAccount(0xf8d6e0586b0a20c7)
             .getCapability(/public/DAAMVault)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
-            ?? panic("Could not get receiver reference to the NFT Collection")
+            ?? panic("Could not get receiver reference to the NFT Collection")*/
 
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, metadata: metadata)
+        self.minter.mintNFT(metadata: metadata) // recipient: receiver, 
         log("NFT Minted")
     }
 }

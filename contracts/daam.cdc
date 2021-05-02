@@ -19,12 +19,12 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionIDCounter: UInt64
     access(self)     var vaultIDCounter     : UInt64
     
-    pub var vault: @Vault //@{UInt64: Vault}
+    //pub var vault: @Vault //@{UInt64: Vault}
 
-    pub let vaultStorage : StoragePath
-    pub let vaultPublic  : PublicPath
-    pub let minterStorage: StoragePath
-    pub let minterPublic : PublicPath
+    pub let vaultStoragePath : StoragePath
+    pub let vaultPublicPath  : PublicPath
+    pub let minterStoragePath: StoragePath
+    pub let minterPublicPath : PublicPath
 
     pub let vaultName: String
     pub let collectionName: String
@@ -170,17 +170,17 @@ pub contract DAAM: NonFungibleToken {
             destroy newNFT
             recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 		}*/
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-            pre { DAAM.vault.collection[DAAM.collectionName] != nil : ""}
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) { //  
+            //pre { DAAM.vault.collection[DAAM.collectionName] != nil : ""}
 
 			// create a new NFT
 			var newNFT <- create NFT(metadata: metadata)
-            var collection = &DAAM.vault.collection[DAAM.collectionName] as &Collection
+            //var collection = &DAAM.vault.collection[DAAM.collectionName] as &Collection
 
 			// deposit it in the recipient's account using their reference
 			
-            collection.deposit(token: <-newNFT)
-            //recipient.deposit(token: <-newNFT)
+            //collection.deposit(token: <-newNFT)
+            recipient.deposit(token: <-newNFT)
 
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
 		}
@@ -203,10 +203,14 @@ pub contract DAAM: NonFungibleToken {
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <-create Collection() }
 
-    pub fun createNewCollection(name: String): @Collection {
+    pub fun createAddArtist(_ artist: Address) {
+        pre { artist != nil: "Invalid address" }
+        let profileCap = getAccount(artist).getCapability<&{Profile.Public}>(Profile.publicPath).borrow()!
+        let vaultCap   = getAccount(0xf8d6e0586b0a20c7).getCapability<&DAAM.Vault>(DAAM.vaultPublicPath).borrow()!
+        let artist_name = profileCap.getName()
         var collection <- create Collection()
-        collection.setName(name: name)
-        return <- collection
+        collection.setName(name: artist_name)
+        vaultCap.addCollection(collection: <- collection)
     }
 
     pub fun createVault(name: String)      : @Vault     { return <- create Vault(name    : name)     }
@@ -219,30 +223,31 @@ pub contract DAAM: NonFungibleToken {
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
         self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
 
-        self.vaultStorage  = /storage/DAAMVault
-        self.vaultPublic   = /public/DAAMVault
-        self.minterStorage = /storage/DAAMMinter
-        self.minterPublic  = /public/DAAMMinter
+        self.vaultStoragePath  = /storage/DAAMVault
+        self.vaultPublicPath   = /public/DAAMVault
+        self.minterStoragePath = /storage/DAAMMinter
+        self.minterPublicPath  = /public/DAAMMinter
         
         self.vaultName = "The D.A.A.M Vault"           // Replace with ID #
         self.collectionName = "The D.A.A.M Collection" // Replace with ID #
 
-        self.vault <- create Vault(name: self.vaultName)
-        let collection <-! self.createNewCollection(name: self.collectionName)
+        var vault <-! create Vault(name: self.vaultName)
+        let collection <-! create Collection()
+        collection.setName(name: self.collectionName)
         //var admin <- create Admin()
-        self.vault.addCollection(collection: <- collection)
+        vault.addCollection(collection: <- collection)
         //admin.AddVault(vault: <- vault)
         //self.account.save<@Admin>(<-admin, to: /storage/DAAMAdmin)
 
-        //self.account.save<@Vault>(<-vault, to:  self.vaultStorage)
-        //self.account.link<&Vault>(self.vaultPublic, target:  self.vaultStorage)       
+        self.account.save<@Vault>(<-vault, to:  self.vaultStoragePath)
+        self.account.link<&Vault>(self.vaultPublicPath, target:  self.vaultStoragePath)       
         
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        
         // create a public capability for the collection */        
         
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
-        self.account.save<@NFTMinter>(<-minter, to: self.minterStorage)
-        self.account.link<&NFTMinter>( self.minterPublic, target: self.minterStorage)
+        self.account.save<@NFTMinter>(<-minter, to: self.minterStoragePath)
+        self.account.link<&NFTMinter>( self.minterPublicPath, target: self.minterStoragePath)
 
         emit ContractInitialized()        // emiter 
 	}
