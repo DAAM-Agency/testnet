@@ -21,8 +21,13 @@ pub contract DAAM: NonFungibleToken {
     
     pub var vault: @Vault //@{UInt64: Vault}
 
+    pub let vaultStorage : StoragePath
+    pub let vaultPublic  : PublicPath
     pub let minterStorage: StoragePath
     pub let minterPublic : PublicPath
+
+    pub let vaultName: String
+    pub let collectionName: String
 
     //pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     /************************************************************/
@@ -166,12 +171,16 @@ pub contract DAAM: NonFungibleToken {
             recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 		}*/
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
+            pre { DAAM.vault.collection[DAAM.collectionName] != nil : ""}
 
 			// create a new NFT
 			var newNFT <- create NFT(metadata: metadata)
+            var collection = &DAAM.vault.collection[DAAM.collectionName] as &Collection
 
 			// deposit it in the recipient's account using their reference
-			recipient.deposit(token: <-newNFT)
+			
+            collection.deposit(token: <-newNFT)
+            //recipient.deposit(token: <-newNFT)
 
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
 		}
@@ -210,21 +219,23 @@ pub contract DAAM: NonFungibleToken {
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
         self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
 
+        self.vaultStorage  = /storage/DAAMVault
+        self.vaultPublic   = /public/DAAMVault
         self.minterStorage = /storage/DAAMMinter
         self.minterPublic  = /public/DAAMMinter
         
-        let vault_name = "The D.A.A.M Vault"
-        let collection_name = "The D.A.A.M Collection"
+        self.vaultName = "The D.A.A.M Vault"           // Replace with ID #
+        self.collectionName = "The D.A.A.M Collection" // Replace with ID #
 
-        self.vault <- create Vault(name: vault_name)
-        let collection <-! self.createNewCollection(name: collection_name)
+        self.vault <- create Vault(name: self.vaultName)
+        let collection <-! self.createNewCollection(name: self.collectionName)
         //var admin <- create Admin()
         self.vault.addCollection(collection: <- collection)
         //admin.AddVault(vault: <- vault)
         //self.account.save<@Admin>(<-admin, to: /storage/DAAMAdmin)
 
-        //self.account.save<@Vault>(<-vault, to: /storage/DAAMVault)
-        //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
+        //self.account.save<@Vault>(<-vault, to:  self.vaultStorage)
+        //self.account.link<&Vault>(self.vaultPublic, target:  self.vaultStorage)       
         
         //self.account.link<&{NonFungibleToken.CollectionPublic}>(/public/DAAMCollection, target: /storage/DAAMCollection)        
         // create a public capability for the collection */        
