@@ -1,27 +1,24 @@
-//import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM from 0xf8d6e0586b0a20c7
 
-// This transaction is what an admin would use to mint a single new moment
-// and deposit it in a user's collection
-
-// Parameters:
-//
-// setID: the ID of a set containing the target play
-// playID: the ID of a play from which a new moment is minted
-// recipientAddr: the Flow address of the account receiving the newly minted moment
+// This script uses the NFTMinter resource to mint a new NFT
+// It must be run with the account that has the minter resource
+// stored in /storage/NFTMinter
 
 transaction() {
-    // local variable for the admin reference
-    let adminRef: &DAAM.Admin
 
-    prepare(acct: AuthAccount) {
-        // borrow a reference to the Admin resource in storage
-        self.adminRef = acct.borrow<&DAAM.Admin>(from: /storage/DAAMAdmin)!
+    // local variable for storing the minter reference
+    let minter: &DAAM.NFTMinter
+
+    prepare(signer: AuthAccount) {
+        // borrow a reference to the NFTMinter resource in storage
+        self.minter = signer.borrow<&DAAM.NFTMinter>(from: /storage/DAAMMinter)
+            ?? panic("Could not borrow a reference to the NFT minter")
     }
 
-    execute {
-        let metadata = DAAM.Metadata( 
-        title: "Title", 
+    execute {   
+        let metadata = DAAM.Metadata(
+        title  : "Title", 
         format : "format",
         file   : "file",     
         creator: "creator",        
@@ -32,10 +29,16 @@ transaction() {
         thumbnail_format: "thumbnail format",
         thumbnail: "thumbnail"
         )     
-        
-        let minter <- DAAM.createMinter()
-        minter.mintNFT(metadata: metadata)
-        destroy minter
-    }
+        log("Metadata completed")
 
+        // Borrow the recipient's public NFT collection reference
+        let receiver = getAccount(0xf8d6e0586b0a20c7)
+            .getCapability(/public/DAAMVault)
+            .borrow<&{NonFungibleToken.CollectionPublic}>()
+            ?? panic("Could not get receiver reference to the NFT Collection")
+
+        // Mint the NFT and deposit it to the recipient's collection
+        self.minter.mintNFT(recipient: receiver, metadata: metadata)
+        log("NFT Minted")
+    }
 }

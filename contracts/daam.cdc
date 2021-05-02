@@ -19,7 +19,11 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionIDCounter: UInt64
     access(self)     var vaultIDCounter     : UInt64
     
-    pub var vault: @{UInt64: Vault}
+    pub var vault: @Vault //@{UInt64: Vault}
+
+    pub let minterStorage: StoragePath
+    pub let minterPublic : PublicPath
+
     //pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     /************************************************************/
     // NFT
@@ -63,7 +67,18 @@ pub contract DAAM: NonFungibleToken {
         }// Metadata init
     }// Metadata
     /************************************************************/
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+    pub resource interface DAAMCollectionPublic {
+        pub fun deposit(token: @NonFungibleToken.NFT)
+        pub fun getIDs(): [UInt64]
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
+            /*post {
+                (result == nil) || (result?.id == id): 
+                    "Cannot borrow KittyItem reference: The ID of the returned reference is incorrect"
+            }*/
+        
+    }
+    /************************************************************/
+    pub resource Collection: DAAMCollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         //pub let name: String
         pub let id: UInt64
         pub var name: String
@@ -87,11 +102,12 @@ pub contract DAAM: NonFungibleToken {
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM.NFT
-            let id: UInt64 = token.id            
-            let oldToken <- self.ownedNFTs[id] <- token // add the new token to the dictionary which removes the old one
-            emit Deposit(id: id, to: self.owner?.address)
-            destroy oldToken
+            //let token <- token as! @DAAM.NFT
+            let id: UInt64 = token.id
+            //let oldToken <- self.ownedNFTs[id] <- token // add the new token to the dictionary which removes the old one
+            //emit Deposit(id: id, to: self.owner?.address)
+            //destroy oldToken
+            destroy token
         }
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
@@ -106,20 +122,62 @@ pub contract DAAM: NonFungibleToken {
                 
         destroy() { destroy self.ownedNFTs }
     }
+    /************************************************************/
+    pub resource Vault {
+        pub let name: String
+        pub let id: UInt64
+        pub var collection: @{String: Collection}
+
+        init(name: String) {
+            self.name = name            
+            self.id = DAAM.vaultIDCounter
+            DAAM.vaultIDCounter = DAAM.vaultIDCounter + 1 as UInt64         
+            self.collection <- {}
+        }
+
+        pub fun addCollection(collection: @Collection) {
+            self.collection[collection.name] <-! collection
+        }      
+
+        //pub fun createCollection(name: String) { self.collection[name] <-! create Collection() } // Create the new Collection           
+
+        pub fun borrowCollection(name: String): &Collection {
+            pre { self.collection[name] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
+            return &self.collection[name] as &Collection
+        }
+
+        destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
+    }
     /************************************************************/ // NFTMinter
     // Resource that an admin or something similar would own to be able to mint new NFTs
 	pub resource NFTMinter {
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference 
-		pub fun mintNFT(metadata: Metadata) {
-            pre { DAAM.vault[0 as UInt64]  != nil: "Cannot borrow Vault: The Vault doesn't exist" }
+		/*pub fun mintNFT(recipient: Collection, metadata: Metadata) {
+            pre { DAAM.vault  != nil: "Cannot borrow Vault: The Vault doesn't exist" }
             let collection_name = "The D.A.A.M Collection"
-            let vaultRef = &DAAM.vault[0 as UInt64] as &Vault
-            vaultRef.borrowCollection(name: collection_name).deposit(token: <- create NFT(metadata: metadata))
-            //recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+            let newNFT <- create NFT(metadata: metadata)
+            //let collection = &DAAM.vault.collection[collection_name] as &Collection
+            //.remove(key: 0 as UInt64)//as &Vault            
+            //var collection <- vault.collection.remove(key: collection_name)
+            //
+            //collection.deposit(token: <- newNFT)
+            //destroy collection
+            destroy newNFT
+            recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+		}*/
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
+
+			// create a new NFT
+			var newNFT <- create NFT(metadata: metadata)
+
+			// deposit it in the recipient's account using their reference
+			recipient.deposit(token: <-newNFT)
+
+            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
 		}
 	}
     /************************************************************/
-    pub resource Admin {
+    /*pub resource Admin {
         // Store it in the sets mapping field
         pub fun AddVault(vault: @Vault) { DAAM.vault[vault.id] <-! vault }
         
@@ -131,29 +189,7 @@ pub contract DAAM: NonFungibleToken {
         }
 
         //pub fun createNewAdmin(): @Admin { return <-create Admin() }   // createNewAdmin creates a new Admin resource
-    }
-    /************************************************************/
-    pub resource Vault {
-        pub let name: String
-        pub let id: UInt64
-        pub var collection: @{String: Collection}
-
-        init(name: String) {
-            self.name = name
-            DAAM.vaultIDCounter = DAAM.vaultIDCounter + 1 as UInt64
-            self.id = DAAM.vaultIDCounter            
-            self.collection <- {}
-        }        
-
-        pub fun createCollection(name: String) { self.collection[name] <-! create Collection() } // Create the new Collection           
-
-        pub fun borrowCollection(name: String): &Collection {
-            pre { self.collection[name] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
-            return &self.collection[name] as &Collection
-        }
-
-        destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
-    }
+    }*/
     /************************************************************/ // DAAM Top Level    
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <-create Collection() }
@@ -165,23 +201,27 @@ pub contract DAAM: NonFungibleToken {
     }
 
     pub fun createVault(name: String)      : @Vault     { return <- create Vault(name    : name)     }
-    pub fun createNFT  (metadata: Metadata): @NFT       { return <- create NFT  (metadata: metadata) }
-    pub fun createMinter()                 : @NFTMinter { return <- create NFTMinter()               }
+    //pub fun createNFT  (metadata: Metadata): @NFT       { return <- create NFT  (metadata: metadata) }
+    //pub fun createMinter()                 : @NFTMinter { return <- create NFTMinter()               }
     
     init() { // DAAM init
-        self.vault <- {}
+        //self.vault <- {}
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
         self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number
+
+        self.minterStorage = /storage/DAAMMinter
+        self.minterPublic  = /public/DAAMMinter
         
         let vault_name = "The D.A.A.M Vault"
         let collection_name = "The D.A.A.M Collection"
 
-        var vault <- create Vault(name: vault_name)
-        var admin <- create Admin()
-        vault.createCollection(name: collection_name)
-        admin.AddVault(vault: <- vault)
-        self.account.save<@Admin>(<-admin, to: /storage/DAAMAdmin)
+        self.vault <- create Vault(name: vault_name)
+        let collection <-! self.createNewCollection(name: collection_name)
+        //var admin <- create Admin()
+        self.vault.addCollection(collection: <- collection)
+        //admin.AddVault(vault: <- vault)
+        //self.account.save<@Admin>(<-admin, to: /storage/DAAMAdmin)
 
         //self.account.save<@Vault>(<-vault, to: /storage/DAAMVault)
         //self.account.link<&Vault>(/public/DAAMVault, target: /storage/DAAMVault)       
@@ -190,7 +230,8 @@ pub contract DAAM: NonFungibleToken {
         // create a public capability for the collection */        
         
         let minter <- create NFTMinter()  // Create a Minter resource and save it to storage
-        self.account.save(<-minter, to: /storage/NFTMinter)
+        self.account.save<@NFTMinter>(<-minter, to: self.minterStorage)
+        self.account.link<&NFTMinter>( self.minterPublic, target: self.minterStorage)
 
         emit ContractInitialized()        // emiter 
 	}
