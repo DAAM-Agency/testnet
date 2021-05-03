@@ -132,7 +132,7 @@ pub contract DAAM: NonFungibleToken {
     pub resource Vault {
         pub let name: String
         pub let id: UInt64
-        pub var collection: @{String: Collection}
+        pub var collection: @{UInt64: Collection}
 
         init(name: String) {
             self.name = name            
@@ -142,14 +142,14 @@ pub contract DAAM: NonFungibleToken {
         }
 
         pub fun addCollection(collection: @Collection) {
-            self.collection[collection.name] <-! collection
+            self.collection[collection.id] <-! collection
         }      
 
         //pub fun createCollection(name: String) { self.collection[name] <-! create Collection() } // Create the new Collection           
 
-        pub fun borrowCollection(name: String): &Collection {
-            pre { self.collection[name] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
-            return &self.collection[name] as &Collection
+        pub fun borrowCollection(id: UInt64): &Collection {
+            pre { self.collection[id] != nil : "Cannot borrow Vault: The Vault doesn't exist" }
+            return &self.collection[id] as &Collection
         }
 
         destroy() { destroy self.collection } // TODO SHOULD IT BE MOVED INSTEAD, USING DEFAULT
