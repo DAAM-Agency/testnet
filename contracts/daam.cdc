@@ -28,6 +28,7 @@ pub contract DAAM: NonFungibleToken {
 
     pub let vaultName: String
     pub let collectionName: String
+    access(contract) var artist: [Address]
 
     //pub fun storeAdmin(newAdmin: @DAAM.Admin) { self.account.save<@DAAM.Admin>(<-newAdmin, to: /storage/DAAMAdmin) }
     /************************************************************/
@@ -49,7 +50,7 @@ pub contract DAAM: NonFungibleToken {
         pub let title: String              // Title
         pub let format: String             // File format
         pub let file: String               // File           
-        pub let creator: String//&Profile.ReadOnly   // TODO FIX Artist        
+        pub let creator: &Profile.ReadOnly   // TODO FIX Artist        
         pub let about: String                // About NFT, Blurb or website
         pub let isPhysical: String             // Does this have a physical counter-part
         pub let series: String      // If, Part of which series  TODO FIX UPGRADE to NFT
@@ -57,7 +58,7 @@ pub contract DAAM: NonFungibleToken {
         pub let thumbnail_format: String     // Thumbnail format
         pub let thumbnail: String            // Thumbnail             
 
-        init(title:String, format:String, file: String, creator:String, about:String, physical:String,
+        init(title:String, format:String, file: String, creator:&Profile.ReadOnly, about:String, physical:String,
             series:String, agency:String, thumbnail_format:String, thumbnail:String) {
             self.title = title
             self.format = format
@@ -203,7 +204,7 @@ pub contract DAAM: NonFungibleToken {
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection { return <-create Collection() }
 
-    pub fun addArtist(_ artist: Address) {
+    pub fun addArtist(_ artist: Address) {  // TODO Move to Admin Resource
         pre { artist != nil: "Invalid address" }
         let profileCap = getAccount(artist).getCapability<&{Profile.Public}>(Profile.publicPath).borrow()!
         let vaultCap   = getAccount(0xf8d6e0586b0a20c7).getCapability<&DAAM.Vault>(DAAM.vaultPublicPath).borrow()!
@@ -211,6 +212,7 @@ pub contract DAAM: NonFungibleToken {
         var collection <- create Collection()
         collection.setName(name: artist_name)
         vaultCap.addCollection(collection: <- collection)
+        DAAM.artist.append(artist)
     }
 
     pub fun createVault(name: String)      : @Vault     { return <- create Vault(name    : name)     }
@@ -219,6 +221,7 @@ pub contract DAAM: NonFungibleToken {
     
     init() { // DAAM init
         //self.vault <- {}
+        self.artist = []
         self.totalSupply         = 0  // Initialize the total supply
         self.collectionIDCounter = 0  // Initialize Collection counter acts as increamental serial number
         self.vaultIDCounter      = 0  // Initialize Vault counter acts as increamental serial number

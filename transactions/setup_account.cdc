@@ -14,15 +14,14 @@ transaction {
         let collection_name = "My D.A.A.M Collection"
 
         // If No Profile, Create one        
-        if !Profile.check(self.address) {
+        if !Profile.check(acct.address) {
             acct.save(<- Profile.new(), to: Profile.privatePath)
             acct.link<&Profile.Base{Profile.Public}>(Profile.publicPath, target: Profile.privatePath)
             log("Created new Profile")
         }
         // add New Collection
-        DAAM.addArtist(self.address)
-        log("Added artist collection")
+        DAAM.addArtist(acct.address)
+        log("Added artist collection")        
     }
-
     post { Profile.check(self.address): "Account was not initialized" }
 }// transaction

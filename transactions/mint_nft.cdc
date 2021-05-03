@@ -9,6 +9,7 @@ transaction() {
 
     // local variable for storing the minter reference
     let minter: &DAAM.NFTMinter
+    let address: Address
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
