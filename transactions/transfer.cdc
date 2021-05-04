@@ -1,40 +1,31 @@
-// Transaction4.cdc
+import NonFungibleToken from 0xf8d6e0586b0a20c7
+import ExampleNFT from 0xf8d6e0586b0a20c7
 
-import DAAM from 0xf8d6e0586b0a20c7
+// This transaction is for transferring and NFT from
+// one account to another
 
-// This transaction transfers an NFT from one user's collection
-// to another user's collection.
-transaction {
+transaction(recipient: Address, withdrawID: UInt64) {
 
-    // The field that will hold the NFT as it is being
-    // transferred to the other account
-    let transferToken: @DAAM.NFT
-	
     prepare(acct: AuthAccount) {
 
-        // Borrow a reference from the stored collection
-        let collectionRef = acct.borrow<&DAAM.Collection>(from: /storage/DAAMCollection)
-            ?? panic("Could not borrow a reference to the owner's collection")
+        // get the recipients public account object
+        let recipient = getAccount(recipient)
 
-        // Call the withdraw function on the sender's Collection
-        // to move the NFT out of the collection
-        self.transferToken <- collectionRef.withdraw(withdrawID: 1)
-    }
+        // borrow a reference to the signer's NFT collection
+        //let collectionRef = acct.borrow<&ExampleNFT.Collection>(from: ExampleNFT.collectionStoragePath)
+            //?? panic("Could not borrow a reference to the owner's collection")
+        
+        //let collectionRef = &ExampleNFT.collection
 
-    execute {
-        // Get the recipient's public account object
-        let recipient = getAccount(0x01)
+        // borrow a public reference to the receivers collection
+        let depositRef = recipient.getCapability(ExampleNFT.collectionPublicPath)
+            .borrow<&{NonFungibleToken.CollectionPublic}>()
+            ?? panic("Could not borrow a reference to the receiver's collection")
 
-        // Get the Collection reference for the receiver
-        // getting the public capability and borrowing a reference from it
-        let receiverRef = recipient.getCapability<&{DAAM.DAAMReceiver}>(/public/DAAMReceiver)
-            .borrow()
-            ?? panic("Could not borrow receiver reference")
+        // withdraw the NFT from the owner's collection
+        let nft <- collectionRef.withdraw(withdrawID: withdrawID)
 
-        // Deposit the NFT in the receivers collection
-        receiverRef.deposit(token: <-self.transferToken)
-
-        log("NFT ID 1 transferred from account 2 to account 1")
+        // Deposit the NFT in the recipient's collection
+        depositRef.deposit(token: <-nft)
     }
 }
- 
