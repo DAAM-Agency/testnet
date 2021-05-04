@@ -5,7 +5,7 @@ import DAAM from 0xf8d6e0586b0a20c7
 // It must be run with the account that has the minter resource
 // stored in /storage/NFTMinter
 
-transaction(metadata: DAAM.Metadata) {
+transaction(/*metadata: DAAM.Metadata*/) {
     let minter: &DAAM.NFTMinter
 
     prepare(signer: AuthAccount) {
@@ -15,7 +15,7 @@ transaction(metadata: DAAM.Metadata) {
     } 
 
     execute {   
-        /*let metadata = DAAM.Metadata(
+        let metadata = DAAM.Metadata(
         title  : "Title", 
         format : "format",
         file   : "file",     
@@ -27,7 +27,7 @@ transaction(metadata: DAAM.Metadata) {
         thumbnail_format: "thumbnail format",
         thumbnail: "thumbnail"
         )     
-        log("Metadata completed")*/
+        log("Metadata completed")
 
         // Mint the NFT and deposit it to the recipient's collection
         self.minter.mintNFT(metadata: metadata) //  
