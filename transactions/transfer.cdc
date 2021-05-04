@@ -1,5 +1,5 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
-import ExampleNFT from 0xf8d6e0586b0a20c7
+import DAAM from 0xf8d6e0586b0a20c7
 
 // This transaction is for transferring and NFT from
 // one account to another
@@ -12,13 +12,13 @@ transaction(recipient: Address, withdrawID: UInt64) {
         let recipient = getAccount(recipient)
 
         // borrow a reference to the signer's NFT collection
-        //let collectionRef = acct.borrow<&ExampleNFT.Collection>(from: ExampleNFT.collectionStoragePath)
+        //let collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
             //?? panic("Could not borrow a reference to the owner's collection")
         
-        //let collectionRef = &ExampleNFT.collection
+        //let collectionRef = &DAAM.collection
 
         // borrow a public reference to the receivers collection
-        let depositRef = recipient.getCapability(ExampleNFT.collectionPublicPath)
+        let depositRef = recipient.getCapability(DAAM.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not borrow a reference to the receiver's collection")
 
