@@ -25,29 +25,27 @@ pub contract DAAM: NonFungibleToken {
 
     // Metadata for NFT,metadata initialization
     pub struct Metadata {
-        pub let title: String              // Title
-        pub let format: String             // File format
-        pub let file: String               // File           
-        pub let creator: Address   // TODO FIX Artist        
-        pub let about: String                // About NFT, Blurb or website
-        pub let isPhysical: String             // Does this have a physical counter-part
-        pub let series: String      // If, Part of which series  TODO FIX UPGRADE to NFT
-        pub let agency: String               // Sold from which Gallery or Online // UPGRADE to NFT
-        pub let thumbnail_format: String     // Thumbnail format
-        pub let thumbnail: String            // Thumbnail             
+        // {String:String} repesents {Format:File} ; a Metadata standard
+        pub let title     : String            // Title                   
+        pub let creator   : &Profile           // Artist
+        pub let series    : [UInt64]          // If, Part of which series  TODO FIX UPGRADE to NFT
+        pub let isPhysical: Bool              // Does this have a physical counter-part        
+        pub let agency    : String            // Sold from which Gallery or Online // UPGRADE to NFT 
+        pub let about     : {String: String}  // About NFT, Blurb or website 
+        pub let thumbnail : {String: String}  // Thumbnail
+        pub let file      : {String: String}  // File, Actual Content                     
 
-        init(title:String, format:String, file: String, creator:Address, about:String, physical:String,
-            series:String, agency:String, thumbnail_format:String, thumbnail:String) {
+        init(title:String, creator:&Profile, series:[UInt64], physical:Bool, agency:String,
+        about:{String: String}, thumbnail:{String: String}, file:{String: String})
+        {
             self.title = title
-            self.format = format
-            self.file = file            
-            self.creator = creator            
-            self.about = about
-            self.isPhysical = physical
+            self.creator = creator
             self.series = series
+            self.isPhysical = physical
             self.agency = agency
-            self.thumbnail_format = thumbnail_format
-            self.thumbnail = thumbnail            
+            self.about = about
+            self.thumbnail = thumbnail
+            self.file = file
         }// Metadata init
     }// Metadata
 
