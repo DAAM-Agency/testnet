@@ -1,4 +1,3 @@
-import NonFungibleToken from 0x120e725050340cab
 import DAAM from 0x045a1763c93006ca
 
 // This script uses the NFTMinter resource to mint a new NFT
@@ -6,11 +5,11 @@ import DAAM from 0x045a1763c93006ca
 // stored in /storage/NFTMinter
 
 transaction(/*metadata: DAAM.Metadata*/) {
-    let minter: &DAAM.NFTMinter
+    let minter: &DAAM.Admin
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.borrow<&DAAM.NFTMinter>(from: DAAM.minterStoragePath)
+        self.minter = signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
     } 
 

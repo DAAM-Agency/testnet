@@ -1,5 +1,5 @@
 # verify transactions
-# TODO ARTIST NEEDS A $PROFILE FIRST
+flow transactions send ./testnet/transactions/setup_profile.cdc --signer artist
 flow transactions send ./testnet/transactions/add_artist.cdc --arg Address:$ARTIST
 flow transactions send ./testnet/transactions/mint_nft.cdc
 flow transactions send ./testnet/transactions/nft_exist.cdc

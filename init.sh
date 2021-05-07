@@ -60,4 +60,4 @@ flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 
 flow accounts add-contract NonFungibleToken ./testnet/contracts/NonFungibleToken.cdc --signer nft
 flow accounts add-contract Profile ./testnet/contracts/Profile.cdc --signer profile
 flow accounts add-contract DAAMCopyright ./testnet/contracts/daamCopyright.cdc --signer copyright
-flow accounts add-contract DAAM ./testnet/contracts/daam.cdc --signer daam
+flow accounts add-contract DAAM ./testnet/contracts/daam.cdc --signer daam --arg UInt64:7
