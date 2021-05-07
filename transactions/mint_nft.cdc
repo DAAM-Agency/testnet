@@ -17,15 +17,13 @@ transaction(/*metadata: DAAM.Metadata*/) {
     execute {   
         let metadata = DAAM.Metadata(
         title  : "Title", 
-        format : "format",
-        file   : "file",     
+        file   : {"text":"file"},
         creator: self.address,  //&Profile
-        about  : "about",
-        physical: "False",
-        series : "series",
+        about  : {"text":"about"},
+        physical: false,
+        series : [],
         agency : "Agency",
-        thumbnail_format: "thumbnail format",
-        thumbnail: "thumbnail"
+        thumbnail: {"text":"thumbnail"}
         )     
         log("Metadata completed")
 
