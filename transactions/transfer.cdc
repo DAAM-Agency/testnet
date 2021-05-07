@@ -12,11 +12,9 @@ transaction(recipient: Address, withdrawID: UInt64) {
         let recipient = getAccount(recipient)
 
         // borrow a reference to the signer's NFT collection
-        //let collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
-            //?? panic("Could not borrow a reference to the owner's collection")
+        let collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+            ?? panic("Could not borrow a reference to the owner's collection")
         
-        //let collectionRef = &DAAM.collection
-
         // borrow a public reference to the receivers collection
         let depositRef = recipient.getCapability(DAAM.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()

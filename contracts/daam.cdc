@@ -2,8 +2,8 @@
 // It is not part of the official standard but it assumed to be
 // very similar to how many NFTs would implement the core functionality.
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import Profile from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x120e725050340cab
+import Profile from 0x192440c99cb17282
 
 pub contract DAAM: NonFungibleToken {
 
