@@ -1,5 +1,5 @@
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import DAAM from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x120e725050340cab
+import DAAM from 0x045a1763c93006ca
 
 // This script uses the NFTMinter resource to mint a new NFT
 // It must be run with the account that has the minter resource

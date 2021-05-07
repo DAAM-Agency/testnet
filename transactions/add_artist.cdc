@@ -1,7 +1,7 @@
 // add_artist.cdc
 
-import Profile from 0xf8d6e0586b0a20c7
-import DAAM from 0xf8d6e0586b0a20c7
+import Profile from 0x192440c99cb17282
+import DAAM from 0x045a1763c93006ca
 
 transaction(artist: Address) {  
     //let adminRef: &DAAM
