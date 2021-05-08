@@ -16,6 +16,7 @@ pub contract DAAM: NonFungibleToken {
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
     pub let adminStoragePath     : StoragePath
+    pub let adminPublicPath      : PublicPath
 
     access(contract) var artist: [Address]
     access(contract) var adminPending : Address
@@ -140,6 +141,7 @@ pub contract DAAM: NonFungibleToken {
         // init Paths
         self.collectionPublicPath  = /public/DAAMCollection
         self.collectionStoragePath = /storage/DAAMCollection
+        self.adminPublicPath       = /public/DAAMAdmin
         self.adminStoragePath      = /storage/DAAMAdmin
 
         self.adminPending = 0x01cf0e2f2f715450
@@ -155,6 +157,7 @@ pub contract DAAM: NonFungibleToken {
         // Create a Minter resource and save it to storage
         let admin <- create Admin()
         self.account.save(<-admin, to: self.adminStoragePath)
+        self.account.link<&Admin>(self.adminPublicPath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}

@@ -3,9 +3,9 @@
 import DAAM from 0x045a1763c93006ca
 
 transaction() {  
-    //let adminRef: &DAAM
+    let admin: &DAAM.Admin
     prepare(acct: AuthAccount) {
-        //self.adminRef = acct.borrow<&TopShot.Admin>(from: /storage/TopShotAdmin) ?? panic("You're no D.A.A.M Admin!!!")
-        DAAM.addArtist(acct.address)
+        self.admin = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath) ?? panic("You're no D.A.A.M Admin!!!")
+        self.admin.addArtist(acct.address)
     }
 }// transaction
