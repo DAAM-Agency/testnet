@@ -19,7 +19,7 @@ pub contract DAAM: NonFungibleToken {
     pub let adminPublicPath      : PublicPath
 
     access(contract) var artist: [Address]
-    access(contract) var adminPending : Address
+    pub var adminPending : Address
     
     pub var collectionCounterID: UInt64
     pub var collection: @Collection
@@ -100,8 +100,7 @@ pub contract DAAM: NonFungibleToken {
         return <- create Collection()
     }
 
-	pub resource Admin { // is NFTMinter modified
-        //access(self) let owner: Address        
+	pub resource Admin { // is NFTMinter modified        
 		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
 		pub fun mintNFT(metadata: Metadata) {
 			var newNFT <- create NFT(metadata: metadata)			
@@ -128,7 +127,7 @@ pub contract DAAM: NonFungibleToken {
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin? {
             pre {
-                DAAM.adminPending == newAdmin : "You're No D.A.A.M Admin!!!. Get outta here!!"
+                DAAM.adminPending == newAdmin : "You're got no D.A.A.M Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"      
                 }
             DAAM.adminPending = 0x0
