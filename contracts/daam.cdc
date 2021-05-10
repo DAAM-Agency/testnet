@@ -28,7 +28,7 @@ pub contract DAAM: NonFungibleToken {
     pub struct Metadata {
         // {String:String} repesents {Format:File} ; a Metadata standard
         pub let title     : String            // Title                   
-        pub let creator   : &Profile           // Artist
+        pub let creator   : Address           // Artist
         pub let series    : [UInt64]          // If, Part of which series  TODO FIX UPGRADE to NFT
         pub let isPhysical: Bool              // Does this have a physical counter-part        
         pub let agency    : String            // Sold from which Gallery or Online // UPGRADE to NFT 
@@ -36,7 +36,7 @@ pub contract DAAM: NonFungibleToken {
         pub let thumbnail : {String: String}  // Thumbnail
         pub let file      : {String: String}  // File, Actual Content                     
 
-        init(title:String, creator:&Profile, series:[UInt64], physical:Bool, agency:String,
+        init(title:String, creator:Address, series:[UInt64], physical:Bool, agency:String,
         about:{String: String}, thumbnail:{String: String}, file:{String: String})
         {
             self.title = title
@@ -131,6 +131,7 @@ pub contract DAAM: NonFungibleToken {
                 Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"      
                 }
             DAAM.adminPending = 0x0
+            
             if submit { return <- create Admin() }      
             return nil  
         }

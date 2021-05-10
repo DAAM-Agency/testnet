@@ -1,3 +1,5 @@
+// setup_account.cdc
+
 import NonFungibleToken from 0x120e725050340cab
 import DAAM from 0x045a1763c93006ca
 // This transaction is what an account would run

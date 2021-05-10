@@ -1,4 +1,4 @@
-// Transaction1.cdc
+// nft_exist.cdc
 
 import DAAM from 0x045a1763c93006ca
 

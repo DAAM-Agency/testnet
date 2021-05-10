@@ -1,3 +1,5 @@
+// setup_profile.cdc
+
 import Profile from 0x192440c99cb17282
 
 transaction {

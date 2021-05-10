@@ -1,3 +1,5 @@
+// answer_invite_admin.cdc
+
 import DAAM from 0x045a1763c93006ca
 
 // This script uses the NFTMinter resource to mint a new NFT
@@ -17,6 +19,7 @@ transaction(submit: Bool) {
 
         if admin != nil {
             signer.save(<- admin, to: DAAM.adminStoragePath)
+            signer.link<&DAAM.Admin>(DAAM.adminPublicPath, target: DAAM.adminStoragePath)
             log("You are now a D.A.A.M Admin")
         } else {
             destroy admin
