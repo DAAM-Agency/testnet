@@ -11,6 +11,7 @@ transaction() {
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
+        // get Capability first you D.A.A.M founder!!!
         self.admin = signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)
             ?? panic("Could not borrow a reference to the Admin")
     } 

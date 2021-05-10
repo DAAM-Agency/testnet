@@ -17,9 +17,9 @@ pub contract DAAM: NonFungibleToken {
     pub let collectionStoragePath: StoragePath
     pub let adminStoragePath     : StoragePath
     pub let adminPublicPath      : PublicPath
-
-    access(contract) var artist: [Address]
-    pub var adminPending : Address
+    // {Artist Profile address : Artist status; true being active}
+    access(contract) var artist: {Address: Bool}
+    pub var adminPending : Address 
     
     pub var collectionCounterID: UInt64
     pub var collection: @Collection
@@ -100,25 +100,18 @@ pub contract DAAM: NonFungibleToken {
         return <- create Collection()
     }
 
-	pub resource Admin { // is NFTMinter modified        
-		// mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(metadata: Metadata) {
-			var newNFT <- create NFT(metadata: metadata)			
-			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            DAAM.collection.deposit(token: <- newNFT)
-		}
-
-        pub fun addArtist(_ artist: Address) {  // Admin add a new artist
+	pub resource Admin { // is NFTMinter modified
+        pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                !DAAM.artist.contains(artist) : "They're already a D.A.A.M Artist!!!"
-                Profile.check(artist)         : "You can't be a D.A.A.M Artist without a Profile! Go make one Fool!!"
+                DAAM.artist[artist] == nil : "They're already a D.A.A.M Artist!!!"
+                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile! Go make one Fool!!"
             }            
-            DAAM.artist.append(artist)
+            DAAM.artist[artist] = false
         }
 
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                DAAM.adminPending == nil : "Already pending. Waiting on user confirmation."
+                DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add D.A.A.M Admin without a Profile! Tell'em to make one first!!"
             }
             DAAM.adminPending = newAdmin
@@ -132,10 +125,30 @@ pub contract DAAM: NonFungibleToken {
                 }
             DAAM.adminPending = 0x0
             
-            if submit { return <- create Admin() }      
+            if submit { return <- create Admin() } 
             return nil  
         }
-	}    
+
+        pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist? {
+            pre {
+                DAAM.artist[artist] != nil : "You're got no D.A.A.M Artist invite!!!. Get outta here!!"
+                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"      
+                }
+            DAAM.adminPending = 0x0
+            
+            if submit { return <- create Artist() }    
+            return nil  
+        }
+	}
+
+    pub resource Artist {
+        // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
+		pub fun mintNFT(metadata: Metadata) {
+			var newNFT <- create NFT(metadata: metadata)			
+			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+            DAAM.collection.deposit(token: <- newNFT)
+		}
+    }
     // DAAM Functions
 	init() {
         // init Paths
