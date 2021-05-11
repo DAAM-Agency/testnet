@@ -12,6 +12,8 @@ pub contract DAAM: NonFungibleToken {
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id : UInt64,   to: Address?)
+    pub event NewAdmin(admin: Address)
+    pub event NewArtist(artist: Address)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
@@ -118,27 +120,30 @@ pub contract DAAM: NonFungibleToken {
             // TODO Add time limit
         }
 
-        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin? {
+        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin {
             pre {
                 DAAM.adminPending == newAdmin : "You're got no D.A.A.M Admin invite!!!. Get outta here!!"
-                Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"      
-                }
+                Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
+                submit == true                : "Well, ... fuck you too!!!"
+            }
             DAAM.adminPending = 0x0
-            
-            if submit { return <- create Admin() } 
-            return nil  
+            emit NewAdmin(admin: newAdmin)
+            log("New Admin")
+            return <- create Admin()         
         }
 
-        pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist? {
+        pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
             pre {
                 DAAM.artist[artist] != nil : "You're got no D.A.A.M Artist invite!!!. Get outta here!!"
-                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"      
-                }
-            DAAM.adminPending = 0x0
-            
-            if submit { return <- create Artist() }    
-            return nil  
+                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
+                submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
+            }
+            emit NewArtist(artist: artist)
+            log("New Artist")
+            return <- create Artist()
         }
+
+        // ToDo self destruct Remove Admin is missing
 	}
 
     pub resource Artist {
@@ -158,7 +163,7 @@ pub contract DAAM: NonFungibleToken {
         self.adminStoragePath      = /storage/DAAMAdmin
 
         self.adminPending = 0x01cf0e2f2f715450
-        self.artist = []
+        self.artist = {}
         self.totalSupply = 0                    // Initialize the total supply of NFTs
         self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
         self.collection <- create Collection()  // Create a Collection resource and save it to storage

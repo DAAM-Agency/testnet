@@ -2,14 +2,8 @@
 
 import DAAM from 0x045a1763c93006ca
 
-// This script uses the NFTMinter resource to mint a new NFT
-// It must be run with the account that has the minter resource
-// stored in /storage/NFTMinter
-
 transaction(submit: Bool) {
-    //let adminRef: &DAAM.Admin
-    //let adminCap: Capability<&DAAM.Admin>
-
+    
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
         let daam = getAccount(0x045a1763c93006ca)
