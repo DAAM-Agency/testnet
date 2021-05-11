@@ -9,7 +9,7 @@ transaction(submit: Bool) {
         let daam = getAccount(0x045a1763c93006ca)
         let adminCap = daam.getCapability<&DAAM.Admin>(DAAM.adminPublicPath)
         let adminRef = adminCap.borrow() ?? panic("Could not borrow a reference to the Admin")
-        let artist <- adminRef.answerAdminInvite(signer.address, submit)
+        let artist <- adminRef.answerArtistInvite(signer.address, submit)
 
         if artist != nil {
             signer.save(<- artist, to: DAAM.artistStoragePath)
