@@ -1,4 +1,4 @@
-// answer_invite_admin.cdc
+// answer_admin_invite.cdc
 
 import DAAM from 0x045a1763c93006ca
 
