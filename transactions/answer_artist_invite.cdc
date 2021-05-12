@@ -7,8 +7,8 @@ transaction(submit: Bool) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the NFTMinter resource in storage
         let daam = getAccount(0x045a1763c93006ca)
-        let adminCap = daam.getCapability<&DAAM.Admin>(DAAM.adminPublicPath)
-        let adminRef = adminCap.borrow() ?? panic("Could not borrow a reference to the Admin")
+        let adminCap = daam.getCapability<&DAAM.Admin{DAAM.InvitedArtist}>(DAAM.adminPublicPath)
+        let adminRef = adminCap.borrow()! // ?? panic("Could not borrow a reference to the Admin")
         let artist <- adminRef.answerArtistInvite(signer.address, submit)
 
         if artist != nil {
