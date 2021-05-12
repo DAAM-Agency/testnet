@@ -8,15 +8,20 @@ transaction(submit: Bool) {
     let adminRef: &DAAM.Admin{DAAM.InvitedArtist}
     let signer: AuthAccount
     
-    prepare(signer: AuthAccount) {
+    prepare(signer: AuthAccount) {        
         // borrow a reference to the NFTMinter resource in storage
         self.daam = getAccount(0x045a1763c93006ca)
         self.adminCap = self.daam.getCapability<&DAAM.Admin{DAAM.InvitedArtist}>(DAAM.adminPublicPath)
         self.adminRef = self.adminCap.borrow()!
-        self.signer = signer
+        self.signer = signer        
     }
     
     execute {
+        if self.signer.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath) == nil {
+            log("You D.A.A.M artist, you need a Collection to store NFTs. Go to Setup Account first!!")
+            return
+        }
+        
         let artist <- self.adminRef.answerArtistInvite(self.signer.address, submit)
 
         if artist != nil {

@@ -1,4 +1,4 @@
-// setup_profile.cdc
+// create_profile.cdc
 
 import Profile from 0x192440c99cb17282
 

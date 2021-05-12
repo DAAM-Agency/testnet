@@ -182,11 +182,11 @@ pub contract DAAM: NonFungibleToken {
 /************************************************************************/
     pub resource Artist {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(metadata: Metadata) {
+		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
 			let newNFT <- create NFT(metadata: metadata)
             let id = newNFT.id
-			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            DAAM.collection.deposit(token: <- newNFT)
+			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+            //DAAM.collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
 		}
     }
