@@ -1,6 +1,4 @@
-// This is an example implementation of a Flow Non-Fungible Token
-// It is not part of the official standard but it assumed to be
-// very similar to how many NFTs would implement the core functionality.
+// daam.cdc
 
 import NonFungibleToken from 0x120e725050340cab
 import Profile from 0x192440c99cb17282
@@ -31,8 +29,8 @@ pub contract DAAM: NonFungibleToken {
     pub var collectionCounterID: UInt64
     pub var collection: @Collection
 
-    // Metadata for NFT,metadata initialization
-    pub struct Metadata {
+/************************************************************************/
+    pub struct Metadata {  // Metadata for NFT,metadata initialization
         // {String:String} repesents {Format:File} ; a Metadata standard
         pub let title     : String            // Title                   
         pub let creator   : Address           // Artist
@@ -56,7 +54,7 @@ pub contract DAAM: NonFungibleToken {
             self.file = file
         }// Metadata init
     }// Metadata
-
+/************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64
         pub var metadata: Metadata
@@ -67,7 +65,7 @@ pub contract DAAM: NonFungibleToken {
             self.metadata = metadata
         }
     }
-
+/************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
@@ -101,22 +99,13 @@ pub contract DAAM: NonFungibleToken {
 
         destroy() { destroy self.ownedNFTs }
     }
-
-    // public function that anyone can call to create a new empty collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        return <- create Collection()
-    }
-
-	pub resource Admin {
+/************************************************************************/
+    pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add D.A.A.M Admin without a Profile! Tell'em to make one first!!"
             }
-            emit AdminInvited(admin: newAdmin)
-            log("New Admin invitation")  
-            DAAM.adminPending = newAdmin
-            // TODO Add time limit
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
@@ -124,6 +113,39 @@ pub contract DAAM: NonFungibleToken {
                 DAAM.artist[artist] == nil : "They're already a D.A.A.M Artist!!!"
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile! Go make one Fool!!"
             }
+        }
+    }
+/************************************************************************/
+    pub resource interface InvitedAdmin {
+        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
+            pre {
+                DAAM.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
+                Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
+                submit == true                : "Well, ... fuck you too!!!"
+            }      
+        }        
+    }
+/************************************************************************/
+    pub resource interface InvitedArtist {
+        pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
+            pre {
+                DAAM.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
+                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
+                submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
+            }
+        }
+    }
+/************************************************************************/
+	pub resource Admin: Founder, InvitedAdmin, InvitedArtist
+    {
+        pub fun inviteAdmin(newAdmin: Address) {
+            emit AdminInvited(admin: newAdmin)
+            log("New Admin invitation")  
+            DAAM.adminPending = newAdmin
+            // TODO Add time limit
+        }
+
+        pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
             log("New Artist added to D.A.A.M")        
             DAAM.artist[artist] = false
@@ -156,7 +178,7 @@ pub contract DAAM: NonFungibleToken {
 
         // ToDo self destruct Remove Admin is missing
 	}
-
+/************************************************************************/
     pub resource Artist {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
 		pub fun mintNFT(metadata: Metadata) {
@@ -167,6 +189,12 @@ pub contract DAAM: NonFungibleToken {
             emit MintedNFT(id: id)
 		}
     }
+/************************************************************************/
+    // public function that anyone can call to create a new empty collection
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+        return <- create Collection()
+    }
+
     // DAAM Functions
 	init() {
         // init Paths
@@ -190,7 +218,7 @@ pub contract DAAM: NonFungibleToken {
         // Create a Minter resource and save it to storage
         let admin <- create Admin()
         self.account.save(<-admin, to: self.adminStoragePath)
-        self.account.link<&Admin>(self.adminPublicPath, target: self.adminStoragePath)
+        self.account.link<&Admin{InvitedAdmin, InvitedArtist}>(self.adminPublicPath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}
