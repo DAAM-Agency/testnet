@@ -1,9 +1,9 @@
-// daam.cdc
+// marketPalace.cdc
 
 import NonFungibleToken from 0x120e725050340cab
 import Profile from 0x192440c99cb17282
 
-pub contract DAAM: NonFungibleToken {
+pub contract MarketPalace: NonFungibleToken {
 
     pub var totalSupply: UInt64
 
@@ -61,8 +61,8 @@ pub contract DAAM: NonFungibleToken {
         pub var metadata: Metadata
 
         init(metadata: Metadata) {
-            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
-            self.id = DAAM.totalSupply
+            MarketPalace.totalSupply = MarketPalace.totalSupply + 1 as UInt64
+            self.id = MarketPalace.totalSupply
             self.metadata = metadata
         }
     }
@@ -82,7 +82,7 @@ pub contract DAAM: NonFungibleToken {
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM.NFT
+            let token <- token as! @MarketPalace.NFT
             let id: UInt64 = token.id
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
@@ -104,14 +104,14 @@ pub contract DAAM: NonFungibleToken {
     pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
+                MarketPalace.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add D.A.A.M Admin without a Profile! Tell'em to make one first!!"
             }
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                DAAM.artist[artist] == nil : "They're already a D.A.A.M Artist!!!"
+                MarketPalace.artist[artist] == nil : "They're already a D.A.A.M Artist!!!"
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile! Go make one Fool!!"
             }
         }
@@ -120,7 +120,7 @@ pub contract DAAM: NonFungibleToken {
     pub resource interface InvitedAdmin {
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                DAAM.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
+                MarketPalace.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }      
@@ -130,7 +130,7 @@ pub contract DAAM: NonFungibleToken {
     pub resource interface InvitedArtist {
         pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
             pre {
-                DAAM.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
+                MarketPalace.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
@@ -142,24 +142,24 @@ pub contract DAAM: NonFungibleToken {
         pub fun inviteAdmin(newAdmin: Address) {
             emit AdminInvited(admin: newAdmin)
             log("New Admin invitation")  
-            DAAM.adminPending = newAdmin
+            MarketPalace.adminPending = newAdmin
             // TODO Add time limit
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
             log("New Artist added to D.A.A.M")        
-            DAAM.artist[artist] = false
+            MarketPalace.artist[artist] = false
             // TODO Add time limit
         }
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin {
             pre {
-                DAAM.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
+                MarketPalace.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }
-            DAAM.adminPending = nil
+            MarketPalace.adminPending = nil
             emit NewAdmin(admin: newAdmin)
             log("New Admin added to D.A.A.M")
             return <- create Admin()         
@@ -167,11 +167,11 @@ pub contract DAAM: NonFungibleToken {
 
         pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
             pre {
-                DAAM.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
+                MarketPalace.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
-            DAAM.artist[artist] = true
+            MarketPalace.artist[artist] = true
             emit NewArtist(artist: artist)
             log("New Artist added to D.A.A.M")
             return <- create Artist()
@@ -186,7 +186,7 @@ pub contract DAAM: NonFungibleToken {
 			let newNFT <- create NFT(metadata: metadata)
             let id = newNFT.id
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            //DAAM.collection.deposit(token: <- newNFT)
+            //MarketPalace.collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
 		}
     }
@@ -196,7 +196,7 @@ pub contract DAAM: NonFungibleToken {
         return <- create Collection()
     }
 
-    // DAAM Functions
+    // MarketPalace Functions
 	init() {
         // init Paths
         self.collectionPublicPath  = /public/DAAMCollection

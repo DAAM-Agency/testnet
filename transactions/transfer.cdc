@@ -1,7 +1,7 @@
 // transfer.cdc
 
 import NonFungibleToken from 0x120e725050340cab
-import DAAM from 0x045a1763c93006ca
+import MarketPalace from 0x045a1763c93006ca
 
 // This transaction is for transferring and NFT from
 // one account to another
@@ -14,11 +14,11 @@ transaction(recipient: Address, withdrawID: UInt64) {
         let recipient = getAccount(recipient)
 
         // borrow a reference to the signer's NFT collection
-        let collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+        let collectionRef = acct.borrow<&MarketPalace.Collection>(from: MarketPalace.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
         
         // borrow a public reference to the receivers collection
-        let depositRef = recipient.getCapability(DAAM.collectionPublicPath)
+        let depositRef = recipient.getCapability(MarketPalace.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not borrow a reference to the receiver's collection")
 
