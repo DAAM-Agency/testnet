@@ -27,8 +27,8 @@ pub contract MarketPalace: NonFungibleToken {
     access(contract) var artist: {Address: Bool}
     pub var adminPending : Address?
     
-    pub var collectionCounterID: UInt64
-    pub var collection: @Collection
+    //pub var collectionCounterID: UInt64
+    pub var collection: @{Address: Collection}
 
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
@@ -171,7 +171,7 @@ pub contract MarketPalace: NonFungibleToken {
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
-            MarketPalace.artist[artist] = true
+            MarketPalace.artist[artist] = true            
             emit NewArtist(artist: artist)
             log("New Artist added to D.A.A.M")
             return <- create Artist()
@@ -183,11 +183,12 @@ pub contract MarketPalace: NonFungibleToken {
     pub resource Artist {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
 		pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-			let newNFT <- create NFT(metadata: metadata)
+			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            //MarketPalace.collection.deposit(token: <- newNFT)
+            //MarketPalace.collection[metadata.creator].deposit(token: <- newNFT)
             emit MintedNFT(id: id)
+            log("Minited")
 		}
     }
 /************************************************************************/
@@ -213,8 +214,8 @@ pub contract MarketPalace: NonFungibleToken {
 
         self.artist = {}
         self.totalSupply = 0                    // Initialize the total supply of NFTs
-        self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
-        self.collection <- create Collection()  // Create a Collection resource and save it to storage
+        //self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
+        self.collection <- {}
         //self.account.save(<-collection, to: self.collectionStoragePath)
 
         // create a public capability for the collection
