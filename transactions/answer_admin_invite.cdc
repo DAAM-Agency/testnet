@@ -13,7 +13,7 @@ transaction(submit: Bool) {
 
         if admin != nil {
             signer.save(<- admin, to: DAAM.adminStoragePath)
-            signer.link<&DAAM.Admin{DAAM.Founder}>(DAAM.adminPublicPath, target: DAAM.adminStoragePath)
+            signer.link<&DAAM.Admin{DAAM.Founder}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)
             log("You are now a D.A.A.M Admin")
         } else {
             destroy admin

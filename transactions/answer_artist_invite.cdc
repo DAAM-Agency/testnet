@@ -13,7 +13,7 @@ transaction(submit: Bool) {
 
         if artist != nil {
             signer.save(<- artist, to: DAAM.artistStoragePath)
-            signer.link<&DAAM.Artist>(DAAM.artistPublicPath, target: DAAM.artistStoragePath)
+            signer.link<&DAAM.Artist>(DAAM.artistPrivatePath, target: DAAM.artistStoragePath)
             log("You are now a D.A.A.M Artist")
         } else {
             destroy artist

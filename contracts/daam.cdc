@@ -18,10 +18,11 @@ pub contract DAAM: NonFungibleToken {
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
-    pub let adminStoragePath     : StoragePath
     pub let adminPublicPath      : PublicPath
+    pub let adminStoragePath     : StoragePath
+    pub let adminPrivatePath     : PrivatePath
     pub let artistStoragePath    : StoragePath
-    pub let artistPublicPath     : PublicPath
+    pub let artistPrivatePath    : PrivatePath
     // {Artist Profile address : Artist status; true being active}
     access(contract) var artist: {Address: Bool}
     pub var adminPending : Address?
@@ -201,11 +202,15 @@ pub contract DAAM: NonFungibleToken {
         self.collectionPublicPath  = /public/DAAMCollection
         self.collectionStoragePath = /storage/DAAMCollection
         self.adminPublicPath       = /public/DAAMAdmin
+        self.adminPrivatePath      = /private/DAAMAdmin
         self.adminStoragePath      = /storage/DAAMAdmin
-        self.artistPublicPath       = /public/DAAMArtist
-        self.artistStoragePath      = /storage/DAAMArtist
+        self.artistPrivatePath     = /private/DAAMArtist
+        self.artistStoragePath     = /storage/DAAMArtist
 
+        //Custom variables should be contract arguments
+        
         self.adminPending = 0x01cf0e2f2f715450
+
         self.artist = {}
         self.totalSupply = 0                    // Initialize the total supply of NFTs
         self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
