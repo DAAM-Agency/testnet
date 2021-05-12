@@ -107,7 +107,7 @@ pub contract DAAM: NonFungibleToken {
         return <- create Collection()
     }
 
-	pub resource Admin { // is NFTMinter modified
+	pub resource Admin {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
@@ -127,6 +127,7 @@ pub contract DAAM: NonFungibleToken {
             emit ArtistInvited(artist: artist)
             log("New Artist added to D.A.A.M")        
             DAAM.artist[artist] = false
+            // TODO Add time limit
         }
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin {
@@ -147,6 +148,7 @@ pub contract DAAM: NonFungibleToken {
                 Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
+            DAAM.artist[artist] = true
             emit NewArtist(artist: artist)
             log("New Artist added to D.A.A.M")
             return <- create Artist()
