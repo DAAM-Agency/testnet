@@ -70,6 +70,12 @@ pub contract MarketPalace: NonFungibleToken {
         }
     }
 /************************************************************************/
+  pub resource interface SalePublic {
+    pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault)
+    pub fun idPrice(tokenID: UInt64): UFix64?
+    pub fun getIDs(): [UInt64]
+  }
+/************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
@@ -102,10 +108,15 @@ pub contract MarketPalace: NonFungibleToken {
 
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
+        
 
         // borrowNFT gets a reference to an NFT in the collection so that the caller can read its metadata and call its methods
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+        }
+
+        pub fun idPrice(tokenID: UInt64): UFix64? {
+            return self.price[tokenID]
         }
 
         destroy() { destroy self.ownedNFTs }
