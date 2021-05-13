@@ -1,6 +1,7 @@
 // marketPalace.cdc
 
 import NonFungibleToken from 0x120e725050340cab
+import FungibleToken from 0xee82856bf20e2aa6
 import Profile from 0x192440c99cb17282
 
 pub contract MarketPalace: NonFungibleToken {
@@ -27,8 +28,10 @@ pub contract MarketPalace: NonFungibleToken {
     access(contract) var artist: {Address: Bool}
     pub var adminPending : Address?
     
-    //pub var collectionCounterID: UInt64
+    pub var collectionCounterID: UInt64
     pub var collection: @{Address: Collection}
+    
+    //access(account) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
 
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
@@ -70,8 +73,15 @@ pub contract MarketPalace: NonFungibleToken {
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+        pub let id: UInt64
+        pub var price: {UInt64: UFix64} // {nft.id : price}
 
-        init () { self.ownedNFTs <- {} }
+        init () {
+            self.ownedNFTs <- {}
+            self.price = {}
+            self.id = MarketPalace.collectionCounterID
+            MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
+        }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -216,8 +226,9 @@ pub contract MarketPalace: NonFungibleToken {
 
         self.artist = {}
         self.totalSupply = 0                    // Initialize the total supply of NFTs
-        //self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
+        self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
         self.collection <- {}
+        
         //self.account.save(<-collection, to: self.collectionStoragePath)
 
         // create a public capability for the collection
