@@ -26,10 +26,10 @@ pub contract MarketPalace: NonFungibleToken {
     pub let artistPrivatePath    : PrivatePath
     // {Artist Profile address : Artist status; true being active}
     access(contract) var artist: {Address: Bool}
-    pub var adminPending : Address?
+    access(contract) var adminPending : Address?
     
-    pub var collectionCounterID: UInt64
-    pub var collection: @{Address: Collection}
+    access(contract) var collectionCounterID: UInt64
+    access(contract) var collection: @{Address: Collection}
     
     //access(account) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
 
