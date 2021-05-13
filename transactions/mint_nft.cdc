@@ -33,10 +33,12 @@ transaction() {
         log("Metadata completed")
 
         // Borrow the recipient's public NFT collection reference
-        let receiver = getAccount(self.signer.address)
+        /*let receiver = getAccount(self.signer.address)
             .getCapability(MarketPalace.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
-            ?? panic("You don't have a D.A.A.M Collection. Setup an D.A.A.M account first!")
+            ?? panic("You don't have a D.A.A.M Collection. Setup an D.A.A.M account first!")*/
+        let receiver = self.signer.address
+        
 
         // Mint the NFT and deposit it to the recipient's collection
         self.minter.mintNFT(recipient: receiver, metadata: metadata
