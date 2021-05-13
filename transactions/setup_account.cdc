@@ -10,7 +10,8 @@ transaction {
     prepare(acct: AuthAccount) {
 
         // Return early if the account already has a collection
-        if acct.borrow<&MarketPalace.Collection>(from: MarketPalace.collectionStoragePath) != nil { return }        
+        if acct.borrow<&MarketPalace.Collection{NonFungibleToken.CollectionPublic}>
+        (from: MarketPalace.collectionStoragePath) != nil { return }        
         let collection <- MarketPalace.createEmptyCollection()    // Create a new empty collection        
         acct.save(<-collection, to: MarketPalace.collectionStoragePath)   // save it to the account
 

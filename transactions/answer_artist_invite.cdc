@@ -17,7 +17,8 @@ transaction(submit: Bool) {
     }
     
     execute {
-        if self.signer.borrow<&MarketPalace.Collection>(from: MarketPalace.collectionStoragePath) == nil {
+        if self.signer.borrow<&MarketPalace.Collection>
+        (from: MarketPalace.collectionStoragePath) == nil {
             log("You D.A.A.M artist, you need a Collection to store NFTs. Go to Setup Account first!!")
             return
         }

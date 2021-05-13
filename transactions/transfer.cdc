@@ -14,7 +14,8 @@ transaction(recipient: Address, withdrawID: UInt64) {
         let recipient = getAccount(recipient)
 
         // borrow a reference to the signer's NFT collection
-        let collectionRef = acct.borrow<&MarketPalace.Collection>(from: MarketPalace.collectionStoragePath)
+        let collectionRef = acct.borrow<&MarketPalace.Collection{NonFungibleToken.Provider}>
+        (from: MarketPalace.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
         
         // borrow a public reference to the receivers collection

@@ -182,7 +182,7 @@ pub contract MarketPalace: NonFungibleToken {
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
             MarketPalace.artist[artist] = true
-            MarketPalace.collection[artist] <-! create Collection()        
+            MarketPalace.collection[artist] <-! create Collection()  
             emit NewArtist(artist: artist)
             log("New Artist added to D.A.A.M")
             return <- create Artist()
@@ -197,7 +197,7 @@ pub contract MarketPalace: NonFungibleToken {
 			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
 			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            let collection = &MarketPalace.collection[recipient] as &Collection
+            var collection = &MarketPalace.collection[recipient] as &Collection{NonFungibleToken.Receiver}
             collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
             log("Minited NFT")
