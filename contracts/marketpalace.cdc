@@ -16,6 +16,7 @@ pub contract MarketPalace: NonFungibleToken {
     pub event AdminInvited(admin  : Address)
     pub event ArtistInvited(artist: Address)
     pub event MintedNFT(id: UInt64)
+    pub event TokenPurchased(id: UInt64, price: UFix64)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
@@ -30,9 +31,8 @@ pub contract MarketPalace: NonFungibleToken {
     
     access(contract) var collectionCounterID: UInt64
     access(contract) var collection: @{Address: Collection}
-    
-    //access(account) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
 
+    //access(contract) var DAAMPublicCollection: @SalePublic
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         // {String:String} repesents {Format:File} ; a Metadata standard
@@ -70,21 +70,68 @@ pub contract MarketPalace: NonFungibleToken {
         }
     }
 /************************************************************************/
-  pub resource interface SalePublic {
-    pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault)
-    pub fun idPrice(tokenID: UInt64): UFix64?
-    pub fun getIDs(): [UInt64]
+    pub resource SalePublic: NonFungibleToken.Provider {
+        pub var price: {UInt64: UFix64} // {nft.id : price}
+        access(self) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
+        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+        pub let id: UInt64
+
+        init(vault: Capability<&AnyResource{FungibleToken.Receiver}>) {
+            self.ownerVault = vault
+            self.ownedNFTs <- {}
+            self.price = {}
+            self.id = MarketPalace.collectionCounterID
+            MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
+        }
+
+        pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault) {
+            pre {
+                self.ownedNFTs[tokenID] != nil : "No D.A.A.M token matching this ID for sale"
+                self.price[tokenID] != nil : "No price has been set for that D.A.A.M nft yet!"
+                buyTokens.balance >= (self.price[tokenID] ?? 0.0) : "Not enough tokens to by the NFT!"
+            }
+
+            let price = self.price[tokenID]!
+            self.price[tokenID] = nil
+
+            let vaultRef = self.ownerVault.borrow() ?? panic("Could not borrow reference to owner token vault")       
+            vaultRef.deposit(from: <- buyTokens)    // deposit the purchasing tokens into the owners vault
+
+            recipient.deposit(token: <- self.withdraw(withdrawID: tokenID)) // deposit the NFT into the buyers collection
+
+            emit TokenPurchased(id: tokenID, price: price)      
+        }
+
+        // withdraw removes an NFT from the collection and moves it to the caller
+        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+            emit Withdraw(id: token.id, from: self.owner?.address)
+            return <-token
+        }
+
+        pub fun getPrice(tokenID: UInt64): UFix64? {
+            pre { self.price[tokenID] != nil }
+            return self.price[tokenID]
+        }
+
+        pub fun setPrice(tokenID: UInt64, price: UFix64?) {
+            pre { self.price[tokenID] != nil }
+            self.price[tokenID] = price
+        }
+
+        // getIDs returns an array of the IDs that are in the collection
+        pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
+
+        destroy() { destroy self.ownedNFTs }
   }
 /************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
         pub let id: UInt64
-        pub var price: {UInt64: UFix64} // {nft.id : price}
-
-        init () {
+                
+        init() {
             self.ownedNFTs <- {}
-            self.price = {}
             self.id = MarketPalace.collectionCounterID
             MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
         }
@@ -107,16 +154,11 @@ pub contract MarketPalace: NonFungibleToken {
         }
 
         // getIDs returns an array of the IDs that are in the collection
-        pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
-        
+        pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
 
         // borrowNFT gets a reference to an NFT in the collection so that the caller can read its metadata and call its methods
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
-        }
-
-        pub fun idPrice(tokenID: UInt64): UFix64? {
-            return self.price[tokenID]
         }
 
         destroy() { destroy self.ownedNFTs }
@@ -174,7 +216,7 @@ pub contract MarketPalace: NonFungibleToken {
             // TODO Add time limit
         }
 
-        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin {
+        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
                 MarketPalace.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
@@ -199,7 +241,13 @@ pub contract MarketPalace: NonFungibleToken {
             return <- create Artist()
         }
 
-        // ToDo self destruct Remove Admin is missing
+        //pub fun createSaleCollection(): @SalePublic} { return <- create SalePublic() }
+
+        //pub fun removeArtist()
+        //pub fun freezeArtist()
+
+        // TODO self destruct Remove Admin is missing
+        // pub fun removeAdmin() {}
 	}
 /************************************************************************/
     pub resource Artist {
@@ -231,9 +279,9 @@ pub contract MarketPalace: NonFungibleToken {
         self.artistPrivatePath     = /private/DAAMArtist
         self.artistStoragePath     = /storage/DAAMArtist
 
-        //Custom variables should be contract arguments
-        
+        //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
+        //self.DAAMPublicCollection <- create SalePublic()
 
         self.artist = {}
         self.totalSupply = 0                    // Initialize the total supply of NFTs
