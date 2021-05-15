@@ -4,7 +4,7 @@ import NonFungibleToken from 0x120e725050340cab
 import FungibleToken from 0xee82856bf20e2aa6
 import Profile from 0x192440c99cb17282
 
-pub contract MarketPalace {
+pub contract DAAM_NFT: NonFungibleToken {
 
     pub var totalSupply: UInt64
 
@@ -16,7 +16,6 @@ pub contract MarketPalace {
     pub event AdminInvited(admin  : Address)
     pub event ArtistInvited(artist: Address)
     pub event MintedNFT(id: UInt64)
-    pub event TokenPurchased(id: UInt64, price: UFix64)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
@@ -64,80 +63,21 @@ pub contract MarketPalace {
         pub var metadata: Metadata
 
         init(metadata: Metadata) {
-            MarketPalace.totalSupply = MarketPalace.totalSupply + 1 as UInt64
-            self.id = MarketPalace.totalSupply
+            DAAM_NFT.totalSupply = DAAM_NFT.totalSupply + 1 as UInt64
+            self.id = DAAM_NFT.totalSupply
             self.metadata = metadata
         }
     }
-/************************************************************************/
-    pub resource SalePublic: NonFungibleToken.Provider {
-        pub var price: {UInt64: UFix64} // {nft.id : price}
-        access(self) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
-        pub let id: UInt64
-
-        init(vault: Capability<&AnyResource{FungibleToken.Receiver}>) {
-            self.ownerVault = vault
-            self.ownedNFTs <- {}
-            self.price = {}
-            self.id = MarketPalace.collectionCounterID
-            MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
-        }
-        // TODO and interface to @FungibleToken... Reciever
-        pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault) {
-            pre {
-                self.ownedNFTs[tokenID] != nil : "No DAAM token matching this ID for sale"
-                self.price[tokenID] != nil : "No price has been set for that DAAM nft yet!"
-                buyTokens.balance >= (self.price[tokenID] ?? 0.0) : "Not enough tokens to by the NFT!"
-            }
-
-            let price = self.price[tokenID]!
-            self.price[tokenID] = nil
-
-            let vaultRef = self.ownerVault.borrow() ?? panic("Could not borrow reference to owner token vault")       
-            vaultRef.deposit(from: <- buyTokens)    // deposit the purchasing tokens into the owners vault
-
-            recipient.deposit(token: <- self.withdraw(withdrawID: tokenID)) // deposit the NFT into the buyers collection
-
-            emit TokenPurchased(id: tokenID, price: price)      
-        }
-
-        // withdraw removes an NFT from the collection and moves it to the caller
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
-            emit Withdraw(id: token.id, from: self.owner?.address)
-            return <-token
-        }
-
-        pub fun getPrice(tokenID: UInt64): UFix64? {
-            pre { self.price[tokenID] != nil }
-            return self.price[tokenID]
-        }
-
-        pub fun setPrice(tokenID: UInt64, price: UFix64?) {
-            pre { self.price[tokenID] != nil }
-            self.price[tokenID] = price
-        }
-
-        // getIDs returns an array of the IDs that are in the collection
-        pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }
-
-        destroy() { destroy self.ownedNFTs }
-  }
 /************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
         pub let id: UInt64
-        pub var price: {UInt64: UFix64} // {nft.id : price}
-        access(self) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>?
-                
-        init(vault: Capability<&AnyResource{FungibleToken.Receiver}>) {
-            self.ownerVault = vault
-            self.price = {}
+                        
+        init() {
             self.ownedNFTs <- {}
-            self.id = MarketPalace.collectionCounterID
-            MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
+            self.id = DAAM_NFT.collectionCounterID
+            DAAM_NFT.collectionCounterID = DAAM_NFT.collectionCounterID + 1 as UInt64
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -149,7 +89,7 @@ pub contract MarketPalace {
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @MarketPalace.NFT
+            let token <- token as! @DAAM_NFT.NFT
             let id: UInt64 = token.id
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
@@ -164,39 +104,6 @@ pub contract MarketPalace {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
-        pub fun getPrice(tokenID: UInt64): UFix64? {
-            pre { self.price[tokenID] != nil }
-            return self.price[tokenID]
-        }
-
-        pub fun setPrice(tokenID: UInt64, price: UFix64?) {
-            pre { self.price[tokenID] != nil }
-            self.price[tokenID] = price
-        }
-
-        pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault) {
-            pre {
-                self.ownerVault != nil :  "Initialize Deposit, if you want to sell and get paid"
-                self.ownedNFTs[tokenID] != nil : "No DAAM token matching this ID for sale"
-                self.price[tokenID] != nil : "No price has been set for that DAAM nft yet!"
-                buyTokens.balance >= (self.price[tokenID] ?? 0.0) : "Not enough tokens to by the NFT!"
-            }
-
-            let price = self.price[tokenID]!
-            self.price[tokenID] = nil
-            
-            //let vaultRef = self.ownerVault.borrow() ?? panic("Could not borrow reference to owner token vault")       
-            //vaultRef.deposit(from: <- buyTokens)    // deposit the purchasing tokens into the owners vault
-            
-            //var vaultRef: Capability<&AnyResource{FungibleToken.Receiver}>
-            if self.ownerVault != nil {
-                vaultRef = self.ownerVault.borrow() //?? panic("Could not borrow reference to owner token vault")       
-                //vaultRef.deposit(from: <- buyTokens)    // deposit the purchasing tokens into the owners vault
-            }
-            
-            recipient.deposit(token: <- self.withdraw(withdrawID: tokenID)) // deposit the NFT into the buyers collection
-            emit TokenPurchased(id: tokenID, price: price)      
-        }
 
         destroy() { destroy self.ownedNFTs }
     }
@@ -204,14 +111,14 @@ pub contract MarketPalace {
     pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                MarketPalace.adminPending == nil : "Admin already pending. Waiting on confirmation."
+                DAAM_NFT.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                MarketPalace.artist[artist] == nil : "They're already a DAAM Artist!!!"
+                DAAM_NFT.artist[artist] == nil : "They're already a DAAM Artist!!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
         }
@@ -220,7 +127,7 @@ pub contract MarketPalace {
     pub resource interface InvitedAdmin {
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                MarketPalace.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                DAAM_NFT.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }      
@@ -230,7 +137,7 @@ pub contract MarketPalace {
     pub resource interface InvitedArtist {
         pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
             pre {
-                MarketPalace.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                DAAM_NFT.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
@@ -242,24 +149,24 @@ pub contract MarketPalace {
         pub fun inviteAdmin(newAdmin: Address) {
             emit AdminInvited(admin: newAdmin)
             log("New Admin invitation")  
-            MarketPalace.adminPending = newAdmin
+            DAAM_NFT.adminPending = newAdmin
             // TODO Add time limit
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
             log("New Artist added to DAAM")        
-            MarketPalace.artist[artist] = false
+            DAAM_NFT.artist[artist] = false
             // TODO Add time limit
         }
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                MarketPalace.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                DAAM_NFT.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }
-            MarketPalace.adminPending = nil
+            DAAM_NFT.adminPending = nil
             emit NewAdmin(admin: newAdmin)
             log("New Admin added to DAAM")
             return <- create Admin()         
@@ -267,19 +174,16 @@ pub contract MarketPalace {
         // TODO add interface restriction to collection
         pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
             pre {
-                MarketPalace.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                DAAM_NFT.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
-            MarketPalace.artist[artist] = true
-            //MarketPalace.collection[artist] <-! collection  
+            DAAM_NFT.artist[artist] = true
+            //DAAM_NFT.collection[artist] <-! collection  
             emit NewArtist(artist: artist)
             log("New Artist added to DAAM")
             return <- create Artist()
         }
-
-        //pub fun createSaleCollection(vault: Capability<&AnyResource{FungibleToken.Receiver}>): @SalePublic
-        //{ return <- create SalePublic(vault) }
 
         //pub fun removeArtist()
         //pub fun freezeArtist()
@@ -294,7 +198,7 @@ pub contract MarketPalace {
 			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
 			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            var collection = &MarketPalace.collection[recipient] as &Collection{NonFungibleToken.Receiver}
+            var collection = &DAAM_NFT.collection[recipient] as &Collection{NonFungibleToken.Receiver}
             collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
             log("Minited NFT")
@@ -303,15 +207,10 @@ pub contract MarketPalace {
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        return <- create Collection(vault:nil)
+        return <- create Collection()
     }
 
-    /*pub fun createEmptyCollection(vault: Capability<&AnyResource{FungibleToken.Receiver}>):
-    @NonFungibleToken.Collection {
-        return <- create Collection(vault)
-    }*/
-
-    // MarketPalace Functions
+    // DAAM_NFT Functions
 	init() {
         // init Paths
         self.collectionPublicPath  = /public/DAAMCollection
