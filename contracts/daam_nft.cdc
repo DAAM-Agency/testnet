@@ -155,7 +155,7 @@ pub contract DAAM_NFT: NonFungibleToken {
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
-            log("New Artist added to DAAM")        
+            log("New Artist invitation")        
             DAAM_NFT.artist[artist] = false
             // TODO Add time limit
         }

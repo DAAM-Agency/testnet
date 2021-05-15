@@ -1,5 +1,5 @@
 import NonFungibleToken from 0x120e725050340cab
-import MarketPalace from 0x045a1763c93006ca
+import DAAM_NFT from 0xfd43f9148d4b725d
 
 // This script uses the Artist resource to mint a new NFT
 // It must be run with the account that has the minter resource
@@ -8,19 +8,19 @@ import MarketPalace from 0x045a1763c93006ca
 transaction() {
 
     // local variable for storing the minter reference
-    let minter: &MarketPalace.Artist
+    let minter: &DAAM_NFT.Artist
     let signer: AuthAccount
     
     prepare(signer: AuthAccount) {
 
         // borrow a reference to the Artist resource in storage
-        self.minter = signer.borrow<&MarketPalace.Artist>(from: MarketPalace.artistStoragePath)
+        self.minter = signer.borrow<&DAAM_NFT.Artist>(from: DAAM_NFT.artistStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
         self.signer = signer    
     }
 
     execute {
-        let metadata = MarketPalace.Metadata(
+        let metadata = DAAM_NFT.Metadata(
                 title:"Title",
                 creator: self.signer.address,
                 series: [],
@@ -34,15 +34,14 @@ transaction() {
 
         // Borrow the recipient's public NFT collection reference
         /*let receiver = getAccount(self.signer.address)
-            .getCapability(MarketPalace.collectionPublicPath)
+            .getCapability(DAAM_NFT.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("You don't have a D.A.A.M Collection. Setup an D.A.A.M account first!")*/
         let receiver = self.signer.address
         
 
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, metadata: metadata
-        )
+        //self.minter.mintNFT(recipient: receiver, metadata: metadata)
         log("NFT Minted")
     }
 }
