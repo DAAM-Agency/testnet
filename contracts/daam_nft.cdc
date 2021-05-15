@@ -34,25 +34,15 @@ pub contract DAAM_NFT: NonFungibleToken {
     //access(contract) var DAAMPublicCollection: @SalePublic
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
-        // {String:String} repesents {Format:File} ; a Metadata standard
-        pub let title     : String            // Title                   
         pub let creator   : Address           // Artist
-        pub let series    : [UInt64]          // If, Part of which series  TODO FIX UPGRADE to NFT
-        pub let isPhysical: Bool              // Does this have a physical counter-part        
-        pub let agency    : String            // Sold from which Gallery or Online // UPGRADE to NFT 
-        pub let about     : {String: String}  // About NFT, Blurb or website 
-        pub let thumbnail : {String: String}  // Thumbnail
-        pub let file      : {String: String}  // File, Actual Content                     
+        pub let metadata  : String            // JSON see metadata.json
+        pub let thumbnail : String            // JSON see metadata.json
+        pub let file      : String            // JSON see metadata.json       
 
-        init(title:String, creator:Address, series:[UInt64], physical:Bool, agency:String,
-        about:{String: String}, thumbnail:{String: String}, file:{String: String})
+        init(creator: Address, metadata: String, thumbnail: String, file: String)
         {
-            self.title = title
             self.creator = creator
-            self.series = series
-            self.isPhysical = physical
-            self.agency = agency
-            self.about = about
+            self.metadata = metadata
             self.thumbnail = thumbnail
             self.file = file
         }// Metadata init

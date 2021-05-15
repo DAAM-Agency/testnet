@@ -21,14 +21,10 @@ transaction() {
 
     execute {
         let metadata = DAAM_NFT.Metadata(
-                title:"Title",
                 creator: self.signer.address,
-                series: [],
-                physical: false,
-                agency: "agency",
-                about: {"text": "about"},
-                thumbnail: {"text":"thumbnail"},
-                file: {"text":"file"}
+                metadata : "medadata",
+                thumbnail: "thumbnail",
+                file     : "file"
         )    
         log("Metadata completed")
 

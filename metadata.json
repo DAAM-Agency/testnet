@@ -1,0 +1,30 @@
+{
+    "series" : {
+        "title" : "NFTS crying in the dark",
+        "list": "[0xNFT01, 0xNFT02]", 
+        "print" : "{UInt64 : UInt64}"
+    },
+    "title" : "The title of your NFT",
+    "agency": "Montreal",
+    "about" : {
+        "text" : "I'm great!!",
+        "html" : "<html><head></head><body><p>I'm great!!</p><body></head>"
+    },
+    "isPhysical" : "True"
+}
+
+// thumbnail
+{
+    "thumbnail" : {
+        "jpg" : "(jpeg data)",
+        "raw" : "(raw data)"
+    }
+}
+
+// file
+{
+    "file" : {
+        "jpg" : "(jpeg data)",
+        "raw" : "(raw data)"
+    }
+}
