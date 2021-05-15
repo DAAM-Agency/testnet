@@ -86,8 +86,8 @@ pub contract MarketPalace: NonFungibleToken {
 
         pub fun purchase(tokenID: UInt64, recipient: &{NonFungibleToken.CollectionPublic}, buyTokens: @FungibleToken.Vault) {
             pre {
-                self.ownedNFTs[tokenID] != nil : "No D.A.A.M token matching this ID for sale"
-                self.price[tokenID] != nil : "No price has been set for that D.A.A.M nft yet!"
+                self.ownedNFTs[tokenID] != nil : "No DAAM token matching this ID for sale"
+                self.price[tokenID] != nil : "No price has been set for that DAAM nft yet!"
                 buyTokens.balance >= (self.price[tokenID] ?? 0.0) : "Not enough tokens to by the NFT!"
             }
 
@@ -129,8 +129,10 @@ pub contract MarketPalace: NonFungibleToken {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
         pub let id: UInt64
+        pub var price: {UInt64: UFix64} // {nft.id : price}
                 
         init() {
+            self.price = {}
             self.ownedNFTs <- {}
             self.id = MarketPalace.collectionCounterID
             MarketPalace.collectionCounterID = MarketPalace.collectionCounterID + 1 as UInt64
@@ -160,6 +162,15 @@ pub contract MarketPalace: NonFungibleToken {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
+        pub fun getPrice(tokenID: UInt64): UFix64? {
+            pre { self.price[tokenID] != nil }
+            return self.price[tokenID]
+        }
+
+        pub fun setPrice(tokenID: UInt64, price: UFix64?) {
+            pre { self.price[tokenID] != nil }
+            self.price[tokenID] = price
+        }
 
         destroy() { destroy self.ownedNFTs }
     }
@@ -168,14 +179,14 @@ pub contract MarketPalace: NonFungibleToken {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 MarketPalace.adminPending == nil : "Admin already pending. Waiting on confirmation."
-                Profile.check(newAdmin)  : "You can't add D.A.A.M Admin without a Profile! Tell'em to make one first!!"
+                Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                MarketPalace.artist[artist] == nil : "They're already a D.A.A.M Artist!!!"
-                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile! Go make one Fool!!"
+                MarketPalace.artist[artist] == nil : "They're already a DAAM Artist!!!"
+                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
         }
     }
@@ -183,8 +194,8 @@ pub contract MarketPalace: NonFungibleToken {
     pub resource interface InvitedAdmin {
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                MarketPalace.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
-                Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
+                MarketPalace.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }      
         }        
@@ -193,8 +204,8 @@ pub contract MarketPalace: NonFungibleToken {
     pub resource interface InvitedArtist {
         pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
             pre {
-                MarketPalace.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
-                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
+                MarketPalace.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
         }
@@ -211,37 +222,38 @@ pub contract MarketPalace: NonFungibleToken {
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
-            log("New Artist added to D.A.A.M")        
+            log("New Artist added to DAAM")        
             MarketPalace.artist[artist] = false
             // TODO Add time limit
         }
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                MarketPalace.adminPending == newAdmin : "You got no D.A.A.M Admin invite!!!. Get outta here!!"
-                Profile.check(newAdmin)       : "You can't be a D.A.A.M Admin without a Profile first! Go make one Fool!!"
+                MarketPalace.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }
             MarketPalace.adminPending = nil
             emit NewAdmin(admin: newAdmin)
-            log("New Admin added to D.A.A.M")
+            log("New Admin added to DAAM")
             return <- create Admin()         
         }
 
         pub fun answerArtistInvite(_ artist: Address,_ submit: Bool): @Artist {
             pre {
-                MarketPalace.artist[artist] != nil : "You got no D.A.A.M Artist invite!!!. Get outta here!!"
-                Profile.check(artist)      : "You can't be a D.A.A.M Artist without a Profile first! Go make one Fool!!"
+                MarketPalace.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 submit == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
             MarketPalace.artist[artist] = true
             MarketPalace.collection[artist] <-! create Collection()  
             emit NewArtist(artist: artist)
-            log("New Artist added to D.A.A.M")
+            log("New Artist added to DAAM")
             return <- create Artist()
         }
 
-        //pub fun createSaleCollection(): @SalePublic} { return <- create SalePublic() }
+        //pub fun createSaleCollection(vault: Capability<&AnyResource{FungibleToken.Receiver}>): @SalePublic
+        //{ return <- create SalePublic(vault) }
 
         //pub fun removeArtist()
         //pub fun freezeArtist()
