@@ -37,7 +37,7 @@ transaction() {
         
 
         // Mint the NFT and deposit it to the recipient's collection
-        //self.minter.mintNFT(recipient: receiver, metadata: metadata)
+        self.minter.mintNFT(recipient: receiver, metadata: metadata)
         log("NFT Minted")
     }
 }

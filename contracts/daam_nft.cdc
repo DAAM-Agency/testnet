@@ -169,7 +169,7 @@ pub contract DAAM_NFT: NonFungibleToken {
                 answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
             DAAM_NFT.artist[artist] = true
-            //DAAM_NFT.collection[artist] <-! collection  
+            DAAM_NFT.collection[artist] <-! create Collection()
             emit NewArtist(artist: artist)
             log("New Artist added to DAAM")
             return <- create Artist()
@@ -188,7 +188,8 @@ pub contract DAAM_NFT: NonFungibleToken {
 			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
 			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-            var collection = &DAAM_NFT.collection[recipient] as &Collection{NonFungibleToken.Receiver}
+
+            var collection = &DAAM_NFT.collection[recipient] as &{NonFungibleToken.CollectionPublic}
             collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
             log("Minited NFT")
