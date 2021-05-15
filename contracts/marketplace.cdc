@@ -28,7 +28,7 @@ pub contract Marketplace {
     // that only exposes the methods that are supposed to be public
     //
     pub resource interface SalePublic {
-        pub fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.NFTReceiver}, buyTokens: @FungibleToken.Vault)
+        pub fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault)
         pub fun idPrice(tokenID: UInt64): UFix64?
         pub fun getIDs(): [UInt64]
     }
@@ -88,7 +88,7 @@ pub contract Marketplace {
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
-        pub fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.NFTReceiver}, buyTokens: @FungibleToken.Vault) {
+        pub fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault) {
             pre {
                 self.forSale[tokenID] != nil && self.prices[tokenID] != nil:
                     "No token matching this ID for sale!"

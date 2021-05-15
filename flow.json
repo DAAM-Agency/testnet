@@ -46,7 +46,7 @@
 			"keys": "82707875e9c232fbe4998a4f0744c36fe7d35250b2eaf8721a6ee5f92c4586e2",
 			"chain": "flow-emulator"
 		},
-		"marketpalace": {
+		"marketplace": {
 			"address": "045a1763c93006ca",
 			"keys": "a22569bb4b6f4ff0d9404144ea88271e20bdc6d33bc8fc3d4dd591e34189374b",
 			"chain": "flow-emulator"
@@ -64,6 +64,11 @@
 		"profile": {
 			"address": "192440c99cb17282",
 			"keys": "c3f7c8540630bb52e1ec629f281df1f2411c5ec898d532023e155e9d8b5c80ca",
+			"chain": "flow-emulator"
+		},
+		"daam_nft": {
+			"address": "fd43f9148d4b725d",
+			"keys": "49d98386b472e6f4ea3b2f6e6e1b3b7a17094f1e3c96e33b98d909624e817b4a",
 			"chain": "flow-emulator"
 		}
 	},
