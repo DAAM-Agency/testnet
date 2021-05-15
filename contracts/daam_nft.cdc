@@ -34,28 +34,36 @@ pub contract DAAM_NFT: NonFungibleToken {
     //access(contract) var DAAMPublicCollection: @SalePublic
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
-        pub let creator   : Address           // Artist
-        pub let metadata  : String            // JSON see metadata.json
-        pub let thumbnail : String            // JSON see metadata.json
-        pub let file      : String            // JSON see metadata.json       
+        pub let creator   : Address   // Artist
+        pub let data      : String    // JSON see metadata.json
+        pub let thumbnail : String    // JSON see metadata.json
+        pub let file      : String    // JSON see metadata.json
+             
 
         init(creator: Address, metadata: String, thumbnail: String, file: String)
         {
             self.creator = creator
-            self.metadata = metadata
+            self.data = metadata
             self.thumbnail = thumbnail
-            self.file = file
+            self.file = file            
         }// Metadata init
     }// Metadata
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
-        pub let id: UInt64
-        pub var metadata: Metadata
+        pub let id      : UInt64
+        pub let metadata: Metadata
+        pub var series  : [UInt64]?  // TokenIDs of series
 
         init(metadata: Metadata) {
+            self.metadata = metadata
             DAAM_NFT.totalSupply = DAAM_NFT.totalSupply + 1 as UInt64
             self.id = DAAM_NFT.totalSupply
-            self.metadata = metadata
+            self.series = []
+        }
+
+        pub fun updateSeries(series: [UInt64]?) {
+            pre { series == nil : "Already initialized" }
+            self.series = series
         }
     }
 /************************************************************************/
