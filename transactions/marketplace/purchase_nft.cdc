@@ -7,7 +7,7 @@ import DAAM_NFT         from 0xfd43f9148d4b725d
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-transaction(recipient: Address) {
+transaction(recipient: Address, amount: UFix64) {
 
     // reference to the buyer's NFT collection where they
     // will store the bought NFT
@@ -26,7 +26,7 @@ transaction(recipient: Address) {
             ?? panic("Could not borrow owner's vault reference")
 
         // withdraw tokens from the buyers Vault
-        self.temporaryVault <- vaultRef.withdraw(amount: 10.0)
+        self.temporaryVault <- vaultRef.withdraw(amount: amount)
     }
 
     execute {
