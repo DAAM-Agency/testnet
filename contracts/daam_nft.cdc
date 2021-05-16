@@ -62,7 +62,7 @@ pub contract DAAM_NFT: NonFungibleToken {
         }
 
         pub fun updateSeries(series: [UInt64]?) {
-            pre { series == nil : "Already initialized" }
+            pre{ self.series == nil : "Already Initialized!" }
             self.series = series
         }
     }
@@ -202,11 +202,25 @@ pub contract DAAM_NFT: NonFungibleToken {
             emit MintedNFT(id: id)
             log("Minited NFT")
 		}
+
+        pub fun updateSeries(artist: Address, series: [UInt64]) {
+            var collection = &DAAM_NFT.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
+            let tokenIDs = collection.getIDs()
+            for id in series {
+                if !tokenIDs.contains(id) { return }
+            }
+            var nft <- collection.withdraw(withdrawID: 0) as! @DAAM_NFT.NFT
+            (nft.series == nil) ?  nft.updateSeries(series: series) : log("Already initialized")
+            collection.deposit(token: <- nft)
+        }
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        return <- create Collection()
+    pub fun createEmptyCollection(): @Collection {
+        post {
+            result.getIDs().length == 0: "The created collection must be empty!"
+        }
+         return <- create Collection()
     }
 
     // DAAM_NFT Functions
