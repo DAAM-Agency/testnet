@@ -36,6 +36,9 @@ transaction(recipient: Address, withdrawID: UInt64) {
         // Deposit the NFT in the receivers collection
         receiverRef.deposit(token: <-self.transferToken)
 
-        log("NFT ID 1 transferred from account 2 to account 1")
+        var logmsg = AuthAccount.address.toString()
+        logmsg.concat(" has transferd NFT: ".concat(withdrawID.toString()) )
+        logmsg.concat(" to: ".concat(recipient.toString()) )
+        log(logmsg)
     }
 }

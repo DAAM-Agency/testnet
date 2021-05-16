@@ -7,7 +7,7 @@ import DAAM_NFT         from 0xfd43f9148d4b725d
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-transaction(recipient: Address, amount: UFix64) {
+transaction(recipient: Address, tokenID: UInt64, amount: UFix64) {
 
     // reference to the buyer's NFT collection where they
     // will store the bought NFT
@@ -40,9 +40,12 @@ transaction(recipient: Address, amount: UFix64) {
 
         // purchase the NFT the the seller is selling, giving them the reference
         // to your NFT collection and giving them the tokens to buy it
-        saleRef.purchase(tokenID: 1, recipient: self.collectionRef, buyTokens: <-self.temporaryVault)
+        saleRef.purchase(tokenID: tokenID, recipient: self.collectionRef, buyTokens: <-self.temporaryVault)
 
-        log("Token 1 has been bought by account 2!")
+        var logmsg = recipient.toString()
+        logmsg.concat(" has purchased NFT: ".concat(tokenID.toString()) )
+        logmsg.concat(" from: ".concat(AuthAccount.address.toString()) )
+        log(logmsg)
     }
 }
  

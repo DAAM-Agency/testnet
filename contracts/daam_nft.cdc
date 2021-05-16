@@ -146,14 +146,14 @@ pub contract DAAM_NFT: NonFungibleToken {
     {
         pub fun inviteAdmin(newAdmin: Address) {
             emit AdminInvited(admin: newAdmin)
-            log("New Admin invitation")  
+            log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             DAAM_NFT.adminPending = newAdmin
             // TODO Add time limit
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
-            log("New Artist invitation")        
+            log("Sent Artist Invation: ".concat(artist.toString()) )
             DAAM_NFT.artist[artist] = false
             // TODO Add time limit
         }
@@ -166,7 +166,7 @@ pub contract DAAM_NFT: NonFungibleToken {
             }
             DAAM_NFT.adminPending = nil
             emit NewAdmin(admin: newAdmin)
-            log("New Admin added to DAAM")
+            log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
             return <- create Admin()         
         }
         // TODO add interface restriction to collection
@@ -179,7 +179,7 @@ pub contract DAAM_NFT: NonFungibleToken {
             DAAM_NFT.artist[artist] = true
             DAAM_NFT.collection[artist] <-! create Collection()
             emit NewArtist(artist: artist)
-            log("New Artist added to DAAM")
+            log("Artist: ".concat(artist.toString()).concat(" added to DAAM") )
             return <- create Artist()
         }
 
@@ -192,15 +192,16 @@ pub contract DAAM_NFT: NonFungibleToken {
 /************************************************************************/
     pub resource Artist {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-		pub fun mintNFT(recipient: Address/*&{NonFungibleToken.CollectionPublic}*/, metadata: Metadata) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
+		//pub fun mintNFT(recipient: Address, metadata: Metadata) {
 			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
-			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 
-            var collection = &DAAM_NFT.collection[recipient] as &{NonFungibleToken.CollectionPublic}
-            collection.deposit(token: <- newNFT)
+            //var collection = &DAAM_NFT.collection[recipient] as &{NonFungibleToken.CollectionPublic}
+            //collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
-            log("Minited NFT")
+            log("Minited NFT: ".concat(id.toString()))
 		}
 
         /*pub fun updateSeries(artist: Address, series: [UInt64]) {

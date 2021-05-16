@@ -22,7 +22,7 @@ transaction(submit: Bool) {
         if admin != nil {
             self.signer.save(<- admin, to: DAAM_NFT.adminStoragePath)
             self.signer.link<&DAAM_NFT.Admin{DAAM_NFT.Founder}>(DAAM_NFT.adminPrivatePath, target: DAAM_NFT.adminStoragePath)
-            log("You are now a D.A.A.M Admin")
+            log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
         } else {
             destroy admin
         }
