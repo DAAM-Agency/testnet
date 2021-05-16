@@ -1,7 +1,5 @@
 // transfer.cdc
 
-
-// Transaction4.cdc
 import NonFungibleToken from 0x120e725050340cab
 import DAAM_NFT from 0xfd43f9148d4b725d
 
