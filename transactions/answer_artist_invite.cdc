@@ -23,7 +23,7 @@ transaction(submit: Bool) {
             return
         }
         
-        let artist <-! self.adminRef.answerArtistInvite(artist: self.signer.address, answer: submit)
+        let artist <- self.adminRef.answerArtistInvite(artist: self.signer.address, answer: submit)
 
         if artist != nil {
             self.signer.save(<- artist, to: DAAM_NFT.artistStoragePath)

@@ -7,11 +7,11 @@ import DAAM_NFT         from 0xfd43f9148d4b725d
 
 // This transaction uses the signers Vault tokens to purchase an NFT
 // from the Sale collection of account 0x01.
-transaction {
+transaction(recipient: Address) {
 
     // reference to the buyer's NFT collection where they
     // will store the bought NFT
-    let collectionRef: &AnyResource{NonFungibleToken.NFTReceiver}
+    let collectionRef: &AnyResource{NonFungibleToken.Receiver}
 
     // Vault that will hold the tokens that will be used to
     // but the NFT
@@ -20,7 +20,8 @@ transaction {
     prepare(acct: AuthAccount) {
 
         // get the references to the buyer's fungible token Vault and NFT Collection Receiver
-        self.collectionRef = acct.borrow<&AnyResource{NonFungibleToken.NFTReceiver}>(from: /storage/NFTCollection)!
+        self.collectionRef = acct.borrow<&AnyResource{NonFungibleToken.Receiver}>
+            (from: DAAM_NFT.collectionStoragePath)!
         let vaultRef = acct.borrow<&FungibleToken.Vault>(from: /storage/MainVault)
             ?? panic("Could not borrow owner's vault reference")
 
@@ -30,10 +31,10 @@ transaction {
 
     execute {
         // get the read-only account storage of the seller
-        let seller = getAccount(0x01)
+        let seller = getAccount(recipient)
 
         // get the reference to the seller's sale
-        let saleRef = seller.getCapability<&AnyResource{Marketplace.SalePublic}>(/public/NFTSale)
+        let saleRef = seller.getCapability<&AnyResource{Marketplace.SalePublic}>(Marketplace.publicPath)
             .borrow()
             ?? panic("Could not borrow seller's sale reference")
 

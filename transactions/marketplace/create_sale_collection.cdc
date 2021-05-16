@@ -20,7 +20,7 @@ transaction {
         let sale <- Marketplace.createSaleCollection(ownerVault: receiver)
 
         // borrow a reference to the NFTCollection in storage
-        let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/NFTCollection)
+        let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: DAAM_NFT.collectionStoragePath)
             ?? panic("Could not borrow owner's nft collection reference")
     
         // Withdraw the NFT from the collection that you want to sell
@@ -31,10 +31,10 @@ transaction {
         sale.listForSale(token: <-token, price: 10.0)
 
         // Store the sale object in the account storage 
-        acct.save(<-sale, to: /storage/NFTSale)
+        acct.save(<-sale, to: Marketplace.storagePath)
 
         // Create a public capability to the sale so that others can call its methods
-        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(/public/NFTSale, target: /storage/NFTSale)
+        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.publicPath, target: Marketplace.storagePath)
 
         log("Sale Created for account 1. Selling NFT 1 for 10 tokens")
     }

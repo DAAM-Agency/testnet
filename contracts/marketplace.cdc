@@ -11,6 +11,9 @@ pub contract Marketplace
     pub event TokenPurchased(id: UInt64, price: UFix64)   // Event that is emitted when a token is purchased    
     pub event SaleWithdrawn(id: UInt64)                   // Event that is emitted when a seller withdraws their NFT from the sale
 
+    pub let publicPath : PublicPath
+    pub let storagePath: StoragePath
+
     // Interface that users will publish for their Sale collection that only exposes the methods that are supposed to be public
     pub resource interface SalePublic {
         pub fun purchase(tokenID: UInt64, recipient: &AnyResource{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault)
@@ -97,6 +100,11 @@ pub contract Marketplace
     // createCollection returns a new collection resource to the caller
     pub fun createSaleCollection(ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>): @SaleCollection {
         return <- create SaleCollection(vault: ownerVault)
+    }
+
+    init(){
+        self.publicPath  = /public/DAAMSale
+        self.storagePath = /storage/DAAMSale
     }
 }
  
