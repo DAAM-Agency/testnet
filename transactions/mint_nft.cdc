@@ -22,7 +22,7 @@ transaction() {
     execute {
         let metadata = DAAM_NFT.Metadata(
                 creator: self.signer.address,
-                metadata : "medadata",
+                metadata : "metadata",
                 thumbnail: "thumbnail",
                 file     : "file"
         )    

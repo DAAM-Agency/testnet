@@ -13,7 +13,7 @@ transaction {
         if acct.borrow<&DAAM_NFT.Collection{NonFungibleToken.CollectionPublic}>
         (from: DAAM_NFT.collectionStoragePath) != nil { return }        
         let collection <- DAAM_NFT.createEmptyCollection()    // Create a new empty collection        
-        acct.save(<-collection, to: DAAM_NFT.collectionStoragePath)   // save it to the account
+        acct.save<@DAAM_NFT.Collection> (<-collection, to: DAAM_NFT.collectionStoragePath)   // save it to the account
 
         // create a public capability for the collection
         acct.link<&{NonFungibleToken.CollectionPublic}>(DAAM_NFT.collectionPublicPath, target: DAAM_NFT.collectionStoragePath)

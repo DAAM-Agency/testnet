@@ -52,19 +52,19 @@ pub contract DAAM_NFT: NonFungibleToken {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id      : UInt64
         pub let metadata: Metadata
-        pub var series  : [UInt64]?  // TokenIDs of series
+        //pub var series  : [UInt64]?  // TokenIDs of series
 
         init(metadata: Metadata) {
             self.metadata = metadata
             DAAM_NFT.totalSupply = DAAM_NFT.totalSupply + 1 as UInt64
             self.id = DAAM_NFT.totalSupply
-            self.series = []
+            //self.series = []
         }
 
-        pub fun updateSeries(series: [UInt64]?) {
+        /*pub fun updateSeries(series: [UInt64]?) {
             pre{ self.series == nil : "Already Initialized!" }
             self.series = series
-        }
+        }*/
     }
 /************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
@@ -203,7 +203,7 @@ pub contract DAAM_NFT: NonFungibleToken {
             log("Minited NFT")
 		}
 
-        pub fun updateSeries(artist: Address, series: [UInt64]) {
+        /*pub fun updateSeries(artist: Address, series: [UInt64]) {
             var collection = &DAAM_NFT.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
             let tokenIDs = collection.getIDs()
             for id in series {
@@ -212,7 +212,7 @@ pub contract DAAM_NFT: NonFungibleToken {
             var nft <- collection.withdraw(withdrawID: 0) as! @DAAM_NFT.NFT
             (nft.series == nil) ?  nft.updateSeries(series: series) : log("Already initialized")
             collection.deposit(token: <- nft)
-        }
+        }*/
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection

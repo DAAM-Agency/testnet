@@ -31,9 +31,9 @@ flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
 sleep 1s
 
 # receive nft
-#flow transactions send ./testnet/transactions/setup_account.cdc --signer nobody
+flow transactions send ./testnet/transactions/setup_account.cdc --signer nobody
 #sleep 1s
-#flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer marketpalace
+flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer marketplace
 #sleep 1s
 
 #0xf8d6e0586b0a20c7
