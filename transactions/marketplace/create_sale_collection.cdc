@@ -8,7 +8,7 @@ import DAAM_NFT         from 0xfd43f9148d4b725d
 // This transaction creates a new Sale Collection object,
 // lists an NFT for sale, puts it in account storage,
 // and creates a public capability to the sale so that others can buy the token.
-transaction {
+transaction(withdrawID: UInt64, price: UFix64) {
 
     prepare(acct: AuthAccount) {
 
@@ -25,10 +25,10 @@ transaction {
     
         // Withdraw the NFT from the collection that you want to sell
         // and move it into the transaction's context
-        let token <- collectionRef.withdraw(withdrawID: 1)
+        let token <- collectionRef.withdraw(withdrawID: withdrawID)
 
         // List the token for sale by moving it into the sale object
-        sale.listForSale(token: <-token, price: 10.0)
+        sale.listForSale(token: <-token, price: price)
 
         // Store the sale object in the account storage 
         acct.save(<-sale, to: Marketplace.storagePath)
