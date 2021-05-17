@@ -1,5 +1,6 @@
 import NonFungibleToken from 0x120e725050340cab
-import FungibleToken from 0xee82856bf20e2aa6
+import FlowToken        from 0x0ae53cb6e3f42a79
+import FungibleToken    from 0xee82856bf20e2aa6
 
 // Marketplace.cdc
 // Based on: https://docs.onflow.org/docs/composable-smart-contracts-marketplace
@@ -29,9 +30,10 @@ pub contract Marketplace
 
         // The fungible token vault of the owner of this sale. When someone buys a token, this resource can
         // deposit tokens into their account.
-        access(account) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
+        access(account) let ownerVault: Capability<&FlowToken.Vault>
 
-        init (vault: Capability<&AnyResource{FungibleToken.Receiver}>) {
+
+        init (vault: Capability<&FlowToken.Vault>) {
             self.forSale <- {}
             self.ownerVault = vault
             self.prices = {}
@@ -74,7 +76,7 @@ pub contract Marketplace
             self.prices[tokenID] = nil
 
             let vaultRef = self.ownerVault.borrow()
-                ?? panic("Could not borrow reference to owner token vault")           
+                ?? panic("Could not borrow reference to owner token vault")      
             vaultRef.deposit(from: <-buyTokens)  // deposit the purchasing tokens into the owners vault
 
             // deposit the NFT into the buyers collection
@@ -98,7 +100,7 @@ pub contract Marketplace
     }
 
     // createCollection returns a new collection resource to the caller
-    pub fun createSaleCollection(ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>): @SaleCollection {
+    pub fun createSaleCollection(ownerVault: Capability<&FlowToken.Vault>): @SaleCollection {
         return <- create SaleCollection(vault: ownerVault)
     }
 
