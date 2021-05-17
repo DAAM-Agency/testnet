@@ -27,12 +27,10 @@ transaction(signer: Address, withdrawID: UInt64) {
         // Get the Collection reference for the receiver getting the public capability and borrowing a reference from it
         let receiverCap = recipient.getCapability<&DAAM_NFT.Collection>
             (DAAM_NFT.collectionPublicPath)!
-
         let receiverRef = receiverCap.borrow()! //as &DAAM_NFT.Collection //{NonFungibleToken.CollectionPublic}
         receiverRef.deposit(token: <- self.transferToken)!  // Deposit the NFT in the receivers collection
 
-        var logmsg = "Transfer: ".concat(recipient.address.toString().concat(" TokenID: ").concat(withdrawID.toString()) )
-        
+        let logmsg = "Transfer: ".concat(recipient.address.toString().concat(" TokenID: ").concat(withdrawID.toString()) )        
         log(logmsg)
     }
 }

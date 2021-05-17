@@ -44,18 +44,11 @@ sleep 1s
 
 # transfer
 flow transactions send ./testnet/transactions/transfer.cdc \
---arg Address:$NOBODY --arg UInt64:1 --signer artist
-sleep 1s
-
-'''
-# marketplace purchase, bid too low
-flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc \
---arg Address:$ARTIST --arg UFix64:2.9 --signer nobody
+--arg Address:$NOBODY --arg UInt64:2 --signer artist
 sleep 1s
 
 # marketplace purchash, 
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc \
---arg Address:$ARTIST --arg UFix64:5 --signer nobody
-sleep 1s
-'''
+--arg Address:$ARTIST --arg UInt64:1 --arg UFix64:5.0 --signer nobody
+
 #0xf8d6e0586b0a20c7

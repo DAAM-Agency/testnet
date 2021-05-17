@@ -34,9 +34,9 @@ transaction(withdrawID: UInt64, price: UFix64) {
         acct.save(<-sale, to: Marketplace.storagePath)
 
         // Create a public capability to the sale so that others can call its methods
-        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.publicPath, target: Marketplace.storagePath)
+        acct.link<&Marketplace.SaleCollection>(Marketplace.publicPath, target: Marketplace.storagePath)
 
-        var logmsg = "For Sale: NFT ".concat(withdrawID.toString().concat(" price: ").concat(price.toString() )
+        var logmsg = "For Sale: NFT ".concat(withdrawID.toString().concat(" price: ").concat(price.toString()) )
         log(logmsg)
     }
 }
