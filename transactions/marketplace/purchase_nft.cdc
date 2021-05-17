@@ -18,10 +18,9 @@ transaction(seller: Address, tokenID: UInt64, amount: UFix64) {
     prepare(acct: AuthAccount) {
 
         // get the references to the buyer's fungible token Vault and NFT Collection Receiver
-        self.buyerCollectionRef = acct.borrow<&{NonFungibleToken.Receiver}>(from: DAAM_NFT.collectionStoragePath)!
+        self.buyerCollectionRef = acct.borrow<&AnyResource{NonFungibleToken.Receiver}>(from: DAAM_NFT.collectionStoragePath)!
         let buyerVaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow owner's vault reference")
-
         // withdraw tokens from the buyers Vault
         self.temporaryVault <- buyerVaultRef.withdraw(amount: amount)
     }
@@ -29,7 +28,6 @@ transaction(seller: Address, tokenID: UInt64, amount: UFix64) {
     execute {
         // get the read-only account storage of the seller
         let seller = getAccount(seller)
-
         // get the reference to the seller's sale
         let saleRef = seller.getCapability<&AnyResource{Marketplace.SalePublic}>(Marketplace.publicPath)
             .borrow()
