@@ -5,7 +5,7 @@ import DAAM_NFT from 0xfd43f9148d4b725d
 
 // This transaction transfers an NFT from one user's collection
 // to another user's collection.
-transaction(recipient: Address, withdrawID: UInt64) {
+transaction(signer: Address, withdrawID: UInt64) {
 
     // The field that will hold the NFT as it is being
     // transferred to the other account
@@ -14,7 +14,7 @@ transaction(recipient: Address, withdrawID: UInt64) {
     prepare(acct: AuthAccount) {
 
         // Borrow a reference from the stored collection
-        let collectionRef = acct.borrow<&DAAM_NFT.Collection{NonFungibleToken.Provider}>(from: DAAM_NFT.collectionStoragePath)
+        let collectionRef = acct.borrow<&DAAM_NFT.Collection>(from: DAAM_NFT.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
 
         // Call the withdraw function on the sender's Collection
@@ -22,23 +22,17 @@ transaction(recipient: Address, withdrawID: UInt64) {
         self.transferToken <- collectionRef.withdraw(withdrawID: withdrawID) as! @DAAM_NFT.NFT
     }
 
-    execute {
-        // Get the recipient's public account object
-        let recipient = getAccount(recipient)
+    execute {        
+        let recipient = getAccount(signer)  // Get the recipient's public account object
+        // Get the Collection reference for the receiver getting the public capability and borrowing a reference from it
+        let receiverCap = recipient.getCapability<&DAAM_NFT.Collection>
+            (DAAM_NFT.collectionPublicPath)!
 
-        // Get the Collection reference for the receiver
-        // getting the public capability and borrowing a reference from it
-        let receiverRef = recipient.getCapability<&DAAM_NFT.Collection{NonFungibleToken.CollectionPublic}>
-            (DAAM_NFT.collectionPublicPath)
-            .borrow()
-            ?? panic("Could not borrow receiver reference")
+        let receiverRef = receiverCap.borrow()! //as &DAAM_NFT.Collection //{NonFungibleToken.CollectionPublic}
+        receiverRef.deposit(token: <- self.transferToken)!  // Deposit the NFT in the receivers collection
 
-        // Deposit the NFT in the receivers collection
-        receiverRef.deposit(token: <-self.transferToken)
-
-        var logmsg = AuthAccount.address.toString()
-        logmsg.concat(" has transferd NFT: ".concat(withdrawID.toString()) )
-        logmsg.concat(" to: ".concat(recipient.toString()) )
+        var logmsg = "Transfer: ".concat(recipient.address.toString().concat(" TokenID: ").concat(withdrawID.toString()) )
+        
         log(logmsg)
     }
 }

@@ -42,10 +42,10 @@ transaction(recipient: Address, tokenID: UInt64, amount: UFix64) {
         // to your NFT collection and giving them the tokens to buy it
         saleRef.purchase(tokenID: tokenID, recipient: self.collectionRef, buyTokens: <-self.temporaryVault)
 
-        var logmsg = recipient.toString()
+        /*var logmsg = recipient.toString()
         logmsg.concat(" has purchased NFT: ".concat(tokenID.toString()) )
         logmsg.concat(" from: ".concat(AuthAccount.address.toString()) )
-        log(logmsg)
+        log(logmsg)*/
     }
 }
  

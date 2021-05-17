@@ -12,8 +12,7 @@ transaction
         let collection <- DAAM_NFT.createEmptyCollection()    // Create a new empty collection        
         acct.save<@DAAM_NFT.Collection> (<-collection, to: DAAM_NFT.collectionStoragePath) // save the new account
         // create a public capability for the collection
-        acct.link<&{NonFungibleToken.CollectionPublic}>
-            (DAAM_NFT.collectionPublicPath, target: DAAM_NFT.collectionStoragePath)
+        acct.link<&DAAM_NFT.Collection>(DAAM_NFT.collectionPublicPath, target: DAAM_NFT.collectionStoragePath)
         log("DAAM Account Created, you now have a Collection to store NFTs'")
     }
 }// transaction

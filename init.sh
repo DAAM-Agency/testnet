@@ -51,16 +51,16 @@ echo Profile: $PROFILE
 export DAAM_NFT=$(head -1 daam_nft | awk '{print $2}')
 echo DAAM_NFT: $DAAM_NFT
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$ARTIST
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$ADMIN
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$NOBODY
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$NFT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$DAAM_NFT
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ARTIST
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$DAAM_NFT
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$MARKETPLACE
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$CLIENT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$COPYRIGHT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$PROFILE
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$MARKETPLACE
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CLIENT
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$COPYRIGHT
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$PROFILE
 
 # init contracts
 flow accounts add-contract NonFungibleToken ./testnet/contracts/NonFungibleToken.cdc --signer nft
