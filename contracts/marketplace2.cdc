@@ -1,0 +1,249 @@
+// Bases on Marketplace.cdc
+
+import FungibleToken    from 0xee82856bf20e2aa6
+import NonFungibleToken from 0x120e725050340cab
+import DAAM_NFT         from 0xfd43f9148d4b725d
+
+pub contract Marketplace {
+
+    // -----------------------------------------------------------------------
+    // DAAM_NFT Market contract Event definitions
+    // -----------------------------------------------------------------------
+
+    // emitted when a DAAM_NFT nft is listed for sale
+    pub event NFT_Listed(id: UInt64, price: UFix64, seller: Address?)
+    // emitted when the price of a listed nft has changed
+    pub event NFT_PriceChange(id: UInt64, newPrice: UFix64, seller: Address?)
+    // emitted when a token is purchased from the market
+    pub event NFT_Purchased(id: UInt64, price: UFix64, seller: Address?)
+    // emitted when a nft has been withdrawn from the sale
+    pub event NFT_Withdrawn(id: UInt64, owner: Address?)
+    // emitted when the cut percentage of the sale has been changed by the owner
+    pub event CutPercentageChanged(newPercent: UFix64, seller: Address?)
+
+    pub let marketStoragePath: StoragePath
+
+    pub let marketPublicPath: PublicPath
+
+    // SalePublic 
+    //
+    // The interface that a user can publish a capability to their sale
+    // to allow others to access their sale
+    pub resource interface SalePublic {
+        pub var cutPercentage: UFix64
+        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM_NFT.NFT {
+            post {
+                result.id == tokenID: "The ID of the withdrawn token must be the same as the requested ID"
+            }
+        }
+        pub fun getPrice(tokenID: UInt64): UFix64?
+        pub fun getIDs(): [UInt64]
+        pub fun borrowNFT(id: UInt64): &DAAM_NFT.NFT? {
+            // If the result isn't nil, the id of the returned reference
+            // should be the same as the argument to the function
+            post {
+                (result == nil) || (result?.id == id): 
+                    "Cannot borrow NFT reference: The ID of the returned reference is incorrect"
+            }
+        }
+    }
+
+    // SaleCollection
+    pub resource SaleCollection: SalePublic
+    {        
+        access(self) var ownerCollection: Capability<&DAAM_NFT.Collection>  // A collection of the nfts that the user has for sale        
+        access(self) var prices: {UInt64: UFix64}  // Dictionary of the low low prices for each NFT by ID
+
+        // The fungible token vault of the seller so that when someone buys a token, the tokens are deposited to this Vault
+        access(self) var ownerCapability: Capability<&{FungibleToken.Receiver}>
+
+        // The capability that is used for depositing the beneficiary's cut of every sale
+        access(self) var beneficiaryCapability: Capability<&{FungibleToken.Receiver}>
+
+        // The capability that is used for depositing the beneficiary's cut of every sale
+        //access(self) var agencyCapability: Capability<&{FungibleToken.Receiver}>
+
+        // The percentage that is taken from every purchase for the beneficiary. For example, if the percentage is 15%, cutPercentage = 0.15
+        pub var cutPercentage: UFix64
+
+        init (ownerCollection: Capability<&DAAM_NFT.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64) {
+            pre {
+                // Check that the owner's nft collection capability is correct
+                ownerCollection.borrow() != nil: 
+                    "Owner's NFT Collection Capability is invalid!"
+
+                // Check that both capabilities are for fungible token Vault receivers
+                ownerCapability.borrow() != nil: 
+                    "Owner's Receiver Capability is invalid!"
+                beneficiaryCapability.borrow() != nil: 
+                    "Beneficiary's Receiver Capability is invalid!" 
+            }
+            
+            // create an empty collection to store the nfts that are for sale
+            self.ownerCollection = ownerCollection
+            self.ownerCapability = ownerCapability
+            self.beneficiaryCapability = beneficiaryCapability
+            //self.agencyCapability = agencyCapability
+            // prices are initially empty because there are no nfts for sale
+            self.prices = {}
+            self.cutPercentage = cutPercentage
+        }
+
+        // listForSale lists an NFT for sale in this sale collection
+        // at the specified price
+        //
+        // Parameters: tokenID: The id of the NFT to be put up for sale
+        //             price: The price of the NFT
+        pub fun listForSale(tokenID: UInt64, price: UFix64) {
+            pre {
+                self.ownerCollection.borrow()!.borrowNFT(id: tokenID) != nil:
+                    "NFT does not exist in the owner's collection"
+            }
+
+            // Set the token's price
+            self.prices[tokenID] = price
+
+            emit NFT_Listed(id: tokenID, price: price, seller: self.owner?.address)
+        }
+
+        // cancelSale cancels a nft sale and clears its price
+        //
+        // Parameters: tokenID: the ID of the token to withdraw from the sale
+        //
+        pub fun cancelSale(tokenID: UInt64) {
+            pre {
+                self.prices[tokenID] != nil: "Token with the specified ID is not already for sale"
+            }
+
+            // Remove the price from the prices dictionary
+            self.prices.remove(key: tokenID)
+
+            // Set prices to nil for the withdrawn ID
+            self.prices[tokenID] = nil
+            
+            // Emit the event for withdrawing a nft from the Sale
+            emit NFT_Withdrawn(id: tokenID, owner: self.owner?.address)
+        }
+
+        // purchase lets a user send tokens to purchase an NFT that is for sale
+        // the purchased NFT is returned to the transaction context that called it
+        //
+        // Parameters: tokenID: the ID of the NFT to purchase
+        //             buyTokens: the fungible tokens that are used to buy the NFT
+        //
+        // Returns: @DAAM_NFT.NFT: the purchased NFT
+        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM_NFT.NFT {
+            pre {
+                self.ownerCollection.borrow()!.borrowNFT(id: tokenID) != nil && self.prices[tokenID] != nil:
+                    "No token matching this ID for sale!"           
+                buyTokens.balance == (self.prices[tokenID] ?? UFix64(0)):
+                    "Not enough tokens to buy the NFT!"
+            }
+
+            // Read the price for the token
+            let price = self.prices[tokenID]!
+
+            // Set the price for the token to nil
+            self.prices[tokenID] = nil
+
+            // Take the cut of the tokens that the beneficiary gets from the sent tokens
+            let beneficiaryCut <- buyTokens.withdraw(amount: price*self.cutPercentage)
+
+            // Take the cut of the tokens that the beneficiary gets from the sent tokens
+            //let agencyCut <- buyTokens.withdraw(amount: price*self.agencyPercentage)
+
+            // Deposit it into the beneficiary's Vault
+            self.beneficiaryCapability.borrow()!
+                .deposit(from: <-beneficiaryCut)
+
+            /*// Deposit it into the agency's Vault
+            self.agencyCapability.borrow()!
+                .deposit(from: <-agencyCut)*/
+            
+            // Deposit the remaining tokens into the owners vault
+            self.ownerCapability.borrow()!
+                .deposit(from: <-buyTokens)
+
+            NFT_(id: tokenID, price: price, seller: self.owner?.address)
+
+            // Return the purchased token
+            let boughtNFT <- self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM_NFT.NFT
+
+            return <-boughtNFT
+        }
+
+        // changePercentage changes the cut percentage of the tokens that are for sale
+        //
+        // Parameters: newPercent: The new cut percentage for the sale
+        pub fun changePercentage(_ newPercent: UFix64) {
+            self.cutPercentage = newPercent
+
+            emit CutPercentageChanged(newPercent: newPercent, seller: self.owner?.address)
+        }
+
+        // changeOwnerReceiver updates the capability for the sellers fungible token Vault
+        //
+        // Parameters: newOwnerCapability: The new fungible token capability for the account 
+        //                                 who received tokens for purchases
+        pub fun changeOwnerReceiver(_ newOwnerCapability: Capability<&{FungibleToken.Receiver}>) {
+            pre {
+                newOwnerCapability.borrow() != nil: 
+                    "Owner's Receiver Capability is invalid!"
+            }
+            self.ownerCapability = newOwnerCapability
+        }
+
+        // changeBeneficiaryReceiver updates the capability for the beneficiary of the cut of the sale
+        //
+        // Parameters: newBeneficiaryCapability the new capability for the beneficiary of the cut of the sale
+        //
+        pub fun changeBeneficiaryReceiver(_ newBeneficiaryCapability: Capability<&{FungibleToken.Receiver}>) {
+            pre {
+                newBeneficiaryCapability.borrow() != nil: 
+                    "Beneficiary's Receiver Capability is invalid!" 
+            }
+            self.beneficiaryCapability = newBeneficiaryCapability
+        }
+
+        // getPrice returns the price of a specific token in the sale
+        // 
+        // Parameters: tokenID: The ID of the NFT whose price to get
+        //
+        // Returns: UFix64: The price of the token
+        pub fun getPrice(tokenID: UInt64): UFix64? {
+            return self.prices[tokenID]
+        }
+
+        // getIDs returns an array of token IDs that are for sale
+        pub fun getIDs(): [UInt64] {
+            return self.prices.keys
+        }
+
+        // borrowNFT Returns a borrowed reference to a NFT for sale
+        // so that the caller can read data from it
+        //
+        // Parameters: id: The ID of the nft to borrow a reference to
+        //
+        // Returns: &DAAM_NFT.NFT? Optional reference to a nft for sale 
+        //                        so that the caller can read its data
+        //
+        pub fun borrowNFT(id: UInt64): &DAAM_NFT.NFT? {
+            if self.prices[id] != nil {
+                let ref = self.ownerCollection.borrow()!.borrowNFT(id: id)
+                return ref
+            } else {
+                return nil
+            }
+        }
+    }
+
+    // createCollection returns a new collection resource to the caller
+    pub fun createSaleCollection(ownerCollection: Capability<&DAAM_NFT.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64): @SaleCollection {
+        return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)
+    }
+
+    init() {
+        self.marketStoragePath = /storage/DAAM_SaleCollection
+        self.marketPublicPath = /public/DAAM_SaleCollection
+    }
+}

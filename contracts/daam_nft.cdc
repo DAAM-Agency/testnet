@@ -18,6 +18,7 @@ pub contract DAAM_NFT: NonFungibleToken {
     pub event MintedNFT(id: UInt64)
 
     pub let collectionPublicPath : PublicPath
+    pub let collectionPrivatePath: PrivatePath
     pub let collectionStoragePath: StoragePath
     pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
@@ -227,13 +228,14 @@ pub contract DAAM_NFT: NonFungibleToken {
     // DAAM_NFT Functions
 	init() {
         // init Paths
-        self.collectionPublicPath  = /public/DAAMCollection
-        self.collectionStoragePath = /storage/DAAMCollection
-        self.adminPublicPath       = /public/DAAMAdmin
-        self.adminPrivatePath      = /private/DAAMAdmin
-        self.adminStoragePath      = /storage/DAAMAdmin
-        self.artistPrivatePath     = /private/DAAMArtist
-        self.artistStoragePath     = /storage/DAAMArtist
+        self.collectionPublicPath  = /public/DAAM_Collection
+        self.collectionPrivatePath = /private/DAAM_Collection
+        self.collectionStoragePath = /storage/DAAM_Collection
+        self.adminPublicPath       = /public/DAAM_Admin
+        self.adminPrivatePath      = /private/DAAM_Admin
+        self.adminStoragePath      = /storage/DAAM_Admin
+        self.artistPrivatePath     = /private/DAAM_Artist
+        self.artistStoragePath     = /storage/DAAM_Artist
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450

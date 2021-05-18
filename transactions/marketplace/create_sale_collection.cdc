@@ -4,7 +4,7 @@ import FlowToken        from 0x0ae53cb6e3f42a79
 import NonFungibleToken from 0x120e725050340cab
 import Marketplace      from 0x045a1763c93006ca
 import DAAM_NFT         from 0xfd43f9148d4b725d
-
+import FungibleToken    from 0xee82856bf20e2aa6
 
 
 // This transaction creates a new Sale Collection object,
@@ -15,7 +15,7 @@ transaction(withdrawID: UInt64, price: UFix64) {
     prepare(acct: AuthAccount) {
 
         // Borrow a reference to the stored Vault
-        let receiver = acct.getCapability<&FlowToken.Vault>(/public/flowTokenVault)
+        let receiver = acct.getCapability<&FungibleToken.Vault>(Marketplace.vaultPublicPath)
 
         // Create a new Sale object, 
         // initializing it with the reference to the owner's vault

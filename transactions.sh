@@ -31,7 +31,7 @@ sleep 1s
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer client
 sleep 1s
 
-# mint 2 NFTs
+# mint 2 NFTs hhh
 flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
 sleep 1s
 flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist

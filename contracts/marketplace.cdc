@@ -27,6 +27,8 @@ pub contract Marketplace {
 
     pub let publicPath : PublicPath
     pub let storagePath: StoragePath
+    pub let vaultPublicPath: PublicPath
+    pub let vaultStoragePath: StoragePath
 
     // Interface that users will publish for their Sale collection that only exposes the methods that are supposed to be public
     pub resource interface SalePublic {
@@ -51,9 +53,9 @@ pub contract Marketplace {
         // The fungible token vault of the owner of this sale.
         // When someone buys a token, this resource can deposit
         // tokens into their account.
-        access(account) let ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>
+        access(account) let ownerVault: Capability<&FungibleToken.Vault>
 
-        init (vault: Capability<&AnyResource{FungibleToken.Receiver}>) {
+        init (vault: Capability<&FungibleToken.Vault>) {
             self.forSale <- {}
             self.ownerVault = vault
             self.prices = {}
@@ -98,19 +100,41 @@ pub contract Marketplace {
                     "Not enough tokens to by the NFT!"
             }
 
-            // get the value out of the optional
-            let price = self.prices[tokenID]!
-            
+            let vault <- buyTokens as! @FlowToken.Vault
+
+            let price = self.prices[tokenID]!            
             self.prices[tokenID] = nil
 
-            let vaultRef = self.ownerVault.borrow()
-                ?? panic("Could not borrow reference to owner token vault")
+
+            //  //getCapability(Marketplace.vaultPublicPath)
+            if self.ownerVault == nil {
+                log("FAIL")
+            }
+                    //?? panic("failed to borrow reference to recipient vault")
+            //receiverRef.deposit(from: <-self.sentVault)
+
+
+            //let vaultRef = self.ownerVault.borrow()
+                //?? panic("Could not borrow reference to owner token vault")
+
+            //self.balance = self.balance + vault.balance
+            //emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
+            //vault.balance = 0.0
+            destroy vault
+
+            // get the value out of the optional
+            /* 
+            
+            let vaultCap = self.ownerVault//.borrow()
+            let vaultRef = vaultCap.borrow() as &FlowToken.Vault
+                //
             
             // deposit the purchasing tokens into the owners vault
             vaultRef.deposit(from: <-buyTokens)
 
             // deposit the NFT into the buyers collection
             recipient.deposit(token: <-self.withdraw(tokenID: tokenID))
+            */
 
             emit TokenPurchased(id: tokenID, price: price)
         }
@@ -131,12 +155,14 @@ pub contract Marketplace {
     }
 
     // createCollection returns a new collection resource to the caller
-    pub fun createSaleCollection(ownerVault: Capability<&AnyResource{FungibleToken.Receiver}>): @SaleCollection {
+    pub fun createSaleCollection(ownerVault: Capability<&FungibleToken.Vault>): @SaleCollection {
         return <- create SaleCollection(vault: ownerVault)
     }
 
     init(){
         self.publicPath  = /public/DAAMSale
         self.storagePath = /storage/DAAMSale
+        self.vaultPublicPath  = /public/flowTokenVault
+        self.vaultStoragePath = /storage/flowTokenVault
     }
 }
