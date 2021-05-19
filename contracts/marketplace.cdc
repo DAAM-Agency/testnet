@@ -79,7 +79,9 @@ pub contract Marketplace {
                 ownerCapability.borrow() != nil: 
                     "Owner's Receiver Capability is invalid!"
                 beneficiaryCapability.borrow() != nil: 
-                    "Beneficiary's Receiver Capability is invalid!" 
+                    "Beneficiary's Receiver Capability is invalid!"
+                cutPercentage <= 0.3 : "That's too much!!"
+                cutPercentage >= 0.1 : "That's too little!!"
             }
             
             // create an empty collection to store the moments that are for sale

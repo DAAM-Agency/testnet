@@ -1,5 +1,5 @@
-import TopShot from 0xTOPSHOTADDRESS
-import Market from 0xMARKETV2ADDRESS
+import Marketplace from 0x045a1763c93006ca
+import DAAM        from 0xfd43f9148d4b725d
 
 // This transaction changes the price of a moment that a user has for sale
 
@@ -12,10 +12,10 @@ transaction(tokenID: UInt64, newPrice: UFix64) {
     prepare(acct: AuthAccount) {
 
         // borrow a reference to the owner's sale collection
-        let topshotSaleCollection = acct.borrow<&Market.SaleCollection>(from: Market.marketStoragePath)
+        let saleCollection = acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath)
             ?? panic("Could not borrow from sale in storage")
 
         // Change the price of the moment
-        topshotSaleCollection.listForSale(tokenID: tokenID, price: newPrice)
+        saleCollection.listForSale(tokenID: tokenID, price: newPrice)
     }
 }

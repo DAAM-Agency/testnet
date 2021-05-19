@@ -47,10 +47,17 @@ flow transactions send ./testnet/transactions/transfer.cdc \
 sleep 1s
 
 # marketplace
-#flow transactions send ./testnet/transactions/marketplace2/create_sale_collection.cdc --arg UInt64:1 --arg UFix64:4.0 --signer artist
+flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --arg Address:$ARTIST --arg UFix64:0.25 --signer nobody
 sleep 1s
 
 # marketplace purchash, 
-#flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$ARTIST --arg UInt64:1 --arg UFix64:5.0 --signer nobody
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:3.0 --signer nobody
+sleep 1s
+
+flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg Address:$ARTIST --arg UFix64:0.25 --arg UInt64:2  --arg UFix64:2.2 --signer artist
+sleep 1s
+
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$ARTIST --arg UInt64:1 --arg UFix64:3.0 --signer nobody
+sleep 1s
 
 #0xf8d6e0586b0a20c7
