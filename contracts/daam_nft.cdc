@@ -4,7 +4,7 @@ import NonFungibleToken from 0x120e725050340cab
 import FungibleToken from 0xee82856bf20e2aa6
 import Profile from 0x192440c99cb17282
 
-pub contract DAAM_NFT: NonFungibleToken {
+pub contract DAAM: NonFungibleToken {
 
     pub var totalSupply: UInt64
 
@@ -57,8 +57,8 @@ pub contract DAAM_NFT: NonFungibleToken {
 
         init(metadata: Metadata) {
             self.metadata = metadata
-            DAAM_NFT.totalSupply = DAAM_NFT.totalSupply + 1 as UInt64
-            self.id = DAAM_NFT.totalSupply
+            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
+            self.id = DAAM.totalSupply
             //self.series = []
         }
 
@@ -75,8 +75,8 @@ pub contract DAAM_NFT: NonFungibleToken {
                         
         init() {
             self.ownedNFTs <- {}
-            self.id = DAAM_NFT.collectionCounterID
-            DAAM_NFT.collectionCounterID = DAAM_NFT.collectionCounterID + 1 as UInt64
+            self.id = DAAM.collectionCounterID
+            DAAM.collectionCounterID = DAAM.collectionCounterID + 1 as UInt64
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -88,7 +88,7 @@ pub contract DAAM_NFT: NonFungibleToken {
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM_NFT.NFT
+            let token <- token as! @DAAM.NFT
             let id: UInt64 = token.id
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
@@ -104,10 +104,10 @@ pub contract DAAM_NFT: NonFungibleToken {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
-        pub fun borrowDAAM_NFT(id: UInt64): &DAAM_NFT.NFT? {
+        pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
             pre { self.ownedNFTs[id] != nil }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-            return ref as! &DAAM_NFT.NFT
+            return ref as! &DAAM.NFT
         }
 
         destroy() { destroy self.ownedNFTs }
@@ -116,14 +116,14 @@ pub contract DAAM_NFT: NonFungibleToken {
     pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                DAAM_NFT.adminPending == nil : "Admin already pending. Waiting on confirmation."
+                DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                DAAM_NFT.artist[artist] == nil : "They're already a DAAM Artist!!!"
+                DAAM.artist[artist] == nil : "They're already a DAAM Artist!!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
         }
@@ -132,7 +132,7 @@ pub contract DAAM_NFT: NonFungibleToken {
     pub resource interface InvitedAdmin {
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                DAAM_NFT.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }      
@@ -142,7 +142,7 @@ pub contract DAAM_NFT: NonFungibleToken {
     pub resource interface InvitedArtist {
         pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
             pre {
-                DAAM_NFT.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                DAAM.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
@@ -154,24 +154,24 @@ pub contract DAAM_NFT: NonFungibleToken {
         pub fun inviteAdmin(newAdmin: Address) {
             emit AdminInvited(admin: newAdmin)
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
-            DAAM_NFT.adminPending = newAdmin
+            DAAM.adminPending = newAdmin
             // TODO Add time limit
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             emit ArtistInvited(artist: artist)
             log("Sent Artist Invation: ".concat(artist.toString()) )
-            DAAM_NFT.artist[artist] = false
+            DAAM.artist[artist] = false
             // TODO Add time limit
         }
 
         pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
             pre {
-                DAAM_NFT.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+                DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
                 Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
                 submit == true                : "Well, ... fuck you too!!!"
             }
-            DAAM_NFT.adminPending = nil
+            DAAM.adminPending = nil
             emit NewAdmin(admin: newAdmin)
             log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
             return <- create Admin()         
@@ -179,12 +179,12 @@ pub contract DAAM_NFT: NonFungibleToken {
         // TODO add interface restriction to collection
         pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
             pre {
-                DAAM_NFT.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                DAAM.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
                 answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
             }
-            DAAM_NFT.artist[artist] = true
-            DAAM_NFT.collection[artist] <-! create Collection()
+            DAAM.artist[artist] = true
+            DAAM.collection[artist] <-! create Collection()
             emit NewArtist(artist: artist)
             log("Artist: ".concat(artist.toString()).concat(" added to DAAM") )
             return <- create Artist()
@@ -205,19 +205,19 @@ pub contract DAAM_NFT: NonFungibleToken {
             let id = newNFT.id
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
 
-            //var collection = &DAAM_NFT.collection[recipient] as &{NonFungibleToken.CollectionPublic}
+            //var collection = &DAAM.collection[recipient] as &{NonFungibleToken.CollectionPublic}
             //collection.deposit(token: <- newNFT)
             emit MintedNFT(id: id)
             log("Minited NFT: ".concat(id.toString()))
 		}
 
         /*pub fun updateSeries(artist: Address, series: [UInt64]) {
-            var collection = &DAAM_NFT.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
+            var collection = &DAAM.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
             let tokenIDs = collection.getIDs()
             for id in series {
                 if !tokenIDs.contains(id) { return }
             }
-            var nft <- collection.withdraw(withdrawID: 0) as! @DAAM_NFT.NFT
+            var nft <- collection.withdraw(withdrawID: 0) as! @DAAM.NFT
             (nft.series == nil) ?  nft.updateSeries(series: series) : log("Already initialized")
             collection.deposit(token: <- nft)
         }*/
@@ -231,7 +231,7 @@ pub contract DAAM_NFT: NonFungibleToken {
          return <- create Collection()
     }
 
-    // DAAM_NFT Functions
+    // DAAM Functions
 	init() {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection

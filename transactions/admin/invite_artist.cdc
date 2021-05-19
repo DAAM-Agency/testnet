@@ -1,13 +1,13 @@
 // invite_artist.cdc
 
-import DAAM_NFT from 0xfd43f9148d4b725d
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(artist: Address) {
 
     prepare(acct: AuthAccount) {
-        let admin <- acct.load<@DAAM_NFT.Admin{DAAM_NFT.Founder}>(from: DAAM_NFT.adminStoragePath)!
+        let admin <- acct.load<@DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         admin.inviteArtist(artist)
-        acct.save<@DAAM_NFT.Admin{DAAM_NFT.Founder}>(<- admin, to: DAAM_NFT.adminStoragePath)
+        acct.save<@DAAM.Admin{DAAM.Founder}>(<- admin, to: DAAM.adminStoragePath)
         log("Artist Invited")
     }
 }// transaction

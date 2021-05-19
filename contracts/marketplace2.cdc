@@ -2,7 +2,7 @@
 
 import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0x120e725050340cab
-import DAAM_NFT         from 0xfd43f9148d4b725d
+import DAAM             from 0xfd43f9148d4b725d
 
 pub contract Marketplace {
 
@@ -30,14 +30,14 @@ pub contract Marketplace {
     // to allow others to access their sale
     pub resource interface SalePublic {
         pub var cutPercentage: UFix64
-        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM_NFT.NFT {
+        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
             post {
                 result.id == tokenID: "The ID of the withdrawn token must be the same as the requested ID"
             }
         }
         pub fun getPrice(tokenID: UInt64): UFix64?
         pub fun getIDs(): [UInt64]
-        pub fun borrowDAAM_NFT(id: UInt64): &DAAM_NFT.NFT? {
+        pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
@@ -51,7 +51,7 @@ pub contract Marketplace {
     pub resource SaleCollection: SalePublic {
 
         // A collection of the moments that the user has for sale
-        access(self) var ownerCollection: Capability<&DAAM_NFT.Collection>
+        access(self) var ownerCollection: Capability<&DAAM.Collection>
 
         // Dictionary of the low low prices for each NFT by ID
         access(self) var prices: {UInt64: UFix64}
@@ -69,7 +69,7 @@ pub contract Marketplace {
         // For example, if the percentage is 15%, cutPercentage = 0.15
         pub var cutPercentage: UFix64
 
-        init (ownerCollection: Capability<&DAAM_NFT.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64) {
+        init (ownerCollection: Capability<&DAAM.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64) {
             pre {
                 // Check that the owner's moment collection capability is correct
                 ownerCollection.borrow() != nil: 
@@ -98,7 +98,7 @@ pub contract Marketplace {
         //             price: The price of the NFT
         pub fun listForSale(tokenID: UInt64, price: UFix64) {
             pre {
-                self.ownerCollection.borrow()!.borrowDAAM_NFT(id: tokenID) != nil:
+                self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil:
                     "Moment does not exist in the owner's collection"
             }
 
@@ -133,10 +133,10 @@ pub contract Marketplace {
         // Parameters: tokenID: the ID of the NFT to purchase
         //             buyTokens: the fungible tokens that are used to buy the NFT
         //
-        // Returns: @DAAM_NFT.NFT: the purchased NFT
-        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM_NFT.NFT {
+        // Returns: @DAAM.NFT: the purchased NFT
+        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
             pre {
-                self.ownerCollection.borrow()!.borrowDAAM_NFT(id: tokenID) != nil && self.prices[tokenID] != nil:
+                self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil && self.prices[tokenID] != nil:
                     "No token matching this ID for sale!"           
                 buyTokens.balance == (self.prices[tokenID] ?? UFix64(0)):
                     "Not enough tokens to buy the NFT!"
@@ -162,7 +162,7 @@ pub contract Marketplace {
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
 
             // Return the purchased token
-            let boughtMoment <- self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM_NFT.NFT
+            let boughtMoment <- self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM.NFT
 
             return <-boughtMoment
         }
@@ -214,17 +214,17 @@ pub contract Marketplace {
             return self.prices.keys
         }
 
-        // borrowDAAM_NFT Returns a borrowed reference to a Moment for sale
+        // borrowDAAM Returns a borrowed reference to a Moment for sale
         // so that the caller can read data from it
         //
         // Parameters: id: The ID of the moment to borrow a reference to
         //
-        // Returns: &DAAM_NFT.NFT? Optional reference to a moment for sale 
+        // Returns: &DAAM.NFT? Optional reference to a moment for sale 
         //                        so that the caller can read its data
         //
-        pub fun borrowDAAM_NFT(id: UInt64): &DAAM_NFT.NFT? {
+        pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
             if self.prices[id] != nil {
-                let ref = self.ownerCollection.borrow()!.borrowDAAM_NFT(id: id)
+                let ref = self.ownerCollection.borrow()!.borrowDAAM(id: id)
                 return ref
             } else {
                 return nil
@@ -233,7 +233,7 @@ pub contract Marketplace {
     }
 
     // createCollection returns a new collection resource to the caller
-    pub fun createSaleCollection(ownerCollection: Capability<&DAAM_NFT.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64): @SaleCollection {
+    pub fun createSaleCollection(ownerCollection: Capability<&DAAM.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64): @SaleCollection {
         return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)
     }
 

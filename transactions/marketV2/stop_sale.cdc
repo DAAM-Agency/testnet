@@ -1,4 +1,4 @@
-import DAAM_NFT         from 0xfd43f9148d4b725d
+import DAAM         from 0xfd43f9148d4b725d
 import Marketplace      from 0x045a1763c93006ca
 
 // This transaction is for a user to stop a moment sale in their account

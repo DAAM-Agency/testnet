@@ -1,6 +1,6 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import Market        from 0x045a1763c93006ca
-import DAAM_NFT      from 0xfd43f9148d4b725d
+import DAAM      from 0xfd43f9148d4b725d
 
 transaction(tokenReceiverPath: PublicPath, beneficiaryAccount: Address, cutPercentage: UFix64, momentID: UInt64, price: UFix64) {
     prepare(acct: AuthAccount) {
@@ -10,7 +10,7 @@ transaction(tokenReceiverPath: PublicPath, beneficiaryAccount: Address, cutPerce
             let ownerCapability = acct.getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)
             let beneficiaryCapability = getAccount(beneficiaryAccount).getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)
 
-            let ownerCollection = acct.link<&DAAM_NFT.Collection>(DAAM_NFT.collectionPrivatePath, target: DAAM_NFT.collectionStoragePath)!
+            let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
 
             // create a new sale collection
             let saleCollection <- Market.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)

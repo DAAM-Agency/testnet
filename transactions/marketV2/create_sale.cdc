@@ -1,5 +1,5 @@
 import FungibleToken from 0xee82856bf20e2aa6
-import DAAM_NFT      from 0xfd43f9148d4b725d
+import DAAM      from 0xfd43f9148d4b725d
 import Marketplace   from 0x045a1763c93006ca
 
 // This transaction creates a sale collection and stores it in the signer's account
@@ -18,7 +18,7 @@ transaction(/*tokenReceiverPath: PublicPath,*/ beneficiaryAccount: Address, cutP
 
         let beneficiaryCapability = getAccount(beneficiaryAccount).getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
 
-        let ownerCollection = acct.link<&DAAM_NFT.Collection>(DAAM_NFT.collectionPrivatePath, target: DAAM_NFT.collectionStoragePath)!
+        let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
 
         let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)
         

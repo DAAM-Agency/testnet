@@ -2,7 +2,7 @@
 
 import NonFungibleToken from 0x120e725050340cab
 import Marketplace      from 0x045a1763c93006ca
-import DAAM_NFT         from 0xfd43f9148d4b725d
+import DAAM         from 0xfd43f9148d4b725d
 import FlowToken        from 0x0ae53cb6e3f42a79
 import FungibleToken    from 0xee82856bf20e2aa6
 
@@ -22,7 +22,7 @@ transaction(recipient: Address, tokenID: UInt64, amount: UFix64) {
     prepare(acct: AuthAccount) {
 
         // get the references to the buyer's fungible token Vault and NFT Collection Receiver
-        self.collectionRef = acct.borrow<&AnyResource{NonFungibleToken.Receiver}>(from: DAAM_NFT.collectionStoragePath)!
+        self.collectionRef = acct.borrow<&AnyResource{NonFungibleToken.Receiver}>(from: DAAM.collectionStoragePath)!
         let vaultRef = acct.borrow<&FlowToken.Vault>(from: Marketplace.vaultStoragePath)
             ?? panic("Could not borrow owner's vault reference")
 

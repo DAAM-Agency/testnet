@@ -1,5 +1,5 @@
 import NonFungibleToken from 0x120e725050340cab
-import DAAM_NFT from 0xfd43f9148d4b725d
+import DAAM from 0xfd43f9148d4b725d
 
 // This script uses the Artist resource to mint a new NFT
 // It must be run with the account that has the minter resource
@@ -8,19 +8,19 @@ import DAAM_NFT from 0xfd43f9148d4b725d
 transaction() {
 
     // local variable for storing the minter reference
-    let minter: &DAAM_NFT.Artist
+    let minter: &DAAM.Artist
     let signer: AuthAccount
     
     prepare(signer: AuthAccount) {
 
         // borrow a reference to the Artist resource in storage
-        self.minter = signer.borrow<&DAAM_NFT.Artist>(from: DAAM_NFT.artistStoragePath)
+        self.minter = signer.borrow<&DAAM.Artist>(from: DAAM.artistStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
         self.signer = signer    
     }
 
     execute {
-        let metadata = DAAM_NFT.Metadata(
+        let metadata = DAAM.Metadata(
                 creator: self.signer.address,
                 metadata : "metadata",
                 thumbnail: "thumbnail",
@@ -30,9 +30,9 @@ transaction() {
 
         // Borrow the recipient's public NFT collection reference
         let receiver = getAccount(self.signer.address)
-            .getCapability(DAAM_NFT.collectionPublicPath)
+            .getCapability(DAAM.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
-            ?? panic("You don't have a D.A.A.M Collection. Setup an D.A.A.M account first!")
+            ?? panic("You don't have a DAAM Collection. Setup an DAAM account first!")
         //let receiver = self.signer.address
         
 

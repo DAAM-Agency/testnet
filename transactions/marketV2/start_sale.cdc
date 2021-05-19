@@ -1,8 +1,8 @@
 import Market        from 0x045a1763c93006ca
-import DAAM_NFT      from 0xfd43f9148d4b725d
+import DAAM      from 0xfd43f9148d4b725d
 
 // This transaction is for a user to put a new moment up for sale
-// They must have DAAM_NFT Collection and a Market Sale Collection already
+// They must have DAAM Collection and a Market Sale Collection already
 // stored in their account
 
 // Parameters
