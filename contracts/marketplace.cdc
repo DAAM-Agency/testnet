@@ -162,7 +162,7 @@ pub contract Marketplace {
     init(){
         self.publicPath  = /public/DAAMSale
         self.storagePath = /storage/DAAMSale
-        self.vaultPublicPath  = /public/flowTokenVault
+        self.vaultPublicPath  = /public/flowTokenReceiver
         self.vaultStoragePath = /storage/flowTokenVault
     }
 }

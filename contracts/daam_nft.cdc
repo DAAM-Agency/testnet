@@ -104,6 +104,12 @@ pub contract DAAM_NFT: NonFungibleToken {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
+        pub fun borrowDAAM_NFT(id: UInt64): &DAAM_NFT.NFT? {
+            pre { self.ownedNFTs[id] != nil }
+            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+            return ref as! &DAAM_NFT.NFT
+        }
+
         destroy() { destroy self.ownedNFTs }
     }
 /************************************************************************/
