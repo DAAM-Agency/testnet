@@ -17,10 +17,10 @@ transaction(sellerAddress: Address, tokenID: UInt64, purchaseAmount: UFix64) {
 
         // borrow a reference to the signer's collection
         let collection = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
-            ?? panic("Could not borrow reference to the Moment Collection")
+            ?? panic("Could not borrow reference to the DAAM Collection")
 
         // borrow a reference to the signer's fungible token Vault
-        let provider = acct.borrow<&FlowToken.Vault{FungibleToken.Provider}>(from: Marketplace.marketStoragePath)!
+        let provider = acct.borrow<&FlowToken.Vault{FungibleToken.Provider}>(from: Marketplace.flowStoragePath)!
         
         // withdraw tokens from the signer's vault
         let tokens <- provider.withdraw(amount: purchaseAmount) as! @FlowToken.Vault

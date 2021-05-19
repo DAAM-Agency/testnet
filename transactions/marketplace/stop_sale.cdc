@@ -14,8 +14,8 @@ transaction(tokenID: UInt64) {
         // borrow a reference to the owner's sale collection
         let saleCollection = acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath)
             ?? panic("Could not borrow from sale in storage")
-
         // cancel the moment from the sale, thereby de-listing it
         saleCollection.cancelSale(tokenID: tokenID)
+        log("Stop Sale Collection")
     }
 }

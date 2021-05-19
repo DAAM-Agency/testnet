@@ -12,18 +12,16 @@ import Marketplace   from 0x045a1763c93006ca
 
 transaction(/*tokenReceiverPath: PublicPath,*/ beneficiaryAccount: Address, cutPercentage: UFix64) {
     prepare(acct: AuthAccount) {
-        let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE
+        let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE        
         
-        let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)        
-
+        let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         let beneficiaryCapability = getAccount(beneficiaryAccount).getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
-
+        
         let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
-
-        let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)
-        
-        acct.save(<-collection, to: Marketplace.marketStoragePath)
-        
+        let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability,
+            beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)        
+        acct.save(<-collection, to: Marketplace.marketStoragePath)        
         acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+        log("Created Sale Collection")
     }
 }

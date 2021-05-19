@@ -29,6 +29,6 @@ transaction(/*tokenReceiverPath: PublicPath,*/ beneficiaryAccount: Address, cutP
         
         // put the moment up for sale
         saleCollection.listForSale(tokenID: tokenID, price: price)
-        
+        log("Created and Started Sale Collection")
     }
 }

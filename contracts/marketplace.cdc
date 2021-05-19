@@ -22,7 +22,9 @@ pub contract Marketplace {
     pub event CutPercentageChanged(newPercent: UFix64, seller: Address?)
 
     pub let marketStoragePath: StoragePath
-    pub let marketPublicPath: PublicPath
+    pub let marketPublicPath : PublicPath
+    pub let flowStoragePath: StoragePath
+    pub let flowPublicPath :  PublicPath
 
     // SalePublic 
     //
@@ -241,6 +243,8 @@ pub contract Marketplace {
 
     init() {
         self.marketStoragePath = /storage/DAAM_SaleCollection
-        self.marketPublicPath = /public/DAAM_SaleCollection
+        self.marketPublicPath  = /public/DAAM_SaleCollection
+        self.flowStoragePath = /storage/flowTokenVault
+        self.flowPublicPath  = /public/flowTokenReceiver
     }
 }
