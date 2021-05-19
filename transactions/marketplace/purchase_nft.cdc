@@ -1,49 +1,42 @@
-// purchase_nft.cdc
-
-import NonFungibleToken from 0x120e725050340cab
-import Marketplace      from 0x045a1763c93006ca
-import DAAM         from 0xfd43f9148d4b725d
-import FlowToken        from 0x0ae53cb6e3f42a79
 import FungibleToken    from 0xee82856bf20e2aa6
+import FlowToken        from 0x0ae53cb6e3f42a79
+import DAAM             from 0xfd43f9148d4b725d
+import Market           from 0x045a1763c93006ca
 
-// This transaction uses the signers Vault tokens to purchase an NFT
-// from the Sale collection of account 0x01.
-transaction(recipient: Address, tokenID: UInt64, amount: UFix64) {
+// This transaction is for a user to purchase a moment that another user
+// has for sale in their sale collection
 
+// Parameters
+//
+// sellerAddress: the Flow address of the account issuing the sale of a moment
+// tokenID: the ID of the moment being purchased
+// purchaseAmount: the amount for which the user is paying for the moment; must not be less than the moment's price
 
-    // reference to the buyer's NFT collection where they
-    // will store the bought NFT
-    let collectionRef: &AnyResource{NonFungibleToken.Receiver}
-
-    // Vault that will hold the tokens that will be used to
-    // but the NFT
-    let temporaryVault: @FungibleToken.Vault
-
+transaction(sellerAddress: Address, tokenID: UInt64, purchaseAmount: UFix64) {
     prepare(acct: AuthAccount) {
 
-        // get the references to the buyer's fungible token Vault and NFT Collection Receiver
-        self.collectionRef = acct.borrow<&AnyResource{NonFungibleToken.Receiver}>(from: DAAM.collectionStoragePath)!
-        let vaultRef = acct.borrow<&FlowToken.Vault>(from: Marketplace.vaultStoragePath)
-            ?? panic("Could not borrow owner's vault reference")
+        // borrow a reference to the signer's collection
+        let collection = acct.borrow<&TopShot.Collection>(from: /storage/MomentCollection)
+            ?? panic("Could not borrow reference to the Moment Collection")
 
-        // withdraw tokens from the buyers Vault
-        self.temporaryVault <- vaultRef.withdraw(amount: amount) //as! @FlowToken.Vault
-    }
+        // borrow a reference to the signer's fungible token Vault
+        let provider = acct.borrow<&FlowToken.Vault{FungibleToken.Provider}>(from: Marketplace.storagePath)!
+        
+        // withdraw tokens from the signer's vault
+        let tokens <- provider.withdraw(amount: purchaseAmount) as! @FlowToken.Vault
 
-    execute {
-        // get the read-only account storage of the seller
-        let seller = getAccount(recipient)
+        // get the seller's public account object
+        let seller = getAccount(sellerAddress)
 
-        // get the reference to the seller's sale
-        let saleCap = seller.getCapability(Marketplace.publicPath)
-        let saleRef = saleCap.borrow<&Marketplace.SaleCollection>()//! as &Marketplace.SaleCollection
-                ?? panic("failed to borrow reference to recipient vault")
+        // borrow a public reference to the seller's sale collection
+        let topshotSaleCollection = seller.getCapability(Market.marketPublicPath)
+            .borrow<&{Market.SalePublic}>()
+            ?? panic("Could not borrow public sale reference")
+    
+        // purchase the moment
+        let purchasedToken <- topshotSaleCollection.purchase(tokenID: tokenID, buyTokens: <-tokens)
 
-        // purchase the NFT the the seller is selling, giving them the reference
-        // to your NFT collection and giving them the tokens to buy it
-        saleRef.purchase(tokenID: tokenID, recipient: self.collectionRef, buyTokens: <-self.temporaryVault)
-
-        log("Token 1 has been bought by account 2!")
+        // deposit the purchased moment into the signer's collection
+        collection.deposit(token: <-purchasedToken)
     }
 }
- 

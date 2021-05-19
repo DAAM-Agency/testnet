@@ -67,4 +67,4 @@ flow accounts add-contract NonFungibleToken ./testnet/contracts/NonFungibleToken
 flow accounts add-contract Profile ./testnet/contracts/Profile.cdc --signer profile
 flow accounts add-contract DAAMCopyright ./testnet/contracts/daamCopyright.cdc --signer copyright
 flow accounts add-contract DAAM ./testnet/contracts/daam_nft.cdc --signer daam_nft
-flow accounts add-contract Marketplace ./testnet/contracts/marketplace2.cdc --signer marketplace
+flow accounts add-contract Marketplace ./testnet/contracts/marketplace.cdc --signer marketplace
