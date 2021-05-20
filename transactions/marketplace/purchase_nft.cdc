@@ -38,5 +38,9 @@ transaction(sellerAddress: Address, tokenID: UInt64, purchaseAmount: UFix64) {
 
         // deposit the purchased moment into the signer's collection
         collection.deposit(token: <-purchasedToken)
+        
+        let logmsg = sellerAddress.toString().concat(" sold NFT: ".concat(tokenID.toString()
+            .concat(" To: ").concat(acct.address.toString().concat(" amount:" ).concat(purchaseAmount.toString()))) )
+        log(logmsg)
     }
 }

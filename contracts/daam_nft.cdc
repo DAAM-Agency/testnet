@@ -1,8 +1,9 @@
 // marketPalace.cdc
 
 import NonFungibleToken from 0x120e725050340cab
-import FungibleToken from 0xee82856bf20e2aa6
-import Profile from 0x192440c99cb17282
+import FungibleToken    from 0xee82856bf20e2aa6
+import Profile          from 0x192440c99cb17282
+import DAAMCopyright    from 0xe03daebed8ca0615
 
 pub contract DAAM: NonFungibleToken {
 
@@ -51,14 +52,17 @@ pub contract DAAM: NonFungibleToken {
     }// Metadata
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
-        pub let id      : UInt64
-        pub let metadata: Metadata
+        pub let id       : UInt64
+        pub let metadata : Metadata
+        access(self) var copyright: Capability<&DAAMCopyright>
         //pub var series  : [UInt64]?  // TokenIDs of series
 
         init(metadata: Metadata) {
             self.metadata = metadata
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
+            let daamCopyright = getAccount(0xe03daebed8ca0615)
+            self.copyright = daamCopyright.getCapability<&DAAMCopyright>(/public/Unverifed)//.borrow()!
             //self.series = []
         }
 
