@@ -17,6 +17,7 @@ pub contract DAAM: NonFungibleToken {
     pub event AdminInvited(admin  : Address)
     pub event ArtistInvited(artist: Address)
     pub event MintedNFT(id: UInt64)
+    pub event SetCopyright(tokenID: UInt64)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionPrivatePath: PrivatePath
@@ -62,7 +63,8 @@ pub contract DAAM: NonFungibleToken {
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
             let daamCopyright = getAccount(0xe03daebed8ca0615)
-            self.copyright = daamCopyright.getCapability<&DAAMCopyright>(/public/Unverifed)//.borrow()!
+            self.copyright = daamCopyright.getCapability<&DAAMCopyright>(/public/Unverifed)
+            DAAMCopyright.copyrightInformation[self.id] = DAAMCopyright.CopyrightStatus.UNVERIFIED
             //self.series = []
         }
 
@@ -131,6 +133,12 @@ pub contract DAAM: NonFungibleToken {
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
         }
+
+        pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {
+            pre {
+                DAAMCopyright.copyrightInformation[tokenID] != nil : "Invalid NFT ID"
+            }
+        }
     }
 /************************************************************************/
     pub resource interface InvitedAdmin {
@@ -192,6 +200,12 @@ pub contract DAAM: NonFungibleToken {
             emit NewArtist(artist: artist)
             log("Artist: ".concat(artist.toString()).concat(" added to DAAM") )
             return <- create Artist()
+        }
+
+        pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {            
+            DAAMCopyright.copyrightInformation[tokenID] = copyright
+            emit SetCopyright(tokenID: tokenID)
+            log("NFT: ".concat(" Copyright Updated") )
         }
 
         //pub fun removeArtist()
