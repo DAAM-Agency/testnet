@@ -4,7 +4,7 @@ import NonFungibleToken from 0x120e725050340cab
 import FungibleToken    from 0xee82856bf20e2aa6
 import Profile          from 0x192440c99cb17282
 import DAAMCopyright    from 0xe03daebed8ca0615
-
+/************************************************************************/
 pub contract DAAM: NonFungibleToken {
 
     pub var totalSupply: UInt64

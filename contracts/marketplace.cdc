@@ -3,13 +3,9 @@
 import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
-
+import DAAMCopyright    from 0xe03daebed8ca0615
+/************************************************************************/
 pub contract Marketplace {
-
-    // -----------------------------------------------------------------------
-    // DAAM NFT Market contract Event definitions
-    // -----------------------------------------------------------------------
-
     // emitted when a DAAM NFT moment is listed for sale
     pub event NFT_Listed(id: UInt64, price: UFix64, seller: Address?)
     // emitted when the price of a listed moment has changed
@@ -26,10 +22,7 @@ pub contract Marketplace {
     pub let flowStoragePath: StoragePath
     pub let flowPublicPath :  PublicPath
 
-    // SalePublic 
-    //
-    // The interface that a user can publish a capability to their sale
-    // to allow others to access their sale
+/************************************************************************/
     pub resource interface SalePublic {
         pub var cutPercentage: UFix64
         pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
@@ -48,7 +41,7 @@ pub contract Marketplace {
             }
         }
     }
-
+/************************************************************************/
     // SaleCollection
     pub resource SaleCollection: SalePublic {
 
@@ -103,7 +96,11 @@ pub contract Marketplace {
         pub fun listForSale(tokenID: UInt64, price: UFix64) {
             pre {
                 self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil:
-                    "Moment does not exist in the owner's collection"
+                    "NFT does not exist in the owner's collection"
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                "This NFT is flaged for Copyright Infrigement"
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
             }
 
             // Set the token's price
@@ -113,102 +110,80 @@ pub contract Marketplace {
         }
 
         // cancelSale cancels a moment sale and clears its price
-        //
-        // Parameters: tokenID: the ID of the token to withdraw from the sale
-        //
         pub fun cancelSale(tokenID: UInt64) {
             pre {
                 self.prices[tokenID] != nil: "Token with the specified ID is not already for sale"
             }
 
-            // Remove the price from the prices dictionary
-            self.prices.remove(key: tokenID)
-
-            // Set prices to nil for the withdrawn ID
-            self.prices[tokenID] = nil
-            
+            self.prices.remove(key: tokenID) // Remove the price from the prices dictionary            
+            self.prices[tokenID] = nil       // Set prices to nil for the withdrawn ID
             // Emit the event for withdrawing a moment from the Sale
             emit NFT_Withdrawn(id: tokenID, owner: self.owner?.address)
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
         // the purchased NFT is returned to the transaction context that called it
-        //
-        // Parameters: tokenID: the ID of the NFT to purchase
-        //             buyTokens: the fungible tokens that are used to buy the NFT
-        //
-        // Returns: @DAAM.NFT: the purchased NFT
         pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
             pre {
-                self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil && self.prices[tokenID] != nil:
-                    "No token matching this ID for sale!"           
-                buyTokens.balance == (self.prices[tokenID] ?? UFix64(0)):
-                    "Not enough tokens to buy the NFT!"
+                self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil : "No token matching this ID"
+                self.prices[tokenID] != nil :"No token is not for sale!"           
+                buyTokens.balance == (self.prices[tokenID]) : "Not enough tokens to buy the NFT!"
+
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                "This NFT is flaged for Copyright Infrigement"
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
             }
 
-            // Read the price for the token
-            let price = self.prices[tokenID]!
-
-            // Set the price for the token to nil
-            self.prices[tokenID] = nil
-
+            post {
+                // Durning Sale protection. If copyright is changed durning sale
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                "This NFT is flaged for Copyright Infrigement"
+                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
+            }
+            
+            let price = self.prices[tokenID]!    // Read the price for the token            
+            self.prices[tokenID] = nil           // Set the price for the token to nil
             // Take the cut of the tokens that the beneficiary gets from the sent tokens
             let beneficiaryCut <- buyTokens.withdraw(amount: price*self.cutPercentage)
-
-            // Deposit it into the beneficiary's Vault
-            self.beneficiaryCapability.borrow()!
+            
+            self.beneficiaryCapability.borrow()! // Deposit it into the beneficiary's Vault
                 .deposit(from: <-beneficiaryCut)
             
-            // Deposit the remaining tokens into the owners vault
-            self.ownerCapability.borrow()!
-                .deposit(from: <-buyTokens)
-
-            emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
+            self.ownerCapability.borrow()!       // Deposit the remaining tokens into the owners vault
+                .deposit(from: <-buyTokens)            
 
             // Return the purchased token
             let boughtMoment <- self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM.NFT
-
+            
+            emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
             return <-boughtMoment
         }
 
         // changePercentage changes the cut percentage of the tokens that are for sale
-        //
-        // Parameters: newPercent: The new cut percentage for the sale
         pub fun changePercentage(_ newPercent: UFix64) {
             self.cutPercentage = newPercent
-
             emit CutPercentageChanged(newPercent: newPercent, seller: self.owner?.address)
         }
 
         // changeOwnerReceiver updates the capability for the sellers fungible token Vault
-        //
-        // Parameters: newOwnerCapability: The new fungible token capability for the account 
-        //                                 who received tokens for purchases
         pub fun changeOwnerReceiver(_ newOwnerCapability: Capability<&{FungibleToken.Receiver}>) {
             pre {
-                newOwnerCapability.borrow() != nil: 
-                    "Owner's Receiver Capability is invalid!"
+                newOwnerCapability.borrow() != nil: "Owner's Receiver Capability is invalid!"
             }
             self.ownerCapability = newOwnerCapability
         }
 
         // changeBeneficiaryReceiver updates the capability for the beneficiary of the cut of the sale
-        //
-        // Parameters: newBeneficiaryCapability the new capability for the beneficiary of the cut of the sale
-        //
         pub fun changeBeneficiaryReceiver(_ newBeneficiaryCapability: Capability<&{FungibleToken.Receiver}>) {
             pre {
-                newBeneficiaryCapability.borrow() != nil: 
-                    "Beneficiary's Receiver Capability is invalid!" 
+                newBeneficiaryCapability.borrow() != nil: "Beneficiary's Receiver Capability is invalid!" 
             }
             self.beneficiaryCapability = newBeneficiaryCapability
         }
 
         // getPrice returns the price of a specific token in the sale
-        // 
-        // Parameters: tokenID: The ID of the NFT whose price to get
-        //
-        // Returns: UFix64: The price of the token
         pub fun getPrice(tokenID: UInt64): UFix64? {
             return self.prices[tokenID]
         }
@@ -219,13 +194,6 @@ pub contract Marketplace {
         }
 
         // borrowDAAM Returns a borrowed reference to a Moment for sale
-        // so that the caller can read data from it
-        //
-        // Parameters: id: The ID of the moment to borrow a reference to
-        //
-        // Returns: &DAAM.NFT? Optional reference to a moment for sale 
-        //                        so that the caller can read its data
-        //
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
             if self.prices[id] != nil {
                 let ref = self.ownerCollection.borrow()!.borrowDAAM(id: id)
@@ -235,7 +203,7 @@ pub contract Marketplace {
             }
         }
     }
-
+/************************************************************************/
     // createCollection returns a new collection resource to the caller
     pub fun createSaleCollection(ownerCollection: Capability<&DAAM.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>, beneficiaryCapability: Capability<&{FungibleToken.Receiver}>, cutPercentage: UFix64): @SaleCollection {
         return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability, beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)
