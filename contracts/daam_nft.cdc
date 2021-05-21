@@ -34,21 +34,24 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionCounterID: UInt64
     access(contract) var collection: @{Address: Collection}
 
-    //access(contract) var DAAMPublicCollection: @SalePublic
+    access(self) let agency: Address   
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         pub let creator   : Address   // Artist
         pub let data      : String    // JSON see metadata.json
         pub let thumbnail : String    // JSON see metadata.json
         pub let file      : String    // JSON see metadata.json
+        pub var commission: {Address: UFix64}  // {commission address : percentage }
              
 
         init(creator: Address, metadata: String, thumbnail: String, file: String)
         {
-            self.creator = creator
-            self.data = metadata
-            self.thumbnail = thumbnail
-            self.file = file            
+            self.creator    = creator
+            self.data       = metadata
+            self.thumbnail  = thumbnail
+            self.file       = file
+            self.commission = {DAAM.agency : 0.1}
+            self.commission[creator] = 0.2
         }// Metadata init
     }// Metadata
 /************************************************************************/
@@ -263,17 +266,13 @@ pub contract DAAM: NonFungibleToken {
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
-        //self.DAAMPublicCollection <- create SalePublic()
+        self.agency       = 0xeb179c27144f783c
 
-        self.artist = {}
-        self.totalSupply = 0                    // Initialize the total supply of NFTs
-        self.collectionCounterID = 0            // Incremental Serial Number for the Collections   
+        self.artist      = {}
         self.collection <- {}
-        
-        //self.account.save(<-collection, to: self.collectionStoragePath)
-
-        // create a public capability for the collection
-        //self.account.link<&{NonFungibleToken.CollectionPublic}>(self.collectionPublicPath, target: self.collectionStoragePath)
+        self.totalSupply         = 0  // Initialize the total supply of NFTs
+        self.collectionCounterID = 0  // Incremental Serial Number for the Collections   
+               
 
         // Create a Minter resource and save it to storage
         let admin <- create Admin()

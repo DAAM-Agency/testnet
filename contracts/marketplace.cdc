@@ -21,7 +21,6 @@ pub contract Marketplace {
     pub let marketPublicPath : PublicPath
     pub let flowStoragePath: StoragePath
     pub let flowPublicPath :  PublicPath
-
 /************************************************************************/
     pub resource interface SalePublic {
         pub var cutPercentage: UFix64
