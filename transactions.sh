@@ -53,7 +53,7 @@ flow transactions send ./testnet/transactions/transfer.cdc \
 sleep 1s
 
 # marketplace Test # 1
-flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --arg Address:$ARTIST --arg UFix64:0.25 --signer nobody
+flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
 sleep 1s
 
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer nobody
@@ -66,7 +66,7 @@ flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg U
 sleep 1s
 
 # marketplace Test # 2
-flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg Address:$CLIENT --arg UFix64:0.25 --arg UInt64:3  --arg UFix64:3.3 --signer artist
+flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer artist
 sleep 1s
 
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$NOBODY --arg UInt64:2 --arg UFix64:2.2 --signer client

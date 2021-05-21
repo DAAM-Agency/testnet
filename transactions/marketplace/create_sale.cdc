@@ -10,16 +10,14 @@ import Marketplace   from 0x045a1763c93006ca
 // beneficiaryAccount: the Flow address of the account where a cut of the purchase will be sent
 // cutPercentage: how much in percentage the beneficiary will receive from the sale
 
-transaction(/*tokenReceiverPath: PublicPath,*/ beneficiaryAccount: Address, cutPercentage: UFix64) {
+transaction(/*tokenReceiverPath: PublicPath,*/) {
     prepare(acct: AuthAccount) {
         let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE        
         
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
-        let beneficiaryCapability = getAccount(beneficiaryAccount).getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         
         let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
-        let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability,
-            beneficiaryCapability: beneficiaryCapability, cutPercentage: cutPercentage)        
+        let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)        
         acct.save(<-collection, to: Marketplace.marketStoragePath)        
         acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         log("Created Sale Collection")
