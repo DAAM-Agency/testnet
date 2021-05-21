@@ -9,6 +9,7 @@ export PROFILE_PUBKEY=$(tail -1 ./keys/profile_keys     | awk '{print $3}' | tr 
 export NOBODY_PUBKEY=$(tail -1 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
 export COPYRIGHT_PUBKEY=$(tail -1 ./keys/copyright_keys | awk '{print $3}' | tr -d '\n')
 export DAAM_NFT_PUBKEY=$(tail -1 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
+export AGENCY_PUBKEY=$(tail -1 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
 
 export ARTIST_PRIVKEY=$(tail -2 ./keys/artist_keys       | awk '{print $3}' | tr -d '\n')
 export ADMIN_PRIVKEY=$(tail -2 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
@@ -19,6 +20,7 @@ export PROFILE_PRIVKEY=$(tail -2 ./keys/profile_keys     | awk '{print $3}' | tr
 export NOBODY_PRIVKEY=$(tail -2 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
 export COPYRIGHT_PRIVKEY=$(tail -2 ./keys/copyright_keys | awk '{print $3}' | tr -d '\n')
 export DAAM_NFT_PRIVKEY=$(tail -2 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
+export AGENCY_PRIVKEY=$(tail -2 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
 
 # init accounts; Must be in order
 flow accounts create --key $ADMIN_PUBKEY --save admin
@@ -30,6 +32,7 @@ flow accounts create --key $NFT_PUBKEY --save nft
 flow accounts create --key $NOBODY_PUBKEY --save nobody
 flow accounts create --key $PROFILE_PUBKEY --save profile
 flow accounts create --key $DAAM_NFT_PUBKEY --save daam_nft
+flow accounts create --key $AGENCY_PUBKEY --save agency
 
 # Get & print Address
 export ARTIST=$(head -1 artist | awk '{print $2}')
@@ -49,7 +52,9 @@ echo NFT: $NFT
 export PROFILE=$(head -1 profile | awk '{print $2}')
 echo Profile: $PROFILE
 export DAAM_NFT=$(head -1 daam_nft | awk '{print $2}')
-echo DAAM_NFT: $DAAM_NFT
+echo DAAM NFT: $DAAM_NFT
+export AGENCY=$(head -1 agency | awk '{print $2}')
+echo Agency: $AGENCY
 
 flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ARTIST
 flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN

@@ -34,31 +34,51 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionCounterID: UInt64
     access(contract) var collection: @{Address: Collection}
 
-    access(self) let agency: Address   
+    pub let agency: Address   
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         pub let creator   : Address   // Artist
         pub let data      : String    // JSON see metadata.json
         pub let thumbnail : String    // JSON see metadata.json
         pub let file      : String    // JSON see metadata.json
-        pub var commission: {Address: UFix64}  // {commission address : percentage }
-             
-
+        
         init(creator: Address, metadata: String, thumbnail: String, file: String)
         {
             self.creator    = creator
             self.data       = metadata
             self.thumbnail  = thumbnail
             self.file       = file
-            self.commission = {DAAM.agency : 0.1}
-            self.commission[creator] = 0.2
         }// Metadata init
+
+        /*  changePercentage changes the cut percentage of the tokens that are for sale
+        pub fun changePercentage(_ newPercent: UFix64) {
+            self.cutPercentage = newPercent
+            emit CutPercentageChanged(newPercent: newPercent, seller: self.owner?.address)
+        }
+
+        // changeOwnerReceiver updates the capability for the sellers fungible token Vault
+        pub fun changeOwnerReceiver(_ newOwnerCapability: Capability<&{FungibleToken.Receiver}>) {
+            pre {
+                newOwnerCapability.borrow() != nil: "Owner's Receiver Capability is invalid!"
+            }
+            self.ownerCapability = newOwnerCapability
+        }
+
+        // changeBeneficiaryReceiver updates the capability for the beneficiary of the cut of the sale
+        pub fun changeBeneficiaryReceiver(_ newBeneficiaryCapability: Capability<&{FungibleToken.Receiver}>) {
+            pre {
+                newBeneficiaryCapability.borrow() != nil: "Beneficiary's Receiver Capability is invalid!" 
+            }
+            self.beneficiaryCapability = newBeneficiaryCapability
+        }*/
+
     }// Metadata
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
         pub let id       : UInt64
         pub let metadata : Metadata
         access(self) var copyright: Capability<&DAAMCopyright>
+        pub var commission: {Address: UFix64}  // {commission address : percentage }
         //pub var series  : [UInt64]?  // TokenIDs of series
 
         init(metadata: Metadata) {
@@ -68,6 +88,8 @@ pub contract DAAM: NonFungibleToken {
             let daamCopyright = getAccount(0xe03daebed8ca0615)
             self.copyright = daamCopyright.getCapability<&DAAMCopyright>(/public/Unverifed)
             DAAMCopyright.copyrightInformation[self.id] = DAAMCopyright.CopyrightStatus.UNVERIFIED
+            self.commission = {DAAM.agency : 0.1} // default setting
+            self.commission[self.metadata.creator] = 0.2        // default setting
             //self.series = []
         }
 

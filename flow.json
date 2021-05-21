@@ -70,7 +70,12 @@
 			"address": "fd43f9148d4b725d",
 			"keys": "49d98386b472e6f4ea3b2f6e6e1b3b7a17094f1e3c96e33b98d909624e817b4a",
 			"chain": "flow-emulator"
-		}
+		},
+		"agency": {
+			"address": "0xeb179c27144f783c",
+			"keys": "3a28eab7873ff7e8f518c8a55163770f26ffd9d4f1c6f5da1f8ad8fd08118408",
+			"chain": "flow-emulator"
+		} 
 	},
 	"deployments": {}
 }
