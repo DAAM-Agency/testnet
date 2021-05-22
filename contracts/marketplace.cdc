@@ -91,7 +91,7 @@ pub contract Marketplace {
             emit NFT_Listed(id: tokenID, price: price, seller: self.owner?.address)
         }
 
-        // cancelSale cancels a moment sale and clears its price
+        // cancelSale cancels a nft sale and clears its price
         pub fun cancelSale(tokenID: UInt64) {
             pre {
                 self.prices[tokenID] != nil: "Token with the specified ID is not already for sale"
@@ -100,6 +100,8 @@ pub contract Marketplace {
             self.prices[tokenID] = nil       // Set prices to nil for the withdrawn ID
             // Emit the event for withdrawing a moment from the Sale
             emit NFT_Withdrawn(id: tokenID, owner: self.owner?.address)
+
+            //TODO Consider removing Token and returning it to Collection
         }
 
         // purchase lets a user send tokens to purchase an NFT that is for sale

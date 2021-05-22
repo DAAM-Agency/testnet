@@ -50,13 +50,9 @@ pub contract DAAM: NonFungibleToken {
             self.file       = file
         }// Metadata init
 
-        /*  changePercentage changes the cut percentage of the tokens that are for sale
-        pub fun changePercentage(_ newPercent: UFix64) {
-            self.cutPercentage = newPercent
-            emit CutPercentageChanged(newPercent: newPercent, seller: self.owner?.address)
-        }
+        
 
-        // changeOwnerReceiver updates the capability for the sellers fungible token Vault
+        /* changeOwnerReceiver updates the capability for the sellers fungible token Vault
         pub fun changeOwnerReceiver(_ newOwnerCapability: Capability<&{FungibleToken.Receiver}>) {
             pre {
                 newOwnerCapability.borrow() != nil: "Owner's Receiver Capability is invalid!"
@@ -164,6 +160,8 @@ pub contract DAAM: NonFungibleToken {
                 DAAMCopyright.copyrightInformation[tokenID] != nil : "Invalid NFT ID"
             }
         }
+
+        pub fun changeCommission(tokenID: UInt64, artist: Address, newPercentage: UFix64)
     }
 /************************************************************************/
     pub resource interface InvitedAdmin {
@@ -231,6 +229,27 @@ pub contract DAAM: NonFungibleToken {
             DAAMCopyright.copyrightInformation[tokenID] = copyright
             emit SetCopyright(tokenID: tokenID)
             log("NFT: ".concat(" Copyright Updated") )
+        }
+
+        pub fun changeCommission(tokenID: UInt64, artist: Address, newPercentage: UFix64) {         
+            // Do Check. make sure is <= 0.30% Commission
+            var total = 0.0
+            let collection = &DAAM.collection[artist] as &Collection
+            let nft <- collection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
+            let commission = nft.commission
+
+            commission[artist] = newPercentage
+            for key in commission.keys {
+                total = commission[key]! + total
+            }// end for
+
+            if total <= 0.3 {
+                    nft.commission[artist] = newPercentage
+            } else {
+                    log("Commissions too high")
+            }
+            collection.deposit(token: <- nft)
+            //emit CutCommisionChanged(newPercent: newPercent, seller: self.owner?.address)
         }
 
         //pub fun removeArtist()
