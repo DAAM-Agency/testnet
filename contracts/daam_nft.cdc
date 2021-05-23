@@ -28,14 +28,15 @@ pub contract DAAM: NonFungibleToken {
     pub let artistStoragePath    : StoragePath
     pub let artistPrivatePath    : PrivatePath
     // {Artist Profile address : Artist status; true being active}
-    access(contract) var artist: {Address: Bool}
+    //access(contract) var artists: {Address: Bool}                   
     access(contract) var adminPending : Address?
+    access(contract) var artists: {String: {Address: UFix64} } // {request as a string : Address List}
     
     access(contract) var collectionCounterID: UInt64
-    access(contract) var collection: @{Address: Collection}
+    //access(contract) var collection: @{Address: Collection}
 
-    pub let agency: Address   
-/************************************************************************/
+    pub let agency: Address
+/***********************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         pub let creator   : Address   // Artist
         pub let data      : String    // JSON see metadata.json
@@ -150,106 +151,51 @@ pub contract DAAM: NonFungibleToken {
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
             pre {
-                DAAM.artist[artist] == nil : "They're already a DAAM Artist!!!"
+                DAAM.artists["status"]![artist] == nil : "They're already a DAAM Artist!!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
         }
 
         pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {
-            pre {
-                DAAMCopyright.copyrightInformation[tokenID] != nil : "Invalid NFT ID"
-            }
+            pre { DAAMCopyright.copyrightInformation[tokenID] != nil : "Invalid NFT ID" }
         }
 
-        pub fun changeCommission(tokenID: UInt64, artist: Address, newPercentage: UFix64)
-    }
-/************************************************************************/
-    pub resource interface InvitedAdmin {
-        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
-            pre {
-                DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
-                Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
-                submit == true                : "Well, ... fuck you too!!!"
-            }      
-        }        
-    }
-/************************************************************************/
-    pub resource interface InvitedArtist {
-        pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
-            pre {
-                DAAM.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
-                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
-                answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
-            }
+        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+            pre { DAAM.artists["status"]![artist] != nil : "They're no DAAM Artist!!!" }
         }
     }
 /************************************************************************/
-	pub resource Admin: Founder, InvitedAdmin, InvitedArtist
+	pub resource Admin: Founder
     {
         pub fun inviteAdmin(newAdmin: Address) {
-            emit AdminInvited(admin: newAdmin)
-            log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             DAAM.adminPending = newAdmin
             // TODO Add time limit
+            emit AdminInvited(admin: newAdmin)
+            log("Sent Admin Invation: ".concat(newAdmin.toString()) )            
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
-            emit ArtistInvited(artist: artist)
-            log("Sent Artist Invation: ".concat(artist.toString()) )
-            DAAM.artist[artist] = false
+            let ref = &DAAM.artists["status"] as &{Address: UFix64}
+            ref[artist] = 0.0 // When  status is 0.0 consider active but suspended.
+            // Can also be used as a security level
             // TODO Add time limit
+            emit ArtistInvited(artist: artist)
+            log("Sent Artist Invation: ".concat(artist.toString()) )            
         }
 
-        pub fun answerAdminInvite(_ newAdmin: Address,_ submit: Bool): @Admin{Founder} {
-            pre {
-                DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
-                Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
-                submit == true                : "Well, ... fuck you too!!!"
-            }
-            DAAM.adminPending = nil
-            emit NewAdmin(admin: newAdmin)
-            log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
-            return <- create Admin()         
-        }
-        // TODO add interface restriction to collection
-        pub fun answerArtistInvite(artist: Address, answer: Bool): @Artist {
-            pre {
-                DAAM.artist[artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
-                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
-                answer == true             : "OK ?!? Then why the fuck did you even bother ?!?"
-            }
-            DAAM.artist[artist] = true
-            DAAM.collection[artist] <-! create Collection()
-            emit NewArtist(artist: artist)
-            log("Artist: ".concat(artist.toString()).concat(" added to DAAM") )
-            return <- create Artist()
-        }
-
+        
         pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {            
             DAAMCopyright.copyrightInformation[tokenID] = copyright
             emit SetCopyright(tokenID: tokenID)
             log("NFT: ".concat(" Copyright Updated") )
         }
 
-        pub fun changeCommission(tokenID: UInt64, artist: Address, newPercentage: UFix64) {         
-            // Do Check. make sure is <= 0.30% Commission
-            var total = 0.0
-            let collection = &DAAM.collection[artist] as &Collection
-            let nft <- collection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
-            let commission = nft.commission
-
-            commission[artist] = newPercentage
-            for key in commission.keys {
-                total = commission[key]! + total
-            }// end for
-
-            if total <= 0.3 {
-                    nft.commission[artist] = newPercentage
-            } else {
-                    log("Commissions too high")
-            }
-            collection.deposit(token: <- nft)
-            //emit CutCommisionChanged(newPercent: newPercent, seller: self.owner?.address)
+        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {         
+            let request = "Change Commission"
+            let ref = &DAAM.artists[request] as &{Address: UFix64}
+            let data = UFix64(tokenID) + newPercentage
+            ref[artist] = data
+            //emit CommisionChanged(newPercent: newPercent, seller: self.owner?.address)
         }
 
         //pub fun removeArtist()
@@ -259,10 +205,9 @@ pub contract DAAM: NonFungibleToken {
         // pub fun removeAdmin() {}
 	}
 /************************************************************************/
-    pub resource Artist {
+    pub resource Artist {        
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-		//pub fun mintNFT(recipient: Address, metadata: Metadata) {
 			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
@@ -272,6 +217,27 @@ pub contract DAAM: NonFungibleToken {
             emit MintedNFT(id: id)
             log("Minited NFT: ".concat(id.toString()))
 		}
+
+    pub fun answerRequest(artist: Address, nft: &NFT, answer: Bool, request: String) {
+        pre {
+            DAAM.artists[request] != nil : "That isn't even a DAAM request!!"
+            DAAM.artists["status"]![artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+            DAAM.artists["status"]![artist] != 0.0 : "You're DAAM Artist account is frozen!!"
+            Profile.check(artist)        : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
+            DAAM.artists[request]![artist] != nil  : "That Request has not been made"
+        }        
+        DAAM.artists[request]!.remove(key: artist)
+
+        if answer {
+            let data = DAAM.artists[request]![artist]!
+            switch request {
+                case "Change Commission":                    
+                    let newPercentage = data - UFix64(UInt(data))
+                    nft.commission[artist] = newPercentage
+                    log(request.concat(newPercentage.toString()) )
+            }// end switch         
+        }// end if        
+    }
 
         /*pub fun updateSeries(artist: Address, series: [UInt64]) {
             var collection = &DAAM.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
@@ -286,11 +252,41 @@ pub contract DAAM: NonFungibleToken {
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
+    pub fun answerAdminInvite(newAdmin: Address, submit: Bool): @Admin{Founder} {
+        pre {
+            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
+            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
+        }
+        DAAM.adminPending = nil
+        if !submit { panic("Well, ... fuck you too!!!") }
+        emit NewAdmin(admin: newAdmin)
+        log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
+        return <- create Admin()         
+    }
+
+    // TODO add interface restriction to collection
+    pub fun answerArtistInvite(newArtist: Address, submit: Bool): @Artist {
+        pre {
+            DAAM.artists["status"]![newArtist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+            Profile.check(newArtist)       : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
+        }
+        if submit {
+            let ref = &DAAM.artists["status"] as &{Address: UFix64}
+            ref[newArtist] = 1.0 as UFix64? // represents True
+            //DAAM.collection[artist] <-! create Collection()
+            emit NewArtist(artist: newArtist)
+            log("Artist: ".concat(newArtist.toString()).concat(" added to DAAM") )
+            return <- create Artist()
+        }
+        DAAM.artists["status"]!.remove(key: newArtist)
+        panic("Well, ... fuck you too!!!")
+    }
+
     pub fun createEmptyCollection(): @Collection {
         post {
             result.getIDs().length == 0: "The created collection must be empty!"
         }
-         return <- create Collection()
+        return <- create Collection()
     }
 
     // DAAM Functions
@@ -309,8 +305,13 @@ pub contract DAAM: NonFungibleToken {
         self.adminPending = 0x01cf0e2f2f715450
         self.agency       = 0xeb179c27144f783c
 
-        self.artist      = {}
-        self.collection <- {}
+        self.artists  = {}
+
+        //TODO turn request into a struct
+        self.artists["status"] = {}
+        self.artists["Change Commission"] = {}
+
+        //self.collection <- {}
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections   
                
@@ -318,7 +319,7 @@ pub contract DAAM: NonFungibleToken {
         // Create a Minter resource and save it to storage
         let admin <- create Admin()
         self.account.save(<-admin, to: self.adminStoragePath)
-        self.account.link<&Admin{InvitedAdmin, InvitedArtist}>(self.adminPublicPath, target: self.adminStoragePath)
+        self.account.link<&Admin>(self.adminPublicPath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}
