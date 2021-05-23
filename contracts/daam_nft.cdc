@@ -161,7 +161,17 @@ pub contract DAAM: NonFungibleToken {
         }
 
         pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
-            pre { DAAM.artists["status"]![artist] != nil : "They're no DAAM Artist!!!" }
+            pre {
+                DAAM.artists["status"]![artist] != nil : "They're no DAAM Artist!!!"
+                DAAM.artists["status"]![artist] == 1.0 : "This DAAM Artist Account is frozen. Wake up Man, you're an Admin!!!"
+                DAAM.artists["Change Commission"]![artist] == nil : "There already is a Request. Only 1 at a time...for now"
+            }
+        }
+
+        pub fun removeRequest(request: String, artist: Address) {
+            pre{
+                DAAM.artists[request]![artist] != nil : "They're no DAAM Request!!!"
+            }
         }
     }
 /************************************************************************/
@@ -195,7 +205,13 @@ pub contract DAAM: NonFungibleToken {
             let ref = &DAAM.artists[request] as &{Address: UFix64}
             let data = UFix64(tokenID) + newPercentage
             ref[artist] = data
+            log("Changed Commission to ".concat(newPercentage.toString()) )
             //emit CommisionChanged(newPercent: newPercent, seller: self.owner?.address)
+        }
+
+        pub fun removeRequest(request: String, artist: Address) {
+            let ref = &DAAM.artists[request] as &{Address: UFix64}
+            ref.remove(key: artist)
         }
 
         //pub fun removeArtist()
@@ -226,17 +242,20 @@ pub contract DAAM: NonFungibleToken {
             Profile.check(artist)        : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
             DAAM.artists[request]![artist] != nil  : "That Request has not been made"
         }        
-        DAAM.artists[request]!.remove(key: artist)
 
         if answer {
             let data = DAAM.artists[request]![artist]!
             switch request {
                 case "Change Commission":                    
                     let newPercentage = data - UFix64(UInt(data))
+                    if nft.id != UInt64(data) { panic("Wrong Token") }
                     nft.commission[artist] = newPercentage
-                    log(request.concat(newPercentage.toString()) )
+                    log(request.concat(" ".concat(newPercentage.toString())) )
             }// end switch         
-        }// end if        
+        } else {
+            log("Change Commission Refused")
+        }
+        DAAM.artists[request]!.remove(key: artist)
     }
 
         /*pub fun updateSeries(artist: Address, series: [UInt64]) {

@@ -29,12 +29,12 @@ sleep 1s
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer client
 sleep 1s
 
-# mint 4 NFTs hhh
-flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
-flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
+# mint 4 NFTs
+flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
+flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
 sleep 1s
-flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
-flow transactions send ./testnet/transactions/mint_nft.cdc --signer artist
+flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
+flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
 sleep 1s
 
 # transfer
@@ -66,7 +66,9 @@ sleep 1s
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$NOBODY --arg UInt64:2 --arg UFix64:2.2 --signer client
 sleep 1s
 
-# change Commision setting
-#flow transactions send ./testnet/transactions/marketplace/change_commission.cdc --arg UInt64:1 --arg Address:$NOBODY --arg UFix64:0.18 --signer client
+# change / answer Commision setting
+flow transactions send ./testnet/transactions/admin/request_change_commission.cdc --arg UInt64:3 --arg Address:$ARTIST --arg UFix64:0.18 --signer admin
+flow transactions send ./testnet/transactions/artist/answer_request.cdc --arg Bool:true --arg String:"Change Commission" --arg UInt64:3 --signer artist
+sleep 1s
 
 #0xf8d6e0586b0a20c7
