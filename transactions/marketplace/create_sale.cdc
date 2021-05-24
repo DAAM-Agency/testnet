@@ -17,9 +17,11 @@ transaction(/*tokenReceiverPath: PublicPath,*/) {
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         
         let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
-        let collection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)        
-        acct.save(<-collection, to: Marketplace.marketStoragePath)        
-        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+
+        let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
+
+        acct.save(<-saleCollection, to: Marketplace.marketStoragePath)        
+        acct.link<&Marketplace.SaleCollection>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         log("Created Sale Collection")
     }
 }

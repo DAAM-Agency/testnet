@@ -15,7 +15,7 @@ transaction(/*tokenReceiverPath: PublicPath,*/ tokenID: UInt64, price: UFix64) {
             let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
             acct.save(<-saleCollection, to: Marketplace.marketStoragePath)  // save it to storage
             // create a public link to the sale collection
-            acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+            acct.link<&Marketplace.SaleCollection>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         }
 
         // borrow a reference to the sale
