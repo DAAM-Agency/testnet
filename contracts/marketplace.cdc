@@ -3,7 +3,6 @@
 import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
-import DAAMCopyright    from 0xe03daebed8ca0615
 /************************************************************************/
 pub contract Marketplace {
     // emitted when a DAAM NFT moment is listed for sale
@@ -81,10 +80,12 @@ pub contract Marketplace {
             pre {
                 self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil:
                     "NFT does not exist in the owner's collection"
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.FRAUD :
                 "This NFT is flaged for Copyright Infrigement"
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.CLAIM :
                 "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.UNVERIFIED:
+                "You're NFT is Unverified... WTF ?!?... Tell that DAAM Admin too Hurry the Fuck Up!!"
             }
             // Set the token's price
             self.prices[tokenID] = price
@@ -112,17 +113,17 @@ pub contract Marketplace {
                 self.prices[tokenID] != nil :"No token is not for sale!"           
                 buyTokens.balance == (self.prices[tokenID]) : "Not enough tokens to buy the NFT!"
 
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.FRAUD :
                 "This NFT is flaged for Copyright Infrigement"
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.CLAIM :
                 "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
             }
 
             post {
                 // Durning Sale protection. If copyright is changed durning sale
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.FRAUD :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.FRAUD :
                 "This NFT is flaged for Copyright Infrigement"
-                DAAMCopyright.copyrightInformation[tokenID] != DAAMCopyright.CopyrightStatus.CLAIM :
+                DAAM.copyright[tokenID] != DAAM.CopyrightStatus.CLAIM :
                 "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
             }
 

@@ -1,9 +1,8 @@
-// marketPalace.cdc
+// daam_nft.cdc
 
 import NonFungibleToken from 0x120e725050340cab
 import FungibleToken    from 0xee82856bf20e2aa6
 import Profile          from 0x192440c99cb17282
-import DAAMCopyright    from 0xe03daebed8ca0615
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
 
@@ -32,11 +31,19 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var adminPending : Address?
     access(contract) var request: Request
     access(contract) var artists: {String: {Address: UFix64} } // {request as a string : Address List}
+    pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
     //access(contract) var collection: @{Address: Collection}
 
     pub let agency: Address
+/***********************************************************************/
+pub enum CopyrightStatus: UInt8 {
+            pub case FRAUD
+            pub case CLAIM
+            pub case UNVERIFIED
+            pub case VERIFIED
+    }
 /***********************************************************************/
 pub struct Request {
     pub let status: String
@@ -83,7 +90,6 @@ pub struct Request {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id       : UInt64
         pub let metadata : Metadata
-        access(self) var copyright: Capability<&DAAMCopyright>
         pub var commission: {Address: UFix64}  // {commission address : percentage }
         //pub var series  : [UInt64]?  // TokenIDs of series
 
@@ -91,12 +97,13 @@ pub struct Request {
             self.metadata = metadata
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
-            let daamCopyright = getAccount(0xe03daebed8ca0615)
-            self.copyright = daamCopyright.getCapability<&DAAMCopyright>(/public/Unverifed)
-            DAAMCopyright.copyrightInformation[self.id] = DAAMCopyright.CopyrightStatus.UNVERIFIED
             self.commission = {DAAM.agency : 0.1} // default setting
             self.commission[self.metadata.creator] = 0.2        // default setting
             //self.series = []
+        }
+
+        pub fun getCopyright(): CopyrightStatus {
+            return DAAM.copyright[self.id]!
         }
 
         /*pub fun updateSeries(series: [UInt64]?) {
@@ -147,10 +154,16 @@ pub struct Request {
             return ref as! &DAAM.NFT
         }
 
+        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
+            var nft = self.borrowDAAM(id: id)!
+            DAAM.copyright[id] = copyright            
+        }
+
         destroy() { destroy self.ownedNFTs }
     }
 /************************************************************************/
     pub resource interface Founder {
+
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
@@ -165,8 +178,8 @@ pub struct Request {
             }
         }
 
-        pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {
-            pre { DAAMCopyright.copyrightInformation[tokenID] != nil : "Invalid NFT ID" }
+        pub fun setCopyrightInformation(tokenID: UInt64, copyright: CopyrightStatus) {
+            pre { DAAM.copyright[tokenID] != nil : "Invalid NFT ID" }
         }
 
         pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
@@ -182,11 +195,34 @@ pub struct Request {
                 DAAM.artists[request]![artist] != nil : "They're no DAAM Request!!!"
             }
         }
+
+        pub fun freezeArtist(artist: Address) {
+            pre{
+                DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
+            }
+        }
+
+        pub fun removeArtist(artist: Address) {
+            pre{
+                DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
+            }
+        }
+
+        pub fun removeAdmin(admin: Address) 
     }
 /************************************************************************/
 	pub resource Admin: Founder
     {
+        priv var status: Bool
+        priv var remove: [Address]       
+
+        init() {
+            self.status = true
+            self.remove = []
+        }
+
         pub fun inviteAdmin(newAdmin: Address) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.adminPending = newAdmin
             // TODO Add time limit
             emit AdminInvited(admin: newAdmin)
@@ -194,6 +230,7 @@ pub struct Request {
         }
 
         pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
             ref[artist] = 0.0 // When  status is 0.0 consider active but suspended.
             // Can also be used as a security level
@@ -201,15 +238,16 @@ pub struct Request {
             emit ArtistInvited(artist: artist)
             log("Sent Artist Invation: ".concat(artist.toString()) )            
         }
-
         
-        pub fun setCopyrightInformation(tokenID: UInt64, copyright: DAAMCopyright.CopyrightStatus) {            
-            DAAMCopyright.copyrightInformation[tokenID] = copyright
+        pub fun setCopyrightInformation(tokenID: UInt64, copyright: CopyrightStatus) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }           
+            DAAM.copyright[tokenID] = copyright
             emit SetCopyright(tokenID: tokenID)
             log("NFT: ".concat(" Copyright Updated") )
         }
 
-        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {         
+        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }        
             let ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
             let data = UFix64(tokenID) + newPercentage
             ref[artist] = data
@@ -218,18 +256,36 @@ pub struct Request {
         }
 
         pub fun removeRequest(request: String, artist: Address) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             let ref = &DAAM.artists[request] as &{Address: UFix64}
             ref.remove(key: artist)
         }
 
-        //pub fun removeArtist()
-        //pub fun freezeArtist()
+        pub fun freezeArtist(artist: Address) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
+            ref[artist] = 0.0 as UFix64? // represents False
+        }
 
-        // TODO self destruct Remove Admin is missing
-        // pub fun removeAdmin() {}
+        pub fun removeArtist(artist: Address) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            var ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
+            ref.remove(key: artist)
+            ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
+            ref.remove(key: artist)
+        }
+
+        pub fun removeAdmin(admin: Address) {
+            pre{
+                self.status : "You're no longer a DAAM Admin!!"
+                !self.remove.contains(admin) : "You already did"
+            }
+            self.remove.append(admin)
+            if self.remove.length >= 2 { self.status = false }
+        }
 	}
 /************************************************************************/
-    pub resource Artist {        
+    pub resource Artist {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
 			let newNFT <-! create NFT(metadata: metadata)
@@ -334,9 +390,9 @@ pub struct Request {
 
         self.artists  = {}
         self.request = Request()
-        //TODO turn request into a struct
         self.artists[self.request.status] = {}
         self.artists[self.request.changeCommission] = {}
+        self.copyright  = {}
 
         //self.collection <- {}
         self.totalSupply         = 0  // Initialize the total supply of NFTs

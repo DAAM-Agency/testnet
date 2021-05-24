@@ -71,4 +71,9 @@ flow transactions send ./testnet/transactions/admin/request_change_commission.cd
 flow transactions send ./testnet/transactions/artist/answer_request.cdc --arg Bool:true --arg String:"Change Commission" --arg UInt64:3 --signer artist
 sleep 1s
 
+# marketpalce change price
+flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:3 --arg UFix64:3.8 --signer artist
+
+#flow transactions send ./testnet/transactions/admin/change_receiver.cdc --arg UInt64:2 --arg UFix64:3.8 --signer admin
+
 #0xf8d6e0586b0a20c7
