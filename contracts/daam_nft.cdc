@@ -95,10 +95,12 @@ pub struct Request {
 
         init(metadata: Metadata) {
             self.metadata = metadata
+            
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
-            self.commission = {DAAM.agency : 0.1} // default setting
-            self.commission[self.metadata.creator] = 0.2        // default setting
+
+            self.commission = {DAAM.agency : 0.1}         // default setting
+            self.commission[self.metadata.creator] = 0.2  // default setting
             //self.series = []
         }
 
@@ -156,7 +158,9 @@ pub struct Request {
 
         pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
             var nft = self.borrowDAAM(id: id)!
-            DAAM.copyright[id] = copyright            
+            DAAM.copyright[id] = copyright
+            emit SetCopyright(tokenID: tokenID)
+            log("NFT: ".concat(id.toString.concat(" Copyright Updated")) )
         }
 
         destroy() { destroy self.ownedNFTs }
@@ -176,10 +180,6 @@ pub struct Request {
                 DAAM.artists[DAAM.request.status]![artist] == nil : "They're already a DAAM Artist!!!"
                 Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
             }
-        }
-
-        pub fun setCopyrightInformation(tokenID: UInt64, copyright: CopyrightStatus) {
-            pre { DAAM.copyright[tokenID] != nil : "Invalid NFT ID" }
         }
 
         pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
@@ -239,13 +239,6 @@ pub struct Request {
             log("Sent Artist Invation: ".concat(artist.toString()) )            
         }
         
-        pub fun setCopyrightInformation(tokenID: UInt64, copyright: CopyrightStatus) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }           
-            DAAM.copyright[tokenID] = copyright
-            emit SetCopyright(tokenID: tokenID)
-            log("NFT: ".concat(" Copyright Updated") )
-        }
-
         pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }        
             let ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
