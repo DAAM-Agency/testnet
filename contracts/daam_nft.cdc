@@ -15,6 +15,7 @@ pub contract DAAM: NonFungibleToken {
     pub event NewArtist(artist: Address)
     pub event AdminInvited(admin  : Address)
     pub event ArtistInvited(artist: Address)
+    pub event SubmitNFT(id: UInt64)
     pub event MintedNFT(id: UInt64)
     pub event SetCopyright(tokenID: UInt64)
 
@@ -34,7 +35,7 @@ pub contract DAAM: NonFungibleToken {
     pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
-    //access(contract) var collection: @{Address: Collection}
+    access(contract) var preArt: @{Address: [Metadata]}
 
     pub let agency: Address
 /***********************************************************************/
@@ -121,8 +122,8 @@ pub struct Request {
                         
         init() {
             self.ownedNFTs <- {}
-            self.id = DAAM.collectionCounterID
             DAAM.collectionCounterID = DAAM.collectionCounterID + 1 as UInt64
+            self.id = DAAM.collectionCounterID            
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -266,6 +267,7 @@ pub struct Request {
             ref.remove(key: artist)
             ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
             ref.remove(key: artist)
+            DAAM.collection.remove(key: artist)
         }
 
         pub fun removeAdmin(admin: Address) {
@@ -279,16 +281,25 @@ pub struct Request {
 	}
 /************************************************************************/
     pub resource Artist {
-        // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-			let newNFT <-! create NFT(metadata: metadata)
-            let id = newNFT.id
-			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+        pub fun submitNFT(metadata: Metadata) {
+            DAAM.preArt[recipient].append(metadata)
+            emit SubmitNFT()
+            log("NFT Proposed")
+        }
 
-            //var collection = &DAAM.collection[recipient] as &{NonFungibleToken.CollectionPublic}
+        // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
+        pub fun MintNFT() {}
+            /*
+            let newNFT <-! create NFT(metadata: metadata)
+            let id = newNFT.id
+			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+
+            //let collection = &DAAM.collection[recipient] as &{NonFungibleToken.CollectionPublic}
             //collection.deposit(token: <- newNFT)
-            emit MintedNFT(id: id)
-            log("Minited NFT: ".concat(id.toString()))
+            DAAM.preArt[recipient].append(metadata)
+            emit SubmitNFT(id: id)
+            log("Submit NFT: ".concat(id.toString()))
+             */
 		}
 
     pub fun answerRequest(artist: Address, nft: &NFT, answer: Bool, request: String) {
@@ -349,7 +360,7 @@ pub struct Request {
         if submit {
             let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
             ref[newArtist] = 1.0 as UFix64? // represents True
-            //DAAM.collection[artist] <-! create Collection()
+            DAAM.collection[artist] <- self.createEmptyCollection()
             emit NewArtist(artist: newArtist)
             log("Artist: ".concat(newArtist.toString()).concat(" added to DAAM") )
             return <- create Artist()
@@ -387,7 +398,7 @@ pub struct Request {
         self.artists[self.request.changeCommission] = {}
         self.copyright  = {}
 
-        //self.collection <- {}
+        self.collection <- {}
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections               
 
