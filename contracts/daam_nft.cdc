@@ -10,12 +10,12 @@ pub contract DAAM: NonFungibleToken {
 
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
-    pub event Deposit(id : UInt64,   to: Address?)
+    pub event Deposit(id: UInt64,   to: Address?)
     pub event NewAdmin(admin  : Address)
     pub event NewArtist(artist: Address)
     pub event AdminInvited(admin  : Address)
     pub event ArtistInvited(artist: Address)
-    pub event SubmitNFT(id: UInt64)
+    pub event SubmitNFT()
     pub event MintedNFT(id: UInt64)
     pub event SetCopyright(tokenID: UInt64)
 
@@ -35,7 +35,7 @@ pub contract DAAM: NonFungibleToken {
     pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
-    access(contract) var preArt: @{Address: [Metadata]}
+    access(contract) var preArt: {Address: [Metadata]}
 
     pub let agency: Address
 /***********************************************************************/
@@ -155,14 +155,7 @@ pub struct Request {
             pre { self.ownedNFTs[id] != nil }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
             return ref as! &DAAM.NFT
-        }
-
-        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
-            var nft = self.borrowDAAM(id: id)!
-            DAAM.copyright[id] = copyright
-            emit SetCopyright(tokenID: tokenID)
-            log("NFT: ".concat(id.toString.concat(" Copyright Updated")) )
-        }
+        }        
 
         destroy() { destroy self.ownedNFTs }
     }
@@ -209,7 +202,9 @@ pub struct Request {
             }
         }
 
-        pub fun removeAdmin(admin: Address) 
+        pub fun removeAdmin(admin: Address)
+
+        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus)
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -267,7 +262,7 @@ pub struct Request {
             ref.remove(key: artist)
             ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
             ref.remove(key: artist)
-            DAAM.collection.remove(key: artist)
+            DAAM.preArt.remove(key: artist)
         }
 
         pub fun removeAdmin(admin: Address) {
@@ -278,53 +273,55 @@ pub struct Request {
             self.remove.append(admin)
             if self.remove.length >= 2 { self.status = false }
         }
+
+        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
+            DAAM.copyright[id] = copyright
+            emit SetCopyright(tokenID: id)
+            log("Token ID: ".concat(id.toString()).concat("Copyright Changed") )
+        }
 	}
 /************************************************************************/
     pub resource Artist {
-        pub fun submitNFT(metadata: Metadata) {
-            DAAM.preArt[recipient].append(metadata)
+        pub fun submitNFT(artist: Address, metadata: Metadata) {
+            DAAM.preArt[artist]?.append(metadata)!
             emit SubmitNFT()
             log("NFT Proposed")
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun MintNFT() {}
-            /*
-            let newNFT <-! create NFT(metadata: metadata)
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
+			let newNFT <-! create NFT(metadata: metadata)
             let id = newNFT.id
-			//recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
-
-            //let collection = &DAAM.collection[recipient] as &{NonFungibleToken.CollectionPublic}
-            //collection.deposit(token: <- newNFT)
-            DAAM.preArt[recipient].append(metadata)
-            emit SubmitNFT(id: id)
-            log("Submit NFT: ".concat(id.toString()))
-             */
+			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
+            emit MintedNFT(id: id)
+            log("Minited NFT: ".concat(id.toString()))
 		}
+	
 
-    pub fun answerRequest(artist: Address, nft: &NFT, answer: Bool, request: String) {
-        pre {
-            DAAM.artists[request] != nil : "That isn't even a DAAM request!!"
-            DAAM.artists[DAAM.request.status]![artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
-            DAAM.artists[DAAM.request.status]![artist] != 0.0 : "You're DAAM Artist account is frozen!!"
-            Profile.check(artist)        : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
-            DAAM.artists[request]![artist] != nil  : "That Request has not been made"
-        }        
+        pub fun answerRequest(artist: Address, nft: &NFT, answer: Bool, request: String) {
+            pre {
+                DAAM.artists[request] != nil : "That isn't even a DAAM request!!"
+                DAAM.artists[DAAM.request.status]![artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
+                DAAM.artists[DAAM.request.status]![artist] != 0.0 : "You're DAAM Artist account is frozen!!"
+                Profile.check(artist)        : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
+                DAAM.artists[request]![artist] != nil  : "That Request has not been made"
+            }        
 
-        if answer {
-            let data = DAAM.artists[request]![artist]!
-            switch request {
-                case DAAM.request.changeCommission:                    
-                    let newPercentage = data - UFix64(UInt(data))
-                    if nft.id != UInt64(data) { panic("Wrong Token") }
-                    nft.commission[artist] = newPercentage
-                    log(request.concat(" ".concat(newPercentage.toString())) )
-            }// end switch         
-        } else {
-            log("Change Commission Refused")
+            if answer {
+                let data = DAAM.artists[request]![artist]!
+                switch request {
+                    case DAAM.request.changeCommission:                    
+                        let newPercentage = data - UFix64(UInt(data))
+                        if nft.id != UInt64(data) { panic("Wrong Token") }
+                        nft.commission[artist] = newPercentage
+                        log(request.concat(" ".concat(newPercentage.toString())) )
+                }// end switch         
+            } else {
+                log("Change Commission Refused")
+            }
+            DAAM.artists[request]!.remove(key: artist)
         }
-        DAAM.artists[request]!.remove(key: artist)
-    }
+    
 
         /*pub fun updateSeries(artist: Address, series: [UInt64]) {
             var collection = &DAAM.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
@@ -360,7 +357,6 @@ pub struct Request {
         if submit {
             let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
             ref[newArtist] = 1.0 as UFix64? // represents True
-            DAAM.collection[artist] <- self.createEmptyCollection()
             emit NewArtist(artist: newArtist)
             log("Artist: ".concat(newArtist.toString()).concat(" added to DAAM") )
             return <- create Artist()
@@ -398,7 +394,7 @@ pub struct Request {
         self.artists[self.request.changeCommission] = {}
         self.copyright  = {}
 
-        self.collection <- {}
+        self.preArt = {}
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections               
 
