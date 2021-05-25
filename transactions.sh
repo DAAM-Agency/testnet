@@ -29,6 +29,10 @@ sleep 1s
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer client
 sleep 1s
 
+# submit 4 NFTs
+flow transactions send ./testnet/transactions/artist/submit_nft.cdc --signer artist
+
+'''
 # mint 4 NFTs
 flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
 flow transactions send ./testnet/transactions/artist/mint_nft.cdc --signer artist
@@ -73,5 +77,5 @@ sleep 1s
 
 # marketpalce change price
 flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:3 --arg UFix64:3.8 --signer artist
-
+'''
 #0xf8d6e0586b0a20c7

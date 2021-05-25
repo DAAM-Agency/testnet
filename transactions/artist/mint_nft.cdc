@@ -1,43 +1,32 @@
+// mint_nft.cdc
+
 import NonFungibleToken from 0x120e725050340cab
-import DAAM from 0xfd43f9148d4b725d
+import DAAM             from 0xfd43f9148d4b725d
 
-// This script uses the Artist resource to mint a new NFT
-// It must be run with the account that has the minter resource
-// stored in /storage/Artist
-
-transaction() {
-
+transaction(artist: Address, elm: Int /* , copyrightStatus: DAAM.CopyrightStatus*/ ) {
     // local variable for storing the minter reference
-    let minter: &DAAM.Artist
-    let signer: AuthAccount
-    
-    prepare(signer: AuthAccount) {
+    let minter  : &DAAM.Artist
+    let receiver: &{NonFungibleToken.CollectionPublic}    
 
-        // borrow a reference to the Artist resource in storage
-        self.minter = signer.borrow<&DAAM.Artist>(from: DAAM.artistStoragePath)
+    prepare(admin: AuthAccount) {
+        // borrow a reference to the admin resource in storage
+        self.minter = getAccount(artist)
+        .getCapability(DAAM.artistPublicPath)
+        .borrow<&DAAM.Artist>()
             ?? panic("Could not borrow a reference to the NFT minter")
-        self.signer = signer    
-    }
-
-    execute {
-        let metadata = DAAM.Metadata(
-                creator: self.signer.address,
-                metadata : "metadata",
-                thumbnail: "thumbnail",
-                file     : "file"
-        )    
-        log("Metadata completed")
-
-        // Borrow the recipient's public NFT collection reference
-        let receiver = getAccount(self.signer.address)
+        
+        // Borrow the recipient's public collection reference
+        self.receiver = getAccount(artist)
             .getCapability(DAAM.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("You don't have a DAAM Collection. Setup an DAAM account first!")
-        //let receiver = self.signer.address
-        
+    }
+
+    execute {
+        let copyrightStatus = DAAM.CopyrightStatus.VERIFIED  // TODO Remove, for testing only
 
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, metadata: metadata)
+        self.minter.mintNFT(recipient: self.receiver, artist:artist, elm:elm, copyrightStatus:copyrightStatus)
         log("NFT Minted")
     }
 }

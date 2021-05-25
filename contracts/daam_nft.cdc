@@ -17,7 +17,7 @@ pub contract DAAM: NonFungibleToken {
     pub event ArtistInvited(artist: Address)
     pub event SubmitNFT()
     pub event MintedNFT(id: UInt64)
-    pub event SetCopyright(tokenID: UInt64)
+    pub event ChangedCopyright(tokenID: UInt64)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionPrivatePath: PrivatePath
@@ -26,7 +26,7 @@ pub contract DAAM: NonFungibleToken {
     pub let adminStoragePath     : StoragePath
     pub let adminPrivatePath     : PrivatePath
     pub let artistStoragePath    : StoragePath
-    pub let artistPrivatePath    : PrivatePath
+    pub let artistPublicPath     : PublicPath
     // {Artist Profile address : Artist status; true being active}
     //access(contract) var artists: {Address: Bool}                   
     access(contract) var adminPending : Address?
@@ -44,15 +44,18 @@ pub enum CopyrightStatus: UInt8 {
             pub case CLAIM
             pub case UNVERIFIED
             pub case VERIFIED
+            //pub case INCLUDED TODO v2
     }
 /***********************************************************************/
 pub struct Request {
-    pub let status: String
+    pub let status          : String
     pub let changeCommission: String
+    pub let reviewCopyright : String // ToDo
 
     init() {
-        self.status = "Status"
+        self.status            = "Status"
         self.changeCommission = "Change Commission"
+        self.reviewCopyright  = "Review Copyright"
     }
 }
 /***********************************************************************/
@@ -276,28 +279,41 @@ pub struct Request {
 
         pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
             DAAM.copyright[id] = copyright
-            emit SetCopyright(tokenID: id)
+            emit ChangedCopyright(tokenID: id)
             log("Token ID: ".concat(id.toString()).concat("Copyright Changed") )
         }
 	}
 /************************************************************************/
     pub resource Artist {
         pub fun submitNFT(artist: Address, metadata: Metadata) {
-            DAAM.preArt[artist]?.append(metadata)!
-            emit SubmitNFT()
+            if DAAM.preArt[artist] == nil {
+                DAAM.preArt[artist] = [metadata]
+            } else {
+                 DAAM.preArt[artist]!.append(metadata)
+            }
+            emit SubmitNFT()            
             log("NFT Proposed")
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, artist: Address, _ elm: UInt8, metadata: Metadata) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, artist: Address, elm: Int, copyrightStatus: CopyrightStatus) {
             pre{
-                elm % 2 as UInt8 == 1 as UInt8 : "Wrong Selection"
+                elm > -1                          : "Wrong Selection"
+                //elm % 2 as Int == 1 as Int        : "Wrong Selection"
+                //copyrightStatus == CopyrightStatus.VERIFIED : "Must Verify First" TODO
+                DAAM.preArt[artist] != nil : "Did you submit a DAAM NFT...?!?"                
             }
-            //let records = &DAAM.preArt[artist] as! &[Metadata]
-            //let metadata = records[elm]
+
+            let records = &DAAM.preArt[artist] as! &[Metadata]
+            let metadata = records[elm]
 			let newNFT <- create NFT(metadata: metadata) // TODO Get metadata from preArt
             let id = newNFT.id
+
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
+            DAAM.preArt[artist]?.remove(at: elm)!
+
+            DAAM.copyright[id] = copyrightStatus
+
             emit MintedNFT(id: id)
             log("Minited NFT: ".concat(id.toString()))
 		}
@@ -386,7 +402,7 @@ pub struct Request {
         self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
-        self.artistPrivatePath     = /private/DAAM_Artist
+        self.artistPublicPath      = /public/DAAM_Artist
         self.artistStoragePath     = /storage/DAAM_Artist
 
         //Custom variables should be contract arguments        
