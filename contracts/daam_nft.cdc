@@ -289,8 +289,8 @@ pub struct Request {
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: Metadata) {
-			let newNFT <-! create NFT(metadata: metadata)
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, artist: Address, _ elm: UInt8) {
+			let newNFT <-! create NFT(metadata: metadata) // TODO Get metadata from preArt
             let id = newNFT.id
 			recipient.deposit(token: <-newNFT)  // deposit it in the recipient's account using their reference
             emit MintedNFT(id: id)
