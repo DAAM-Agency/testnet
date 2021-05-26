@@ -48,9 +48,9 @@ pub enum CopyrightStatus: UInt8 {
     }
 /***********************************************************************/
 pub struct Request {
-    pub let status          : String
-    pub let changeroyality: String
-    pub let reviewCopyright : String // ToDo
+    pub let status         : String
+    pub let changeroyality : String
+    pub let reviewCopyright: String // ToDo
 
     init() {
         self.status            = "Status"

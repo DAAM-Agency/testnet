@@ -1,74 +1,82 @@
-#!/bin/bash
+# verify transactions
 
-export CREATOR_PUBKEY=0x$(tail -1 ./keys/creator_keys     | awk '{print $3}' | tr -d '\n')
-export ADMIN_PUBKEY=$(tail -1 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
-export CLIENT_PUBKEY=$(tail -1 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
-export MARKETPLACE_PUBKEY=$(tail -1 ./keys/marketplace_keys | awk '{print $3}' | tr -d '\n')
-export NFT_PUBKEY=$(tail -1 ./keys/nft_keys             | awk '{print $3}' | tr -d '\n')
-export PROFILE_PUBKEY=$(tail -1 ./keys/profile_keys     | awk '{print $3}' | tr -d '\n')
-export NOBODY_PUBKEY=$(tail -1 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
-export ADMIN2_PUBKEY=$(tail -1 ./keys/admin2_keys | awk '{print $3}' | tr -d '\n')
-export DAAM_NFT_PUBKEY=$(tail -1 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
-export AGENCY_PUBKEY=$(tail -1 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
+# setup profiles
+flow transactions send ./testnet/transactions/create_profile.cdc --signer admin
+flow transactions send ./testnet/transactions/create_profile.cdc --signer creator
+flow transactions send ./testnet/transactions/create_profile.cdc --signer client
+sleep 1s
 
-export CREATOR_PRIVKEY=$(tail -2 ./keys/creator_keys       | awk '{print $3}' | tr -d '\n')
-export ADMIN_PRIVKEY=$(tail -2 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
-export CLIENT_PRIVKEY=$(tail -2 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
-export MARKETPLACE_PRIVKEY=$(tail -2 ./keys/marketplace_keys | awk '{print $3}' | tr -d '\n')
-export NFT_PRIVKEY=$(tail -2 ./keys/nft_keys             | awk '{print $3}' | tr -d '\n')
-export PROFILE_PRIVKEY=$(tail -2 ./keys/profile_keys     | awk '{print $3}' | tr -d '\n')
-export NOBODY_PRIVKEY=$(tail -2 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
-export ADMIN2_PRIVKEY=$(tail -2 ./keys/admin2_keys | awk '{print $3}' | tr -d '\n')
-export DAAM_NFT_PRIVKEY=$(tail -2 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
-export AGENCY_PRIVKEY=$(tail -2 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
+# set up daam accounts
+flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer nobody
+flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer creator
+flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer client
+sleep 1s
 
-# init accounts; Must be in order
-flow accounts create --key $ADMIN_PUBKEY --save admin
-flow accounts create --key $CREATOR_PUBKEY --save creator
-flow accounts create --key $CLIENT_PUBKEY --save client
-flow accounts create --key $ADMIN2_PUBKEY --save admin2
-flow accounts create --key $MARKETPLACE_PUBKEY --save marketplace
-flow accounts create --key $NFT_PUBKEY --save nft
-flow accounts create --key $NOBODY_PUBKEY --save nobody
-flow accounts create --key $PROFILE_PUBKEY --save profile
-flow accounts create --key $DAAM_NFT_PUBKEY --save daam_nft
-flow accounts create --key $AGENCY_PUBKEY --save agency
+# init admin
+flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
+sleep 1s
 
-# Get & print Address
-export CREATOR=$(head -1 creator | awk '{print $2}')
-echo Creator: $CREATOR
-export ADMIN=$(head -1 admin   | awk '{print $2}')
-echo Admin:   $ADMIN
-export NOBODY=$(head -1 nobody | awk '{print $2}')
-echo Nobody: $NOBODY
-export CLIENT=$(head -1 client | awk '{print $2}')
-echo Client: $CLIENT
-export MARKETPLACE=$(head -1 marketplace     | awk '{print $2}')
-echo MARKETPLACE: $MARKETPLACE
-export ADMIN2=$(head -1 admin2 | awk '{print $2}')
-echo Copyright: $ADMIN2
-export NFT=$(head -1 nft        | awk '{print $2}')
-echo NFT: $NFT
-export PROFILE=$(head -1 profile | awk '{print $2}')
-echo Profile: $PROFILE
-export DAAM_NFT=$(head -1 daam_nft | awk '{print $2}')
-echo DAAM NFT: $DAAM_NFT
-export AGENCY=$(head -1 agency | awk '{print $2}')
-echo Agency: $AGENCY
+#invite Arist & accept
+flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
+sleep 1s
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CREATOR
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$DAAM_NFT
+flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
+sleep 1s
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$MARKETPLACE
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CLIENT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN2
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$PROFILE
+# invite new admin
+flow transactions send ./testnet/transactions/admin/invite_admin.cdc --arg Address:$CLIENT --signer admin
+sleep 1s
+flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer client
+sleep 1s
 
-# init contracts
-flow accounts add-contract NonFungibleToken ./testnet/contracts/NonFungibleToken.cdc --signer nft
-flow accounts add-contract Profile ./testnet/contracts/Profile.cdc --signer profile
-flow accounts add-contract DAAM ./testnet/contracts/daam_nft.cdc --signer daam_nft
-flow accounts add-contract Marketplace ./testnet/contracts/marketplace.cdc --signer marketplace
+# submit 4 NFTs
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
+
+
+# mint 4 NFTs
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg Int:3 --signer admin
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg Int:2 --signer admin
+sleep 1s
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg Int:1 --signer admin
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg Int:0 --signer admin
+
+# transfer
+flow transactions send ./testnet/transactions/transfer.cdc \
+--arg Address:$NOBODY --arg UInt64:1 --signer creator
+sleep 1s
+
+flow transactions send ./testnet/transactions/transfer.cdc \
+--arg Address:$NOBODY --arg UInt64:2 --signer creator
+sleep 1s
+
+# marketplace Test # 1
+flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer nobody
+sleep 1s
+
+flow transactions send ./testnet/transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer nobody
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer nobody
+sleep 1s
+
+# marketplace Test # 2
+flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer creator
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$NOBODY --arg UInt64:2 --arg UFix64:2.2 --signer client
+sleep 1s
+
+# change / answer Commision setting
+flow transactions send ./testnet/transactions/admin/request_change_royality.cdc --arg UInt64:3 --arg Address:$CREATOR --arg UFix64:0.18 --signer admin
+flow transactions send ./testnet/transactions/creator/answer_request.cdc --arg Bool:true --arg String:"Change Royality" --arg UInt64:3 --signer creator
+sleep 1s
+flow transactions send ./testnet/transactions/admin/request_change_royality.cdc --arg UInt64:3 --arg Address:$CREATOR --arg UFix64:0.19 --signer admin
+flow transactions send ./testnet/transactions/admin/remove_request.cdc --arg String:"Change Royality" --arg Address:$CREATOR --signer admin
+'''
+# marketpalce change price
+flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:3 --arg UFix64:3.8 --signer creator
+
+# change copyrigh
+flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:3 --signer admin
+'''
+#0xf8d6e0586b0a20c7
