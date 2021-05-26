@@ -35,7 +35,7 @@ pub contract DAAM: NonFungibleToken {
     pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
-    access(contract) var preArt: {Address: [Metadata]}
+    access(contract) var prepare: {Address: [Metadata]}
 
     pub let agency: Address
 /***********************************************************************/
@@ -265,7 +265,7 @@ pub struct Request {
             ref.remove(key: creator)
             ref = &DAAM.creators[DAAM.request.changeroyality] as &{Address: UFix64}
             ref.remove(key: creator)
-            DAAM.preArt.remove(key: creator)
+            DAAM.prepare.remove(key: creator)
         }
 
         pub fun removeAdmin(admin: Address) {
@@ -286,10 +286,10 @@ pub struct Request {
 /************************************************************************/
     pub resource Creator {
         pub fun submitNFT(creator: Address, metadata: Metadata) {
-            if DAAM.preArt[creator] == nil {
-                DAAM.preArt[creator] = [metadata]
+            if DAAM.prepare[creator] == nil {
+                DAAM.prepare[creator] = [metadata]
             } else {
-                 DAAM.preArt[creator]!.append(metadata)
+                 DAAM.prepare[creator]!.append(metadata)
             }
             emit SubmitNFT()            
             log("NFT Proposed")
@@ -301,16 +301,16 @@ pub struct Request {
                 elm > -1                          : "Wrong Selection"
                 //elm % 2 as Int == 1 as Int        : "Wrong Selection"
                 //copyrightStatus == CopyrightStatus.VERIFIED : "Must Verify First" TODO
-                DAAM.preArt[creator] != nil : "Did you submit a DAAM NFT...?!?"                
+                DAAM.prepare[creator] != nil : "Did you submit a DAAM NFT...?!?"                
             }
 
-            let records = &DAAM.preArt[creator] as! &[Metadata]
+            let records = &DAAM.prepare[creator] as! &[Metadata]
             let metadata = records[elm]
-			let newNFT <- create NFT(metadata: metadata) // TODO Get metadata from preArt
+			let newNFT <- create NFT(metadata: metadata) // TODO Get metadata from prepare
             let id = newNFT.id
 
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
-            DAAM.preArt[creator]?.remove(at: elm)!
+            DAAM.prepare[creator]?.remove(at: elm)!
 
             DAAM.copyright[id] = copyrightStatus
 
@@ -415,7 +415,7 @@ pub struct Request {
         self.creators[self.request.changeroyality] = {}
         self.copyright  = {}
 
-        self.preArt = {}
+        self.prepare = {}
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections               
 
