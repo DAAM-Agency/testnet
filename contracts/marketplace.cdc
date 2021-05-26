@@ -132,8 +132,8 @@ pub contract Marketplace {
 
             let price = self.prices[tokenID]!    // Read the price for the token
             self.prices[tokenID] = nil           // Set the price for the token to nil
-            let agencyComm      = boughtNFT.commission[DAAM.agency]!
-            let beneficiaryComm = boughtNFT.commission[boughtNFT.metadata.creator]!
+            let agencyComm      = boughtNFT.royality[DAAM.agency]!
+            let beneficiaryComm = boughtNFT.royality[boughtNFT.metadata.creator]!
 
             let agencyCut      <-! buyTokens.withdraw(amount: price * agencyComm)
             let beneficiaryCut <-! buyTokens.withdraw(amount: price * beneficiaryComm)

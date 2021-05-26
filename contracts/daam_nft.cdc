@@ -49,12 +49,12 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 pub struct Request {
     pub let status          : String
-    pub let changeCommission: String
+    pub let changeroyality: String
     pub let reviewCopyright : String // ToDo
 
     init() {
         self.status            = "Status"
-        self.changeCommission = "Change Commission"
+        self.changeroyality = "Change Royality"
         self.reviewCopyright  = "Review Copyright"
     }
 }
@@ -94,7 +94,7 @@ pub struct Request {
     pub resource NFT: NonFungibleToken.INFT {
         pub let id       : UInt64
         pub let metadata : Metadata
-        pub var commission: {Address: UFix64}  // {commission address : percentage }
+        pub var royality: {Address: UFix64}  // {royality address : percentage }
         //pub var series  : [UInt64]?  // TokenIDs of series
 
         init(metadata: Metadata) {
@@ -103,8 +103,8 @@ pub struct Request {
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
 
-            self.commission = {DAAM.agency : 0.1}         // default setting
-            self.commission[self.metadata.creator] = 0.2  // default setting
+            self.royality = {DAAM.agency : 0.1}         // default setting
+            self.royality[self.metadata.creator] = 0.2  // default setting
             //self.series = []
         }
 
@@ -179,11 +179,11 @@ pub struct Request {
             }
         }
 
-        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+        pub fun changeRoyalityRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre {
                 DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
                 DAAM.artists[DAAM.request.status]![artist] == 1.0 : "This DAAM Artist Account is frozen. Wake up Man, you're an Admin!!!"
-                DAAM.artists[DAAM.request.changeCommission]![artist] == nil : "There already is a Request. Only 1 at a time...for now"
+                DAAM.artists[DAAM.request.changeroyality]![artist] == nil : "There already is a Request. Only 1 at a time...for now"
             }
         }
 
@@ -238,12 +238,12 @@ pub struct Request {
             log("Sent Artist Invation: ".concat(artist.toString()) )            
         }
         
-        pub fun changeCommissionRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+        pub fun changeRoyalityRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }        
-            let ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
+            let ref = &DAAM.artists[DAAM.request.changeroyality] as &{Address: UFix64}
             let data = UFix64(tokenID) + newPercentage
             ref[artist] = data
-            log("Changed Commission to ".concat(newPercentage.toString()) )
+            log("Changed Royality to ".concat(newPercentage.toString()) )
             //emit CommisionChanged(newPercent: newPercent, seller: self.owner?.address)
         }
 
@@ -263,7 +263,7 @@ pub struct Request {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             var ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
             ref.remove(key: artist)
-            ref = &DAAM.artists[DAAM.request.changeCommission] as &{Address: UFix64}
+            ref = &DAAM.artists[DAAM.request.changeroyality] as &{Address: UFix64}
             ref.remove(key: artist)
             DAAM.preArt.remove(key: artist)
         }
@@ -331,14 +331,14 @@ pub struct Request {
             if answer {
                 let data = DAAM.artists[request]![artist]!
                 switch request {
-                    case DAAM.request.changeCommission:                    
+                    case DAAM.request.changeroyality:                    
                         let newPercentage = data - UFix64(UInt(data))
                         if nft.id != UInt64(data) { panic("Wrong Token") }
-                        nft.commission[artist] = newPercentage
+                        nft.royality[artist] = newPercentage
                         log(request.concat(" ".concat(newPercentage.toString())) )
                 }// end switch         
             } else {
-                log("Change Commission Refused")
+                log("Change Royality Refused")
             }
             DAAM.artists[request]!.remove(key: artist)
         }
@@ -412,7 +412,7 @@ pub struct Request {
         self.artists  = {}
         self.request = Request()
         self.artists[self.request.status] = {}
-        self.artists[self.request.changeCommission] = {}
+        self.artists[self.request.changeroyality] = {}
         self.copyright  = {}
 
         self.preArt = {}
