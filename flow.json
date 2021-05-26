@@ -31,7 +31,7 @@
 			"keys": "603c87086c7a2ddea5050724f5a46c3827ae66efd10ea51a7937f6abc982ac01",
 			"chain": "flow-emulator"
 		},
-		"artist": {
+		"creator": {
 			"address": "179b6b1cb6755e31",
 			"keys": "6fc47b7427a2ef54af73e3b1c9da51ad3b3c18fe3cab8dfa4fc8023a57e2bb02",
 			"chain": "flow-emulator"

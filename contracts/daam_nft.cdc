@@ -12,9 +12,9 @@ pub contract DAAM: NonFungibleToken {
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64,   to: Address?)
     pub event NewAdmin(admin  : Address)
-    pub event NewArtist(artist: Address)
+    pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
-    pub event ArtistInvited(artist: Address)
+    pub event CreatorInvited(creator: Address)
     pub event SubmitNFT()
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(tokenID: UInt64)
@@ -25,13 +25,13 @@ pub contract DAAM: NonFungibleToken {
     pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
     pub let adminPrivatePath     : PrivatePath
-    pub let artistStoragePath    : StoragePath
-    pub let artistPublicPath     : PublicPath
-    // {Artist Profile address : Artist status; true being active}
-    //access(contract) var artists: {Address: Bool}                   
+    pub let creatorStoragePath    : StoragePath
+    pub let creatorPublicPath     : PublicPath
+    // {Creator Profile address : Creator status; true being active}
+    //access(contract) var creators: {Address: Bool}                   
     access(contract) var adminPending : Address?
     access(contract) var request: Request
-    access(contract) var artists: {String: {Address: UFix64} } // {request as a string : Address List}
+    access(contract) var creators: {String: {Address: UFix64} } // {request as a string : Address List}
     pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
@@ -60,7 +60,7 @@ pub struct Request {
 }
 /***********************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
-        pub let creator   : Address   // Artist
+        pub let creator   : Address   // Creator
         pub let data      : String    // JSON see metadata.json
         pub let thumbnail : String    // JSON see metadata.json
         pub let file      : String    // JSON see metadata.json
@@ -172,36 +172,36 @@ pub struct Request {
             }
         }
 
-        pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
+        pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre {
-                DAAM.artists[DAAM.request.status]![artist] == nil : "They're already a DAAM Artist!!!"
-                Profile.check(artist)      : "You can't be a DAAM Artist without a Profile! Go make one Fool!!"
+                DAAM.creators[DAAM.request.status]![creator] == nil : "They're already a DAAM Creator!!!"
+                Profile.check(creator)      : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
         }
 
-        pub fun changeRoyalityRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+        pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre {
-                DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
-                DAAM.artists[DAAM.request.status]![artist] == 1.0 : "This DAAM Artist Account is frozen. Wake up Man, you're an Admin!!!"
-                DAAM.artists[DAAM.request.changeroyality]![artist] == nil : "There already is a Request. Only 1 at a time...for now"
+                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
+                DAAM.creators[DAAM.request.status]![creator] == 1.0 : "This DAAM Creator Account is frozen. Wake up Man, you're an Admin!!!"
+                DAAM.creators[DAAM.request.changeroyality]![creator] == nil : "There already is a Request. Only 1 at a time...for now"
             }
         }
 
-        pub fun removeRequest(request: String, artist: Address) {
+        pub fun removeRequest(request: String, creator: Address) {
             pre{
-                DAAM.artists[request]![artist] != nil : "They're no DAAM Request!!!"
+                DAAM.creators[request]![creator] != nil : "They're no DAAM Request!!!"
             }
         }
 
-        pub fun freezeArtist(artist: Address) {
+        pub fun freezeCreator(creator: Address) {
             pre{
-                DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
+                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
             }
         }
 
-        pub fun removeArtist(artist: Address) {
+        pub fun removeCreator(creator: Address) {
             pre{
-                DAAM.artists[DAAM.request.status]![artist] != nil : "They're no DAAM Artist!!!"
+                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
             }
         }
 
@@ -228,44 +228,44 @@ pub struct Request {
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )            
         }
 
-        pub fun inviteArtist(_ artist: Address) {  // Admin add a new artist
+        pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
-            ref[artist] = 0.0 // When  status is 0.0 consider active but suspended.
+            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
+            ref[creator] = 0.0 // When  status is 0.0 consider active but suspended.
             // Can also be used as a security level
             // TODO Add time limit
-            emit ArtistInvited(artist: artist)
-            log("Sent Artist Invation: ".concat(artist.toString()) )            
+            emit CreatorInvited(creator: creator)
+            log("Sent Creator Invation: ".concat(creator.toString()) )            
         }
         
-        pub fun changeRoyalityRequest(artist: Address, tokenID: UInt64, newPercentage: UFix64) {
+        pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }        
-            let ref = &DAAM.artists[DAAM.request.changeroyality] as &{Address: UFix64}
+            let ref = &DAAM.creators[DAAM.request.changeroyality] as &{Address: UFix64}
             let data = UFix64(tokenID) + newPercentage
-            ref[artist] = data
+            ref[creator] = data
             log("Changed Royality to ".concat(newPercentage.toString()) )
             //emit CommisionChanged(newPercent: newPercent, seller: self.owner?.address)
         }
 
-        pub fun removeRequest(request: String, artist: Address) {
+        pub fun removeRequest(request: String, creator: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.artists[request] as &{Address: UFix64}
-            ref.remove(key: artist)
+            let ref = &DAAM.creators[request] as &{Address: UFix64}
+            ref.remove(key: creator)
         }
 
-        pub fun freezeArtist(artist: Address) {
+        pub fun freezeCreator(creator: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
-            ref[artist] = 0.0 as UFix64? // represents False
+            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
+            ref[creator] = 0.0 as UFix64? // represents False
         }
 
-        pub fun removeArtist(artist: Address) {
+        pub fun removeCreator(creator: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            var ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
-            ref.remove(key: artist)
-            ref = &DAAM.artists[DAAM.request.changeroyality] as &{Address: UFix64}
-            ref.remove(key: artist)
-            DAAM.preArt.remove(key: artist)
+            var ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
+            ref.remove(key: creator)
+            ref = &DAAM.creators[DAAM.request.changeroyality] as &{Address: UFix64}
+            ref.remove(key: creator)
+            DAAM.preArt.remove(key: creator)
         }
 
         pub fun removeAdmin(admin: Address) {
@@ -284,33 +284,33 @@ pub struct Request {
         }
 	}
 /************************************************************************/
-    pub resource Artist {
-        pub fun submitNFT(artist: Address, metadata: Metadata) {
-            if DAAM.preArt[artist] == nil {
-                DAAM.preArt[artist] = [metadata]
+    pub resource Creator {
+        pub fun submitNFT(creator: Address, metadata: Metadata) {
+            if DAAM.preArt[creator] == nil {
+                DAAM.preArt[creator] = [metadata]
             } else {
-                 DAAM.preArt[artist]!.append(metadata)
+                 DAAM.preArt[creator]!.append(metadata)
             }
             emit SubmitNFT()            
             log("NFT Proposed")
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, artist: Address, elm: Int, copyrightStatus: CopyrightStatus) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: Int, copyrightStatus: CopyrightStatus) {
             pre{
                 elm > -1                          : "Wrong Selection"
                 //elm % 2 as Int == 1 as Int        : "Wrong Selection"
                 //copyrightStatus == CopyrightStatus.VERIFIED : "Must Verify First" TODO
-                DAAM.preArt[artist] != nil : "Did you submit a DAAM NFT...?!?"                
+                DAAM.preArt[creator] != nil : "Did you submit a DAAM NFT...?!?"                
             }
 
-            let records = &DAAM.preArt[artist] as! &[Metadata]
+            let records = &DAAM.preArt[creator] as! &[Metadata]
             let metadata = records[elm]
 			let newNFT <- create NFT(metadata: metadata) // TODO Get metadata from preArt
             let id = newNFT.id
 
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
-            DAAM.preArt[artist]?.remove(at: elm)!
+            DAAM.preArt[creator]?.remove(at: elm)!
 
             DAAM.copyright[id] = copyrightStatus
 
@@ -319,33 +319,33 @@ pub struct Request {
 		}
 	
 
-        pub fun answerRequest(artist: Address, nft: &NFT, answer: Bool, request: String) {
+        pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: String) {
             pre {
-                DAAM.artists[request] != nil : "That isn't even a DAAM request!!"
-                DAAM.artists[DAAM.request.status]![artist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
-                DAAM.artists[DAAM.request.status]![artist] != 0.0 : "You're DAAM Artist account is frozen!!"
-                Profile.check(artist)        : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
-                DAAM.artists[request]![artist] != nil  : "That Request has not been made"
+                DAAM.creators[request] != nil : "That isn't even a DAAM request!!"
+                DAAM.creators[DAAM.request.status]![creator] != nil : "You got no DAAM Creator invite!!!. Get outta here!!"
+                DAAM.creators[DAAM.request.status]![creator] != 0.0 : "You're DAAM Creator account is frozen!!"
+                Profile.check(creator)        : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
+                DAAM.creators[request]![creator] != nil  : "That Request has not been made"
             }        
 
             if answer {
-                let data = DAAM.artists[request]![artist]!
+                let data = DAAM.creators[request]![creator]!
                 switch request {
                     case DAAM.request.changeroyality:                    
                         let newPercentage = data - UFix64(UInt(data))
                         if nft.id != UInt64(data) { panic("Wrong Token") }
-                        nft.royality[artist] = newPercentage
+                        nft.royality[creator] = newPercentage
                         log(request.concat(" ".concat(newPercentage.toString())) )
                 }// end switch         
             } else {
                 log("Change Royality Refused")
             }
-            DAAM.artists[request]!.remove(key: artist)
+            DAAM.creators[request]!.remove(key: creator)
         }
     
 
-        /*pub fun updateSeries(artist: Address, series: [UInt64]) {
-            var collection = &DAAM.collection[artist] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
+        /*pub fun updateSeries(creator: Address, series: [UInt64]) {
+            var collection = &DAAM.collection[creator] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
             let tokenIDs = collection.getIDs()
             for id in series {
                 if !tokenIDs.contains(id) { return }
@@ -370,19 +370,19 @@ pub struct Request {
     }
 
     // TODO add interface restriction to collection
-    pub fun answerArtistInvite(newArtist: Address, submit: Bool): @Artist {
+    pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator {
         pre {
-            DAAM.artists[DAAM.request.status]![newArtist] != nil : "You got no DAAM Artist invite!!!. Get outta here!!"
-            Profile.check(newArtist)       : "You can't be a DAAM Artist without a Profile first! Go make one Fool!!"
+            DAAM.creators[DAAM.request.status]![newCreator] != nil : "You got no DAAM Creator invite!!!. Get outta here!!"
+            Profile.check(newCreator)       : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
         if submit {
-            let ref = &DAAM.artists[DAAM.request.status] as &{Address: UFix64}
-            ref[newArtist] = 1.0 as UFix64? // represents True
-            emit NewArtist(artist: newArtist)
-            log("Artist: ".concat(newArtist.toString()).concat(" added to DAAM") )
-            return <- create Artist()
+            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
+            ref[newCreator] = 1.0 as UFix64? // represents True
+            emit NewCreator(creator: newCreator)
+            log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
+            return <- create Creator()
         }
-        DAAM.artists[DAAM.request.status]!.remove(key: newArtist)
+        DAAM.creators[DAAM.request.status]!.remove(key: newCreator)
         panic("Well, ... fuck you too!!!")
     }
 
@@ -402,17 +402,17 @@ pub struct Request {
         self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
-        self.artistPublicPath      = /public/DAAM_Artist
-        self.artistStoragePath     = /storage/DAAM_Artist
+        self.creatorPublicPath      = /public/DAAM_Creator
+        self.creatorStoragePath     = /storage/DAAM_Creator
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
         self.agency       = 0xeb179c27144f783c
 
-        self.artists  = {}
+        self.creators  = {}
         self.request = Request()
-        self.artists[self.request.status] = {}
-        self.artists[self.request.changeroyality] = {}
+        self.creators[self.request.status] = {}
+        self.creators[self.request.changeroyality] = {}
         self.copyright  = {}
 
         self.preArt = {}

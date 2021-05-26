@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export ARTIST_PUBKEY=0x$(tail -1 ./keys/artist_keys     | awk '{print $3}' | tr -d '\n')
+export CREATOR_PUBKEY=0x$(tail -1 ./keys/creator_keys     | awk '{print $3}' | tr -d '\n')
 export ADMIN_PUBKEY=$(tail -1 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
 export CLIENT_PUBKEY=$(tail -1 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
 export MARKETPLACE_PUBKEY=$(tail -1 ./keys/marketplace_keys | awk '{print $3}' | tr -d '\n')
@@ -11,7 +11,7 @@ export ADMIN2_PUBKEY=$(tail -1 ./keys/admin2_keys | awk '{print $3}' | tr -d '\n
 export DAAM_NFT_PUBKEY=$(tail -1 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
 export AGENCY_PUBKEY=$(tail -1 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
 
-export ARTIST_PRIVKEY=$(tail -2 ./keys/artist_keys       | awk '{print $3}' | tr -d '\n')
+export CREATOR_PRIVKEY=$(tail -2 ./keys/creator_keys       | awk '{print $3}' | tr -d '\n')
 export ADMIN_PRIVKEY=$(tail -2 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
 export CLIENT_PRIVKEY=$(tail -2 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
 export MARKETPLACE_PRIVKEY=$(tail -2 ./keys/marketplace_keys | awk '{print $3}' | tr -d '\n')
@@ -24,7 +24,7 @@ export AGENCY_PRIVKEY=$(tail -2 ./keys/agency_keys       | awk '{print $3}' | tr
 
 # init accounts; Must be in order
 flow accounts create --key $ADMIN_PUBKEY --save admin
-flow accounts create --key $ARTIST_PUBKEY --save artist
+flow accounts create --key $CREATOR_PUBKEY --save creator
 flow accounts create --key $CLIENT_PUBKEY --save client
 flow accounts create --key $ADMIN2_PUBKEY --save admin2
 flow accounts create --key $MARKETPLACE_PUBKEY --save marketplace
@@ -35,8 +35,8 @@ flow accounts create --key $DAAM_NFT_PUBKEY --save daam_nft
 flow accounts create --key $AGENCY_PUBKEY --save agency
 
 # Get & print Address
-export ARTIST=$(head -1 artist | awk '{print $2}')
-echo Artist: $ARTIST
+export CREATOR=$(head -1 creator | awk '{print $2}')
+echo Creator: $CREATOR
 export ADMIN=$(head -1 admin   | awk '{print $2}')
 echo Admin:   $ADMIN
 export NOBODY=$(head -1 nobody | awk '{print $2}')
@@ -56,7 +56,7 @@ echo DAAM NFT: $DAAM_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ARTIST
+flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CREATOR
 flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
 flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
 flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
