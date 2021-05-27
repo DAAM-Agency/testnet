@@ -55,7 +55,7 @@ pub struct Request {
     init() {
         self.status            = "Status"
         self.changeroyality = "Change Royality"
-        self.reviewCopyright  = "Review Copyright"
+        self.reviewCopyright  = "Review Copyright"// ToDo
     }
 }
 /***********************************************************************/
@@ -193,11 +193,11 @@ pub struct Request {
             }
         }
 
-        pub fun freezeCreator(creator: Address) {
+        pub fun changeCreatorStatus(creator: Address, status: UFix64) /*{
             pre{
-                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
+                //DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
             }
-        }
+        }*/
 
         pub fun removeCreator(creator: Address) {
             pre{
@@ -249,14 +249,14 @@ pub struct Request {
 
         pub fun removeRequest(request: String, creator: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.creators[request] as &{Address: UFix64}
+            var ref = &DAAM.creators[request] as &{Address: UFix64}
             ref.remove(key: creator)
         }
 
-        pub fun freezeCreator(creator: Address) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref[creator] = 0.0 as UFix64? // represents False
+        pub fun changeCreatorStatus(creator: Address, status: UFix64) {
+            pre{ self.status : "This account is already frozen" }
+            var ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
+            ref[creator] = status  // 0.0 = False, 1.0 = true
         }
 
         pub fun removeCreator(creator: Address) {
@@ -286,6 +286,9 @@ pub struct Request {
 /************************************************************************/
     pub resource Creator {
         pub fun submitNFT(creator: Address, metadata: Metadata) {
+            pre{
+                DAAM.creators[DAAM.request.status]![creator] == 1.0 as UFix64 : "Your Account is Frozen"           
+            }
             if DAAM.prepare[creator] == nil {
                 DAAM.prepare[creator] = [metadata]
             } else {
@@ -298,10 +301,9 @@ pub struct Request {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: Int, copyrightStatus: CopyrightStatus) {
             pre{
-                elm > -1                          : "Wrong Selection"
-                //elm % 2 as Int == 1 as Int        : "Wrong Selection"
-                //copyrightStatus == CopyrightStatus.VERIFIED : "Must Verify First" TODO
-                DAAM.prepare[creator] != nil : "Did you submit a DAAM NFT...?!?"                
+                elm > -1                          : "Wrong Selection"                
+                DAAM.prepare[creator] != nil : "Did you submit a DAAM NFT...?!?"
+                DAAM.creators[DAAM.request.status]![creator] == 1.0 as UFix64 : "Your Account is Frozen"           
             }
 
             let records = &DAAM.prepare[creator] as! &[Metadata]
@@ -372,18 +374,24 @@ pub struct Request {
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator {
         pre {
-            DAAM.creators[DAAM.request.status]![newCreator] != nil : "You got no DAAM Creator invite!!!. Get outta here!!"
+            DAAM.creators[DAAM.request.status]![newCreator] == 0.0 : "You got no DAAM Creator invite!!!. Get outta here!!"
             Profile.check(newCreator)       : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
+
         if submit {
             let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref[newCreator] = 1.0 as UFix64? // represents True
+            ref[newCreator] = 1.0 as UFix64 // represents True
+
+            let zz = DAAM.creators[DAAM.request.status]![newCreator]
+            log("ZZ: ".concat(zz!.toString()) )
+
             emit NewCreator(creator: newCreator)
             log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
             return <- create Creator()
+        } else {
+            DAAM.creators[DAAM.request.status]!.remove(key: newCreator)
+            return nil!
         }
-        DAAM.creators[DAAM.request.status]!.remove(key: newCreator)
-        panic("Well, ... fuck you too!!!")
     }
 
     pub fun createEmptyCollection(): @Collection {
