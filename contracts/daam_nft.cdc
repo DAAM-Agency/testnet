@@ -178,6 +178,7 @@ pub struct Request {
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
+            post { DAAM.adminPending != nil : "We're being hacked or something" }
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
@@ -185,6 +186,7 @@ pub struct Request {
                 DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
+            post { DAAM.creators[creator]?.status == false }
         }
 
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
@@ -193,19 +195,25 @@ pub struct Request {
                 DAAM.creators[creator]?.status == true : "This DAAM Creator Account is frozen. Wake the Fuck Man, you're an DAAM Admin!!!"
                 DAAM.creators[creator]?.changeRoyality != nil : "There already is a Request. Only 1 at a time...for now"
             }
+            post { DAAM.creators[creator]!.changeRoyality[tokenID]! == newPercentage }
         }
 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
-            pre { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+            post { DAAM.creators[creator]?.status == status}
         }
 
         pub fun removeCreator(creator: Address) {
-            pre { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+            post { !DAAM.creators.containsKey(creator) }
         }
 
         pub fun removeAdmin(admin: Address)
 
-        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus)
+        pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
+            pre  { DAAM.copyright.containsKey(id): "This is an Invalid ID" }
+            post { DAAM.copyright[id] == copyright }
+        }
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -229,8 +237,7 @@ pub struct Request {
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.creators.insert(key: creator, Request() ) 
-            // TODO Add time limit
-            
+            // TODO Add time limit            
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
         }
@@ -238,7 +245,7 @@ pub struct Request {
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }        
             var ref = &DAAM.creators[creator] as &Request
-            // TODO Confirm tokeinID
+            // TODO Confirm tokenID
             ref.changeRoyality[tokenID] = newPercentage
             log("Changed Royality to ".concat(newPercentage.toString()) )
             emit RoyalityChanged(newPercent: newPercentage, creator: creator)
@@ -282,7 +289,10 @@ pub struct Request {
 /************************************************************************/
     pub resource Creator {
         pub fun submitNFT(creator: Address, metadata: Metadata) {
-            pre{ DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!" }
+            pre{
+                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
+                DAAM.creators[creator]!.status != false : "This Creator's Account is Frozen. Wake up Man!!"
+            }
             if DAAM.prepare[creator] == nil {
                 DAAM.prepare[creator] = [metadata]
             } else {
@@ -293,35 +303,27 @@ pub struct Request {
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: Int, copyrightStatus: CopyrightStatus) {
-            pre{
-                elm > -1                           : "Wrong Selection"                
-                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?"
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
+            pre{                
                 DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
-                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"  
-            }
-
-            let records = &DAAM.prepare[creator] as! &[Metadata]
-            let metadata = records[elm]
-			let newNFT <- create NFT(metadata: metadata) // TODO Get metadata from prepare
+                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
+                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?" 
+            } 
+			let newNFT <- create NFT(metadata: DAAM.prepare[creator]![elm] )
             let id = newNFT.id
-
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
             DAAM.prepare[creator]?.remove(at: elm)!
-
             DAAM.copyright[id] = copyrightStatus
-
             log("Minited NFT: ".concat(id.toString()))
             emit MintedNFT(id: id)            
-		}
-	
+		}	
 
         pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {
                 DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
                 DAAM.creators[creator]!.status     : "Pay Attenction!! This DAAM Creator account is frozen. You suck at your Job!!"
                 Profile.check(creator)             : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
-                request < 2 as UInt8               : "No such DAAM request"
+                request < 1 as UInt8               : "No such DAAM request"
             }
             let getRequest = &DAAM.creators[creator] as &Request
 
@@ -371,7 +373,6 @@ pub struct Request {
             DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
-
         var ref = &DAAM.creators[newCreator] as &Request
         ref.setStatus(status: submit)
 

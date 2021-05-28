@@ -3,7 +3,7 @@
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(creator: Address, elm: Int /* , copyrightStatus: DAAM.CopyrightStatus*/ ) {
+transaction(creator: Address, elm: UInt /* , copyrightStatus: DAAM.CopyrightStatus*/ ) {
     // local variable for storing the minter reference
     let minter  : &DAAM.Creator
     let receiver: &{NonFungibleToken.CollectionPublic}    
