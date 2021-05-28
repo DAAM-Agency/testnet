@@ -1,15 +1,13 @@
-// remove_request.cdc
+// remove_creator.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(request: String, creator: Address) {
+transaction(xadmin: Address) {
 
     prepare(acct: AuthAccount) {
-        let copyright = DAAM.CopyrightStatus.CLAIM
-
         let admin <- acct.load<@DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        admin.removeRequest(request: request, creator: creator)
+        admin.removeAdmin(admin: xadmin)
         acct.save<@DAAM.Admin{DAAM.Founder}>(<- admin, to: DAAM.adminStoragePath)
-        log("Request Removed")
+        log("Remove Admin Requested")
     }
 }// transaction

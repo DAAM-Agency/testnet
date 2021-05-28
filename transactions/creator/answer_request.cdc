@@ -2,7 +2,7 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(answer: Bool, request: String, tokenID: UInt64) {
+transaction(answer: Bool, request: UInt8, tokenID: UInt64) {
 
     // local variable for storing the creatorRef reference
     let creatorRef: &DAAM.Creator

@@ -11,13 +11,19 @@ pub contract DAAM: NonFungibleToken {
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64,   to: Address?)
+
     pub event NewAdmin(admin  : Address)
     pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
     pub event CreatorInvited(creator: Address)
-    pub event SubmitNFT()
+    pub event SubmitNFT(creator: Address)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(tokenID: UInt64)
+    pub event RoyalityChanged(newPercent: UFix64, creator: Address)
+    pub event ChangeCreatorStatus(creator: Address, status: Bool)
+    pub event CreatorRemoved(creator: Address)
+    pub event AdminRemoved(admin: Address)
+    pub event RequestAnswered(creator: Address, answer: Bool, request: UInt8)
 
     pub let collectionPublicPath : PublicPath
     pub let collectionPrivatePath: PrivatePath
@@ -30,8 +36,8 @@ pub contract DAAM: NonFungibleToken {
     // {Creator Profile address : Creator status; true being active}
     //access(contract) var creators: {Address: Bool}                   
     access(contract) var adminPending : Address?
-    access(contract) var request: Request
-    access(contract) var creators: {String: {Address: UFix64} } // {request as a string : Address List}
+    //access(contract) var request: Request
+    access(contract) var creators: {Address: Request} // {request as a string : Address List}
     pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
@@ -48,15 +54,17 @@ pub enum CopyrightStatus: UInt8 {
     }
 /***********************************************************************/
 pub struct Request {
-    pub let status         : String
-    pub let changeroyality : String
-    pub let reviewCopyright: String // ToDo
+    pub var status         : Bool
+    pub var changeRoyality : {UInt64 : UFix64}  // {id : 0.2 new royality}
+    //pub let reviewCopyright: Bool // ToDo
 
-    init() {
-        self.status            = "Status"
-        self.changeroyality = "Change Royality"
-        self.reviewCopyright  = "Review Copyright"// ToDo
+    init() {  // Any additions, make sure to update answerRequest
+        self.status         = false
+        self.changeRoyality = {}
+        //self.reviewCopyright = "Review Copyright"// ToDo
     }
+
+    pub fun setStatus(status: Bool) {self.status = status}
 }
 /***********************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
@@ -174,35 +182,25 @@ pub struct Request {
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre {
-                DAAM.creators[DAAM.request.status]![creator] == nil : "They're already a DAAM Creator!!!"
-                Profile.check(creator)      : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
+                DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
+                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
         }
 
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre {
-                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
-                DAAM.creators[DAAM.request.status]![creator] == 1.0 : "This DAAM Creator Account is frozen. Wake up Man, you're an Admin!!!"
-                DAAM.creators[DAAM.request.changeroyality]![creator] == nil : "There already is a Request. Only 1 at a time...for now"
+                DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
+                DAAM.creators[creator]?.status == true : "This DAAM Creator Account is frozen. Wake the Fuck Man, you're an DAAM Admin!!!"
+                DAAM.creators[creator]?.changeRoyality != nil : "There already is a Request. Only 1 at a time...for now"
             }
         }
 
-        pub fun removeRequest(request: String, creator: Address) {
-            pre{
-                DAAM.creators[request]![creator] != nil : "They're no DAAM Request!!!"
-            }
+        pub fun changeCreatorStatus(creator: Address, status: Bool) {
+            pre { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
         }
-
-        pub fun changeCreatorStatus(creator: Address, status: UFix64) /*{
-            pre{
-                //DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
-            }
-        }*/
 
         pub fun removeCreator(creator: Address) {
-            pre{
-                DAAM.creators[DAAM.request.status]![creator] != nil : "They're no DAAM Creator!!!"
-            }
+            pre { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
         }
 
         pub fun removeAdmin(admin: Address)
@@ -224,48 +222,41 @@ pub struct Request {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.adminPending = newAdmin
             // TODO Add time limit
-            emit AdminInvited(admin: newAdmin)
-            log("Sent Admin Invation: ".concat(newAdmin.toString()) )            
+            log("Sent Admin Invation: ".concat(newAdmin.toString()) )
+            emit AdminInvited(admin: newAdmin)                        
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref[creator] = 0.0 // When  status is 0.0 consider active but suspended.
-            // Can also be used as a security level
+            DAAM.creators.insert(key: creator, Request() ) 
             // TODO Add time limit
-            emit CreatorInvited(creator: creator)
-            log("Sent Creator Invation: ".concat(creator.toString()) )            
+            
+            log("Sent Creator Invation: ".concat(creator.toString()) )
+            emit CreatorInvited(creator: creator)         
         }
         
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }        
-            let ref = &DAAM.creators[DAAM.request.changeroyality] as &{Address: UFix64}
-            let data = UFix64(tokenID) + newPercentage
-            ref[creator] = data
+            var ref = &DAAM.creators[creator] as &Request
+            // TODO Confirm tokeinID
+            ref.changeRoyality[tokenID] = newPercentage
             log("Changed Royality to ".concat(newPercentage.toString()) )
-            //emit CommisionChanged(newPercent: newPercent, seller: self.owner?.address)
+            emit RoyalityChanged(newPercent: newPercentage, creator: creator)
         }
 
-        pub fun removeRequest(request: String, creator: Address) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            var ref = &DAAM.creators[request] as &{Address: UFix64}
-            ref.remove(key: creator)
-        }
-
-        pub fun changeCreatorStatus(creator: Address, status: UFix64) {
+        pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre{ self.status : "This account is already frozen" }
-            var ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref[creator] = status  // 0.0 = False, 1.0 = true
+            let ref = &DAAM.creators[creator] as &Request
+            ref.setStatus(status: status)
+            log("Creator Status Changed")
+            emit ChangeCreatorStatus(creator: creator, status: status)
         }
 
         pub fun removeCreator(creator: Address) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            var ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref.remove(key: creator)
-            ref = &DAAM.creators[DAAM.request.changeroyality] as &{Address: UFix64}
-            ref.remove(key: creator)
-            DAAM.prepare.remove(key: creator)
+            pre{ self.status : "You're no longer a DAAM Admin!!" }            
+            DAAM.creators.remove(key: creator)
+            log("Removed Creator")
+            emit CreatorRemoved(creator: creator)
         }
 
         pub fun removeAdmin(admin: Address) {
@@ -274,36 +265,40 @@ pub struct Request {
                 !self.remove.contains(admin) : "You already did"
             }
             self.remove.append(admin)
-            if self.remove.length >= 2 { self.status = false }
+            if self.remove.length >= 2 {
+                self.status = false
+                // TODO make Admin self destruct
+                log("Removed Admin")
+                emit AdminRemoved(admin: admin)
+            }
         }
 
         pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
             DAAM.copyright[id] = copyright
-            emit ChangedCopyright(tokenID: id)
-            log("Token ID: ".concat(id.toString()).concat("Copyright Changed") )
+            log("Token ID: ".concat(id.toString()) )
+            emit ChangedCopyright(tokenID: id)            
         }
 	}
 /************************************************************************/
     pub resource Creator {
         pub fun submitNFT(creator: Address, metadata: Metadata) {
-            pre{
-                DAAM.creators[DAAM.request.status]![creator] == 1.0 as UFix64 : "Your Account is Frozen"           
-            }
+            pre{ DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!" }
             if DAAM.prepare[creator] == nil {
                 DAAM.prepare[creator] = [metadata]
             } else {
                  DAAM.prepare[creator]!.append(metadata)
             }
-            emit SubmitNFT()            
             log("NFT Proposed")
+            emit SubmitNFT(creator: creator)           
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: Int, copyrightStatus: CopyrightStatus) {
             pre{
-                elm > -1                          : "Wrong Selection"                
-                DAAM.prepare[creator] != nil : "Did you submit a DAAM NFT...?!?"
-                DAAM.creators[DAAM.request.status]![creator] == 1.0 as UFix64 : "Your Account is Frozen"           
+                elm > -1                           : "Wrong Selection"                
+                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?"
+                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
+                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"  
             }
 
             let records = &DAAM.prepare[creator] as! &[Metadata]
@@ -316,33 +311,32 @@ pub struct Request {
 
             DAAM.copyright[id] = copyrightStatus
 
-            emit MintedNFT(id: id)
             log("Minited NFT: ".concat(id.toString()))
+            emit MintedNFT(id: id)            
 		}
 	
 
-        pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: String) {
+        pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {
-                DAAM.creators[request] != nil : "That isn't even a DAAM request!!"
-                DAAM.creators[DAAM.request.status]![creator] != nil : "You got no DAAM Creator invite!!!. Get outta here!!"
-                DAAM.creators[DAAM.request.status]![creator] != 0.0 : "You're DAAM Creator account is frozen!!"
-                Profile.check(creator)        : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
-                DAAM.creators[request]![creator] != nil  : "That Request has not been made"
-            }        
+                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
+                DAAM.creators[creator]!.status     : "Pay Attenction!! This DAAM Creator account is frozen. You suck at your Job!!"
+                Profile.check(creator)             : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
+                request < 2 as UInt8               : "No such DAAM request"
+            }
+            let getRequest = &DAAM.creators[creator] as &Request
 
-            if answer {
-                let data = DAAM.creators[request]![creator]!
+            if answer {                
                 switch request {
-                    case DAAM.request.changeroyality:                    
-                        let newPercentage = data - UFix64(UInt(data))
-                        if nft.id != UInt64(data) { panic("Wrong Token") }
+                    case 0 as UInt8:  // Change Royality                
+                        let newPercentage = getRequest.changeRoyality[nft.id]!                     
                         nft.royality[creator] = newPercentage
-                        log(request.concat(" ".concat(newPercentage.toString())) )
+                        log("Request: Change Royality: Accepted")
                 }// end switch         
             } else {
-                log("Change Royality Refused")
+                log("Request: Change Royality: Refused")
             }
-            DAAM.creators[request]!.remove(key: creator)
+            getRequest.changeRoyality.remove(key: nft.id)
+            emit RequestAnswered(creator: creator, answer: answer, request: request)
         }
     
 
@@ -365,31 +359,28 @@ pub struct Request {
             Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
         }
         DAAM.adminPending = nil
-        if !submit { panic("Well, ... fuck you too!!!") }
-        emit NewAdmin(admin: newAdmin)
+        if !submit { panic("Well, ... fuck you too!!!") }        
         log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
+        emit NewAdmin(admin: newAdmin)
         return <- create Admin()         
     }
 
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator {
         pre {
-            DAAM.creators[DAAM.request.status]![newCreator] == 0.0 : "You got no DAAM Creator invite!!!. Get outta here!!"
-            Profile.check(newCreator)       : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
+            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
+            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
 
-        if submit {
-            let ref = &DAAM.creators[DAAM.request.status] as &{Address: UFix64}
-            ref[newCreator] = 1.0 as UFix64 // represents True
+        var ref = &DAAM.creators[newCreator] as &Request
+        ref.setStatus(status: submit)
 
-            let zz = DAAM.creators[DAAM.request.status]![newCreator]
-            log("ZZ: ".concat(zz!.toString()) )
-
-            emit NewCreator(creator: newCreator)
+        if submit {           
             log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
+            emit NewCreator(creator: newCreator)
             return <- create Creator()
         } else {
-            DAAM.creators[DAAM.request.status]!.remove(key: newCreator)
+            DAAM.creators.remove(key: newCreator)
             return nil!
         }
     }
@@ -416,14 +407,11 @@ pub struct Request {
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
         self.agency       = 0xeb179c27144f783c
-
+        
+        self.copyright = {}
         self.creators  = {}
-        self.request = Request()
-        self.creators[self.request.status] = {}
-        self.creators[self.request.changeroyality] = {}
-        self.copyright  = {}
-
-        self.prepare = {}
+        self.prepare   = {}
+       
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections               
 

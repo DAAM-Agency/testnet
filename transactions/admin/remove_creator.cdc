@@ -1,15 +1,13 @@
-// change_creator_status.cdc
+// remove_creator.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(creator: Address, status: UFix64) {
+transaction(creator: Address) {
 
     prepare(acct: AuthAccount) {
-        let copyright = DAAM.CopyrightStatus.CLAIM
-
         let admin <- acct.load<@DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        admin.changeCreatorStatus(creator: creator, status: status)
+        admin.removeCreator(creator: creator)
         acct.save<@DAAM.Admin{DAAM.Founder}>(<- admin, to: DAAM.adminStoragePath)
-        log("Request Removed")
+        log("Remove Creator")
     }
 }// transaction
