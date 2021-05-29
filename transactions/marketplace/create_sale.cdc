@@ -5,23 +5,18 @@ import Marketplace   from 0x045a1763c93006ca
 // This transaction creates a sale collection and stores it in the signer's account
 // It does not put an NFT up for sale
 
-// Parameters
-// 
-// beneficiaryAccount: the Flow address of the account where a cut of the purchase will be sent
-// cutPercentage: how much in percentage the beneficiary will receive from the sale
-
 transaction(/*tokenReceiverPath: PublicPath,*/) {
     prepare(acct: AuthAccount) {
         let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE        
         
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         
-        let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPrivatePath, target: DAAM.collectionStoragePath)!
+        let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)!
 
         let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
 
         acct.save(<-saleCollection, to: Marketplace.marketStoragePath)        
-        acct.link<&Marketplace.SaleCollection>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         log("Created Sale Collection")
     }
 }

@@ -1,6 +1,6 @@
 // answer_request.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM             from 0xfd43f9148d4b725d
 
 transaction(answer: Bool, request: UInt8, tokenID: UInt64) {
 

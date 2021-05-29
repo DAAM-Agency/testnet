@@ -26,7 +26,7 @@ pub contract DAAM: NonFungibleToken {
     pub event RequestAnswered(creator: Address, answer: Bool, request: UInt8)
 
     pub let collectionPublicPath : PublicPath
-    pub let collectionPrivatePath: PrivatePath
+    //pub let collectionPrivatePath: PrivatePath
     pub let collectionStoragePath: StoragePath
     pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
@@ -126,7 +126,14 @@ pub struct Request {
         }*/
     }
 /************************************************************************/
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+pub resource interface CollectionPublic {
+    pub fun deposit(token: @NonFungibleToken.NFT)
+    pub fun getIDs(): [UInt64]
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT
+}     
+/************************************************************************/
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
         pub let id: UInt64
@@ -162,7 +169,7 @@ pub struct Request {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
-        pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
+        pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
             pre { self.ownedNFTs[id] != nil }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
             return ref as! &DAAM.NFT
@@ -339,11 +346,10 @@ pub struct Request {
             }
             getRequest.changeRoyality.remove(key: nft.id)
             emit RequestAnswered(creator: creator, answer: answer, request: request)
-        }
-    
+        }    
 
         /*pub fun updateSeries(creator: Address, series: [UInt64]) {
-            var collection = &DAAM.collection[creator] as &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}
+            var collection = &DAAM.collection[creator] as &{NonFungibleToken.CollectionPublic}
             let tokenIDs = collection.getIDs()
             for id in series {
                 if !tokenIDs.contains(id) { return }
@@ -397,7 +403,7 @@ pub struct Request {
 	init() {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
-        self.collectionPrivatePath = /private/DAAM_Collection
+        //self.collectionPrivatePath = /private/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
         self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin

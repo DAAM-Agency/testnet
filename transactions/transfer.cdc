@@ -14,7 +14,7 @@ transaction(signer: Address, withdrawID: UInt64) {
     prepare(acct: AuthAccount) {
 
         // Borrow a reference from the stored collection
-        let collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+        let collectionRef = acct.borrow<&DAAM.Collection{NonFungibleToken.Provider}>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
 
         // Call the withdraw function on the sender's Collection

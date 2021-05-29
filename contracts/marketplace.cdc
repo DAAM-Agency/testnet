@@ -22,11 +22,7 @@ pub contract Marketplace {
     pub let flowPublicPath :  PublicPath
 /************************************************************************/
     pub resource interface SalePublic {
-        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
-            post {
-                result.id == tokenID: "The ID of the withdrawn token must be the same as the requested ID"
-            }
-        }
+        pub fun purchase(tokenID: UInt64, recipient: &DAAM.Collection{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault)
         pub fun getPrice(tokenID: UInt64): UFix64?
         pub fun getIDs(): [UInt64]
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT? {
@@ -36,7 +32,7 @@ pub contract Marketplace {
                 (result == nil) || (result?.id == id): 
                     "Cannot borrow Moment reference: The ID of the returned reference is incorrect"
             }
-        }
+        }// borrowDAAM
     }
 /************************************************************************/
     // SaleCollection
@@ -107,7 +103,7 @@ pub contract Marketplace {
 
         // purchase lets a user send tokens to purchase an NFT that is for sale
         // the purchased NFT is returned to the transaction context that called it
-        pub fun purchase(tokenID: UInt64, buyTokens: @FungibleToken.Vault): @DAAM.NFT {
+        pub fun purchase(tokenID: UInt64, recipient: &DAAM.Collection{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault) {
             pre {
                 self.ownerCollection.borrow()!.borrowDAAM(id: tokenID) != nil : "No token matching this ID"
                 self.prices[tokenID] != nil :"No token is not for sale!"           
@@ -132,24 +128,25 @@ pub contract Marketplace {
 
             let price = self.prices[tokenID]!    // Read the price for the token
             self.prices[tokenID] = nil           // Set the price for the token to nil
-            let agencyComm      = boughtNFT.royality[DAAM.agency]!
-            let beneficiaryComm = boughtNFT.royality[boughtNFT.metadata.creator]!
+            let agencyCommission      = boughtNFT.royality[DAAM.agency]!
+            let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
 
-            let agencyCut      <-! buyTokens.withdraw(amount: price * agencyComm)
-            let beneficiaryCut <-! buyTokens.withdraw(amount: price * beneficiaryComm)
+            let agencyCut      <-! buyTokens.withdraw(amount: price * agencyCommission)
+            let creatorCut <-! buyTokens.withdraw(amount: price * creatorCommission)
             
             // Deposit it into the beneficiary's Vault
             let beneficiaryCapability = getAccount(boughtNFT.metadata.creator).getCapability<&AnyResource{FungibleToken.Receiver}>(Marketplace.flowPublicPath)
-            beneficiaryCapability.borrow()!.deposit(from: <-beneficiaryCut)
+            beneficiaryCapability.borrow()!.deposit(from: <-creatorCut)
             // Deposit it into the agency's Vault
             let agencyCapability = getAccount(DAAM.agency).getCapability<&AnyResource{FungibleToken.Receiver}>(Marketplace.flowPublicPath)
             agencyCapability.borrow()!.deposit(from: <-agencyCut)
             
             self.ownerCapability.borrow()!       // Deposit the remaining tokens into the owners vault
                 .deposit(from: <-buyTokens)
-            
+                
+            recipient.deposit(token: <-boughtNFT)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
-            return <-boughtNFT
+            
         }
 
         // getPrice returns the price of a specific token in the sale
