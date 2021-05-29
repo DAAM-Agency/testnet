@@ -53,7 +53,7 @@ sleep 1s
 flow transactions send ./testnet/transactions/transfer.cdc \
 --arg Address:$NOBODY --arg UInt64:2 --signer creator
 sleep 1s
-'''
+
 # marketplace Test # 1
 flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
 

@@ -14,11 +14,10 @@ transaction(answer: Bool, request: UInt8, tokenID: UInt64) {
         self.creatorRef = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)
             ?? panic("Could not borrow a reference to the Creator Storage")
         
-        let collection = creator.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+        let collection = creator.borrow<&DAAM.Collection{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow Collection")
         
-        let nft <-! collection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
-        let nftRef = &nft as &DAAM.NFT
+        let nftRef = collection.borrowDAAM(id: tokenID)!
              
         self.creatorRef.answerRequest(creator: self.creator.address, nft: nftRef, answer: answer, request: request)
         collection.deposit(token: <- nft)

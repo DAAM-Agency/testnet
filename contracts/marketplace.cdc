@@ -30,7 +30,7 @@ pub contract Marketplace {
             // should be the same as the argument to the function
             post {
                 (result == nil) || (result?.id == id): 
-                    "Cannot borrow Moment reference: The ID of the returned reference is incorrect"
+                    "Cannot borrow NFT reference: The ID of the returned reference is incorrect"
             }
         }// borrowDAAM
     }

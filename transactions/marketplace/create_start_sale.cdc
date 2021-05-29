@@ -11,15 +11,13 @@ transaction(/*tokenReceiverPath: PublicPath,*/ tokenID: UInt64, price: UFix64) {
         if acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath) == nil {
             // get the fungible token capabilities for the owner and beneficiary
             let ownerCapability = acct.getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)
-            let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)!
-            
-            // create a new sale collection
+            let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)   // create a new sale collection            
             let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
+
             acct.save(<-saleCollection, to: Marketplace.marketStoragePath)  // save it to storage
             // create a public link to the sale collection
             acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         }
-
         // borrow a reference to the sale
         let saleCollection = acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath)
             ?? panic("Could not borrow from sale in storage")

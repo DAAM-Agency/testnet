@@ -10,13 +10,12 @@ transaction(/*tokenReceiverPath: PublicPath,*/) {
         let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE        
         
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
-        
-        let ownerCollection = acct.link<&DAAM.Collection>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)!
-
+        let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)
         let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
 
         acct.save(<-saleCollection, to: Marketplace.marketStoragePath)        
         acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+        
         log("Created Sale Collection")
     }
 }
