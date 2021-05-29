@@ -20,7 +20,7 @@ transaction(answer: Bool, request: UInt8, tokenID: UInt64) {
         let nftRef = collection.borrowDAAM(id: tokenID)!
              
         self.creatorRef.answerRequest(creator: self.creator.address, nft: nftRef, answer: answer, request: request)
-        collection.deposit(token: <- nft)
+        
         log("Request Answered")
     }
 }
