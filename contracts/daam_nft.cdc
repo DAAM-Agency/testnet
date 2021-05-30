@@ -221,6 +221,10 @@ pub resource interface CollectionPublic {
             pre  { DAAM.copyright.containsKey(id): "This is an Invalid ID" }
             post { DAAM.copyright[id] == copyright }
         }
+
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
+            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+        }
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -250,7 +254,7 @@ pub resource interface CollectionPublic {
         }
         
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }        
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             var ref = &DAAM.creators[creator] as &Request
             // TODO Confirm tokenID
             ref.changeRoyality[tokenID] = newPercentage
@@ -288,10 +292,28 @@ pub resource interface CollectionPublic {
         }
 
         pub fun changeCopyright(id: UInt64, copyright: CopyrightStatus) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.copyright[id] = copyright
             log("Token ID: ".concat(id.toString()) )
             emit ChangedCopyright(tokenID: id)            
         }
+
+        // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
+            pre{
+                self.status : "You're no longer a DAAM Admin!!"      
+                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
+                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
+                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?"                
+            } 
+			let newNFT <- create NFT(metadata: DAAM.prepare[creator]![elm] )
+            let id = newNFT.id
+			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
+            DAAM.prepare[creator]?.remove(at: elm)!
+            DAAM.copyright[id] = copyrightStatus
+            log("Minited NFT: ".concat(id.toString()))
+            emit MintedNFT(id: id)            
+		}	
 	}
 /************************************************************************/
     pub resource Creator {
@@ -308,22 +330,6 @@ pub resource interface CollectionPublic {
             log("NFT Proposed")
             emit SubmitNFT(creator: creator)           
         }
-
-        // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
-            pre{                
-                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
-                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
-                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?" 
-            } 
-			let newNFT <- create NFT(metadata: DAAM.prepare[creator]![elm] )
-            let id = newNFT.id
-			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
-            DAAM.prepare[creator]?.remove(at: elm)!
-            DAAM.copyright[id] = copyrightStatus
-            log("Minited NFT: ".concat(id.toString()))
-            emit MintedNFT(id: id)            
-		}	
 
         pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {

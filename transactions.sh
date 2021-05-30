@@ -39,11 +39,11 @@ flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer cr
 
 
 # mint 4 NFTs
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg UInt:3 --signer admin
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg UInt:2 --signer admin2
+flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:3 --signer admin
+flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:2 --signer admin2
 sleep 1s
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg UInt:1 --signer admin
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg Address:$CREATOR --arg UInt:0 --signer admin2
+flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:1 --signer admin
+flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:0 --signer admin2
 
 # transfer
 flow transactions send ./testnet/transactions/transfer.cdc \
