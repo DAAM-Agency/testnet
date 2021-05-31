@@ -81,7 +81,7 @@ pub contract Marketplace {
                 DAAM.copyright[tokenID] != DAAM.CopyrightStatus.CLAIM :
                 "There is a Claim of Copyright Infrigement. This NFT is not temporary allowed"
                 DAAM.copyright[tokenID] != DAAM.CopyrightStatus.UNVERIFIED:
-                "You're NFT is Unverified... WTF ?!?... Tell that DAAM Admin too Hurry the Fuck Up!!"
+                "You're NFT Copyright is Unverified... WTF ?!?... Tell that DAAM Admin too Hurry the Fuck Up!!"
             }
             // Set the token's price
             self.prices[tokenID] = price
