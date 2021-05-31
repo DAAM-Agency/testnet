@@ -26,23 +26,20 @@ pub contract DAAM: NonFungibleToken {
     pub event RequestAnswered(creator: Address, answer: Bool, request: UInt8)
 
     pub let collectionPublicPath : PublicPath
-    //pub let collectionPrivatePath: PrivatePath
     pub let collectionStoragePath: StoragePath
+    pub let submitPrivatePath    : PrivatePath
+    pub let submitStoragePath    : StoragePath
     pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
     pub let adminPrivatePath     : PrivatePath
-    pub let creatorStoragePath    : StoragePath
-    pub let creatorPublicPath     : PublicPath
-    // {Creator Profile address : Creator status; true being active}
-    //access(contract) var creators: {Address: Bool}                   
+    pub let creatorStoragePath   : StoragePath
+    pub let creatorPublicPath    : PublicPath
+                 
     access(contract) var adminPending : Address?
-    //access(contract) var request: Request
     access(contract) var creators: {Address: Request} // {request as a string : Address List}
-    pub var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus}
+    pub var copyright: {UInt64: CopyrightStatus}      // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
-    access(contract) var prepare: {Address: [Metadata]}
-
     pub let agency: Address
 /***********************************************************************/
 pub enum CopyrightStatus: UInt8 {
@@ -61,69 +58,98 @@ pub struct Request {
     init() {  // Any additions, make sure to update answerRequest
         self.status         = false
         self.changeRoyality = {}
-        //self.reviewCopyright = "Review Copyright"// ToDo
+        //self.reviewCopyright = "Review Copyright"// ToDo v2
     }
 
     pub fun setStatus(status: Bool) {self.status = status}
 }
 /***********************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
-        pub let creator   : Address   // Creator
-        pub let data      : String    // JSON see metadata.json
-        pub let thumbnail : String    // JSON see metadata.json
-        pub let file      : String    // JSON see metadata.json
+        pub let creator   : Address  // Creator
+        pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let data      : String   // JSON see metadata.json
+        pub let thumbnail : String   // JSON see metadata.json
+        pub let file      : String   // JSON see metadata.json
         
-        init(creator: Address, metadata: String, thumbnail: String, file: String)
-        {
-            self.creator    = creator
-            self.data       = metadata
-            self.thumbnail  = thumbnail
-            self.file       = file
-        }// Metadata init        
-
-        /* changeOwnerReceiver updates the capability for the sellers fungible token Vault
-        pub fun changeOwnerReceiver(_ newOwnerCapability: Capability<&{FungibleToken.Receiver}>) {
-            pre {
-                newOwnerCapability.borrow() != nil: "Owner's Receiver Capability is invalid!"
-            }
-            self.ownerCapability = newOwnerCapability
+        init(creator: Address, series: UInt64, counter: UInt64, data: String, thumbnail: String, file: String) {            
+                self.creator   = creator
+                self.series    = series
+                self.counter   = counter
+                self.data      = data
+                self.thumbnail = thumbnail
+                self.file      = file
+        }// Metadata init
+    }// Metadata
+/************************************************************************/
+pub resource MetadataGenerator {
+        priv var status   : Bool
+        priv let creator  : Address  // Creator
+        priv let series    : UInt64  // series total, number of prints. 0 = Unlimited [counter, total]
+        priv var counter   : UInt64  // series total, number of prints. 0 = Unlimited [counter, total]
+        priv let data      : String  // JSON see metadata.json
+        priv var thumbnail : String  // JSON see metadata.json
+        priv var file      : String  // JSON see metadata.json
+        
+        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String) {
+            self.status    = true
+            self.creator   = creator
+            self.series    = series
+            self.counter   = 0
+            self.data      = data
+            self.thumbnail = thumbnail
+            self.file      = file            
         }
 
-        // changeBeneficiaryReceiver updates the capability for the beneficiary of the cut of the sale
-        pub fun changeBeneficiaryReceiver(_ newBeneficiaryCapability: Capability<&{FungibleToken.Receiver}>) {
+        pub fun generateMetadata(): @MetadataHolder {
             pre {
-                newBeneficiaryCapability.borrow() != nil: "Beneficiary's Receiver Capability is invalid!" 
+                self.status
+                self.counter <= self.series
             }
-            self.beneficiaryCapability = newBeneficiaryCapability
-        }*/
+            post { self.counter <= self.series }
 
-    }// Metadata
+            self.counter = self.counter + 1 as UInt64
+            let ref = &self as &MetadataGenerator
+
+            let metadata = Metadata(creator: self.creator, series: self.series, counter: self.counter, data: self.data,
+                thumbnail: self.thumbnail, file: self.file)
+            let mh <- create MetadataHolder(metadata: metadata)
+
+            if self.counter == self.series {
+                self.status = false
+                self.file = ""
+                self.thumbnail = ""
+            }
+            return <- mh         
+        }
+
+        pub fun isSeries(): Bool { return self.series != 1 as UInt64 } // make inline TODO
+}
+/************************************************************************/
+    pub resource MetadataHolder {        
+        access(contract) var metadata: Metadata
+        init (metadata: Metadata) { self.metadata = metadata }
+    }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
         pub let id       : UInt64
         pub let metadata : Metadata
-        pub var royality: {Address: UFix64}  // {royality address : percentage }
-        //pub var series  : [UInt64]?  // TokenIDs of series
+        pub var royality : {Address : UFix64}  // {royality address : percentage }
 
-        init(metadata: Metadata) {
-            self.metadata = metadata
-            
+        init(metadata: @MetadataHolder) {
+            self.metadata = metadata.metadata
+            destroy metadata
+
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
 
             self.royality = {DAAM.agency : 0.1}         // default setting
             self.royality[self.metadata.creator] = 0.2  // default setting
-            //self.series = []
         }
 
         pub fun getCopyright(): CopyrightStatus {
             return DAAM.copyright[self.id]!
         }
-
-        /*pub fun updateSeries(series: [UInt64]?) {
-            pre{ self.series == nil : "Already Initialized!" }
-            self.series = series
-        }*/
     }
 /************************************************************************/
 pub resource interface CollectionPublic {
@@ -179,7 +205,6 @@ pub resource interface CollectionPublic {
     }
 /************************************************************************/
     pub resource interface Founder {
-
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
@@ -222,8 +247,8 @@ pub resource interface CollectionPublic {
             post { DAAM.copyright[id] == copyright }
         }
 
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
-            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
+            pre  { DAAM.creators.containsKey(metadata.metadata.creator) : "They're no DAAM Creator!!!" }
         }
     }
 /************************************************************************/
@@ -299,38 +324,22 @@ pub resource interface CollectionPublic {
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, creator: Address, elm: UInt, copyrightStatus: CopyrightStatus) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
             pre{
                 self.status : "You're no longer a DAAM Admin!!"      
-                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
-                DAAM.creators[creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
-                DAAM.prepare[creator] != nil       : "Did you submit a DAAM NFT...?!?"                
+                DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
+                DAAM.creators[metadata.metadata.creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
             } 
-			let newNFT <- create NFT(metadata: DAAM.prepare[creator]![elm] )
+			let newNFT <- create NFT(metadata: <- metadata )
             let id = newNFT.id
-			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference
-            DAAM.prepare[creator]?.remove(at: elm)!
-            DAAM.copyright[id] = copyrightStatus
+			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
+            DAAM.copyright[id] = CopyrightStatus.UNVERIFIED
             log("Minited NFT: ".concat(id.toString()))
             emit MintedNFT(id: id)            
 		}	
 	}
 /************************************************************************/
     pub resource Creator {
-        pub fun submitNFT(creator: Address, metadata: Metadata) {
-            pre{
-                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
-                DAAM.creators[creator]!.status != false : "This Creator's Account is Frozen. Wake up Man!!"
-            }
-            if DAAM.prepare[creator] == nil {
-                DAAM.prepare[creator] = [metadata]
-            } else {
-                 DAAM.prepare[creator]!.append(metadata)
-            }
-            log("NFT Proposed")
-            emit SubmitNFT(creator: creator)           
-        }
-
         pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {
                 DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
@@ -352,18 +361,7 @@ pub resource interface CollectionPublic {
             }
             getRequest.changeRoyality.remove(key: nft.id)
             emit RequestAnswered(creator: creator, answer: answer, request: request)
-        }    
-
-        /*pub fun updateSeries(creator: Address, series: [UInt64]) {
-            var collection = &DAAM.collection[creator] as &{NonFungibleToken.CollectionPublic}
-            let tokenIDs = collection.getIDs()
-            for id in series {
-                if !tokenIDs.contains(id) { return }
-            }
-            var nft <- collection.withdraw(withdrawID: 0) as! @DAAM.NFT
-            (nft.series == nil) ?  nft.updateSeries(series: series) : log("Already initialized")
-            collection.deposit(token: <- nft)
-        }*/
+        }
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
@@ -409,13 +407,14 @@ pub resource interface CollectionPublic {
 	init() {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
-        //self.collectionPrivatePath = /private/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
+        self.submitStoragePath     = /storage/DAAM_SubmitNFT
+        self.submitPrivatePath     = /private/DAAM_SubmitNFT
         self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
-        self.creatorPublicPath      = /public/DAAM_Creator
-        self.creatorStoragePath     = /storage/DAAM_Creator
+        self.creatorPublicPath     = /public/DAAM_Creator
+        self.creatorStoragePath    = /storage/DAAM_Creator
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
@@ -423,7 +422,6 @@ pub resource interface CollectionPublic {
         
         self.copyright = {}
         self.creators  = {}
-        self.prepare   = {}
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections               

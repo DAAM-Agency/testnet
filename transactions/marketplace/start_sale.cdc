@@ -11,8 +11,8 @@ import DAAM        from 0xfd43f9148d4b725d
 // price: the sell price of the moment
 
 transaction(tokenID: UInt64, price: UFix64) {
+    
     prepare(acct: AuthAccount) {
-
         // borrow a reference to the DAAM Sale Collection
         let saleCollection = acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath)
             ?? panic("Could not borrow from sale in storage")
