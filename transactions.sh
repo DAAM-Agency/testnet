@@ -37,13 +37,18 @@ flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer cr
 flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
 flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
 
+# approve 4 NFTs
+flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
+flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:2 --arg Bool:true --signer admin2
+flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:3 --arg Bool:true --signer admin2
+flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:4 --arg Bool:true --signer admin
 
 # mint 4 NFTs
-flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:3 --signer admin
-flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:2 --signer admin2
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:3 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:2 --signer creator
 sleep 1s
-flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:1 --signer admin
-flow transactions send ./testnet/transactions/admin/mint_nft.cdc --arg Address:$CREATOR --arg UInt:0 --signer admin2
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:1 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:0 --signer creator
 
 # transfer
 flow transactions send ./testnet/transactions/transfer.cdc \
@@ -53,10 +58,9 @@ sleep 1s
 flow transactions send ./testnet/transactions/transfer.cdc \
 --arg Address:$NOBODY --arg UInt64:2 --signer creator
 sleep 1s
-
+'''
 # marketplace Test # 1
 flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
-
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer nobody
 sleep 1s
 

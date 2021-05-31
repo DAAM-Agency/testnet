@@ -16,7 +16,7 @@ pub contract DAAM: NonFungibleToken {
     pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
     pub event CreatorInvited(creator: Address)
-    pub event MetadataGeneratated(creator: Address)
+    pub event MetadataGeneratated(creator: Address, id: UInt64)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(tokenID: UInt64)
     pub event RoyalityChanged(newPercent: UFix64, creator: Address)
@@ -92,23 +92,21 @@ pub resource MetadataGenerator {
         pub var metadata : [Metadata]
         
         init(metadata: Metadata) {
-            self.status   = [true]
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
-            self.id       = [DAAM.metadataCounterID]
-            self.metadata = [metadata]
-            DAAM.metadata[DAAM.metadataCounterID] = false
-            log("Metadata Generatated")
-            emit DAAM.MetadataGeneratated(creator: metadata.creator)
+            self.status   = []            
+            self.id       = []
+            self.metadata = []
+            self.addMetadata(metadata: metadata)
         }
 
         pub fun addMetadata(metadata: Metadata) {
-            self.status.append(true)
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
+            self.status.append(true)            
             self.id.append(DAAM.metadataCounterID)
             self.metadata.append(metadata)
-            DAAM.metadata[DAAM.metadataCounterID] = false
-            log("Metadata Generatated")
-            emit DAAM.MetadataGeneratated(creator: metadata.creator)
+            DAAM.metadata.insert(key: DAAM.metadataCounterID, false)
+
+            log("Metadata Generatated: ".concat(DAAM.metadataCounterID.toString()) )
+            emit DAAM.MetadataGeneratated(creator: metadata.creator, id: DAAM.metadataCounterID)
         }
 
         pub fun removeMetadata(_ elm: UInt16)   {
@@ -123,7 +121,6 @@ pub resource MetadataGenerator {
                 self.status[elm]
                 self.metadata[elm].counter <= self.metadata[elm].series || self.metadata[elm].series == 0 as UInt64 // 0 = unlimited
             }
-            post { self.metadata[elm].counter <= self.metadata[elm].series || self.metadata[elm].series == 0 as UInt64 } // 0 = unlimited
 
             let counter = self.metadata[elm].counter + 1 as UInt64
             let ref = &self as &MetadataGenerator
