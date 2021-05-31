@@ -83,47 +83,36 @@ pub struct Request {
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        priv var status   : Bool
-        priv let creator  : Address  // Creator
-        priv let series    : UInt64  // series total, number of prints. 0 = Unlimited [counter, total]
-        priv var counter   : UInt64  // series total, number of prints. 0 = Unlimited [counter, total]
-        priv let data      : String  // JSON see metadata.json
-        priv var thumbnail : String  // JSON see metadata.json
-        priv var file      : String  // JSON see metadata.json
+        pub var status    : Bool
+        priv var metadata : Metadata
         
-        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String) {
-            self.status    = true
-            self.creator   = creator
-            self.series    = series
-            self.counter   = 0
-            self.data      = data
-            self.thumbnail = thumbnail
-            self.file      = file            
+        init(metadata: Metadata) {
+            self.status   = true
+            self.metadata = metadata      
         }
 
         pub fun generateMetadata(): @MetadataHolder {
             pre {
                 self.status
-                self.counter <= self.series
+                self.metadata.counter <= self.metadata.series || self.metadata.series == 0 as UInt64 // 0 = unlimited
             }
-            post { self.counter <= self.series }
+            post { self.metadata.counter <= self.metadata.series || self.metadata.series == 0 as UInt64 } // 0 = unlimited
 
-            self.counter = self.counter + 1 as UInt64
+            let counter = self.metadata.counter + 1 as UInt64
             let ref = &self as &MetadataGenerator
 
-            let metadata = Metadata(creator: self.creator, series: self.series, counter: self.counter, data: self.data,
-                thumbnail: self.thumbnail, file: self.file)
+            let metadata = Metadata(creator: self.metadata.creator, series: self.metadata.series, counter: counter,
+                data: self.metadata.data, thumbnail: self.metadata.thumbnail, file: self.metadata.file)
             let mh <- create MetadataHolder(metadata: metadata)
 
-            if self.counter == self.series {
+            if self.metadata.counter == self.metadata.series && self.metadata.series != 0 as UInt64 {
                 self.status = false
-                self.file = ""
-                self.thumbnail = ""
+                self.metadata = nil!
             }
             return <- mh         
         }
 
-        pub fun isSeries(): Bool { return self.series != 1 as UInt64 } // make inline TODO
+        pub fun isSeries(): Bool { return self.metadata.series != 1 as UInt64 } // make inline TODO
 }
 /************************************************************************/
     pub resource MetadataHolder {        
