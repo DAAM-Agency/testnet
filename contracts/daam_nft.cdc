@@ -37,9 +37,13 @@ pub contract DAAM: NonFungibleToken {
                  
     access(contract) var adminPending : Address?
     access(contract) var creators: {Address: Request} // {request as a string : Address List}
+    access(contract) var metadata: {UInt64: Bool}
+
     pub var copyright: {UInt64: CopyrightStatus}      // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
+    access(contract) var metadataCounterID  : UInt64
+
     pub let agency: Address
 /***********************************************************************/
 pub enum CopyrightStatus: UInt8 {
@@ -82,22 +86,40 @@ pub struct Request {
         }// Metadata init
     }// Metadata
 /************************************************************************/
-pub resource MetadataGenerator {
+pub resource MetadataGenerator { 
         pub var status   : [Bool]
+        pub var id       : [UInt64]
         pub var metadata : [Metadata]
         
         init(metadata: Metadata) {
             self.status   = [true]
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
+            self.id       = [DAAM.metadataCounterID]
             self.metadata = [metadata]
+            DAAM.metadata[DAAM.metadataCounterID] = false
             log("Metadata Generatated")
             emit DAAM.MetadataGeneratated(creator: metadata.creator)
         }
 
-        pub fun addMetadata(metadata: Metadata) { self.metadata.append(metadata) }
-        pub fun removeMetadata(_ elm: UInt16)   { self.metadata.remove(at: elm)  }
+        pub fun addMetadata(metadata: Metadata) {
+            self.status.append(true)
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
+            self.id.append(DAAM.metadataCounterID)
+            self.metadata.append(metadata)
+            DAAM.metadata[DAAM.metadataCounterID] = false
+            log("Metadata Generatated")
+            emit DAAM.MetadataGeneratated(creator: metadata.creator)
+        }
+
+        pub fun removeMetadata(_ elm: UInt16)   {
+            self.metadata.remove(at: elm)
+            self.id.remove(at: elm)
+            self.status.remove(at: elm)
+        }
 
         pub fun generateMetadata(_ elm: UInt16): @MetadataHolder {
             pre {
+                DAAM.metadata[self.id[elm]] == true : "Missing Approval"
                 self.status[elm]
                 self.metadata[elm].counter <= self.metadata[elm].series || self.metadata[elm].series == 0 as UInt64 // 0 = unlimited
             }
@@ -111,8 +133,7 @@ pub resource MetadataGenerator {
             let mh <- create MetadataHolder(metadata: metadata)
 
             if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
-                self.status[elm] = false
-                self.metadata[elm] = nil!
+                self.removeMetadata(elm)
             }
             return <- mh         
         }
@@ -241,8 +262,8 @@ pub resource interface CollectionPublic {
             post { DAAM.copyright[id] == copyright }
         }
 
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
-            pre  { DAAM.creators.containsKey(metadata.metadata.creator) : "They're no DAAM Creator!!!" }
+        pub fun changMetadataStatus(id: UInt64, status: Bool) {
+            pre  { DAAM.metadata[id] != nil : "Invalid ID" }
         }
     }
 /************************************************************************/
@@ -317,10 +338,20 @@ pub resource interface CollectionPublic {
             emit ChangedCopyright(tokenID: id)            
         }
 
+        pub fun changMetadataStatus(id: UInt64, status: Bool) {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            DAAM.metadata[id] = status
+        }
+	}
+/************************************************************************/
+    pub resource Creator {
+        pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator {
+            return <- create MetadataGenerator(metadata: metadata)
+        }
+
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
             pre{
-                self.status : "You're no longer a DAAM Admin!!"      
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
                 DAAM.creators[metadata.metadata.creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
             } 
@@ -331,12 +362,6 @@ pub resource interface CollectionPublic {
             log("Minited NFT: ".concat(id.toString()))
             emit MintedNFT(id: id)            
 		}	
-	}
-/************************************************************************/
-    pub resource Creator {
-        pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator {
-            return <- create MetadataGenerator(metadata: metadata)
-        }
 
         pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {
@@ -420,9 +445,11 @@ pub resource interface CollectionPublic {
         
         self.copyright = {}
         self.creators  = {}
+        self.metadata  = {}
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
-        self.collectionCounterID = 0  // Incremental Serial Number for the Collections               
+        self.collectionCounterID = 0  // Incremental Serial Number for the Collections
+        self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
         // Create a Minter resource and save it to storage
         let admin <- create Admin()
