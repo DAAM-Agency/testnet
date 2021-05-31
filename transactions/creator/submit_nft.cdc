@@ -4,30 +4,28 @@ import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
 transaction(/*metadata: DAAM.Metadata */) {
-    var saved_metadata: &DAAM.Metadata
-    let creator: AuthAccount
     
     prepare(creator: AuthAccount) {
         let metadata = DAAM.Metadata(
-                creator: self.creatorAddress,
-                metadata : "metadata",
-                thumbnail: "thumbnail",
-                file     : "file"
+            creator  : creator.address,
+            series   : 1 as UInt64,
+            counter  : 1 as UInt64,            
+            data     : "metadata",
+            thumbnail: "thumbnail",
+            file     : "file"
         )    
         log("Metadata Virtual Input Completed")
-        self.creator = creator
-        self.saved_metadata = creator.borrow<&DAAM.Metadata>(from: DAAM.submitPrivatePath)!
-    }
 
-    execute {
-        // borrow a reference to the Creator resource in storage
-        if self.saved_metadata == nil {
-            self.creator.save<DAAM.Metadata>(metadata, to: DAAM.submitStoragePath)
-            self.creator.link<&DAAM.Metadata>(DAAM.submitPrivatePath, to: DAAM.submitStoragePath)
+        let creatorRef = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+
+        if creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath) == nil {
+            let metadataGenerator <-! creatorRef.newMetadataGenerator(metadata: metadata)     
+            creator.save<@DAAM.MetadataGenerator>(<- metadataGenerator, to: DAAM.metadataStoragePath)
+            creator.link<&DAAM.MetadataGenerator>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+        } else {
+            let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
+            metadataGenerator?.addMetadata(metadata: metadata)!
         }
-        self.saved_metadata.append(metadata)
-         
         log("NFT Submitted")
-        emit DAAM.SubmitNFT(creator: self.creator)
     }
 }

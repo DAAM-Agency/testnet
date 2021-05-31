@@ -16,7 +16,7 @@ pub contract DAAM: NonFungibleToken {
     pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
     pub event CreatorInvited(creator: Address)
-    pub event SubmitNFT(creator: Address)
+    pub event MetadataGeneratated(creator: Address)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(tokenID: UInt64)
     pub event RoyalityChanged(newPercent: UFix64, creator: Address)
@@ -27,8 +27,8 @@ pub contract DAAM: NonFungibleToken {
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
-    pub let submitPrivatePath    : PrivatePath
-    pub let submitStoragePath    : StoragePath
+    pub let metadataPrivatePath  : PrivatePath
+    pub let metadataStoragePath  : StoragePath
     pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
     pub let adminPrivatePath     : PrivatePath
@@ -83,36 +83,41 @@ pub struct Request {
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        pub var status    : Bool
-        priv var metadata : Metadata
+        pub var status   : [Bool]
+        pub var metadata : [Metadata]
         
         init(metadata: Metadata) {
-            self.status   = true
-            self.metadata = metadata      
+            self.status   = [true]
+            self.metadata = [metadata]
+            log("Metadata Generatated")
+            emit DAAM.MetadataGeneratated(creator: metadata.creator)
         }
 
-        pub fun generateMetadata(): @MetadataHolder {
-            pre {
-                self.status
-                self.metadata.counter <= self.metadata.series || self.metadata.series == 0 as UInt64 // 0 = unlimited
-            }
-            post { self.metadata.counter <= self.metadata.series || self.metadata.series == 0 as UInt64 } // 0 = unlimited
+        pub fun addMetadata(metadata: Metadata) { self.metadata.append(metadata) }
+        pub fun removeMetadata(_ elm: UInt16)   { self.metadata.remove(at: elm)  }
 
-            let counter = self.metadata.counter + 1 as UInt64
+        pub fun generateMetadata(_ elm: UInt16): @MetadataHolder {
+            pre {
+                self.status[elm]
+                self.metadata[elm].counter <= self.metadata[elm].series || self.metadata[elm].series == 0 as UInt64 // 0 = unlimited
+            }
+            post { self.metadata[elm].counter <= self.metadata[elm].series || self.metadata[elm].series == 0 as UInt64 } // 0 = unlimited
+
+            let counter = self.metadata[elm].counter + 1 as UInt64
             let ref = &self as &MetadataGenerator
 
-            let metadata = Metadata(creator: self.metadata.creator, series: self.metadata.series, counter: counter,
-                data: self.metadata.data, thumbnail: self.metadata.thumbnail, file: self.metadata.file)
+            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series, counter: counter,
+                data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail, file: self.metadata[elm].file)
             let mh <- create MetadataHolder(metadata: metadata)
 
-            if self.metadata.counter == self.metadata.series && self.metadata.series != 0 as UInt64 {
-                self.status = false
-                self.metadata = nil!
+            if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
+                self.status[elm] = false
+                self.metadata[elm] = nil!
             }
             return <- mh         
         }
 
-        pub fun isSeries(): Bool { return self.metadata.series != 1 as UInt64 } // make inline TODO
+        pub fun isSeries(_ elm: UInt16): Bool { return self.metadata[elm].series != 1 as UInt64 } // make inline TODO
 }
 /************************************************************************/
     pub resource MetadataHolder {        
@@ -329,6 +334,10 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
     pub resource Creator {
+        pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator {
+            return <- create MetadataGenerator(metadata: metadata)
+        }
+
         pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
             pre {
                 DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
@@ -397,8 +406,8 @@ pub resource interface CollectionPublic {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.submitStoragePath     = /storage/DAAM_SubmitNFT
-        self.submitPrivatePath     = /private/DAAM_SubmitNFT
+        self.metadataStoragePath   = /storage/DAAM_SubmitNFT
+        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
         self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
