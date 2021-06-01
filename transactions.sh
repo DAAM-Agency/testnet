@@ -58,7 +58,13 @@ sleep 1s
 flow transactions send ./testnet/transactions/transfer.cdc \
 --arg Address:$NOBODY --arg UInt64:2 --signer creator
 sleep 1s
-'''
+
+# change copyright
+flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:1 --signer admin
+flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:2 --signer admin
+flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:3 --signer admin
+flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:4 --signer admin
+
 # marketplace Test # 1
 flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer nobody
@@ -67,7 +73,6 @@ sleep 1s
 flow transactions send ./testnet/transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer nobody
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer nobody
 sleep 1s
-
 
 # marketplace Test # 2
 flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer creator
@@ -81,9 +86,6 @@ sleep 1s
 
 # marketpalce change price
 flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:3 --arg UFix64:3.8 --signer creator
-
-# change copyright
-flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:3 --signer admin
 
 # change creator status
 flow transactions send ./testnet/transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2
