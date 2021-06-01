@@ -86,22 +86,22 @@ pub struct Request {
         }// Metadata init
     }// Metadata
 /************************************************************************/
-pub resource MetadataGenerator { 
-        pub var status   : [Bool]
+pub resource MetadataGenerator {
         pub var id       : [UInt64]
+        pub var status   : [Bool]        
         pub var metadata : [Metadata]
         
         init(metadata: Metadata) {
-            self.status   = []            
             self.id       = []
+            self.status   = []           
             self.metadata = []
             self.addMetadata(metadata: metadata)
         }
 
         pub fun addMetadata(metadata: Metadata) {
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
-            self.status.append(true)            
             self.id.append(DAAM.metadataCounterID)
+            self.status.append(true)           
             self.metadata.append(metadata)
             DAAM.metadata.insert(key: DAAM.metadataCounterID, false)
 
