@@ -31,10 +31,10 @@ flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool
 sleep 1s
 
 # submit 4 NFTs
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
 
 # approve 4 NFTs
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin

@@ -3,13 +3,13 @@
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(/*metadata: DAAM.Metadata */) {
+transaction(series: UInt64,  /*metadata: DAAM.Metadata */) {
     
     prepare(creator: AuthAccount) {
         let metadata = DAAM.Metadata(
             creator  : creator.address,
-            series   : 1 as UInt64,
-            counter  : 1 as UInt64,            
+            series   : series,
+            counter  : 0 as UInt64,            
             data     : "metadata",
             thumbnail: "thumbnail",
             file     : "file"

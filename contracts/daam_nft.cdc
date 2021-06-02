@@ -89,12 +89,12 @@ pub struct Request {
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        pub  var status   : [Bool]        
+        priv var counter  : [UInt64] 
         priv var metadata : [Metadata]
         
         init(metadata: Metadata) {
             pre{ DAAM.metadata[metadata.mid] == nil }
-            self.status   = [true]        
+            self.counter  = [0 as UInt64]
             self.metadata = [metadata]
             DAAM.metadata.insert(key: self.metadata[0].mid, false)
             DAAM.copyright[self.metadata[0].mid] = CopyrightStatus.UNVERIFIED
@@ -105,8 +105,8 @@ pub resource MetadataGenerator {
         }
 
         pub fun addMetadata(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil }
-            self.status.append(true)           
+            pre{ DAAM.metadata[metadata.mid] == nil } 
+            self.counter.append(0 as UInt64)    
             self.metadata.append(metadata)
             let elm = self.metadata.length-1
             DAAM.metadata.insert(key: self.metadata[elm].mid, false)            
@@ -120,23 +120,26 @@ pub resource MetadataGenerator {
         pub fun removeMetadata(_ elm: UInt16)   {
             pre  { self.metadata[elm] != nil }
             self.metadata.remove(at: elm)
-            self.status.remove(at: elm)
+            self.counter.remove(at: elm)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             let elm = self.getElmFromID(id: mid)
+            self.counter[elm] = self.counter[elm] + 1 as UInt64
 
             // Do check, fake pre {}
-            if DAAM.metadata[self.metadata[elm].mid] == nil { panic("Does not Exist") }
-            if self.status[elm] == false { panic("Missing Approval") }
-            if self.metadata[elm].counter > self.metadata[elm].series { panic("Counter is greater then Series") }
+            if DAAM.metadata[self.metadata[elm].mid] == nil  { panic("Does not Exist") }
+            if self.counter[elm] > self.metadata[elm].series { panic("Counter is greater then Series") }
 
             // Now Validated
-            let counter = self.metadata[elm].counter + 1 as UInt64
+            
+            log("Counter: ".concat(self.counter[elm].toString()) )
+            log("Series: ".concat(self.metadata[elm].series.toString()) )
             let ref = &self as &MetadataGenerator
 
-            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series, counter: counter,
-                data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail, file: self.metadata[elm].file)
+            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series,
+                counter: self.counter[elm], data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail,
+                file: self.metadata[elm].file)
             let mh <- create MetadataHolder(metadata: metadata)
 
             if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
@@ -254,7 +257,8 @@ pub resource interface CollectionPublic {
 
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre {
-                DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
+                tokenID <= DAAM.totalSupply            : "Invalid ID"
+                DAAM.creators.containsKey(creator)     : "They're no DAAM Creator!!!"
                 DAAM.creators[creator]?.status == true : "This DAAM Creator Account is frozen. Wake the Fuck Man, you're an DAAM Admin!!!"
                 DAAM.creators[creator]?.changeRoyality != nil : "There already is a Request. Only 1 at a time...for now"
             }
@@ -312,7 +316,6 @@ pub resource interface CollectionPublic {
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             var ref = &DAAM.creators[creator] as &Request
-            // TODO Confirm tokenID
             ref.changeRoyality[tokenID] = newPercentage
             log("Changed Royality to ".concat(newPercentage.toString()) )
             emit RoyalityChanged(newPercent: newPercentage, creator: creator)
