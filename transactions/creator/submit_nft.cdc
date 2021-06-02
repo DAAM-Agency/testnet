@@ -19,13 +19,13 @@ transaction(/*metadata: DAAM.Metadata */) {
         let creatorRef = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
 
         if creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath) == nil {
-            let metadataGenerator <-! creatorRef.newMetadataGenerator(metadata: metadata)     
-            creator.save<@DAAM.MetadataGenerator>(<- metadataGenerator, to: DAAM.metadataStoragePath)
-            creator.link<&DAAM.MetadataGenerator>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+            let mg <-! creatorRef.newMetadataGenerator(metadata: metadata)     
+            creator.save<@DAAM.MetadataGenerator>(<- mg, to: DAAM.metadataStoragePath)
+            creator.link<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
         } else {
             let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
             metadataGenerator?.addMetadata(metadata: metadata)!
         }
-        log("NFT Submitted")
+        log("Metadata Submitted")
     }
 }

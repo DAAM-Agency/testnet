@@ -7,9 +7,8 @@ transaction(creator: Address, status: Bool) {
     prepare(acct: AuthAccount) {
         let copyright = DAAM.CopyrightStatus.CLAIM
 
-        let admin <- acct.load<@DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         admin.changeCreatorStatus(creator: creator, status: status)
-        acct.save<@DAAM.Admin{DAAM.Founder}>(<- admin, to: DAAM.adminStoragePath)
         log("Change Creator Status")   
     }
 }// transaction

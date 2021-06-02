@@ -14,14 +14,13 @@ flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer cl
 flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer admin2
 sleep 1s
 
-# init admin
+# invite admin
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
 sleep 1s
 
 #invite Arist & accept
 flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
 sleep 1s
-
 flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
 sleep 1s
 
@@ -44,19 +43,14 @@ flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc -
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:4 --arg Bool:true --signer admin
 
 # mint 4 NFTs
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:3 --signer creator
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:2 --signer creator
-sleep 1s
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:1 --signer creator
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt16:0 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:4 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:3 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator
 
 # transfer
-flow transactions send ./testnet/transactions/transfer.cdc \
---arg Address:$NOBODY --arg UInt64:1 --signer creator
-sleep 1s
-
-flow transactions send ./testnet/transactions/transfer.cdc \
---arg Address:$NOBODY --arg UInt64:2 --signer creator
+flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer creator
+flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:2 --signer creator
 sleep 1s
 
 # change copyright

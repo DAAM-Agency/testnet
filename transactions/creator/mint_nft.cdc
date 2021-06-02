@@ -3,7 +3,7 @@
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(elm: UInt16) {
+transaction(mid: UInt64) {
 
     // local variable for storing the creatorRef reference
     let creatorRef: &DAAM.Creator
@@ -21,7 +21,7 @@ transaction(elm: UInt16) {
         let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)       
              ?? panic("Could not borrow Metadata Generator")
 
-        let metadata <- metadataGenerator.generateMetadata(elm)!
+        let metadata <- metadataGenerator.generateMetadata(mid: mid)
 
         self.creatorRef.mintNFT(recipient: collection, metadata: <-metadata)     
         log("Minted NFT")
