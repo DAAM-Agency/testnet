@@ -19,7 +19,7 @@ pub contract DAAM: NonFungibleToken {
     pub event MetadataGeneratated(creator: Address, id: UInt64)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(metadataID: UInt64)
-    pub event RoyalityChanged(newPercent: UFix64, creator: Address)
+    pub event RoyalityChangeRequest(newPercent: UFix64, creator: Address)
     pub event ChangeCreatorStatus(creator: Address, status: Bool)
     pub event CreatorRemoved(creator: Address)
     pub event AdminRemoved(admin: Address)
@@ -29,11 +29,10 @@ pub contract DAAM: NonFungibleToken {
     pub let collectionStoragePath: StoragePath
     pub let metadataPublicPath   : PublicPath
     pub let metadataStoragePath  : StoragePath
-    pub let adminPublicPath      : PublicPath
     pub let adminStoragePath     : StoragePath
     pub let adminPrivatePath     : PrivatePath
     pub let creatorStoragePath   : StoragePath
-    pub let creatorPublicPath    : PublicPath
+    pub let creatorPrivatePath   : PrivatePath
                  
     access(contract) var adminPending : Address?
     access(contract) var creators: {Address: Request} // {request as a string : Address List}
@@ -124,11 +123,12 @@ pub resource MetadataGenerator {
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
-            let elm = self.getElmFromID(id: mid)
-            self.counter[elm] = self.counter[elm] + 1 as UInt64
+            let elm = self.getElmFromMID(mid: mid)
+            
 
             // Do check, fake pre {}
             if DAAM.metadata[self.metadata[elm].mid] == nil  { panic("Does not Exist") }
+            self.counter[elm] = self.counter[elm] + 1 as UInt64
             if self.counter[elm] > self.metadata[elm].series { panic("Counter is greater then Series") }
 
             // Now Validated
@@ -136,7 +136,7 @@ pub resource MetadataGenerator {
             log("Counter: ".concat(self.counter[elm].toString()) )
             log("Series: ".concat(self.metadata[elm].series.toString()) )
             let ref = &self as &MetadataGenerator
-
+            
             let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series,
                 counter: self.counter[elm], data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail,
                 file: self.metadata[elm].file)
@@ -148,14 +148,14 @@ pub resource MetadataGenerator {
             return <- mh         
         }
 
-        priv fun getElmFromID(id: UInt64): UInt16 {
+        priv fun getElmFromMID(mid: UInt64): UInt16 {
             var counter = 0 as UInt16
             log(self.metadata.length.toString())
             for m in self.metadata {
-                if m.mid == id { return counter}
+                if m.mid == mid { return counter}
                 counter = counter + 1 as UInt16
             }
-            return nil!
+            return counter - 1 as UInt16
         }
 }
 /************************************************************************/
@@ -290,7 +290,7 @@ pub resource interface CollectionPublic {
 	pub resource Admin: Founder
     {
         priv var status: Bool
-        priv var remove: [Address]       
+        priv var remove: [Address]
 
         init() {
             self.status = true
@@ -318,7 +318,7 @@ pub resource interface CollectionPublic {
             var ref = &DAAM.creators[creator] as &Request
             ref.changeRoyality[tokenID] = newPercentage
             log("Changed Royality to ".concat(newPercentage.toString()) )
-            emit RoyalityChanged(newPercent: newPercentage, creator: creator)
+            emit RoyalityChangeRequest(newPercent: newPercentage, creator: creator)
         }
 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
@@ -398,7 +398,7 @@ pub resource interface SeriesMinter {
             if answer {                
                 switch request {
                     case 0 as UInt8:  // Change Royality                
-                        let newPercentage = getRequest.changeRoyality[nft.id]!                     
+                        let newPercentage = getRequest.changeRoyality[nft.id]                    
                         nft.royality[creator] = newPercentage
                         log("Request: Change Royality: Accepted")
                 }// end switch         
@@ -456,10 +456,9 @@ pub resource interface SeriesMinter {
         self.collectionStoragePath = /storage/DAAM_Collection
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.metadataPublicPath    = /public/DAAM_SubmitNFT
-        self.adminPublicPath       = /public/DAAM_Admin
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
-        self.creatorPublicPath     = /public/DAAM_Creator
+        self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
 
         //Custom variables should be contract arguments        
@@ -477,7 +476,7 @@ pub resource interface SeriesMinter {
         // Create a Minter resource and save it to storage
         let admin <- create Admin()
         self.account.save(<-admin, to: self.adminStoragePath)
-        self.account.link<&Admin>(self.adminPublicPath, target: self.adminStoragePath)
+        self.account.link<&Admin>(self.adminPrivatePath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}

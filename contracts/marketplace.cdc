@@ -125,7 +125,6 @@ pub contract Marketplace {
 
             // Take the cut of the tokens that the beneficiary gets from the sent tokens
             let boughtNFT <-! self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM.NFT
-            if boughtNFT.metadata.series != 1 as UInt64 { self.updateSeries(metadata: boughtNFT.metadata) }  // Replenish SaleCollection
 
             let price = self.prices[tokenID]!    // Read the price for the token
             self.prices[tokenID] = nil           // Set the price for the token to nil
@@ -144,10 +143,11 @@ pub contract Marketplace {
             
             self.ownerCapability.borrow()!       // Deposit the remaining tokens into the owners vault
                 .deposit(from: <-buyTokens)
-                
+
+            let metadata = boughtNFT.metadata    
             recipient.deposit(token: <-boughtNFT)
+            //self.updateSeries(metadata: metadata)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
-            
         }
 
         // getPrice returns the price of a specific token in the sale
@@ -171,11 +171,15 @@ pub contract Marketplace {
         }
 
         priv fun updateSeries(metadata: DAAM.Metadata) {
-            let creator = getAccount(metadata.creator).getCapability<&DAAM.Creator{DAAM.SeriesMinter}>(DAAM.creatorPublicPath).borrow()!
+            if metadata.series == 1 as UInt64          { return }
+            if self.owner?.address != metadata.creator { return } // is the Seller aka Creator == NFT.metacreator; you're buying from the original collection/creator
+            
+            /*let creator = getAccount(metadata.creator).getCapability<&DAAM.Creator{DAAM.SeriesMinter}>(DAAM.creatorPrivatePath).borrow()!
+            
             let mgCap = self.owner?.getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)!
             let mgRef = mgCap.borrow()!
             let mh <- mgRef.generateMetadata(mid: metadata.mid)
-            creator.mintNFT(recipient: self.ownerCollection.borrow()!, metadata: <-mh)
+            creator.mintNFT(recipient: self.ownerCollection.borrow()!, metadata: <-mh)*/
         }
     }
 /************************************************************************/

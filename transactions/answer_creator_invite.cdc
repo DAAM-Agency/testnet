@@ -14,7 +14,7 @@ transaction(submit: Bool) {
 
         if creator != nil {
             self.signer.save<@DAAM.Creator>(<- creator, to: DAAM.creatorStoragePath)
-            self.signer.link<&DAAM.Creator>(DAAM.creatorPublicPath, target: DAAM.creatorStoragePath)!
+            self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         } else {
             destroy creator
