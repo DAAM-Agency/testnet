@@ -1,7 +1,7 @@
 // submit_nft.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM             from x51e2c02e69b53477
 
 transaction(series: UInt64,  /*metadata: DAAM.Metadata */) {
     

@@ -1,5 +1,5 @@
 import Marketplace from 0x045a1763c93006ca
-import DAAM        from 0xfd43f9148d4b725d
+import DAAM        from x51e2c02e69b53477
 
 transaction(tokenID: UInt64, newPrice: UFix64) {
 

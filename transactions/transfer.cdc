@@ -1,7 +1,7 @@
 // transfer.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from x51e2c02e69b53477
 
 // This transaction transfers an NFT from one user's collection
 // to another user's collection.

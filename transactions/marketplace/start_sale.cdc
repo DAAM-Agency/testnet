@@ -1,5 +1,5 @@
 import Marketplace from 0x045a1763c93006ca
-import DAAM        from 0xfd43f9148d4b725d
+import DAAM        from x51e2c02e69b53477
 
 // This transaction is for a user to put a new moment up for sale
 // They must have DAAM Collection and a Marketplace Sale Collection already

@@ -1,6 +1,6 @@
 // remove_creator.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from x51e2c02e69b53477
 
 transaction(xadmin: Address) {
 
