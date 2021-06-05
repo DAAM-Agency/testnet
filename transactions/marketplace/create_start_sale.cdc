@@ -1,6 +1,6 @@
 // create_start_sale.cdc
 
-import FungibleToken from 0x9a0766d93b6608b7
+import FungibleToken from 0xee82856bf20e2aa6
 import Marketplace   from 0x045a1763c93006ca
 import DAAM          from 0xfd43f9148d4b725d
 

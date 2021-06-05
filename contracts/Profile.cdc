@@ -85,7 +85,7 @@
 ***
 ---Cadence Tx---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 transaction {
   let address: address
@@ -113,7 +113,7 @@ await fcl.send([
   ]),
   fcl.limit(35),
   fcl.transaction`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     transaction {
       prepare(acct: AuthAccount) {
@@ -140,7 +140,7 @@ await fcl.send([
 ***
 ---Cadence Tx---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 transaction(name: String) {
   prepare(account: AuthAccount) {
@@ -166,7 +166,7 @@ await fcl.send([
     fcl.arg("qvvg", t.String), // name
   ]),
   fcl.transaction`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     transaction(name: String) {
       prepare(account: AuthAccount) {
@@ -188,7 +188,7 @@ await fcl.send([
 ***
 ---Cadence Tx---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 transaction(accountToBeVerified: Address) {
   prepare(accountDoingTheVerification: AuthAccount) {
@@ -213,7 +213,7 @@ await fcl.send([
     fcl.arg("0xf117a8efa34ffd58", t.Address),
   ]),
   fcl.transaction`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     transaction(accountToBeVerified: Address) {
       prepare(accountDoingTheVerification: AuthAccount) {
@@ -235,7 +235,7 @@ await fcl.send([
 ***
 ---Cadence Sc---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 pub fun main(address: Address): Profile.ReadOnly? {
   return Profile.read(address)
@@ -248,10 +248,10 @@ import * as t from "@onflow/types"
 
 await fcl.send([
   fcl.args([
-    fcl.arg("0xba1132bc08f82fe2", t.Address),
+    fcl.arg("0x192440c99cb17282", t.Address),
   ]),
   fcl.script`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     pub fun main(address: Address): Profile.ReadOnly? {
       return Profile.read(address)
@@ -269,7 +269,7 @@ await fcl.send([
 ***
 ---Cadence Sc---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 pub fun main(addresses: [Address]): {Address: Profile.ReadOnly} {
   return Profile.readMultiple(addresses)
@@ -282,10 +282,10 @@ import * as t from "@onflow/types"
 
 await fcl.send([
   fcl.args([
-    fcl.arg(["0xba1132bc08f82fe2", "0xf76a4c54f0f75ce4", "0xf117a8efa34ffd58"], t.Array(t.Address)),
+    fcl.arg(["0x192440c99cb17282", "0xf76a4c54f0f75ce4", "0xf117a8efa34ffd58"], t.Array(t.Address)),
   ]),
   fcl.script`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     pub fun main(addresses: [Address]): {Address: Profile.ReadOnly} {
       return Profile.readMultiple(addresses)
@@ -303,7 +303,7 @@ await fcl.send([
 ***
 ---Cadence Sc---
 
-import Profile from 0xba1132bc08f82fe2
+import Profile from 0x192440c99cb17282
 
 pub fun main(address: Address): Bool {
   return Profile.check(address)
@@ -316,10 +316,10 @@ import * as t from "@onflow/types"
 
 await fcl.send([
   fcl.args([
-    fcl.arg("0xba1132bc08f82fe2", t.Address),
+    fcl.arg("0x192440c99cb17282", t.Address),
   ]),
   fcl.script`
-    import Profile from 0xba1132bc08f82fe2
+    import Profile from 0x192440c99cb17282
     
     pub fun main(address: Address): Bool {
       return Profile.check(address)
