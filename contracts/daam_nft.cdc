@@ -367,7 +367,7 @@ pub resource interface SeriesMinter {
      pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder)
 }
 /************************************************************************/
-    pub resource Creator: SeriesMinter {
+    pub resource Creator {
 
         pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator {
             return <- create MetadataGenerator(metadata: metadata)

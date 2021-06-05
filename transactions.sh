@@ -5,6 +5,8 @@ flow transactions send ./testnet/transactions/create_profile.cdc --signer admin
 flow transactions send ./testnet/transactions/create_profile.cdc --signer admin2
 flow transactions send ./testnet/transactions/create_profile.cdc --signer creator
 flow transactions send ./testnet/transactions/create_profile.cdc --signer client
+flow transactions send ./testnet/transactions/create_profile.cdc --signer nobody
+flow transactions send ./testnet/transactions/create_profile.cdc --signer marketplace
 sleep 1s
 
 # set up daam accounts
@@ -20,8 +22,10 @@ sleep 1s
 
 #invite Arist & accept
 flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
+flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$MARKETPLACE --signer admin
 sleep 1s
 flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
+flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bool:true --signer marketpalce
 sleep 1s
 
 # invite new admin
@@ -30,56 +34,52 @@ sleep 1s
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
 sleep 1s
 
-# submit 4 NFTs
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
-flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --arg UInt64:1 --signer creator
+# submit 4 metadata
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:2 --signer creator
+flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --signer creator
 
-# approve 4 NFTs
+# approve 4 metadata
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:2 --arg Bool:true --signer admin2
-flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:3 --arg Bool:true --signer admin2
-flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:4 --arg Bool:true --signer admin
 
 # mint 4 NFTs
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:4 --signer creator
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:3 --signer creator
-flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
 flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator
+flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
 
 # transfer
-flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer creator
-flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:2 --signer creator
+#flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer creator
+#flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:2 --signer creator
 sleep 1s
 
 # change copyright
 flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:1 --signer admin
 flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:2 --signer admin
-flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:3 --signer admin
-flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:4 --signer admin
 
 # marketplace Test # 1
-flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer nobody
-flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer nobody
+flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer creator
+flow transactions send ./testnet/transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer creator
 sleep 1s
-
-flow transactions send ./testnet/transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer nobody
-flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer nobody
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer creator
 sleep 1s
-
 # marketplace Test # 2
-flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer creator
-flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$NOBODY --arg UInt64:2 --arg UFix64:2.2 --signer client
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer creator
+
+
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:1.1 --signer client
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:2.2 --signer client
+#flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer creator
+#flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
 sleep 1s
 
 # change / answer Commision setting // in answer_request --arg UInt8:0 = Change Royality
-flow transactions send ./testnet/transactions/admin/request_change_royality.cdc --arg UInt64:3 --arg Address:$CREATOR --arg UFix64:0.18 --signer admin
-flow transactions send ./testnet/transactions/creator/answer_request.cdc --arg Bool:true --arg UInt8:0 --arg UInt64:3 --signer creator
+#flow transactions send ./testnet/transactions/admin/request_change_royality.cdc --arg UInt64:2 --arg Address:$CREATOR --arg UFix64:0.18 --signer admin
+#flow transactions send ./testnet/transactions/creator/answer_request.cdc --arg Bool:true --arg UInt8:0 --arg UInt64:3 --signer creator
 sleep 1s
 
 # marketpalce change price
-flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:3 --arg UFix64:3.8 --signer creator
+flow transactions send ./testnet/transactions/marketplace/create_sale.cdc --signer client
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer client
+flow transactions send ./testnet/transactions/marketplace/change_price.cdc --arg UInt64:2 --arg UFix64:3.8 --signer client
 
 # change creator status
 flow transactions send ./testnet/transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2

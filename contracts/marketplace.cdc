@@ -18,8 +18,8 @@ pub contract Marketplace {
 
     pub let marketStoragePath: StoragePath
     pub let marketPublicPath : PublicPath
-    pub let flowStoragePath: StoragePath
-    pub let flowPublicPath :  PublicPath
+    pub let flowStoragePath  : StoragePath
+    pub let flowPublicPath   : PublicPath
 /************************************************************************/
     pub resource interface SalePublic {
         pub fun purchase(tokenID: UInt64, recipient: &DAAM.Collection{NonFungibleToken.Receiver}, buyTokens: @FungibleToken.Vault)
@@ -173,19 +173,20 @@ pub contract Marketplace {
         priv fun updateSeries(metadata: DAAM.Metadata) {
             if metadata.series == 1 as UInt64          { return }
             if self.owner?.address != metadata.creator { return } // is the Seller aka Creator == NFT.metacreator; you're buying from the original collection/creator
-            
-            /*let creator = getAccount(metadata.creator).getCapability<&DAAM.Creator{DAAM.SeriesMinter}>(DAAM.creatorPrivatePath).borrow()!
-            
-            let mgCap = self.owner?.getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)!
-            let mgRef = mgCap.borrow()!
-            let mh <- mgRef.generateMetadata(mid: metadata.mid)
-            creator.mintNFT(recipient: self.ownerCollection.borrow()!, metadata: <-mh)*/
+            Marketplace.loadMinter(mid: metadata.mid, recipient: self.ownerCollection.borrow()! )
         }
     }
 /************************************************************************/
     // createCollection returns a new collection resource to the caller
     pub fun createSaleCollection(ownerCollection: Capability<&DAAM.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>): @SaleCollection {
         return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
+    }
+
+    access(contract) fun loadMinter(mid: UInt64, recipient: &{NonFungibleToken.CollectionPublic} ) {
+        let minter = self.account.getCapability<&DAAM.Creator>(DAAM.creatorPrivatePath).borrow()!
+        let mg = self.account.getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
+        let mh <- mg.generateMetadata(mid: mid)
+        minter.mintNFT(recipient: recipient, metadata: <-mh)
     }
 
     init() {
