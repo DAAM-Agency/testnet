@@ -24,6 +24,7 @@ pub contract DAAM: NonFungibleToken {
     pub event CreatorRemoved(creator: Address)
     pub event AdminRemoved(admin: Address)
     pub event RequestAnswered(creator: Address, answer: Bool, request: UInt8)
+    pub event RemovedAdminInvite()
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
@@ -76,50 +77,61 @@ pub struct Request {
         pub let thumbnail : String   // JSON see metadata.json
         pub let file      : String   // JSON see metadata.json
         
-        init(creator: Address, series: UInt64, counter: UInt64, data: String, thumbnail: String, file: String) {
+        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, metadata: Metadata?) {
+            post{ self.counter <= self.series }
+            if metadata == nil { // new
                 self.mid       = DAAM.metadataCounterID
                 self.creator   = creator
                 self.series    = series
-                self.counter   = counter
+                self.counter   = 0 as UInt64
                 self.data      = data
                 self.thumbnail = thumbnail
                 self.file      = file
+            } else {  // counter
+                self.mid       = metadata?.mid!
+                self.creator   = metadata?.creator!
+                self.series    = metadata?.series!
+                self.counter   = metadata?.counter! + 1 as UInt64
+                self.data      = metadata?.data!
+                self.thumbnail = metadata?.thumbnail!
+                self.file      = metadata?.file!
+            }
         }// Metadata init
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        priv var counter  : [UInt64] 
         priv var metadata : [Metadata]
         
         init(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil }
-            self.counter  = [0 as UInt64]
+            pre{ DAAM.metadata[metadata.mid] == nil }            
             self.metadata = [metadata]
             DAAM.metadata.insert(key: self.metadata[0].mid, false)
             DAAM.copyright[self.metadata[0].mid] = CopyrightStatus.UNVERIFIED
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
-
-            log("Metadata Generatated".concat(self.metadata[0].mid.toString()) )
+            
+            log("Metadata Generatated ID: ".concat(self.metadata[0].mid.toString()) )
             emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[0].mid )
         }
 
         pub fun addMetadata(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil } 
-            self.counter.append(0 as UInt64)    
+            pre{
+                metadata != nil
+                DAAM.metadata[metadata.mid] == nil
+            }
+                       
             self.metadata.append(metadata)
-            let elm = self.metadata.length-1
-            DAAM.metadata.insert(key: self.metadata[elm].mid, false)            
+            let elm = self.metadata.length-1            
+            DAAM.metadata.insert(key: self.metadata[elm].mid, false)
             DAAM.copyright[self.metadata[elm].mid] = CopyrightStatus.UNVERIFIED
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
-
-            log("Metadata Generatated".concat(self.metadata[elm].mid.toString()) )
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64        
+            
+            log("Metadata Generatated ID: ".concat(self.metadata[elm].mid.toString()) )
             emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[elm].mid )
         }
 
         pub fun removeMetadata(_ elm: UInt16)   {
             pre  { self.metadata[elm] != nil }
             self.metadata.remove(at: elm)
-            self.counter.remove(at: elm)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
@@ -127,19 +139,17 @@ pub resource MetadataGenerator {
             
 
             // Do check, fake pre {}
+            if self.metadata[elm] == nil { panic("Does not Exist") }
             if DAAM.metadata[self.metadata[elm].mid] == nil  { panic("Does not Exist") }
-            self.counter[elm] = self.counter[elm] + 1 as UInt64
-            if self.counter[elm] > self.metadata[elm].series { panic("Counter is greater then Series") }
-
-            // Now Validated
             
-            log("Counter: ".concat(self.counter[elm].toString()) )
+
+            // Now Validated            
+            log("Counter: ".concat(self.metadata[elm].counter.toString()) )
             log("Series: ".concat(self.metadata[elm].series.toString()) )
             let ref = &self as &MetadataGenerator
             
-            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series,
-                counter: self.counter[elm], data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail,
-                file: self.metadata[elm].file)
+            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series, data: self.metadata[elm].data,
+                thumbnail: self.metadata[elm].thumbnail, file: self.metadata[elm].file, metadata: self.metadata[elm])
             let mh <- create MetadataHolder(metadata: metadata)
 
             if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
@@ -155,7 +165,7 @@ pub resource MetadataGenerator {
                 if m.mid == mid { return counter}
                 counter = counter + 1 as UInt16
             }
-            return counter - 1 as UInt16
+            return nil!
         }
 }
 /************************************************************************/
@@ -285,6 +295,8 @@ pub resource interface CollectionPublic {
         pub fun changMetadataStatus(mid: UInt64, status: Bool) {
             pre  { DAAM.copyright.containsKey(mid): "This is an Invalid ID" }
         }
+
+        pub fun removeAdminInvite()
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -300,17 +312,22 @@ pub resource interface CollectionPublic {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.adminPending = newAdmin
-            // TODO Add time limit
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.creators.insert(key: creator, Request() ) 
-            // TODO Add time limit            
+            DAAM.creators.insert(key: creator, Request() )          
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
+        }
+
+        pub fun removeAdminInvite() {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            DAAM.adminPending = nil
+            log("Admin Invation Removed")
+            emit RemovedAdminInvite()                      
         }
         
         pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
@@ -367,7 +384,7 @@ pub resource interface SeriesMinter {
      pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder)
 }
 /************************************************************************/
-    pub resource Creator {
+    pub resource Creator: SeriesMinter {
 
         pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator {
             return <- create MetadataGenerator(metadata: metadata)

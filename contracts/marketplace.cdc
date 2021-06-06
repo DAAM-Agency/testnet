@@ -144,9 +144,11 @@ pub contract Marketplace {
             self.ownerCapability.borrow()!       // Deposit the remaining tokens into the owners vault
                 .deposit(from: <-buyTokens)
 
-            let metadata = boughtNFT.metadata    
+            let metadata = boughtNFT.metadata
+            log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(boughtNFT.metadata.mid.toString()) )
             recipient.deposit(token: <-boughtNFT)
-            //self.updateSeries(metadata: metadata)
+
+            self.updateSeries(metadata: metadata)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
         }
 
@@ -173,7 +175,7 @@ pub contract Marketplace {
         priv fun updateSeries(metadata: DAAM.Metadata) {
             if metadata.series == 1 as UInt64          { return }
             if self.owner?.address != metadata.creator { return } // is the Seller aka Creator == NFT.metacreator; you're buying from the original collection/creator
-            Marketplace.loadMinter(mid: metadata.mid, recipient: self.ownerCollection.borrow()! )
+            Marketplace.loadMinter(creator: metadata.creator, mid: metadata.mid, recipient: self.ownerCollection.borrow()! )
         }
     }
 /************************************************************************/
@@ -182,11 +184,15 @@ pub contract Marketplace {
         return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
     }
 
-    access(contract) fun loadMinter(mid: UInt64, recipient: &{NonFungibleToken.CollectionPublic} ) {
-        let minter = self.account.getCapability<&DAAM.Creator>(DAAM.creatorPrivatePath).borrow()!
-        let mg = self.account.getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, recipient: &{NonFungibleToken.CollectionPublic} ) {
+        log(self.account.address)
+        let minter <- self.account.load<@DAAM.Creator>(from: DAAM.creatorStoragePath)! // Good code, but can not implement. Bug with Cadence, Addresses that start with 0
+        let mgCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
+        let mg = mgCap.borrow()!
         let mh <- mg.generateMetadata(mid: mid)
+        //let minter = minterCap.borrow()!
         minter.mintNFT(recipient: recipient, metadata: <-mh)
+        self.account.save(<- minter, to: DAAM.creatorStoragePath)
     }
 
     init() {
