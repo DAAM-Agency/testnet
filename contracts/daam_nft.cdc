@@ -137,19 +137,21 @@ pub struct Request {
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        priv var request : {UInt64 : {Address: UFix64} }
-        priv var metadata : [Metadata]
+        priv var request  : {UInt64 : {Address: UFix64} }
+        priv var metadata : {UInt64 : Metadata}
         
         init(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil }            
-            self.metadata = [metadata]
+            pre{ DAAM.metadata[metadata.mid] == nil }   
+            self.metadata = {}
             self.request = {}
-            DAAM.metadata.insert(key: self.metadata[0].mid, false)
-            DAAM.copyright[self.metadata[0].mid] = CopyrightStatus.UNVERIFIED
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
+
+            self.metadata.insert(key:metadata.mid, metadata)            
+            DAAM.metadata.insert(key: metadata.mid, false)
+            DAAM.copyright[metadata.mid] = CopyrightStatus.UNVERIFIED
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be last
             
-            log("Metadata Generatated ID: ".concat(self.metadata[0].mid.toString()) )
-            emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[0].mid )
+            log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
+            emit DAAM.MetadataGeneratated(creator: self.metadata[metadata.mid]?.creator! , id: metadata.mid )
         }
 
         pub fun addMetadata(metadata: Metadata) {
@@ -157,39 +159,39 @@ pub resource MetadataGenerator {
                 metadata != nil
                 DAAM.metadata[metadata.mid] == nil
             }
-                       
-            self.metadata.append(metadata)
-            let elm = self.metadata.length-1            
-            DAAM.metadata.insert(key: self.metadata[elm].mid, false)
-            DAAM.copyright[self.metadata[elm].mid] = CopyrightStatus.UNVERIFIED
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64        
             
-            log("Metadata Generatated ID: ".concat(self.metadata[elm].mid.toString()) )
-            emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[elm].mid )
+            self.metadata.insert(key:metadata.mid, metadata)
+            DAAM.metadata.insert(key: metadata.mid, false)
+            DAAM.copyright[metadata.mid] = CopyrightStatus.UNVERIFIED
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be last
+                        
+            log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
+            emit DAAM.MetadataGeneratated(creator: self.metadata[metadata.mid]?.creator!, id: metadata.mid )
         }
 
-        pub fun removeMetadata(_ elm: UInt16)   {
-            pre  { self.metadata[elm] != nil }
-            self.metadata.remove(at: elm)
+        pub fun removeMetadata(mid: UInt64)   {
+            pre  { self.metadata[mid] != nil }
+            self.metadata.remove(key: mid)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
-            let elm = self.getElmFromMID(mid: mid)
-            // Do check, fake pre {}
-            if self.metadata[elm] == nil { panic("Does not Exist") }
-            if DAAM.metadata[self.metadata[elm].mid] == nil  { panic("Does not Exist") }
-            
+            pre {
+                self.metadata[mid] != nil : "Does not Exist"
+                DAAM.metadata[mid] != nil : "Does not Exist"
+            }            
             // Now Validated            
-            log("Counter: ".concat(self.metadata[elm].counter.toString()) )
-            log("Series: ".concat(self.metadata[elm].series.toString()) )
+            log("Counter: ".concat(self.metadata[mid]?.counter!.toString()) )
+            log("Series: ".concat(self.metadata[mid]?.series!.toString()) )
 
-            let ref = &self as &MetadataGenerator            
-            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series, data: self.metadata[elm].data,
-                thumbnail: self.metadata[elm].thumbnail, file: self.metadata[elm].file, metadata: self.metadata[elm])
-            let mh <- create MetadataHolder(metadata: metadata, royality: self.request[metadata.mid]! )
+            let ref = &self as &MetadataGenerator  
+            let royality = self.request[mid]!
 
-            if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
-                self.removeMetadata(elm)
+            let metadata = Metadata(creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
+                thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, metadata: self.metadata[mid])
+            let mh <- create MetadataHolder(metadata: metadata, royality: royality )
+
+            if self.metadata[mid]?.counter == self.metadata[mid]?.series && self.metadata[mid]?.series != 0 as UInt64 {
+                self.removeMetadata(mid: mid)
             }
             return <- mh         
         }
@@ -197,16 +199,6 @@ pub resource MetadataGenerator {
         priv fun addRequest(request: @RequestHolder) {
             self.request.insert(key: request.request.mid, request.request.royality)
             destroy request
-        }
-
-        priv fun getElmFromMID(mid: UInt64): UInt16 {
-            var counter = 0 as UInt16
-            log(self.metadata.length.toString())
-            for m in self.metadata {
-                if m.mid == mid { return counter}
-                counter = counter + 1 as UInt16
-            }
-            return nil!
         }
 }
 /************************************************************************/
@@ -445,21 +437,19 @@ pub resource interface SeriesMinter {
     }
 
     // TODO add interface restriction to collection
-    pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
+    pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator {
         pre {
             DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
-
-        if submit {
-            DAAM.creators[newCreator] = submit        
-            log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
-            emit NewCreator(creator: newCreator)
-            return <- create Creator()
-        } else {
+        if !submit {
             DAAM.creators.remove(key: newCreator)
-            return nil
-        }
+            panic("Maybe, another time")
+        }      
+        DAAM.creators[newCreator] = submit        
+        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: newCreator)
+        return <- create Creator()
     }
     
     pub fun createEmptyCollection(): @Collection {
