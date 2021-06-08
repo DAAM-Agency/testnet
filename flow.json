@@ -47,7 +47,7 @@
 			"chain": "flow-emulator"
 		},
 		"marketplace": {
-			"address": "045a1763c93006ca",
+			"address": "0x045a1763c93006ca",
 			"keys": "a22569bb4b6f4ff0d9404144ea88271e20bdc6d33bc8fc3d4dd591e34189374b",
 			"chain": "flow-emulator"
 		},
