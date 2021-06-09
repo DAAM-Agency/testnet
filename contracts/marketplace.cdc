@@ -148,7 +148,7 @@ pub contract Marketplace {
             log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(boughtNFT.metadata.mid.toString()) )
             recipient.deposit(token: <-boughtNFT)
 
-            self.updateSeries(metadata: metadata)
+            //self.updateSeries(metadata: metadata)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
         }
 

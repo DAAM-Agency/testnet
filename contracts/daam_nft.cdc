@@ -201,11 +201,11 @@ pub resource MetadataGenerator {
             log("Series: ".concat(self.metadata[mid]?.series!.toString()) )
 
             let ref = &self as &MetadataGenerator  
-            let royality = self.request[mid]!
+            let request = self.request[mid]!
 
             let metadata = Metadata(creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                 thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, metadata: self.metadata[mid])
-            let mh <- create MetadataHolder(metadata: metadata, royality: royality )
+            let mh <- create MetadataHolder(metadata: metadata, request: request )
 
             if self.metadata[mid]?.counter == self.metadata[mid]?.series && self.metadata[mid]?.series != 0 as UInt64 {
                 self.removeMetadata(mid: mid)
@@ -214,7 +214,7 @@ pub resource MetadataGenerator {
         }
 
         priv fun addRequest(request: @RequestHolder) {
-            self.request.insert(key: request.request.mid, request.request.royality)
+            self.request.insert(key: request.request.mid, request.request)
             destroy request
         }
 }
