@@ -51,22 +51,21 @@ flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:
 flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:1 --signer admin
 flow transactions send ./testnet/transactions/admin/change_copyright.cdc --arg UInt64:2 --signer admin
 
-# marketplace Test # 1
+# Marketplace Test #1; Sale: Create, Start, Stop
 flow transactions send ./testnet/transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer creator
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer creator
 flow transactions send ./testnet/transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer creator
 sleep 1s
-'''
-# marketplace Test # 2
 flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.11 --signer creator
 
-# marketplace Test # 2
+# Marketplace Test #2; Purchase, Start Sale
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:1.11 --signer client
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:2.2  --signer client
 sleep 1s
-#flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:3  --arg UFix64:3.3 --signer creator
-#flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
 
+# Marketplace Test #3; Purchase Series
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:3.3 --signer creator
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
 
 # change / answer Commision setting // in answer_request --arg UInt8:0 = Change Royality
 #flow transactions send ./testnet/transactions/admin/request_change_royality.cdc --arg UInt64:2 --arg Address:$CREATOR --arg UFix64:0.18 --signer admin

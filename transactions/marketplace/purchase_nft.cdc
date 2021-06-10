@@ -2,7 +2,7 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0x120e725050340cab
 import FlowToken        from 0x0ae53cb6e3f42a79
 import DAAM             from 0xfd43f9148d4b725d
-import Marketplace      from 0xe2f72218abeec2b9
+import Marketplace      from 0x045a1763c93006ca
 
 // This transaction is for a user to purchase a moment that another user
 // has for sale in their sale collection
