@@ -185,14 +185,15 @@ pub contract Marketplace {
     }
 
     access(contract) fun loadMinter(creator: Address, mid: UInt64, recipient: &{NonFungibleToken.CollectionPublic} ) {
-        log(self.account.address)
-        let minter <- self.account.load<@DAAM.Creator>(from: DAAM.creatorStoragePath)! // Good code, but can not implement. Bug with Cadence, Addresses that start with 0
-        let mgCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
-        let mg = mgCap.borrow()!
-        let mh <- mg.generateMetadata(mid: mid)
-        //let minter = minterCap.borrow()!
-        minter.mintNFT(recipient: recipient, metadata: <-mh)
-        self.account.save(<- minter, to: DAAM.creatorStoragePath)
+        let requestGen = self.account.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+        let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
+
+        let metadataGenCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
+        let metadataGen = metadataGenCap.borrow()!
+        let mh <- metadataGen.generateMetadata(mid: mid)
+        
+        let request <- requestGen.getRequest(mid: mid)
+        minter.mintNFT(recipient: recipient, metadata: <-mh, request: <-request)
     }
 
     init() {

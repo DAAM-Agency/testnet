@@ -2,28 +2,35 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(request: DAAM.Request, to: Address) {
+transaction(mid: UInt64 /* , creator: Address?*/ ) {
     let signer: AuthAccount
+
+//  if creator is nil then admin else creator
+
 
     prepare(signer: AuthAccount) {
         self.signer = signer
     }
 
     execute {
-        let creator    = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)
-        let admin      = signer.borrow<&DAAM.Admin>  (from: DAAM.adminStoragePath)
-        let entry = (admin != nil) ? admin : creator        
+        var royality = {DAAM.agency : 0.1 as UFix64}
+        royality.insert(key: DAAM.agency, 0.15 as UFix64)        
 
-        if entry != nil { // Validate access, Only Creator or Admin
-        let requestGen  = signer.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
-            if requestGen == nil {  // Create initial Requerst Generator, first time only
-                let rh <- entry.newRequestGenerator()
-                self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
-                self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!            
-                log("Request Generator Initialized")
-            }
-        requestGen.makeRequest(metadata: metadata, request: request, send: to)
-        log("Request Made")
+        //let admin = self.signer.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)! 
+    
+
+        let requestGen  = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
+        if requestGen == nil {  // Create initial Requerst Generator, first time only
+            let rh <- creatorRef.newRequestGenerator()
+            self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
+            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!            
+            log("Request Generator Initialized")
         }
+        let metadataGen = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        let metadata = metadataGen.getMetadataRef(mid: mid)
+
+        requestGen?.makeRequest(metadata: metadata, royality: royality)!
+        log("Request Made")
     }
 }

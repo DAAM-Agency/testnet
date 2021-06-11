@@ -1,6 +1,6 @@
 # verify transactions
 
-# setup profiles
+# Setup Profiles
 flow transactions send ./testnet/transactions/create_profile.cdc --signer admin
 flow transactions send ./testnet/transactions/create_profile.cdc --signer admin2
 flow transactions send ./testnet/transactions/create_profile.cdc --signer creator
@@ -9,18 +9,18 @@ flow transactions send ./testnet/transactions/create_profile.cdc --signer nobody
 flow transactions send ./testnet/transactions/create_profile.cdc --signer marketplace
 sleep 1s
 
-# set up daam accounts
+# Setup DAAM Accounts
 flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer nobody
 flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer creator
 flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer client
 flow transactions send ./testnet/transactions/setup_daam_account.cdc --signer admin2
 sleep 1s
 
-# invite admin
+# Invite Admin
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
 sleep 1s
 
-#invite Arist & accept
+# Invite Creator & Accept
 flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
 flow transactions send ./testnet/transactions/admin/invite_creator.cdc --arg Address:$MARKETPLACE --signer admin
 sleep 1s
@@ -28,21 +28,26 @@ flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bo
 flow transactions send ./testnet/transactions/answer_creator_invite.cdc --arg Bool:true --signer marketplace
 sleep 1s
 
-# invite new admin
+# Invite Admin #2
 flow transactions send ./testnet/transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
-sleep 1s
 flow transactions send ./testnet/transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
 sleep 1s
 
-# submit 4 metadata
+# Submit 2 Metadata: #1 Solo, #2 Series(of 2)
 flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:1 --signer creator
 flow transactions send ./testnet/transactions/creator/submit_nft.cdc --arg UInt64:2 --signer creator
 sleep 1s
-# approve 4 metadata
+
+# Approve the Metadatas
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
 flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc --arg UInt64:2 --arg Bool:true --signer admin2
 sleep 1s
 
+# Request Royality
+flow transactions send ./testnet/transactions/request/make_request.cdc --arg UInt64:1 --signer creator
+#flow transactions send ./testnet/transactions/request/answer_request.cdc --arg UInt64:1 --signer admin
+
+'''
 # mint 4 NFTs
 flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator
 flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
@@ -88,5 +93,5 @@ flow transactions send ./testnet/transactions/admin/remove_creator.cdc --arg Add
 # transfer
 flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:1 --signer client
 flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
-
+'''
 #0xf8d6e0586b0a20c7

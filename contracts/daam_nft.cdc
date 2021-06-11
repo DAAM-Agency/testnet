@@ -19,11 +19,12 @@ pub contract DAAM: NonFungibleToken {
     pub event MetadataGeneratated(creator: Address, id: UInt64)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(metadataID: UInt64)
-    pub event RoyalityRequest(receiver: Address)
+    pub event RoyalityRequest(mid: UInt64)
     pub event ChangeCreatorStatus(creator: Address, status: Bool)
     pub event CreatorRemoved(creator: Address)
     pub event AdminRemoved(admin: Address)
     pub event RequestAnswered(mid: UInt64)
+    pub event RequestAccepted(mid: UInt64)
     pub event RemovedAdminInvite()
 
     pub let collectionPublicPath : PublicPath
@@ -40,7 +41,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var adminPending : Address?
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
-    access(contract) var request : {Address : UInt64}  // {Address Requested : Request Counter}
+    access(contract) var request : {UInt64: Bool}      // {Address Requested : Approved by Admin }
 
     pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus}
     
@@ -55,72 +56,74 @@ pub enum CopyrightStatus: UInt8 {
             pub case UNVERIFIED
             pub case VERIFIED
             //pub case INCLUDED TODO v2
-    }
-/***********************************************************************/
-pub resource RequestGenerator {
-    priv var request  : {UInt64 : Request}  // { mid : Request }
-   
-    init(request: Request) {
-        self.request = {}
-    }
-
-    pub fun makeRequest(metadata: &Metadata, request: Request, send: Address) {
-        pre { request.mid == metadata.mid }
-        // TODO Verify sender is a Creator or Admin
-        let request = Request(mid: metadata.mid, royality: request.royality)
-        self.request[request.mid] = request
-        let counter = DAAM.request[self.owner?.address!] == nil ? 0 as UInt64 : DAAM.request[self.owner?.address!]! + 1 as UInt64
-        DAAM.request.insert(key: send, counter)
-                    
-        log("Royality Request: ".concat(send.toString()) )
-        emit RoyalityRequest(receiver: send)
-    }
-
-    pub fun answerRequest(mid: UInt64, answer: Bool): @RequestHolder? {
-        pre {
-            self.request[mid] != nil
-            self.owner?.address != nil
-            mid  == DAAM.request[self.owner?.address!]
-        } // receiver is answering
-        let request = self.request[mid]
-        self.request.remove(key: mid)
-        if answer {
-            let rh <- create RequestHolder(request: request!)
-            log("Request Answered, MID: ".concat(mid.toString()) )
-            emit RequestAnswered(mid: mid)
-            return <- rh
-        }
-        return nil
-    }
-
-    pub fun acceptDefault(mid: UInt64): @RequestHolder {
-        pre { self.request.containsKey(mid) }
-        var royality = {DAAM.agency: 0.1 as UFix64 }
-        royality.insert(key: self.owner?.address!, 0.2 )
-        let request = Request(mid: mid, royality: royality)
-        self.request.remove(key: mid)
-        let rh <- create RequestHolder(request: request!)
-        log("Request Answered, MID: ".concat(mid.toString()) )
-        emit RequestAnswered(mid: mid)
-        return <- rh
-    }
 }
 /***********************************************************************/
-pub struct Request {
-    pub let mid       : UInt64
-    pub let royality  : {Address : UFix64}
+pub resource Request {
+    access(contract) let mid       : UInt64
+    access(contract) let royality  : {Address : UFix64}
     
-    init(mid: UInt64, royality: {Address : UFix64} ) {
-        self.mid      = mid
+    init(metadata: &Metadata, royality: {Address : UFix64} ) {
+        pre { royality.containsKey(DAAM.agency) }  // Agency must be included.
+        self.mid      = metadata.mid
         self.royality = royality
     }
 }
 /***********************************************************************/
-    pub resource RequestHolder {        
-        access(contract) var request: Request
-        init (request: Request) { self.request = request }
-        pub fun getMID(): UInt64 { return self.request.mid }
+pub resource RequestGenerator {
+    priv var request  : @{UInt64 : Request}  // { mid : Request }
+   
+    init() { self.request <- {} }
+
+    pub fun makeRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
+        pre { metadata != nil }
+        // TODO Verify sender is a Creator or Admin
+        let mid = metadata.mid
+        let request <-! create Request(metadata: metadata, royality: royality)
+
+        DAAM.request.insert(key: mid, false)
+        self.request[mid] <-! request
+                    
+        log("Royality Request: ".concat(mid.toString()) )
+        emit RoyalityRequest(mid: mid)
     }
+
+    pub fun answerRequest(mid: UInt64, answer: Bool) {
+        // TODO Verify sender is a Creator or Admin
+        pre {
+            self.request[mid]   != nil
+            self.owner?.address != nil
+            DAAM.request[mid] != nil
+        } // receiver is answering        
+
+        DAAM.request[mid] = answer
+        log("Request Answered, MID: ".concat(mid.toString()) )
+        emit RequestAnswered(mid: mid)
+    }
+
+    pub fun acceptDefault(metadata: &Metadata) {
+        pre { self.request.containsKey(metadata.mid) }
+
+        let mid = metadata.mid
+        var royality = {DAAM.agency: 0.1 as UFix64 }
+        royality.insert(key: self.owner?.address!, 0.2 )
+
+        let request <-! create Request(metadata: metadata, royality: royality)
+        DAAM.request.insert(key: mid, true)
+        self.request[mid] <-! request
+        
+        log("Request Acceppted, MID: ".concat(mid.toString()) )
+        emit RequestAccepted(mid: mid)
+    }
+
+    pub fun getRequest(mid: UInt64): @Request {
+        pre { self.request.containsKey(mid) }
+        let request <-! self.request.remove(key: mid)!
+        return <- request
+    }
+    
+
+    destroy() { destroy self.request }
+}
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         pub let mid       : UInt64
@@ -154,14 +157,12 @@ pub struct Request {
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        priv var request  : {UInt64 : Request }
-        priv var metadata : {UInt64 : Metadata}
+        access(contract) var metadata : {UInt64 : Metadata}
         
         init(metadata: Metadata) {
             pre{ DAAM.metadata[metadata.mid] == nil }   
             self.metadata = {}
-            self.request = {}
-
+            
             self.metadata.insert(key:metadata.mid, metadata)            
             DAAM.metadata.insert(key: metadata.mid, false)
             DAAM.copyright[metadata.mid] = CopyrightStatus.UNVERIFIED
@@ -195,17 +196,17 @@ pub resource MetadataGenerator {
             pre {
                 self.metadata[mid] != nil : "Does not Exist"
                 DAAM.metadata[mid] != nil : "Does not Exist"
+                DAAM.metadata[mid] == true: "Your Submission is Not Approved."
             }            
             // Now Validated            
             log("Counter: ".concat(self.metadata[mid]?.counter!.toString()) )
             log("Series: ".concat(self.metadata[mid]?.series!.toString()) )
+            log("MID: ".concat(mid.toString()) )           
 
-            let ref = &self as &MetadataGenerator  
-            let request = self.request[mid]!
-
+            let ref = &self as &MetadataGenerator            
             let metadata = Metadata(creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                 thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, metadata: self.metadata[mid])
-            let mh <- create MetadataHolder(metadata: metadata, request: request )
+            let mh <- create MetadataHolder(metadata: metadata)
 
             if self.metadata[mid]?.counter == self.metadata[mid]?.series && self.metadata[mid]?.series != 0 as UInt64 {
                 self.removeMetadata(mid: mid)
@@ -213,23 +214,17 @@ pub resource MetadataGenerator {
             return <- mh         
         }
 
-        priv fun addRequest(request: @RequestHolder) {
-            self.request.insert(key: request.request.mid, request.request)
-            destroy request
+        pub fun getMetadataRef(mid: UInt64): &Metadata {
+            pre { self.metadata[mid] != nil }
+            return &self.metadata[mid] as &Metadata
         }
 }
 /************************************************************************/
     pub resource MetadataHolder {        
         access(contract) var metadata: Metadata
-        access(contract) var royality: {Address : UFix64}
-
-        init (metadata: Metadata, request: Request) {
-            pre {
-                metadata != nil
-                request  != nil
-            }
+        init (metadata: Metadata) {
+            pre { metadata != nil }              
             self.metadata = metadata
-            self.royality = request.royality
         }
         pub fun getMID(): UInt64 { return self.metadata.mid }
     }
@@ -239,12 +234,15 @@ pub resource MetadataGenerator {
         pub let metadata : Metadata
         pub let royality : {Address : UFix64}
 
-        init(metadata: @MetadataHolder) {
-            self.metadata = metadata.metadata
-            self.royality = metadata.royality
-            destroy metadata
+        init(metadata: @MetadataHolder, request: @Request) {
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
+
+            self.metadata = metadata.metadata
+            destroy metadata
+
+            self.royality = request.royality            
+            destroy request            
         }
 
         pub fun getCopyright(): CopyrightStatus {
@@ -343,7 +341,7 @@ pub resource interface CollectionPublic {
 
         pub fun removeAdminInvite()
 
-        pub fun newRequestGenerator(request: Request): @RequestGenerator
+        pub fun newRequestGenerator(): @RequestGenerator
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -356,9 +354,9 @@ pub resource interface CollectionPublic {
             self.remove = []
         }
 
-        pub fun newRequestGenerator(request: Request): @RequestGenerator {
+        pub fun newRequestGenerator(): @RequestGenerator {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            return <- create RequestGenerator(request: request)
+            return <- create RequestGenerator()
         }
 
         pub fun inviteAdmin(newAdmin: Address) {
@@ -424,7 +422,7 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
 pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder)
+     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request)
 }
 /************************************************************************/
     pub resource Creator: SeriesMinter {
@@ -433,17 +431,17 @@ pub resource interface SeriesMinter {
             return <- create MetadataGenerator(metadata: metadata)
         }
 
-        pub fun newRequestGenerator(request: Request): @RequestGenerator {
-            return <- create RequestGenerator(request: request)
+        pub fun newRequestGenerator(): @RequestGenerator {
+            return <- create RequestGenerator()
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request) {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
                 DAAM.creators[metadata.metadata.creator] == true     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
             } 
-			let newNFT <- create NFT(metadata: <- metadata )
+			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
             let id = newNFT.id
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
             log("Minited NFT: ".concat(id.toString()))

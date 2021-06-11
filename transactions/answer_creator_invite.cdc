@@ -13,7 +13,7 @@ transaction(submit: Bool) {
         let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer.address, submit: submit)
 
         if creator != nil {
-            let rh <- creator.newRequestGenerator(request: request)
+            let rh <- creator.newRequestGenerator()
             self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
             self.signer.save<@DAAM.Creator>(<- creator, to: DAAM.creatorStoragePath)
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!
@@ -23,6 +23,6 @@ transaction(submit: Bool) {
             destroy creator
         }
 
-        if !submit { log("Well, ... why the fuck did you  bother ?!?") }
+        if !submit { log("Well, ... why the fuck did you bother ?!?") }
     }
 }
