@@ -22,7 +22,7 @@ transaction(mid: UInt64) {
         let metadata <- metadataGenerator.generateMetadata(mid: mid)
 
         let requestGenerator = creator.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
-        let request <- requestGenerator.getRequest(mid: mid)
+        let request <- requestGenerator.getRequest(metadata: &metadata as &DAAM.MetadataHolder)
 
         self.creatorRef.mintNFT(recipient: collection, metadata: <-metadata, request: <-request)     
         log("Minted NFT")

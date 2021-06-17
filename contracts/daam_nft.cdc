@@ -90,11 +90,11 @@ pub resource RequestGenerator {
     pub fun answerRequest(mid: UInt64, answer: Bool) {
         // TODO Verify sender is a Creator or Admin
         pre {
-            self.request[mid]   != nil
             self.owner?.address != nil
-            DAAM.request[mid] != nil
-        } // receiver is answering        
-
+            DAAM.request[mid]   != nil
+        }
+        post { DAAM.request[mid] == answer }
+        log(answer)
         DAAM.request[mid] = answer
         log("Request Answered, MID: ".concat(mid.toString()) )
         emit RequestAnswered(mid: mid)
@@ -115,12 +115,13 @@ pub resource RequestGenerator {
         emit RequestAccepted(mid: mid)
     }
 
-    pub fun getRequest(mid: UInt64): @Request {
-        pre { self.request.containsKey(mid) }
-        let request <-! self.request.remove(key: mid)!
+    pub fun getRequest(metadata: &MetadataHolder): @Request {
+        pre { metadata != nil }
+        let mid = metadata.metadata.mid
+        let royality = self.request[mid]?.royality!
+        let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
         return <- request
     }
-    
 
     destroy() { destroy self.request }
 }
@@ -411,7 +412,7 @@ pub resource interface CollectionPublic {
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.copyright[mid] = copyright
-            log("Token ID: ".concat(mid.toString()) )
+            log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
 
@@ -422,7 +423,7 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
 pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request)
+     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
 }
 /************************************************************************/
     pub resource Creator: SeriesMinter {
@@ -436,16 +437,18 @@ pub resource interface SeriesMinter {
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
                 DAAM.creators[metadata.metadata.creator] == true     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
+                DAAM.request[metadata.metadata.mid]      == true     : "Request Invalid"
             } 
 			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
             let id = newNFT.id
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
             log("Minited NFT: ".concat(id.toString()))
-            emit MintedNFT(id: id)            
+            emit MintedNFT(id: id)
+            return id            
 		}	
     }
 /************************************************************************/

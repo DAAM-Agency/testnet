@@ -18,17 +18,15 @@ transaction(mid: UInt64, answer: Bool) {
 
         let adminRef = self.signer.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         //let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)! 
-    
-
-        let requestGen  = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
-        if requestGen == nil {  // Create initial Requerst Generator, first time only
-            let rh <- adminRef.newRequestGenerator()
-            self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
+        
+        if self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath) == nil {  // Create initial Requerst Generator, first time only
+            let requestGen <- adminRef.newRequestGenerator()
+            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!            
             log("Request Generator Initialized")
         }
-
-        requestGen?.answerRequest(mid: mid, answer: answer)
-        log("Request Made")
+        let rg  = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        rg.answerRequest(mid: mid, answer: answer)
+        log("Request Answered")
     }
 }

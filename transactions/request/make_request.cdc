@@ -13,13 +13,10 @@ transaction(mid: UInt64 /* , creator: Address?*/ ) {
     }
 
     execute {
-        var royality = {DAAM.agency : 0.1 as UFix64}
-        royality.insert(key: DAAM.agency, 0.15 as UFix64)        
+        var royality = {DAAM.agency : 0.1 as UFix64} // Debug
 
         //let admin = self.signer.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)! 
-    
-
+        let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
         let requestGen  = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
         if requestGen == nil {  // Create initial Requerst Generator, first time only
             let rh <- creatorRef.newRequestGenerator()
@@ -29,6 +26,8 @@ transaction(mid: UInt64 /* , creator: Address?*/ ) {
         }
         let metadataGen = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
         let metadata = metadataGen.getMetadataRef(mid: mid)
+
+        royality.insert(key: metadata.creator, 0.15 as UFix64) // Debug
 
         requestGen?.makeRequest(metadata: metadata, royality: royality)!
         log("Request Made")

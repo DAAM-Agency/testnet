@@ -127,8 +127,8 @@ pub contract Marketplace {
             let boughtNFT <-! self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM.NFT
 
             let price = self.prices[tokenID]!    // Read the price for the token
-            self.prices[tokenID] = nil           // Set the price for the token to nil
-            let agencyCommission      = boughtNFT.royality[DAAM.agency]!
+            self.prices[tokenID]  = nil          // Set the price for the token to nil
+            let agencyCommission  = boughtNFT.royality[DAAM.agency]!
             let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
 
             let agencyCut      <-! buyTokens.withdraw(amount: price * agencyCommission)
@@ -148,7 +148,7 @@ pub contract Marketplace {
             log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(boughtNFT.metadata.mid.toString()) )
             recipient.deposit(token: <-boughtNFT)
 
-            //self.updateSeries(metadata: metadata)
+            //self.updateSeries(metadata: metadata, price: price)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
         }
 
@@ -172,10 +172,10 @@ pub contract Marketplace {
             }
         }
 
-        priv fun updateSeries(metadata: DAAM.Metadata) {
+        priv fun updateSeries(metadata: DAAM.Metadata, price: UFix64) {
             if metadata.series == 1 as UInt64          { return }
             if self.owner?.address != metadata.creator { return } // is the Seller aka Creator == NFT.metacreator; you're buying from the original collection/creator
-            Marketplace.loadMinter(creator: metadata.creator, mid: metadata.mid, recipient: self.ownerCollection.borrow()! )
+            Marketplace.loadMinter(creator: metadata.creator, mid: metadata.mid, price: price, recipient: self.ownerCollection.borrow()! )
         }
     }
 /************************************************************************/
@@ -184,16 +184,18 @@ pub contract Marketplace {
         return <- create SaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
     }
 
-    access(contract) fun loadMinter(creator: Address, mid: UInt64, recipient: &{NonFungibleToken.CollectionPublic} ) {
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, price: UFix64, recipient: &{NonFungibleToken.CollectionPublic} ) {
         let requestGen = self.account.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
-
+        let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
+/*
         let metadataGenCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
         let metadataGen = metadataGenCap.borrow()!
         let mh <- metadataGen.generateMetadata(mid: mid)
         
-        let request <- requestGen.getRequest(mid: mid)
-        minter.mintNFT(recipient: recipient, metadata: <-mh, request: <-request)
+        let request <- requestGen.getRequest(metadata: mh )
+        let tokenID = minter.mintNFT(recipient: recipient, metadata: <-mh, request: <-request)
+        saleCollection.listForSale(tokenID: tokenID, price: price)*/
     }
 
     init() {
