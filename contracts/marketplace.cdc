@@ -148,7 +148,7 @@ pub contract Marketplace {
             log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(boughtNFT.metadata.mid.toString()) )
             recipient.deposit(token: <-boughtNFT)
 
-            //self.updateSeries(metadata: metadata, price: price)
+            self.updateSeries(metadata: metadata, price: price)
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
         }
 
@@ -187,15 +187,19 @@ pub contract Marketplace {
     access(contract) fun loadMinter(creator: Address, mid: UInt64, price: UFix64, recipient: &{NonFungibleToken.CollectionPublic} ) {
         let requestGen = self.account.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
-        let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
-/*
+        //let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
+
         let metadataGenCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
         let metadataGen = metadataGenCap.borrow()!
-        let mh <- metadataGen.generateMetadata(mid: mid)
+        let metadataHolder <- metadataGen.generateMetadata(mid: mid)
+        let metadataHolderRef = &metadataHolder as &DAAM.MetadataHolder
         
-        let request <- requestGen.getRequest(metadata: mh )
-        let tokenID = minter.mintNFT(recipient: recipient, metadata: <-mh, request: <-request)
-        saleCollection.listForSale(tokenID: tokenID, price: price)*/
+        let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
+        let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
+        //saleCollection.listForSale(tokenID: tokenID, price: price)
+
+        destroy metadataHolder
+        destroy request
     }
 
     init() {

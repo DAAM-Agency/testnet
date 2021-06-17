@@ -116,7 +116,10 @@ pub resource RequestGenerator {
     }
 
     pub fun getRequest(metadata: &MetadataHolder): @Request {
-        pre { metadata != nil }
+        pre {
+            metadata != nil
+            self.request[metadata.metadata.mid] != nil
+        }
         let mid = metadata.metadata.mid
         let royality = self.request[mid]?.royality!
         let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
