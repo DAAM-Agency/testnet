@@ -94,7 +94,6 @@ pub resource RequestGenerator {
             DAAM.request[mid]   != nil
         }
         post { DAAM.request[mid] == answer }
-        log(answer)
         DAAM.request[mid] = answer
         log("Request Answered, MID: ".concat(mid.toString()) )
         emit RequestAnswered(mid: mid)
@@ -119,7 +118,7 @@ pub resource RequestGenerator {
         pre {
             metadata != nil
             self.request[metadata.metadata.mid] != nil
-        }
+        } 
         let mid = metadata.metadata.mid
         let royality = self.request[mid]?.royality!
         let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)

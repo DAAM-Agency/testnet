@@ -185,21 +185,17 @@ pub contract Marketplace {
     }
 
     access(contract) fun loadMinter(creator: Address, mid: UInt64, price: UFix64, recipient: &{NonFungibleToken.CollectionPublic} ) {
-        let requestGen = self.account.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+        let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
         //let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
 
-        let metadataGenCap = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)
-        let metadataGen = metadataGenCap.borrow()!
+        let metadataGen = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
         let metadataHolder <- metadataGen.generateMetadata(mid: mid)
         let metadataHolderRef = &metadataHolder as &DAAM.MetadataHolder
         
         let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
         let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
         //saleCollection.listForSale(tokenID: tokenID, price: price)
-
-        destroy metadataHolder
-        destroy request
     }
 
     init() {

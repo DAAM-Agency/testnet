@@ -61,8 +61,8 @@ flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg
 flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:2.2  --signer client
 
 # Marketplace Test #3; Purchase Series
-#flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:3.3 --signer creator
-#flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
+flow transactions send ./testnet/transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:3.3 --signer creator
+flow transactions send ./testnet/transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
 
 # Marketpalce Start New Sale & Change Price
 
@@ -79,6 +79,6 @@ flow transactions send ./testnet/transactions/admin/remove_admin.cdc --arg Addre
 flow transactions send ./testnet/transactions/admin/remove_creator.cdc --arg Address:$CREATOR --signer admin
 
 # Transfer NFT
-#flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
+flow transactions send ./testnet/transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
 
 #0xf8d6e0586b0a20c7
