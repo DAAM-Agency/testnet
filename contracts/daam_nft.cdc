@@ -75,8 +75,10 @@ pub resource RequestGenerator {
     init() { self.request <- {} }
 
     pub fun makeRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
-        pre { metadata != nil }
-        // TODO Verify sender is a Creator or Admin
+        pre {
+            metadata != nil
+            //TODO Consider verifiing Only Creator
+        }
         let mid = metadata.mid
         let request <-! create Request(metadata: metadata, royality: royality)
 
@@ -85,18 +87,6 @@ pub resource RequestGenerator {
                     
         log("Royality Request: ".concat(mid.toString()) )
         emit RoyalityRequest(mid: mid)
-    }
-
-    pub fun answerRequest(mid: UInt64, answer: Bool) {
-        // TODO Verify sender is a Creator or Admin
-        pre {
-            self.owner?.address != nil
-            DAAM.request[mid]   != nil
-        }
-        post { DAAM.request[mid] == answer }
-        DAAM.request[mid] = answer
-        log("Request Answered, MID: ".concat(mid.toString()) )
-        emit RequestAnswered(mid: mid)
     }
 
     pub fun acceptDefault(metadata: &Metadata) {
@@ -343,8 +333,8 @@ pub resource interface CollectionPublic {
         }
 
         pub fun removeAdminInvite()
-
         pub fun newRequestGenerator(): @RequestGenerator
+        pub fun answerRequest(mid: UInt64, answer: Bool)
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -421,6 +411,17 @@ pub resource interface CollectionPublic {
         pub fun changMetadataStatus(mid: UInt64, status: Bool) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.metadata[mid] = status
+        }
+
+        pub fun answerRequest(mid: UInt64, answer: Bool) {
+            pre {
+                self.status : "You're no longer a DAAM Admin!!"
+                DAAM.request[mid] != nil
+            }
+            post { DAAM.request[mid] == answer }
+            DAAM.request[mid] = answer
+            log("Request Answered, MID: ".concat(mid.toString()) )
+            emit RequestAnswered(mid: mid)
         }
 	}
 /************************************************************************/
