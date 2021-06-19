@@ -505,8 +505,8 @@ pub resource interface SeriesMinter {
         self.requestStoragePath    = /storage/DAAM_Request
 
         //Custom variables should be contract arguments        
-        self.adminPending = 0x01cf0e2f2f715450
-        self.agency       = 0xeb179c27144f783c
+        self.adminPending = 0x0408d5dc880b51fa
+        self.agency       = 0xe06f6c0199f15125 
         
         self.copyright = {}
         self.creators  = {}
