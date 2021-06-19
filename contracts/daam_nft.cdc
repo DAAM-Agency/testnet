@@ -444,7 +444,8 @@ pub resource interface SeriesMinter {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
                 DAAM.creators[metadata.metadata.creator] == true     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
-                DAAM.request[metadata.metadata.mid]      == true     : "Request Invalid"
+                DAAM.request.containsKey(metadata.metadata.mid)      : "Request Invalid"
+                DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
             } 
 			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
             let id = newNFT.id
