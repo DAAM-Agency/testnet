@@ -2,7 +2,7 @@
 
 import FungibleToken    from 0x9a0766d93b6608b7
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM             from 0x51e2c02e69b53477
+import DAAM             from 0x0670fa5367e021b7
 /************************************************************************/
 pub contract Marketplace {
     // emitted when a DAAM NFT moment is listed for sale

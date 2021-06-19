@@ -1,8 +1,8 @@
 // create_start_sale.cdc
 
-import FungibleToken from 0xee82856bf20e2aa6
+import FungibleToken from 0x9a0766d93b6608b7
 import Marketplace   from 0x045a1763c93006ca
-import DAAM          from x51e2c02e69b53477
+import DAAM          from 0x51e2c02e69b53477
 
 transaction(/*tokenReceiverPath: PublicPath,*/ tokenID: UInt64, price: UFix64) {
     prepare(acct: AuthAccount) {
