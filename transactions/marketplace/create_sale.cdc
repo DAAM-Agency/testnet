@@ -1,5 +1,5 @@
 import FungibleToken from 0x9a0766d93b6608b7
-import DAAM          from x51e2c02e69b53477
+import DAAM          from 0x51e2c02e69b53477
 import Marketplace   from 0x045a1763c93006ca
 
 // This transaction creates a sale collection and stores it in the signer's account

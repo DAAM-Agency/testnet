@@ -1,8 +1,8 @@
 // daam_nft.cdc
 
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import FungibleToken    from 0x9a0766d93b6608b7
-import Profile          from 0xba1132bc08f82fe2
+import NonFungibleToken from 0x120e725050340cab
+import FungibleToken    from 0xee82856bf20e2aa6
+import Profile          from 0x192440c99cb17282
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
 
@@ -19,11 +19,13 @@ pub contract DAAM: NonFungibleToken {
     pub event MetadataGeneratated(creator: Address, id: UInt64)
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(metadataID: UInt64)
-    pub event RoyalityChangeRequest(newPercent: UFix64, creator: Address)
+    pub event RoyalityRequest(mid: UInt64)
     pub event ChangeCreatorStatus(creator: Address, status: Bool)
     pub event CreatorRemoved(creator: Address)
     pub event AdminRemoved(admin: Address)
-    pub event RequestAnswered(creator: Address, answer: Bool, request: UInt8)
+    pub event RequestAnswered(mid: UInt64)
+    pub event RequestAccepted(mid: UInt64)
+    pub event RemovedAdminInvite()
 
     pub let collectionPublicPath : PublicPath
     pub let collectionStoragePath: StoragePath
@@ -33,12 +35,15 @@ pub contract DAAM: NonFungibleToken {
     pub let adminPrivatePath     : PrivatePath
     pub let creatorStoragePath   : StoragePath
     pub let creatorPrivatePath   : PrivatePath
+    pub let requestPublicPath    : PublicPath
+    pub let requestStoragePath   : StoragePath
                  
     access(contract) var adminPending : Address?
-    access(contract) var creators: {Address: Request} // {request as a string : Address List}
-    access(contract) var metadata: {UInt64: Bool}
+    access(contract) var creators: {Address: Bool}     // {Creator Address : status}
+    access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
+    access(contract) var request : {UInt64: Bool}      // {Address Requested : Approved by Admin }
 
-    pub var copyright: {UInt64: CopyrightStatus}      // {NFT.id : CopyrightStatus}
+    pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus}
     
     access(contract) var collectionCounterID: UInt64
     access(contract) var metadataCounterID  : UInt64
@@ -51,22 +56,66 @@ pub enum CopyrightStatus: UInt8 {
             pub case UNVERIFIED
             pub case VERIFIED
             //pub case INCLUDED TODO v2
-    }
-/***********************************************************************/
-pub struct Request {
-    pub var status         : Bool
-    pub var changeRoyality : {UInt64 : UFix64}  // {id : 0.2 new royality}
-    //pub let reviewCopyright: Bool // ToDo
-
-    init() {  // Any additions, make sure to update answerRequest
-        self.status         = false
-        self.changeRoyality = {}
-        //self.reviewCopyright = "Review Copyright"// ToDo v2
-    }
-
-    pub fun setStatus(status: Bool) {self.status = status}
 }
 /***********************************************************************/
+pub resource Request {
+    access(contract) let mid       : UInt64
+    access(contract) let royality  : {Address : UFix64}
+    
+    init(metadata: &Metadata, royality: {Address : UFix64} ) {
+        pre { royality.containsKey(DAAM.agency) }  // Agency must be included.
+        self.mid      = metadata.mid
+        self.royality = royality
+    }
+}
+/***********************************************************************/
+pub resource RequestGenerator {
+    priv var request  : @{UInt64 : Request}  // { mid : Request }
+   
+    init() { self.request <- {} }
+
+    pub fun makeRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
+        pre {
+            metadata != nil
+            //TODO Consider verifiing Only Creator
+        }
+        let mid = metadata.mid
+        let request <-! create Request(metadata: metadata, royality: royality)
+
+        DAAM.request.insert(key: mid, false)
+        self.request[mid] <-! request
+                    
+        log("Royality Request: ".concat(mid.toString()) )
+        emit RoyalityRequest(mid: mid)
+    }
+
+    pub fun acceptDefault(metadata: &Metadata) {
+        let mid = metadata.mid
+        var royality = {DAAM.agency: 0.1 as UFix64 }
+        royality.insert(key: self.owner?.address!, 0.2 )
+
+        let request <-! create Request(metadata: metadata, royality: royality)
+        DAAM.request.insert(key: mid, true)
+        self.request[mid] <-! request
+        
+        log("Request Acceppted, MID: ".concat(mid.toString()) )
+        emit RequestAccepted(mid: mid)
+    }
+
+    pub fun getRequest(metadata: &MetadataHolder): @Request {
+        pre {
+            metadata != nil
+            self.request[metadata.metadata.mid] != nil
+        } 
+        let mid = metadata.metadata.mid
+        let royality = self.request[mid]?.royality!
+        let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
+        return <- request
+    }
+
+    destroy() { destroy self.request }
+}
+/************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
         pub let mid       : UInt64
         pub let creator   : Address  // Creator
@@ -76,109 +125,115 @@ pub struct Request {
         pub let thumbnail : String   // JSON see metadata.json
         pub let file      : String   // JSON see metadata.json
         
-        init(creator: Address, series: UInt64, counter: UInt64, data: String, thumbnail: String, file: String) {
+        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, metadata: Metadata?) {
+            post{ self.counter <= self.series }
+            if metadata == nil { // new
                 self.mid       = DAAM.metadataCounterID
                 self.creator   = creator
                 self.series    = series
-                self.counter   = counter
+                self.counter   = 0 as UInt64
                 self.data      = data
                 self.thumbnail = thumbnail
                 self.file      = file
+            } else {  // counter
+                self.mid       = metadata?.mid!
+                self.creator   = metadata?.creator!
+                self.series    = metadata?.series!
+                self.counter   = metadata?.counter! + 1 as UInt64
+                self.data      = metadata?.data!
+                self.thumbnail = metadata?.thumbnail!
+                self.file      = metadata?.file!
+            }
         }// Metadata init
     }// Metadata
 /************************************************************************/
 pub resource MetadataGenerator {
-        priv var counter  : [UInt64] 
-        priv var metadata : [Metadata]
+        access(contract) var metadata : {UInt64 : Metadata}
         
         init(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil }
-            self.counter  = [0 as UInt64]
-            self.metadata = [metadata]
-            DAAM.metadata.insert(key: self.metadata[0].mid, false)
-            DAAM.copyright[self.metadata[0].mid] = CopyrightStatus.UNVERIFIED
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
-
-            log("Metadata Generatated".concat(self.metadata[0].mid.toString()) )
-            emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[0].mid )
+            pre{ DAAM.metadata[metadata.mid] == nil }   
+            self.metadata = {}
+            
+            self.metadata.insert(key:metadata.mid, metadata)            
+            DAAM.metadata.insert(key: metadata.mid, false)
+            DAAM.copyright[metadata.mid] = CopyrightStatus.UNVERIFIED
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be last
+            
+            log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
+            emit DAAM.MetadataGeneratated(creator: self.metadata[metadata.mid]?.creator! , id: metadata.mid )
         }
 
         pub fun addMetadata(metadata: Metadata) {
-            pre{ DAAM.metadata[metadata.mid] == nil } 
-            self.counter.append(0 as UInt64)    
-            self.metadata.append(metadata)
-            let elm = self.metadata.length-1
-            DAAM.metadata.insert(key: self.metadata[elm].mid, false)            
-            DAAM.copyright[self.metadata[elm].mid] = CopyrightStatus.UNVERIFIED
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64
+            pre{
+                metadata != nil
+                DAAM.metadata[metadata.mid] == nil
+            }
+            
+            self.metadata.insert(key:metadata.mid, metadata)
+            DAAM.metadata.insert(key: metadata.mid, false)
+            DAAM.copyright[metadata.mid] = CopyrightStatus.UNVERIFIED
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be last
 
-            log("Metadata Generatated".concat(self.metadata[elm].mid.toString()) )
-            emit DAAM.MetadataGeneratated(creator: metadata.creator, id: self.metadata[elm].mid )
+            log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
+            emit DAAM.MetadataGeneratated(creator: self.metadata[metadata.mid]?.creator!, id: metadata.mid )
         }
 
-        pub fun removeMetadata(_ elm: UInt16)   {
-            pre  { self.metadata[elm] != nil }
-            self.metadata.remove(at: elm)
-            self.counter.remove(at: elm)
+        pub fun removeMetadata(mid: UInt64)   {
+            pre  { self.metadata[mid] != nil }
+            self.metadata.remove(key: mid)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
-            let elm = self.getElmFromMID(mid: mid)
-            
+            pre {
+                self.metadata[mid] != nil : "Does not Exist"
+                DAAM.metadata[mid] != nil : "Does not Exist"
+                DAAM.metadata[mid] == true: "Your Submission is Not Approved."
+            }            
+            // Now Validated            
+            log("Counter: ".concat(self.metadata[mid]?.counter!.toString()) )
+            log("Series: ".concat(self.metadata[mid]?.series!.toString()) )
+            log("MID: ".concat(mid.toString()) )           
 
-            // Do check, fake pre {}
-            if DAAM.metadata[self.metadata[elm].mid] == nil  { panic("Does not Exist") }
-            self.counter[elm] = self.counter[elm] + 1 as UInt64
-            if self.counter[elm] > self.metadata[elm].series { panic("Counter is greater then Series") }
-
-            // Now Validated
-            
-            log("Counter: ".concat(self.counter[elm].toString()) )
-            log("Series: ".concat(self.metadata[elm].series.toString()) )
-            let ref = &self as &MetadataGenerator
-            
-            let metadata = Metadata(creator: self.metadata[elm].creator, series: self.metadata[elm].series,
-                counter: self.counter[elm], data: self.metadata[elm].data, thumbnail: self.metadata[elm].thumbnail,
-                file: self.metadata[elm].file)
+            let ref = &self as &MetadataGenerator            
+            let metadata = Metadata(creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
+                thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, metadata: self.metadata[mid])
             let mh <- create MetadataHolder(metadata: metadata)
 
-            if self.metadata[elm].counter == self.metadata[elm].series && self.metadata[elm].series != 0 as UInt64 {
-                self.removeMetadata(elm)
+            if self.metadata[mid]?.counter == self.metadata[mid]?.series && self.metadata[mid]?.series != 0 as UInt64 {
+                self.removeMetadata(mid: mid)
             }
             return <- mh         
         }
 
-        priv fun getElmFromMID(mid: UInt64): UInt16 {
-            var counter = 0 as UInt16
-            log(self.metadata.length.toString())
-            for m in self.metadata {
-                if m.mid == mid { return counter}
-                counter = counter + 1 as UInt16
-            }
-            return counter - 1 as UInt16
+        pub fun getMetadataRef(mid: UInt64): &Metadata {
+            pre { self.metadata[mid] != nil }
+            return &self.metadata[mid] as &Metadata
         }
 }
 /************************************************************************/
     pub resource MetadataHolder {        
         access(contract) var metadata: Metadata
-        init (metadata: Metadata) { self.metadata = metadata }
-        pub fun getID(): UInt64 { return self.metadata.mid }
+        init (metadata: Metadata) {
+            pre { metadata != nil }              
+            self.metadata = metadata
+        }
+        pub fun getMID(): UInt64 { return self.metadata.mid }
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT {
         pub let id       : UInt64
         pub let metadata : Metadata
-        pub var royality : {Address : UFix64}  // {royality address : percentage }
+        pub let royality : {Address : UFix64}
 
-        init(metadata: @MetadataHolder) {
-            self.metadata = metadata.metadata
-            destroy metadata
-
+        init(metadata: @MetadataHolder, request: @Request) {
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
 
-            self.royality = {DAAM.agency : 0.1}         // default setting
-            self.royality[self.metadata.creator] = 0.2  // default setting
+            self.metadata = metadata.metadata
+            destroy metadata
+
+            self.royality = request.royality            
+            destroy request            
         }
 
         pub fun getCopyright(): CopyrightStatus {
@@ -252,22 +307,11 @@ pub resource interface CollectionPublic {
                 DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
-            post { DAAM.creators[creator]?.status == false }
-        }
-
-        pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
-            pre {
-                tokenID <= DAAM.totalSupply            : "Invalid ID"
-                DAAM.creators.containsKey(creator)     : "They're no DAAM Creator!!!"
-                DAAM.creators[creator]?.status == true : "This DAAM Creator Account is frozen. Wake the Fuck Man, you're an DAAM Admin!!!"
-                DAAM.creators[creator]?.changeRoyality != nil : "There already is a Request. Only 1 at a time...for now"
-            }
-            post { DAAM.creators[creator]!.changeRoyality[tokenID]! == newPercentage }
         }
 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
-            post { DAAM.creators[creator]?.status == status}
+            post { DAAM.creators[creator] == status}
         }
 
         pub fun removeCreator(creator: Address) {
@@ -285,6 +329,10 @@ pub resource interface CollectionPublic {
         pub fun changMetadataStatus(mid: UInt64, status: Bool) {
             pre  { DAAM.copyright.containsKey(mid): "This is an Invalid ID" }
         }
+
+        pub fun removeAdminInvite()
+        pub fun newRequestGenerator(): @RequestGenerator
+        pub fun answerRequest(mid: UInt64, answer: Bool)
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -297,34 +345,35 @@ pub resource interface CollectionPublic {
             self.remove = []
         }
 
+        pub fun newRequestGenerator(): @RequestGenerator {
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            return <- create RequestGenerator()
+        }
+
         pub fun inviteAdmin(newAdmin: Address) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.adminPending = newAdmin
-            // TODO Add time limit
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.creators.insert(key: creator, Request() ) 
-            // TODO Add time limit            
+            DAAM.creators.insert(key: creator, false )     
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
         }
-        
-        pub fun changeRoyalityRequest(creator: Address, tokenID: UInt64, newPercentage: UFix64) {
+
+        pub fun removeAdminInvite() {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            var ref = &DAAM.creators[creator] as &Request
-            ref.changeRoyality[tokenID] = newPercentage
-            log("Changed Royality to ".concat(newPercentage.toString()) )
-            emit RoyalityChangeRequest(newPercent: newPercentage, creator: creator)
+            DAAM.adminPending = nil
+            log("Admin Invation Removed")
+            emit RemovedAdminInvite()                      
         }
 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre{ self.status : "This account is already frozen" }
-            let ref = &DAAM.creators[creator] as &Request
-            ref.setStatus(status: status)
+            DAAM.creators[creator] = status
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
@@ -353,7 +402,7 @@ pub resource interface CollectionPublic {
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.copyright[mid] = copyright
-            log("Token ID: ".concat(mid.toString()) )
+            log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
 
@@ -361,10 +410,21 @@ pub resource interface CollectionPublic {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.metadata[mid] = status
         }
+
+        pub fun answerRequest(mid: UInt64, answer: Bool) {
+            pre {
+                self.status : "You're no longer a DAAM Admin!!"
+                DAAM.request[mid] != nil
+            }
+            post { DAAM.request[mid] == answer }
+            DAAM.request[mid] = answer
+            log("Request Answered, MID: ".concat(mid.toString()) )
+            emit RequestAnswered(mid: mid)
+        }
 	}
 /************************************************************************/
 pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder)
+     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
 }
 /************************************************************************/
     pub resource Creator: SeriesMinter {
@@ -373,41 +433,25 @@ pub resource interface SeriesMinter {
             return <- create MetadataGenerator(metadata: metadata)
         }
 
+        pub fun newRequestGenerator(): @RequestGenerator {
+            return <- create RequestGenerator()
+        }
+
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're no DAAM Creator!!"
-                DAAM.creators[metadata.metadata.creator]!.status     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
+                DAAM.creators[metadata.metadata.creator] == true     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
+                DAAM.request.containsKey(metadata.metadata.mid)      : "Request Invalid"
+                DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
             } 
-			let newNFT <- create NFT(metadata: <- metadata )
+			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
             let id = newNFT.id
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
             log("Minited NFT: ".concat(id.toString()))
-            emit MintedNFT(id: id)            
+            emit MintedNFT(id: id)
+            return id            
 		}	
-
-        pub fun answerRequest(creator: Address, nft: &NFT, answer: Bool, request: UInt8) {
-            pre {
-                DAAM.creators.containsKey(creator) : "You're no DAAM Creator!!"
-                DAAM.creators[creator]!.status     : "Pay Attenction!! This DAAM Creator account is frozen. You suck at your Job!!"
-                Profile.check(creator)             : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
-                request < 1 as UInt8               : "No such DAAM request"
-            }
-            let getRequest = &DAAM.creators[creator] as &Request
-
-            if answer {                
-                switch request {
-                    case 0 as UInt8:  // Change Royality                
-                        let newPercentage = getRequest.changeRoyality[nft.id]                    
-                        nft.royality[creator] = newPercentage
-                        log("Request: Change Royality: Accepted")
-                }// end switch         
-            } else {
-                log("Request: Change Royality: Refused")
-            }
-            getRequest.changeRoyality.remove(key: nft.id)
-            emit RequestAnswered(creator: creator, answer: answer, request: request)
-        }
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
@@ -429,19 +473,16 @@ pub resource interface SeriesMinter {
             DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
         }
-        var ref = &DAAM.creators[newCreator] as &Request
-        ref.setStatus(status: submit)
-
-        if submit {           
-            log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
-            emit NewCreator(creator: newCreator)
-            return <- create Creator()
-        } else {
+        if !submit {
             DAAM.creators.remove(key: newCreator)
-            return nil!
-        }
+            panic("Maybe, another time")
+        }      
+        DAAM.creators[newCreator] = submit        
+        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: newCreator)
+        return <- create Creator()
     }
-
+    
     pub fun createEmptyCollection(): @Collection {
         post {
             result.getIDs().length == 0: "The created collection must be empty!"
@@ -460,6 +501,8 @@ pub resource interface SeriesMinter {
         self.adminStoragePath      = /storage/DAAM_Admin
         self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
+        self.requestPublicPath     = /public/DAAM_Request
+        self.requestStoragePath    = /storage/DAAM_Request
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
@@ -468,6 +511,7 @@ pub resource interface SeriesMinter {
         self.copyright = {}
         self.creators  = {}
         self.metadata  = {}
+        self.request   = {}
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections

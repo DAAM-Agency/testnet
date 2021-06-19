@@ -1,17 +1,8 @@
 import FungibleToken    from 0x9a0766d93b6608b7
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FlowToken        from 0x7e60df042a9c0868
-import DAAM             from x51e2c02e69b53477
+import DAAM             from 0x51e2c02e69b53477
 import Marketplace      from 0x045a1763c93006ca
-
-// This transaction is for a user to purchase a moment that another user
-// has for sale in their sale collection
-
-// Parameters
-//
-// sellerAddress: the Flow address of the account issuing the sale of a moment
-// tokenID: the ID of the moment being purchased
-// purchaseAmount: the amount for which the user is paying for the moment; must not be less than the moment's price
 
 transaction(sellerAddress: Address, tokenID: UInt64, purchaseAmount: UFix64) {
     prepare(acct: AuthAccount) {

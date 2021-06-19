@@ -1,7 +1,7 @@
 // setup_daam_account.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM             from x51e2c02e69b53477
+import DAAM             from 0x51e2c02e69b53477
 
 // This transaction is what an account would run to set itself up to receive NFTs
 transaction
