@@ -38,9 +38,9 @@ flow transactions send ./testnet/transactions/admin/change_metadata_status.cdc -
 # Request Royality
 flow transactions send ./testnet/transactions/request/make_request.cdc --arg UInt64:2 --signer creator
 flow transactions send ./testnet/transactions/admin/answer_request.cdc --arg UInt64:2 --arg Bool:true --signer admin
-#flow transactions send ./testnet/transactions/request/accept_default.cdc --arg UInt64:2 --signer creator
-flow transactions send ./testnet/transactions/request/make_request.cdc --arg UInt64:1 --signer creator
-flow transactions send ./testnet/transactions/admin/answer_request.cdc --arg UInt64:1 --arg Bool:true --signer admin
+flow transactions send ./testnet/transactions/request/accept_default.cdc --arg UInt64:1 --signer creator
+#flow transactions send ./testnet/transactions/request/make_request.cdc --arg UInt64:1 --signer creator
+#flow transactions send ./testnet/transactions/admin/answer_request.cdc --arg UInt64:1 --arg Bool:true --signer admin
 
 # Mint 4 NFTs
 flow transactions send ./testnet/transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator

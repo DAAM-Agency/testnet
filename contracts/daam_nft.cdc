@@ -90,8 +90,6 @@ pub resource RequestGenerator {
     }
 
     pub fun acceptDefault(metadata: &Metadata) {
-        pre { self.request.containsKey(metadata.mid) }
-
         let mid = metadata.mid
         var royality = {DAAM.agency: 0.1 as UFix64 }
         royality.insert(key: self.owner?.address!, 0.2 )

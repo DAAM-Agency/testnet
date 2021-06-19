@@ -9,6 +9,7 @@ transaction(mid: UInt64) {
     execute {
         let requestGen = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
         if requestGen == nil {  // Create initial Requerst Generator, first time only
+            let creatorRef = self.signer.borrow<&DAAM.Creator>( from: DAAM.creatorStoragePath)!
             let rh <- creatorRef.newRequestGenerator()
             self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!            
