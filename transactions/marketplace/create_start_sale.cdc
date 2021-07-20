@@ -4,9 +4,9 @@ import FungibleToken from 0xee82856bf20e2aa6
 import Marketplace   from 0x045a1763c93006ca
 import DAAM          from 0xfd43f9148d4b725d
 
-transaction(/*tokenReceiverPath: PublicPath,*/ tokenID: UInt64, price: UFix64) {
+transaction(tokenID: UInt64, price: UFix64) {
     prepare(acct: AuthAccount) {
-        let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE
+        let tokenReceiverPath = /public/flowTokenReceiver // Exclusive to Flow
         // check to see if a sale collection already exists
         if acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath) == nil {
             // get the fungible token capabilities for the owner and beneficiary

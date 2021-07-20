@@ -19,10 +19,8 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!
             self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
-        } else {
-            destroy creator
-        }
+        } 
 
-        if !submit { log("Well, ... why the fuck did you bother ?!?") }
+        if !submit { log("Thank You for your consideration.") }
     }
 }
