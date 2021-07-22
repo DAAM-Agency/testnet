@@ -56,19 +56,19 @@ echo DAAM NFT: $DAAM_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CREATOR
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$DAAM_NFT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CREATOR
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$DAAM_NFT
 
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$MARKETPLACE
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CLIENT
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN2
-flow transactions send ./testnet/transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$PROFILE
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$MARKETPLACE
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CLIENT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN2
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$PROFILE
 
 # init contracts
-flow accounts add-contract NonFungibleToken ./testnet/contracts/NonFungibleToken.cdc --signer nft
-flow accounts add-contract Profile ./testnet/contracts/Profile.cdc --signer profile
-flow accounts add-contract DAAM ./testnet/contracts/daam_nft.cdc --signer daam_nft
-flow accounts add-contract Marketplace ./testnet/contracts/marketplace.cdc --signer marketplace
+flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc --signer nft
+flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
+flow accounts add-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
+flow accounts add-contract Marketplace ./contracts/marketplace.cdc --signer marketplace

@@ -2,11 +2,8 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(mid: UInt64 /* , creator: Address?*/ ) {
+transaction(mid: UInt64) {
     let signer: AuthAccount
-
-//  if creator is nil then admin else creator
-
 
     prepare(signer: AuthAccount) {
         self.signer = signer
@@ -15,11 +12,11 @@ transaction(mid: UInt64 /* , creator: Address?*/ ) {
     execute {
         var royality = {DAAM.agency : 0.1 as UFix64} // Debug
 
-        //let admin = self.signer.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
-        let requestGen  = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
+        let requestGen = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
         if requestGen == nil {  // Create initial Requerst Generator, first time only
-            let rh <- creatorRef.newRequestGenerator()
+	    let rh <- self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath) != nil ?
+		(self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath))!.newRequestGenerator() : 
+		(self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath))!.newRequestGenerator() 
             self.signer.save<@DAAM.RequestGenerator>(<- rh, to: DAAM.requestStoragePath)
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!            
             log("Request Generator Initialized")

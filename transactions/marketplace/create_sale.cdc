@@ -5,9 +5,9 @@ import Marketplace   from 0x045a1763c93006ca
 // This transaction creates a sale collection and stores it in the signer's account
 // It does not put an NFT up for sale
 
-transaction(/*tokenReceiverPath: PublicPath,*/) {
+transaction() {
     prepare(acct: AuthAccount) {
-        let tokenReceiverPath = /public/flowTokenReceiver // TODO DEBUG REMOVE        
+        let tokenReceiverPath = /public/flowTokenReceiver // Exclusive to FlowTokens  
         
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)

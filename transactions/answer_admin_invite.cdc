@@ -15,11 +15,11 @@ transaction(submit: Bool) {
         if admin != nil {
             self.signer.save(<- admin, to: DAAM.adminStoragePath)
             self.signer.link<&DAAM.Admin{DAAM.Founder}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)
+	    self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!
+            self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
-        } else {
-            destroy admin
         }
 
-        if !submit { log("Well,... fuck you too !!!") }
+        if !submit { log("Thank You for your consideration.") }
     }
 }
