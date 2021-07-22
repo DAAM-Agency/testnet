@@ -47,6 +47,8 @@ pub contract DAAM: NonFungibleToken {
     
     access(contract) var collectionCounterID: UInt64
     access(contract) var metadataCounterID  : UInt64
+    
+    access(contract) var newNFTs: {Address: [UInt64] }     // {Creator : [UInt64]
 
     pub let agency: Address
 /***********************************************************************/
@@ -425,6 +427,13 @@ pub resource interface CollectionPublic {
 /************************************************************************/
 pub resource interface SeriesMinter {
      pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
+     pub fun notNew(tokenID: UInt64, creator: Address)
+}
+/************************************************************************/
+pub resource interface Minter {
+    pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator
+    pub fun newRequestGenerator(): @RequestGenerator
+    pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
 }
 /************************************************************************/
     pub resource Creator: SeriesMinter {
@@ -444,14 +453,40 @@ pub resource interface SeriesMinter {
                 DAAM.creators[metadata.metadata.creator] == true     : "You Shitty Admin. This DAAM Creator's account is Frozen!!"
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Request Invalid"
                 DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
-            } 
+            }
+            let creator = metadata.metadata.creator
 			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
             let id = newNFT.id
+            self.newNFT(id: id, creator: creator)
 			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
             log("Minited NFT: ".concat(id.toString()))
             emit MintedNFT(id: id)
             return id            
-		}	
+        }
+
+        priv fun newNFT(id: UInt64, creator: Address) {
+            post { DAAM.newNFTs[creator]!.contains(id) }
+            if DAAM.newNFTs.containsKey(creator) {
+                assert(!DAAM.newNFTs[creator]!.contains(id))
+                DAAM.newNFTs[creator]!.append(id)
+            } else {
+                DAAM.newNFTs[creator] = [id]
+            }
+        }
+
+        pub fun notNew(tokenID: UInt64, creator: Address) {
+            pre  { DAAM.newNFTs[creator]!.contains(tokenID) }
+            post { !DAAM.newNFTs[creator]!.contains(tokenID) }
+            var counter = 0
+            for nft in DAAM.newNFTs[creator]! {
+                if nft == tokenID {
+                    DAAM.newNFTs[creator]!.remove(at: counter)
+                    break
+                } else {
+                    counter = counter + 1
+                }
+            }
+        }
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
@@ -512,6 +547,7 @@ pub resource interface SeriesMinter {
         self.creators  = {}
         self.metadata  = {}
         self.request   = {}
+        self.newNFTs   = {}
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections
