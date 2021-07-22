@@ -44,7 +44,7 @@ echo Nobody: $NOBODY
 export CLIENT=$(head -1 client | awk '{print $2}')
 echo Client: $CLIENT
 export MARKETPLACE=$(head -1 marketplace     | awk '{print $2}')
-echo Markeyplace: $MARKETPLACE
+echo Marketplace: $MARKETPLACE
 export ADMIN2=$(head -1 admin2 | awk '{print $2}')
 echo Copyright: $ADMIN2
 export NFT=$(head -1 nft        | awk '{print $2}')
