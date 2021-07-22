@@ -1,6 +1,6 @@
 // answer_request.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0x0670fa5367e021b7
 
 transaction(mid: UInt64, answer: Bool) {
     let signer: AuthAccount
