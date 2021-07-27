@@ -72,3 +72,12 @@ flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc --s
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 flow accounts add-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 flow accounts add-contract Marketplace ./contracts/marketplace.cdc --signer marketplace
+
+# Invite Admin
+flow transactions send ./transactions/create_profile.cdc --signer admin
+flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
+
+# Setup Marketplace
+flow transactions send ./transactions/create_profile.cdc --signer marketplace
+flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$MARKETPLACE --signer admin
+flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer marketplace

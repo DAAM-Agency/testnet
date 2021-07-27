@@ -1,12 +1,10 @@
 # verify transactions
 
 # Setup Profiles
-flow transactions send ./transactions/create_profile.cdc --signer admin
 flow transactions send ./transactions/create_profile.cdc --signer admin2
 flow transactions send ./transactions/create_profile.cdc --signer creator
 flow transactions send ./transactions/create_profile.cdc --signer client
 flow transactions send ./transactions/create_profile.cdc --signer nobody
-flow transactions send ./transactions/create_profile.cdc --signer marketplace
 
 # Setup DAAM Accounts
 flow transactions send ./transactions/setup_daam_account.cdc --signer nobody
@@ -14,14 +12,9 @@ flow transactions send ./transactions/setup_daam_account.cdc --signer creator
 flow transactions send ./transactions/setup_daam_account.cdc --signer client
 flow transactions send ./transactions/setup_daam_account.cdc --signer admin2
 
-# Invite Admin
-flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
-
 # Invite Creator & Accept
 flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
-flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$MARKETPLACE --signer admin
 flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
-flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer marketplace
 
 # Invite Admin #2
 flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin

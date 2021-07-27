@@ -125,9 +125,20 @@ pub contract Marketplace {
 
             // Take the cut of the tokens that the beneficiary gets from the sent tokens
             let boughtNFT <-! self.ownerCollection.borrow()!.withdraw(withdrawID: tokenID) as! @DAAM.NFT
-
             let price = self.prices[tokenID]!    // Read the price for the token
             self.prices[tokenID]  = nil          // Set the price for the token to nil
+
+            // First sale
+            let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
+            if DAAM.newNFTs.containsKey(boughtNFT.creator) {
+                minter.notNew(tokenID: tokenID, creator: boughtNFT.creator)
+                let agencyCommission  = 0.2
+                let creatorCommission = 0.8
+            } else {  // Not first sale
+                let agencyCommission  = boughtNFT.royality[DAAM.agency]!
+                let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
+            }
+            
             let agencyCommission  = boughtNFT.royality[DAAM.agency]!
             let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
 
