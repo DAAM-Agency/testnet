@@ -8,14 +8,17 @@ import Marketplace   from 0x045a1763c93006ca
 transaction() {
     prepare(acct: AuthAccount) {
         let tokenReceiverPath = /public/flowTokenReceiver // Exclusive to FlowTokens  
-        
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
         let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)
-        let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
-
-        acct.save(<-saleCollection, to: Marketplace.marketStoragePath)        
-        acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
         
-        log("Created Sale Collection")
+        let market = acct.borrow<&Marketplace.SaleCollection{Marketplace.SalePublic}>(from: Marketplace.marketStoragePath)
+        if market == nil {
+            let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
+            acct.save(<-saleCollection, to: Marketplace.marketStoragePath)
+            acct.link<&Marketplace.SaleCollection{Marketplace.SalePublic}>(Marketplace.marketPublicPath, target: Marketplace.marketStoragePath)
+            log("Created Sale Collection")
+        } else {
+            log("You already have a Sale Collection")
+        }
     }
 }

@@ -21,8 +21,8 @@ flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMI
 flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
 
 # Submit 2 Metadata: #1 Solo, #2 Series(of 2)
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:2 --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --arg String:"data" --arg String:"thumbnail" --arg String:"file" --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:2 --arg String:"data" --arg String:"thumbnail" --arg String:"file" --signer creator
 
 # Approve the Metadatas
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
@@ -38,30 +38,58 @@ flow transactions send ./transactions/request/accept_default.cdc --arg UInt64:1 
 # Mint 4 NFTs
 flow transactions send ./transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator
 flow transactions send ./transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 
 # Change Copyright
-flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:1 --signer admin
-flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 --signer admin
+flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:1 --arg Int:3 --signer admin
+flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 --arg Int:3 --signer admin
 
 # Marketplace Test #1; Sale: Create, Start, Stop
-flow transactions send ./transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:1.1 --signer creator
-flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer creator
+flow transactions send ./transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:10.0 --signer creator
+flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:20.0 --signer creator
 flow transactions send ./transactions/marketplace/stop_sale.cdc --arg UInt64:1 --signer creator
-flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:1.11 --signer creator
+flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:1 --arg UFix64:15.0 --signer creator
 
 # Marketplace Test #2; Purchase, Start Sale
-flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:1.11 --signer client
-flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:2.2  --signer client
+flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:15.0 --signer client
+flow accounts get $CREATOR
+flow accounts get $CLIENT
+flow accounts get $AGENCY
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
+
+flow transactions send ./transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:40.0 --signer client
+flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CLIENT --arg UInt64:1 --arg UFix64:40.0 --signer nobody
+flow accounts get $CREATOR
+flow accounts get $CLIENT
+flow accounts get $AGENCY
+flow accounts get $NOBODY
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
+flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
+
+flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:20.0  --signer client
+flow accounts get $CREATOR
+flow accounts get $CLIENT
+flow accounts get $AGENCY
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
+flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 
 # Marketplace Test #3; Purchase Series
-flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:3.3 --signer creator
-flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:3.3 --signer client
+flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:30.0 --signer creator
+flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:30.0 --signer client
+'''
+flow accounts get $CREATOR
+flow accounts get $CLIENT
+flow accounts get $AGENCY
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
+flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 
 # Marketpalce Start New Sale & Change Price
-
-flow transactions send ./transactions/marketplace/create_sale.cdc --signer client
-flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:2.2 --signer client
-flow transactions send ./transactions/marketplace/change_price.cdc --arg UInt64:2 --arg UFix64:3.8 --signer client
+flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:40.0 --signer client
+flow transactions send ./transactions/marketplace/change_price.cdc --arg UInt64:2 --arg UFix64:55.0 --signer client
 
 # Change Creator Status
 flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2

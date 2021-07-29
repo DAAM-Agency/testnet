@@ -56,16 +56,16 @@ echo DAAM NFT: $DAAM_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
 
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CREATOR
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NOBODY
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$NFT
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$DAAM_NFT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CREATOR
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$ADMIN
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$NOBODY
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$NFT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$DAAM_NFT
 
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$MARKETPLACE
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$CLIENT
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$ADMIN2
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:10.0 --arg Address:$PROFILE
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$MARKETPLACE
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CLIENT
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$ADMIN2
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$PROFILE
 
 # init contracts
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc --signer nft

@@ -51,7 +51,7 @@ pub contract Marketplace {
 
         init (ownerCollection: Capability<&DAAM.Collection>, ownerCapability: Capability<&{FungibleToken.Receiver}>) {
             pre {
-                // Check that the owner's moment collection capability is correct
+                // Check that the owner's collection capability is correct
                 ownerCollection.borrow() != nil: 
                     "Owner's Moment Collection Capability is invalid!"
 
@@ -128,21 +128,12 @@ pub contract Marketplace {
             let price = self.prices[tokenID]!    // Read the price for the token
             self.prices[tokenID]  = nil          // Set the price for the token to nil
 
-            // First sale
-            let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
-            if DAAM.newNFTs.containsKey(boughtNFT.creator) {
-                minter.notNew(tokenID: tokenID, creator: boughtNFT.creator)
-                let agencyCommission  = 0.2
-                let creatorCommission = 0.8
-            } else {  // Not first sale
-                let agencyCommission  = boughtNFT.royality[DAAM.agency]!
-                let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
-            }
+            let agencyCommission  = DAAM.newNFTs.contains(tokenID) ? 0.2 : boughtNFT.royality[DAAM.agency]!
+            let creatorCommission = DAAM.newNFTs.contains(tokenID) ? 0.8 : boughtNFT.royality[boughtNFT.metadata.creator]!
+            // First sale : Not first sale
+            if DAAM.newNFTs.contains(tokenID) { Marketplace.notNew(token: &boughtNFT as &DAAM.NFT) } // no longer "new"
             
-            let agencyCommission  = boughtNFT.royality[DAAM.agency]!
-            let creatorCommission = boughtNFT.royality[boughtNFT.metadata.creator]!
-
-            let agencyCut      <-! buyTokens.withdraw(amount: price * agencyCommission)
+            let agencyCut  <-! buyTokens.withdraw(amount: price * agencyCommission)
             let creatorCut <-! buyTokens.withdraw(amount: price * creatorCommission)
             
             // Deposit it into the beneficiary's Vault
@@ -152,14 +143,13 @@ pub contract Marketplace {
             let agencyCapability = getAccount(DAAM.agency).getCapability<&AnyResource{FungibleToken.Receiver}>(Marketplace.flowPublicPath)
             agencyCapability.borrow()!.deposit(from: <-agencyCut)
             
-            self.ownerCapability.borrow()!       // Deposit the remaining tokens into the owners vault
-                .deposit(from: <-buyTokens)
+            self.ownerCapability.borrow()!.deposit(from: <-buyTokens)// Deposit the remaining tokens into the owners vault
 
-            let metadata = boughtNFT.metadata
-            log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(boughtNFT.metadata.mid.toString()) )
+            let mid = boughtNFT.metadata.mid
+            self.updateSeries(series: boughtNFT.metadata.series, creator: boughtNFT.metadata.creator, mid: mid, price: price)
             recipient.deposit(token: <-boughtNFT)
 
-            self.updateSeries(metadata: metadata, price: price)
+            log("TokenID: ".concat(tokenID.toString()).concat(" MetadataID: ").concat(mid.toString()) )
             emit NFT_Purchased(id: tokenID, price: price, seller: self.owner?.address)
         }
 
@@ -183,10 +173,13 @@ pub contract Marketplace {
             }
         }
 
-        priv fun updateSeries(metadata: DAAM.Metadata, price: UFix64) {
-            if metadata.series == 1 as UInt64          { return }
-            if self.owner?.address != metadata.creator { return } // is the Seller aka Creator == NFT.metacreator; you're buying from the original collection/creator
-            Marketplace.loadMinter(creator: metadata.creator, mid: metadata.mid, price: price, recipient: self.ownerCollection.borrow()! )
+        priv fun updateSeries(series: UInt64, creator: Address, mid: UInt64, price: UFix64) {
+            if series == 1 as UInt64          { return }
+            if self.owner?.address != creator { return } // is the Seller aka Creator == NFT.metadata.creator; you're buying from the original collection/creator
+            log("Series: ".concat(series.toString()))
+            log("Creator: ".concat(creator.toString()))
+            log("MID: ".concat(mid.toString()))
+            Marketplace.loadMinter(creator: creator, mid: mid, price: price, recipient: self.ownerCollection.borrow()! )
         }
     }
 /************************************************************************/
@@ -207,6 +200,11 @@ pub contract Marketplace {
         let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
         let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
         //saleCollection.listForSale(tokenID: tokenID, price: price)
+    }
+
+    access(contract) fun notNew(token: &DAAM.NFT) {
+        let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
+        minter.notNew(tokenID: token.id)
     }
 
     init() {
