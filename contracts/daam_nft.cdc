@@ -128,9 +128,10 @@ pub resource RequestGenerator {
         pub let file      : String   // JSON see metadata.json
         
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
-            pre { counter != 0 as UInt64 }
-            // Error
-            if series != 0 && counter > series { panic("Reached limit on prints.") }
+            pre {
+                counter != 0 as UInt64 : "Illegal operation."
+                (series != 0 && counter <= series) : "Reached limit on prints."
+            }
             self.mid       = DAAM.metadataCounterID
             self.creator   = creator
             self.series    = series
@@ -153,9 +154,9 @@ pub resource MetadataGenerator {
             }
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first/
             let creator = self.owner?.address!
-            let counter = 1 as UInt64
-            // self.owner?.address! == metadata.creator : "You are not the Creator of this NFT." TODO
-            let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail, file: file, counter: counter)
+            log("Creator: ".concat(creator.toString()) ) // DEBUG
+            let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail,
+                file: file, counter: 1 as UInt64)
             self.metadata.insert(key:metadata.mid, metadata)
             DAAM.metadata.insert(key: metadata.mid, false)
             DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
@@ -185,15 +186,17 @@ pub resource MetadataGenerator {
             let ref = &self as &MetadataGenerator
             let mh <- create MetadataHolder(metadata: self.metadata[mid]!)
 
-            let counter = self.metadata[mid]?.counter! + 1 as UInt64
-            if counter > self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
+            if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
                 self.removeMetadata(mid: mid)
+                log("REMOVED HERE") // DEBUG
             } else {
+                let counter = self.metadata[mid]!.counter + 1 as UInt64
                 let new_metadata = Metadata(
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
-                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: counter
+                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: self.metadata[mid]!.counter
                 )
                 self.metadata[mid] = new_metadata
+                log("NORMAL HERE") // DEBUG
             }
             return <- mh         
         }
@@ -201,6 +204,10 @@ pub resource MetadataGenerator {
         pub fun getMetadataRef(mid: UInt64): &Metadata {
             pre { self.metadata[mid] != nil }
             return &self.metadata[mid] as &Metadata
+        }
+
+        pub fun getMetadata(): {UInt64:Metadata} {
+            return self.metadata
         }
 }
 /************************************************************************/

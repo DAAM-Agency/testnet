@@ -22,7 +22,9 @@ flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --
 
 # Submit 2 Metadata: #1 Solo, #2 Series(of 2)
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --arg String:"data" --arg String:"thumbnail" --arg String:"file" --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:2 --arg String:"data" --arg String:"thumbnail" --arg String:"file" --signer creator
+flow scripts execute ./scripts/metadata.cdc --arg Address:$CREATOR
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:7 --arg String:"data" --arg String:"thumbnail" --arg String:"file" --signer creator
+flow scripts execute ./scripts/metadata.cdc --arg Address:$CREATOR
 
 # Approve the Metadatas
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
@@ -79,7 +81,6 @@ flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 # Marketplace Test #3; Purchase Series
 flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:3 --arg UFix64:30.0 --signer creator
 flow transactions send ./transactions/marketplace/purchase_nft.cdc --arg Address:$CREATOR --arg UInt64:3 --arg UFix64:30.0 --signer client
-'''
 flow accounts get $CREATOR
 flow accounts get $CLIENT
 flow accounts get $AGENCY
