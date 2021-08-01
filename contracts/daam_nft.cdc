@@ -256,7 +256,7 @@ pub resource interface CollectionPublic {
         init() {
             self.ownedNFTs <- {}
             DAAM.collectionCounterID = DAAM.collectionCounterID + 1 as UInt64
-            self.id = DAAM.collectionCounterID            
+            self.id = DAAM.collectionCounterID
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -281,7 +281,7 @@ pub resource interface CollectionPublic {
 
         // borrowNFT gets a reference to an NFT in the collection so that the caller can read its metadata and call its methods
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+            return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
 
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
@@ -526,7 +526,7 @@ pub resource interface Minter {
         return <- create Creator()!
     }
     
-    pub fun createEmptyCollection(): @Collection {
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         post {
             result.getIDs().length == 0: "The created collection must be empty!"
         }

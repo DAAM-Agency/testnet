@@ -45,7 +45,7 @@ flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 # Change Copyright
 flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:1 --arg Int:3 --signer admin
 flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 --arg Int:3 --signer admin
-
+'''
 # Marketplace Test #1; Sale: Create, Start, Stop
 flow transactions send ./transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:10.0 --signer creator
 flow transactions send ./transactions/marketplace/start_sale.cdc --arg UInt64:2 --arg UFix64:20.0 --signer creator
@@ -101,10 +101,10 @@ flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMI
 flow transactions send ./transactions/admin/remove_creator.cdc --arg Address:$CREATOR --signer admin
 
 # Transfer NFT
-flow transactions send ./transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
+#flow transactions send ./transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
 
 # Scripts
-flow scripts execute ./scripts/CheckTokenData.cdc --arg Address:$CLIENT --arg UInt64:1
-flow scripts execute ./scripts/CheckMarketplaceData.cdc --arg Address:$CLIENT
+#flow scripts execute ./scripts/CheckTokenData.cdc --arg Address:$CLIENT --arg UInt64:1
+#flow scripts execute ./scripts/CheckMarketplaceData.cdc --arg Address:$CLIENT
 
 #0xf8d6e0586b0a20c7

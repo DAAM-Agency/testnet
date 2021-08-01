@@ -10,9 +10,9 @@ transaction(tokenID: UInt64, price: UFix64) {
         // check to see if a sale collection already exists
         if acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath) == nil {
             // get the fungible token capabilities for the owner and beneficiary
-            let ownerCapability = acct.getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)
-            let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)   // create a new sale collection            
-            let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)
+            let ownerCapability = acct.getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)!
+            let ownerCollection = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!   // create a new sale collection            
+            let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)!
 
             acct.save(<-saleCollection, to: Marketplace.marketStoragePath)  // save it to storage
             // create a public link to the sale collection
