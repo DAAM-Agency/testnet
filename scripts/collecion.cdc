@@ -7,6 +7,6 @@ pub fun main(account: Address): [UInt64] {
         .getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath)
         .borrow()
         ?? panic("Could not borrow capability from public collection")
-
+    
     return collectionRef.getIDs()
 }

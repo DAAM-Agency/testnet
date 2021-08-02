@@ -3,13 +3,19 @@
 
 import FungibleToken    from 0xee82856bf20e2aa6
 import FlowToken        from 0x0ae53cb6e3f42a79
+import DAAM             from 0xfd43f9148d4b725d
 import NonFungibleToken from 0x120e725050340cab
 
 pub contract AuctionHouse {
     // Events
     pub event AuctionInitialized()
     pub event AuctionCreated(tokenID: UInt64)
+    pub event AuctionClosed(tokenID: UInt64)
     pub event AuctionCancelled(tokenID: UInt64)
+    pub event BidMade(tokenID: UInt64, bidder: Address )
+    pub event AuctionCollected(winner: Address, tokenID: UInt64)
+    pub event BuyItNow(winner: Address, token: UInt64, amount: UFix64)
+    pub event FundsReturned()
     // Path
     pub let auctionStoragePath: StoragePath
     pub let auctionPublicPath : PublicPath
@@ -17,17 +23,13 @@ pub contract AuctionHouse {
     pub resource AuctionWallet {
         priv let titleholder  : Address
         pub var currentAuction: @{UInt64 : Auction}
-        pub var auctionNFT: @{UInt64 : NonFungibleToken.NFT}
-        pub var auctionRef    : {UInt64 : &Auction}
 
         init(owner: Address) {
             self.titleholder = owner
             self.currentAuction <- {}
-            self.auctionNFT <- {}
-            self.auctionRef = {}
         }
 
-        pub fun createAuction(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, increment: {Bool:UFix64},
+        pub fun createAuction(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, increment: {Bool:UFix64},
         startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
             pre {
                 self.titleholder == self.owner!.address   : "You are not the owner."
@@ -36,15 +38,9 @@ pub contract AuctionHouse {
             post { self.currentAuction.containsKey(id) }
 
             let id = token.id
-            let oldNFT <- self.auctionNFT[id] <- token
-            destroy oldNFT
-
-            let auction <- create Auction(tokenID: id, start: start, length: length, isExtended: isExtended, increment: increment,
-              startingBid: startingBid, reserve: reserve, buyNow: buyNow)
-            
-             
-            self.auctionRef[id] = &auction as &Auction
-
+            let auction <- create Auction(token: <- token, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+              increment: increment, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
+                         
             let oldAuction <- self.currentAuction[id] <- auction
             destroy oldAuction
             
@@ -52,65 +48,35 @@ pub contract AuctionHouse {
             emit AuctionCreated(tokenID: id)
         }
 
-        pub fun cancelAuction(tokenID: UInt64): @NonFungibleToken.NFT? {
+        pub fun closeAuctions() {
             pre {
                 self.titleholder == self.owner!.address  : "You are not the owner."
-                self.currentAuction.containsKey(tokenID): "This Auction doesn not exist."
-                self.auctionRef.containsKey(tokenID)
-                self.auctionRef[tokenID]!.status == nil             : "Too late to cancel Auction."
             }
-            post { !self.currentAuction.containsKey(tokenID) }
 
-            let auction <- self.currentAuction.remove(key:tokenID)!
-            destroy auction
+            for act in self.currentAuction.keys {
+                let status  = self.currentAuction[act]?.status!
+                if status == false {
+                    let tokenID = self.currentAuction[act]?.tokenID!
+                    self.currentAuction[act]?.verifyWinnerPrice()
+                    let auction <- self.currentAuction.remove(key:tokenID)!
+                    destroy auction
 
-            let nft <- self.auctionNFT.remove(key: tokenID)
-            self.auctionRef.remove(key: tokenID)
-
-            log("Auction Cancelled: ".concat(tokenID.toString()) )
-            emit AuctionCancelled(tokenID: tokenID)
-            return <- nft
+                    log("Auction Closed: ".concat(tokenID.toString()) )
+                    emit AuctionClosed(tokenID: tokenID)
+                }
+            } 
         }
 
-        pub fun winnerCollect(bidder: AuthAccount, tokenID: UInt64): @NonFungibleToken.NFT? {
-            pre {
-                self.auctionRef[tokenID]!.leader! == bidder.address ||
-                self.titleholder == bidder.address : "You do not have access to the selected Auction"
-            }
-            self.auctionRef[tokenID!]!.updateStatus()
-            let auction = self.auctionRef[tokenID]!
-            if auction.auctionLog[auction.leader!]! >= auction.reserve {
-                let nft <- self.auctionNFT.remove(key: tokenID)!
-                return <- nft  
-            }
-            // return funds
-            return nil           
-        }   
-
-        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
-            pre {
-                self.buyNow != 0.0
-                self.buyNow == amount.balance
-            }
-            self.status = false  // ends the auction
-            // nned to make it a DAAM NFT
-            // make payment
-            // return funds
-            // send nft
-        }
-
-        destroy() {
-            destroy self.currentAuction
-            destroy self.auctionNFT
-        }
+        destroy() { destroy self.currentAuction }
     }
 /************************************************************************/
     pub resource Auction {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let tokenID     : UInt64
         pub let start       : UFix64
-        pub var length      : UFix64  // post{!isExtended && lenght == before(length)}
+        pub var length      : UFix64  // post{!isExtended && length == before(length)}
         pub let isExtended  : Bool
+        pub let extendedTime: UFix64 // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase.
         pub var leader      : Address?
         pub var minBid      : UFix64
         pub let increment   : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
@@ -119,8 +85,9 @@ pub contract AuctionHouse {
         pub let buyNow      : UFix64
         pub var auctionLog  : {Address: UFix64} // {Bidders, Amount}
         priv var auctionVault: @FungibleToken.Vault
+        pub var auctionNFT   : @NonFungibleToken.NFT?
     
-        init(tokenID:UInt64, start: UFix64, length: UFix64, isExtended: Bool, increment: {Bool:UFix64},
+        init(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, increment: {Bool:UFix64},
           startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
             pre {
                 start > getCurrentBlock().timestamp : "Time has already past."
@@ -134,18 +101,20 @@ pub contract AuctionHouse {
                 increment[true] != nil && increment[true]! >= 1.0 : "The minimum increment is 1 FUSD."
             }
             self.status = nil
-            self.tokenID = tokenID
+            self.tokenID = token.id
             self.start = start
             self.length = length
             self.leader = nil
             self.minBid = startingBid
             self.isExtended = isExtended
+            self.extendedTime = extendedTime
             self.increment = increment
             self.startingBid = startingBid
             self.reserve = reserve
             self.buyNow = buyNow
             self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
+            self.auctionNFT <- token 
 
             log("Auction Initialized: ".concat(self.tokenID.toString()) )
             emit AuctionCreated(tokenID: self.tokenID)
@@ -169,6 +138,10 @@ pub contract AuctionHouse {
             }            
             self.incrementminBid()
             self.auctionVault.deposit(from: <- amount)
+            self.extendAuction()
+
+            log("Bid Made")
+            emit BidMade(tokenID: self.tokenID, bidder:self.leader! )
         }
 
         priv fun incrementminBid() {
@@ -180,7 +153,7 @@ pub contract AuctionHouse {
             }
         }
 
-        access(contract) fun updateStatus(): Bool? {
+        priv fun updateStatus(): Bool? {
             pre { self.status != false }
             let timeNow = getCurrentBlock().timestamp                            
             if self.start >= timeNow {
@@ -190,7 +163,10 @@ pub contract AuctionHouse {
         }
 
         pub fun withdrawBid(bidder: AuthAccount, wallet: @FungibleToken.Vault): @FungibleToken.Vault {
-            pre { self.auctionLog.containsKey(bidder.address) }
+            pre {
+                self.updateStatus() != false : "Auction has Ended."
+                self.auctionLog.containsKey(bidder.address)
+            }
             let bidder_address = bidder.address
             let balance = self.auctionLog[bidder_address]!
             self.auctionLog.remove(key: bidder_address)
@@ -198,9 +174,98 @@ pub contract AuctionHouse {
             wallet.deposit(from: <- amount)
             self.updateStatus()
             return <- wallet
-        }        
+        }
 
-        destroy() { destroy self.auctionVault }
+        pub fun winnerCollect(bidder: AuthAccount) {
+            pre{ self.leader! == bidder.address : "You do not have access to the selected Auction" }
+            self.verifyWinnerPrice()
+        }
+
+        access(contract) fun verifyWinnerPrice() {
+            pre { self.updateStatus() == false   : "Auction still in progress" }
+
+            var nft <- self.auctionNFT <- nil
+            let item_collector = (self.auctionLog[self.leader!]! >= self.reserve) ? self.leader! : self.owner?.address!            
+            // return nft to accordingly // Auctionier or winner
+            let collectionRef = getAccount(item_collector).getCapability<&{DAAM.CollectionPublic}>
+                (DAAM.collectionPublicPath).borrow()!
+            collectionRef.deposit(token: <- nft!)
+
+            self.auctionLog.remove(key: self.leader!)
+            self.returnFunds()!
+
+            log("Auction Collected")
+            emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)          
+        }
+
+       pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault): @NonFungibleToken.NFT {
+            pre {
+                self.updateStatus() != false   : "Auction has Ended."
+                self.buyItNowStatus()
+                self.buyNow == amount.balance
+            }
+            self.status = false  // ends the auction
+            self.leader = bidder.address          
+            self.auctionVault.deposit(from: <- amount)
+            self.auctionLog.remove(key: bidder.address)
+            self.returnFunds()!
+            let nft <- self.auctionNFT <- nil
+
+            log("Buy It Now")
+            emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)
+            return <- nft!
+        }    
+
+        
+        pub fun buyItNowStatus(): Bool {
+            return self.buyNow != 0.0 && self.buyNow > self.auctionLog[self.leader!]!
+        }
+
+        priv fun returnFunds() {
+            pre { !self.auctionLog.containsKey(self.leader!) }
+            for bidder in self.auctionLog.keys {
+                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+                let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)
+                bidderRef.deposit(from: <- amount)
+            }
+            self.auctionLog = {}
+
+            log("Funds Returned")
+            emit FundsReturned()
+        }
+
+        pub fun cancelAuction(): @NonFungibleToken.NFT {
+            pre {
+                self.updateStatus() == nil  : "Too late to cancel Auction."
+                self.auctionLog.length == 0 : "You already have a bid. Too late to Cancel."
+            }
+            self.status = false            
+            let nft <- self.auctionNFT <- nil
+
+            log("Auction Cancelled: ".concat(self.tokenID.toString()) )
+            emit AuctionCancelled(tokenID: self.tokenID)
+            return <- nft!
+        }
+
+        priv fun extendAuction() {
+            if !self.isExtended { return }
+            self.length = self.length + self.extendedTime
+        }
+
+        pub fun getStatus(): Bool? {
+            return self.status
+        }
+
+        destroy() {
+            pre{ self.status == false }
+            self.returnFunds()
+            let amount <- self.auctionVault.withdraw(amount: self.auctionVault.balance)
+            let receiver = getAccount(self.owner?.address!).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+            receiver.deposit(from: <- amount)
+
+            destroy self.auctionVault
+            destroy self.auctionNFT
+        }
     }
 /************************************************************************/
     pub fun createAuctionWallet(owner: AuthAccount): @AuctionWallet {
