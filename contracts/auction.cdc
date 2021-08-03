@@ -268,11 +268,13 @@ pub contract AuctionHouse {
             emit FundsReturned()
         }
 
-        pub fun cancelAuction(): @NonFungibleToken.NFT {
+        pub fun cancelAuction(auctioneer: AuthAccount): @NonFungibleToken.NFT {
             pre {
                 self.updateStatus() == nil  : "Too late to cancel Auction."
                 self.auctionLog.length == 0 : "You already have a bid. Too late to Cancel."
+                self.owner?.address! == auctioneer.address: "You are not the auctioneer."
             }
+            
             self.status = false
             self.length = 0.0 as UFix64
             let nft <- self.auctionNFT <- nil
