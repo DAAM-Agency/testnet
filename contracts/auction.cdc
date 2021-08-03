@@ -54,7 +54,8 @@ pub contract AuctionHouse {
             }
 
             for act in self.currentAuction.keys {
-                let status  = self.currentAuction[act]?.status!
+                self.currentAuction[act]?.updateStatus()
+                let status  = self.currentAuction[act]?.status
                 if status == false {
                     let tokenID = self.currentAuction[act]?.tokenID!
                     self.currentAuction[act]?.verifyWinnerPrice()
@@ -155,7 +156,7 @@ pub contract AuctionHouse {
             }
         }
 
-        priv fun updateStatus(): Bool? {
+        access(contract) fun updateStatus(): Bool? {
             pre { self.status != false }
             let timeNow = getCurrentBlock().timestamp                            
             if self.start >= timeNow {

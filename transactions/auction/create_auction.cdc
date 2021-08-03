@@ -9,7 +9,6 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64)
 {
     prepare(signer: AuthAccount) {
-        let increment = {incrementByPrice: incrementAmount}
         let auctionHouse = signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
         let collection = signer.borrow<&NonFungibleToken.Collection>(from: DAAM.collectionStoragePath)!
         let token <- collection.withdraw(withdrawID: tokenID)!
