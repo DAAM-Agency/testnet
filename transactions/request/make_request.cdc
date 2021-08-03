@@ -24,7 +24,7 @@ transaction(mid: UInt64) {
         let metadataGen = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
         let metadata = metadataGen.getMetadataRef(mid: mid)
 
-        royality.insert(key: metadata.creator, 0.15 as UFix64) // Debug
+        royality.insert(key: metadata.creator, 0.10 as UFix64) // Debug
 
         requestGen?.makeRequest(metadata: metadata, royality: royality)!
         log("Request Made")

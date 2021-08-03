@@ -2,13 +2,11 @@
 
 import DAAM from x51e2c02e69b53477
 
-transaction(metadataID: UInt64, status: Bool) {
+transaction(mid: UInt64, status: Bool) {
 
     prepare(acct: AuthAccount) {
-        let copyright = DAAM.CopyrightStatus.VERIFIED
-
         let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        admin.changMetadataStatus(mid: metadataID, status: status)
+        admin.changeMetadataStatus(mid: mid, status: status)
         log("Change Metadata Status")
     }
-}// transaction
+}

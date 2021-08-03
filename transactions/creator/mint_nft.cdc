@@ -15,7 +15,7 @@ transaction(mid: UInt64) {
         self.creatorRef = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)
             ?? panic("Could not borrow a reference to the Creator Storage")        
         let collection = creator.borrow<&{NonFungibleToken.CollectionPublic}>(from: DAAM.collectionStoragePath)
-            ?? panic("Could not borrow Collection")
+            ?? panic("Could not borrow Collection. Create a Collection first.")
 
         let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)       
              ?? panic("Could not borrow Metadata Generator")
