@@ -57,14 +57,16 @@ flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 
 # tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
 #     increment: {Bool:UFix64}, startingBid: UFix64, reserve: UFix64, buyNow: UFix64
 
-# starts in 60 seconds
+# starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=120.0
+OFFSET=30.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
 flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 --arg UFix64:$START \
---arg UFix64:180.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:true --arg UFix64:5.0 --arg UFix64:51.05 \
+--arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:true --arg UFix64:5.0 --arg UFix64:29.05 \
 --arg UFix64:75.0 --arg UFix64:0.0 --signer creator
+
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
 
 '''
 flow transactions send ./transactions/marketplace/create_start_sale.cdc --arg UInt64:1 --arg UFix64:10.0 --signer creator

@@ -22,26 +22,26 @@ pub contract AuctionHouse {
 /************************************************************************/
     pub resource AuctionWallet {
         priv let titleholder  : Address
-        pub var currentAuction: @{UInt64 : Auction}
+        pub var currentAuctions: @{UInt64 : Auction}
 
         init(owner: Address) {
             self.titleholder = owner
-            self.currentAuction <- {}
+            self.currentAuctions <- {}
         }
 
         pub fun createAuction(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
             pre {
                 self.titleholder == self.owner!.address   : "You are not the owner."
-                !self.currentAuction.containsKey(token.id): "Already created an Auction for this TokenID."
+                !self.currentAuctions.containsKey(token.id): "Already created an Auction for this TokenID."
             }
-            post { self.currentAuction.containsKey(id) }
+            post { self.currentAuctions.containsKey(id) }
 
             let id = token.id
             let auction <- create Auction(token: <- token, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
                          
-            let oldAuction <- self.currentAuction[id] <- auction
+            let oldAuction <- self.currentAuctions[id] <- auction
             destroy oldAuction
             
             log("Auction Created. Start: ".concat(start.toString()) )
@@ -53,22 +53,27 @@ pub contract AuctionHouse {
                 self.titleholder == self.owner!.address  : "You are not the owner."
             }
 
-            for act in self.currentAuction.keys {
-                self.currentAuction[act]?.updateStatus()
-                let status  = self.currentAuction[act]?.status
+            for act in self.currentAuctions.keys {
+                self.currentAuctions[act]?.updateStatus()
+                let status  = self.currentAuctions[act]?.status
                 if status == false {
-                    let tokenID = self.currentAuction[act]?.tokenID!
-                    self.currentAuction[act]?.verifyWinnerPrice()
-                    let auction <- self.currentAuction.remove(key:tokenID)!
+                    let tokenID = self.currentAuctions[act]?.tokenID!
+                    self.currentAuctions[act]?.verifyWinnerPrice()
+                    let auction <- self.currentAuctions.remove(key:tokenID)!
                     destroy auction
 
                     log("Auction Closed: ".concat(tokenID.toString()) )
                     emit AuctionClosed(tokenID: tokenID)
                 }
-            } 
+            }
         }
 
-        destroy() { destroy self.currentAuction }
+        pub fun item(_ id: UInt64): &Auction {
+            pre { self.currentAuctions.containsKey(id) }
+            return &self.currentAuctions[id] as &Auction
+        }
+
+        destroy() { destroy self.currentAuctions }
     }
 /************************************************************************/
     pub resource Auction {
@@ -123,15 +128,14 @@ pub contract AuctionHouse {
             emit AuctionCreated(tokenID: self.tokenID)
         }
 
-        pub fun makeBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
+        pub fun depositToBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {                 
-                self.updateStatus() != false : "Auction already ended."
-                // First Bid
-                (!self.auctionLog.containsKey(self.leader!) && amount.balance >= self.minBid) ||
-                  // Not the first bid
-                (self.auctionLog.containsKey(self.leader!) && 
-                (amount.balance + self.auctionLog[self.leader!]!) >= self.minBid)
+                self.updateStatus() != false              : "Auction has already ended."
+                self.validateBid(balance: amount.balance) : "You have made an invalid Bid."
+                self.leader != bidder.address             : "You are already lead bidder."
+                self.owner?.address != bidder.address     : "Yo can not bid in your own auction."
             }
+
             self.leader = bidder.address
             if !self.auctionLog.containsKey(self.leader!) { // First bid by user
                 self.auctionLog.insert(key: self.leader!, amount.balance)
@@ -143,8 +147,27 @@ pub contract AuctionHouse {
             self.auctionVault.deposit(from: <- amount)
             self.extendAuction()
 
-            log("Bid Made")
+            log("Bid Accepted")
             emit BidMade(tokenID: self.tokenID, bidder:self.leader! )
+        }
+
+        priv fun validateBid(balance: UFix64): Bool {
+            log("Balance: ".concat(balance.toString()) )
+            log("Min Bid: ".concat(self.minBid.toString()) )
+            if self.leader == nil { // First Bid
+                if balance >= self.minBid {
+                    return true
+                }
+                log("Initial Bid too low.")
+                return false
+            } 
+            // Not the first bid
+            if self.auctionLog.containsKey(self.leader!) &&
+              (balance + self.auctionLog[self.leader!]!) >= self.minBid {
+                return true
+            }
+            log("Bid Deposit too low.")
+            return false
         }
 
         priv fun incrementminBid() {
@@ -157,15 +180,22 @@ pub contract AuctionHouse {
         }
 
         access(contract) fun updateStatus(): Bool? {
-            pre { self.status != false }
-            let timeNow = getCurrentBlock().timestamp                            
-            if self.start >= timeNow {
-                self.status = (self.start + self.length) < timeNow ? true : false
-            }
-            return self.status
+            let end = self.start + self.length
+            if self.status == false {  // false = Auction has Ended
+                log("Auction had already ended.")
+                return false
+            }      
+            let timeNow = getCurrentBlock().timestamp
+            if self.start < timeNow {  // nil = Auction hasn't startepd
+                log("")
+                return nil
+            } else if timeNow > end {  // false = Auction has Ended
+                return false
+            } 
+            return true
         }
 
-        pub fun withdrawBid(bidder: AuthAccount, wallet: @FungibleToken.Vault): @FungibleToken.Vault {
+        pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault {
             pre {
                 self.updateStatus() != false : "Auction has Ended."
                 self.auctionLog.containsKey(bidder.address)
@@ -174,9 +204,7 @@ pub contract AuctionHouse {
             let balance = self.auctionLog[bidder_address]!
             self.auctionLog.remove(key: bidder_address)
             let amount <- self.auctionVault.withdraw(amount: balance)!
-            wallet.deposit(from: <- amount)
-            self.updateStatus()
-            return <- wallet
+            return <- amount
         }
 
         pub fun winnerCollect(bidder: AuthAccount) {
@@ -203,11 +231,14 @@ pub contract AuctionHouse {
 
        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault): @NonFungibleToken.NFT {
             pre {
-                self.updateStatus() != false   : "Auction has Ended."
-                self.buyItNowStatus()
-                self.buyNow == amount.balance
+                self.updateStatus() != false  : "Auction has Ended."
+                self.buyItNowStatus()         : "Buy It Now option has expired."
+                self.buyNow == amount.balance : "Wrong Amount."
             }
-            self.status = false  // ends the auction
+            // ends the auction
+            self.status = false  
+            self.length = 0.0 as UFix64
+
             self.leader = bidder.address          
             self.auctionVault.deposit(from: <- amount)
             self.auctionLog.remove(key: bidder.address)
@@ -242,7 +273,8 @@ pub contract AuctionHouse {
                 self.updateStatus() == nil  : "Too late to cancel Auction."
                 self.auctionLog.length == 0 : "You already have a bid. Too late to Cancel."
             }
-            self.status = false            
+            self.status = false
+            self.length = 0.0 as UFix64
             let nft <- self.auctionNFT <- nil
 
             log("Auction Cancelled: ".concat(self.tokenID.toString()) )
@@ -257,6 +289,20 @@ pub contract AuctionHouse {
 
         pub fun getStatus(): Bool? {
             return self.status
+        }
+
+        pub fun timeLeft(): UFix64 {
+            //self.updateStatus()
+            if self.length == 0.0 {
+                return 0.0 as UFix64
+            }
+            let end = self.start + self.length
+            let timeNow = getCurrentBlock().timestamp
+            if end <= timeNow {
+                let timeleft = timeNow - end
+                return timeleft
+            }
+            return 0.0 as UFix64
         }
 
         destroy() {

@@ -1,7 +1,7 @@
 
-// close_auction.cdc
+// close_auctions.cdc
 
-import AuctionHouse     from 0x045a1763c93006ca
+import AuctionHouse from 0x045a1763c93006ca
 
 transaction()
 {
