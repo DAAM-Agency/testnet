@@ -1,8 +1,9 @@
 // create_start_sale.cdc
 
-import FungibleToken from 0xee82856bf20e2aa6
-import Marketplace   from 0x045a1763c93006ca
-import DAAM          from 0xfd43f9148d4b725d
+import NonFungibleToken from 0x120e725050340cab
+import FungibleToken    from 0xee82856bf20e2aa6
+import Marketplace      from 0x045a1763c93006ca
+import DAAM             from 0xfd43f9148d4b725d
 
 transaction(tokenID: UInt64, price: UFix64) {
     prepare(acct: AuthAccount) {
@@ -11,7 +12,7 @@ transaction(tokenID: UInt64, price: UFix64) {
         if acct.borrow<&Marketplace.SaleCollection>(from: Marketplace.marketStoragePath) == nil {
             // get the fungible token capabilities for the owner and beneficiary
             let ownerCapability = acct.getCapability<&{FungibleToken.Receiver}>(tokenReceiverPath)!
-            let ownerCollection = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!   // create a new sale collection            
+            let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)!  // create a new sale collection 
             let saleCollection <- Marketplace.createSaleCollection(ownerCollection: ownerCollection, ownerCapability: ownerCapability)!
 
             acct.save(<-saleCollection, to: Marketplace.marketStoragePath)  // save it to storage

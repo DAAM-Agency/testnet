@@ -9,7 +9,7 @@ transaction() {
     prepare(acct: AuthAccount) {
         let tokenReceiverPath = /public/flowTokenReceiver // Exclusive to FlowTokens  
         let ownerCapability = acct.getCapability<&AnyResource{FungibleToken.Receiver}>(tokenReceiverPath)
-        let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)
+        let ownerCollection = acct.getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)!
         
         let market = acct.borrow<&Marketplace.SaleCollection{Marketplace.SalePublic}>(from: Marketplace.marketStoragePath)
         if market == nil {
