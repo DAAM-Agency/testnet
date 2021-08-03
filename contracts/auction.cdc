@@ -29,8 +29,8 @@ pub contract AuctionHouse {
             self.currentAuction <- {}
         }
 
-        pub fun createAuction(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, increment: {Bool:UFix64},
-        startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
+        pub fun createAuction(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
             pre {
                 self.titleholder == self.owner!.address   : "You are not the owner."
                 !self.currentAuction.containsKey(token.id): "Already created an Auction for this TokenID."
@@ -39,7 +39,7 @@ pub contract AuctionHouse {
 
             let id = token.id
             let auction <- create Auction(token: <- token, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
-              increment: increment, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
                          
             let oldAuction <- self.currentAuction[id] <- auction
             destroy oldAuction
@@ -87,19 +87,20 @@ pub contract AuctionHouse {
         priv var auctionVault: @FungibleToken.Vault
         pub var auctionNFT   : @NonFungibleToken.NFT?
     
-        init(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, increment: {Bool:UFix64},
-          startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
+        init(token: @NonFungibleToken.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
             pre {
                 start > getCurrentBlock().timestamp : "Time has already past."
-                length > 3599.99 as UFix64          : "Minimum is 1 hour"  // 1 hour = 3600
+                length > 1.0 as UFix64              : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
                 startingBid > 0.0                   : "You can not have a Starting Bid of zero."
                 reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
                 buyNow > reserve || buyNow == 0.0   : "The BuyNow option must be greater then the Reserve."
-                increment.length == 1               : "Your increment is not valid"
-                increment[false] != nil && increment[false]! <= 0.025 : "The minimum increment is 2.5%."
-                increment[false] != nil && increment[false]! >= 0.05 : "The minimum increment is 5%."
-                increment[true] != nil && increment[true]! >= 1.0 : "The minimum increment is 1 FUSD."
             }
+
+            if incrementByPrice == false && incrementAmount <= 0.025 { panic("The minimum increment is 2.5%.")   }
+            if incrementByPrice == false && incrementAmount > 0.05  { panic("The minimum increment is 5%.")     }
+            if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
+
             self.status = nil
             self.tokenID = token.id
             self.start = start
@@ -108,13 +109,14 @@ pub contract AuctionHouse {
             self.minBid = startingBid
             self.isExtended = isExtended
             self.extendedTime = extendedTime
-            self.increment = increment
+            self.increment = {incrementByPrice : incrementAmount}
+            
             self.startingBid = startingBid
             self.reserve = reserve
             self.buyNow = buyNow
             self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
-            self.auctionNFT <- token 
+            self.auctionNFT <- token
 
             log("Auction Initialized: ".concat(self.tokenID.toString()) )
             emit AuctionCreated(tokenID: self.tokenID)
