@@ -84,8 +84,8 @@ pub resource RequestGenerator {
         let mid = metadata.mid
         let request <-! create Request(metadata: metadata, royality: royality)
 
-        DAAM.request.insert(key: mid, false)
-        self.request[mid] <-! request
+        DAAM.request.insert(key: mid, false) // advice DAAM of request
+        self.request[mid] <-! request        // save request
                     
         log("Royality Request: ".concat(mid.toString()) )
         emit RoyalityRequest(mid: mid)

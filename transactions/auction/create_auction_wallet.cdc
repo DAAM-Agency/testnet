@@ -7,8 +7,8 @@ transaction()
 {
     prepare(signer: AuthAccount) {
         if signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath) == nil {
-            let auctionWallet <- AuctionHouse.createAuctionWallet(owner: signer)     
-            signer.save<@AuctionHouse.AuctionWallet> (<-auctionWallet, to: AuctionHouse.auctionStoragePath)
+            let auctionWallet <- AuctionHouse.createAuctionWallet(owner: signer)
+            signer.save<@AuctionHouse.AuctionWallet> (<- auctionWallet, to: AuctionHouse.auctionStoragePath)
             signer.link<&AuctionHouse.AuctionWallet>(AuctionHouse.auctionPublicPath, target: AuctionHouse.auctionStoragePath)
             log("Auction House Created, you can now have Auctions.")
             return

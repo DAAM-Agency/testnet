@@ -4,7 +4,7 @@ import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
 // This transaction is what an account would run to set itself up to receive NFTs
-transaction
+transaction()
 {
     prepare(acct: AuthAccount) {
         // Return early if the account already has a collection
