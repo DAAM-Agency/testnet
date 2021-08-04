@@ -71,7 +71,6 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc --signer nft
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 flow accounts add-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
-#flow accounts add-contract Marketplace ./contracts/marketplace.cdc --signer marketplace
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
 
 # Invite Admin
