@@ -427,14 +427,14 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
 pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
+     pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
      pub fun notNew(tokenID: UInt64)
 }
 /************************************************************************/
 pub resource interface Minter {
     pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator
     pub fun newRequestGenerator(): @RequestGenerator
-    pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
+    pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
 }
 /************************************************************************/
     pub resource Creator: SeriesMinter {
@@ -456,7 +456,7 @@ pub resource interface Minter {
         }
 
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
+        pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."

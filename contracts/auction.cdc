@@ -333,15 +333,13 @@ pub contract AuctionHouse {
             if self.auctionVault.balance == 0.0 {
                 return
             }
-/*
-            let nft <- self.auctionNFT <- nil
+
+            let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
 
             let price = self.auctionVault.balance
             let creator = nft.metadata.creator!
-            let agencyPercentage  = nft!.royality[DAAM.agency]!
-            let creatorPercentage = nft!.royality[creator]!    
-
-            self.auction <- nft
+            let agencyPercentage  = nft.royality[DAAM.agency]!
+            let creatorPercentage = nft.royality[creator]!    
 
             let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.2 : agencyPercentage
             let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.8 : creatorPercentage
@@ -349,6 +347,7 @@ pub contract AuctionHouse {
             if DAAM.newNFTs.contains(self.tokenID) { 
                 AuctionHouse.notNew(tokenID: self.tokenID)
             } // no longer "new"
+
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
 
@@ -360,26 +359,41 @@ pub contract AuctionHouse {
 
             if self.auctionVault.balance != 0.0 {
                 panic("Royality Error")
-            }*/
+            }
         }
 
         priv fun updateSeries() {
-            //if self.nftRef.metadata.series == 1 as UInt64 { return } // 1 shot only
-            //if self.owner?.address != self.nftRef.metadata.creator { return } // Is this the original Creators' wallet?
-
-            //Marketplace.loadMinter(creator: creator, mid: mid, price: price, recipient: self.ownerCollection.borrow()! )
+            //if !self.reprintSeries { return }
+            let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
+            if nft.metadata.series == 1 as UInt64 { return } // 1 shot only
+            if self.owner?.address != nft.metadata.creator { return } // Is this the original Creators' wallet?
+            AuctionHouse.loadMinter(creator: nft.metadata.creator, mid: nft.metadata.mid,
+              recipient: self.ownerCollection.borrow()! )
         }
 
         destroy() {
             pre{ self.status == false }
             self.returnFunds()
             self.royality()
-
             destroy self.auctionVault
         }
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, recipient: &{DAAM.CollectionPublic} ) {
+        let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
+        let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
+        //let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
+
+        let metadataGen = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
+        let metadataHolder <- metadataGen.generateMetadata(mid: mid)
+        let metadataHolderRef = &metadataHolder as &DAAM.MetadataHolder
+        
+        let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
+        let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
+        //saleCollection.listForSale(tokenID: tokenID, price: price)
+    }
+
     access(contract) fun notNew(tokenID: UInt64) {
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
         minter.notNew(tokenID: tokenID)
