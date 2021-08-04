@@ -367,8 +367,8 @@ pub contract AuctionHouse {
             let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
             if nft.metadata.series == 1 as UInt64 { return } // 1 shot only
             if self.owner?.address != nft.metadata.creator { return } // Is this the original Creators' wallet?
-            AuctionHouse.loadMinter(creator: nft.metadata.creator, mid: nft.metadata.mid,
-              recipient: self.ownerCollection.borrow()! )
+            AuctionHouse.loadMinter(creator: nft.metadata.creator, mid: nft.metadata.mid, 
+              ownerCollection: self.ownerCollection, auction: &self as &Auction)
         }
 
         destroy() {
@@ -380,10 +380,10 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
-    access(contract) fun loadMinter(creator: Address, mid: UInt64, recipient: &{DAAM.CollectionPublic} ) {
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, ownerCollection: Capability<&DAAM.Collection>, auction: &Auction) {
+        let recipient = ownerCollection.borrow()!
         let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
-        //let saleCollection = self.account.borrow<&SaleCollection>(from: self.marketStoragePath)! 
 
         let metadataGen = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
         let metadataHolder <- metadataGen.generateMetadata(mid: mid)
@@ -391,7 +391,15 @@ pub contract AuctionHouse {
         
         let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
         let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
-        //saleCollection.listForSale(tokenID: tokenID, price: price)
+
+        let auctionhouseRef = self.account.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+
+        let start = getCurrentBlock().timestamp + 40.0 as UFix64
+        let incrementByPrice = (auction.increment[true] != nil)
+        let incrementAmount = auction.increment[incrementByPrice]!
+        auctionhouseRef.createAuction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: auction.length,
+          isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice,
+          incrementAmount: incrementAmount, startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow)
     }
 
     access(contract) fun notNew(tokenID: UInt64) {
