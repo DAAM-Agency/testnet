@@ -217,16 +217,23 @@ pub contract AuctionHouse {
         access(contract) fun verifyWinnerPrice() {
             pre { self.updateStatus() == false   : "Auction still in progress" }
 
-            var nft <- self.auctionNFT <- nil
+            let nft <- self.auctionNFT <- nil
             // Does it meet the reserve?
-            let item_collector = (self.auctionLog[self.leader!]! >= self.reserve) ? self.leader! : self.owner?.address!            
+            var item_collector = Address(0x0)
+            if self.auctionLog[self.leader!]! >= self.reserve {
+                // remove leader from log before returnFunds()!!
+                self.auctionLog.remove(key: self.leader!)!
+                item_collector = self.leader!                
+                self.returnFunds()!
+                self.royality()
+            } else {
+                item_collector = self.owner?.address!
+                self.returnFunds()!
+            }         
             // return nft to accordingly // Auctionier or winner
             let collectionRef = getAccount(item_collector).getCapability<&{DAAM.CollectionPublic}>
                 (DAAM.collectionPublicPath).borrow()!
             collectionRef.deposit(token: <- nft!)
-
-            self.auctionLog.remove(key: self.leader!)
-            self.returnFunds()!
 
             log("Auction Collected")
             emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)          
@@ -241,12 +248,12 @@ pub contract AuctionHouse {
             // ends the auction
             self.status = false  
             self.length = 0.0 as UFix64
-
-            self.leader = bidder.address          
-            self.royality(amount: <- amount)
-
-            self.auctionLog.remove(key: bidder.address)
+            self.auctionVault.deposit(from: <- amount)
+            self.leader = bidder.address
+            // remove leader from log before returnFunds!!!
+            self.auctionLog.remove(key: bidder.address)!
             self.returnFunds()!
+            self.royality()
             let nft <- self.auctionNFT <- nil
 
             log("Buy It Now")
@@ -260,7 +267,6 @@ pub contract AuctionHouse {
         }
 
         priv fun returnFunds() {
-            pre { !self.auctionLog.containsKey(self.leader!) }
             for bidder in self.auctionLog.keys {
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)
@@ -311,8 +317,12 @@ pub contract AuctionHouse {
             return 0.0 as UFix64
         }
 
-        priv fun royality(amount: @FungibleToken.Vault) {
-            let price = amount.balance
+        priv fun royality() {
+            if self.auctionVault.balance == 0.0 {
+                return
+            }
+
+            let price = self.auctionVault.balance
             let creator = self.nftRef.metadata.creator!
             let agencyPercentage  = self.nftRef.royality[DAAM.agency]!
             let creatorPercentage = self.nftRef.royality[creator]!         
@@ -322,8 +332,8 @@ pub contract AuctionHouse {
             if DAAM.newNFTs.contains(self.tokenID) { 
                 AuctionHouse.notNew(tokenID: self.tokenID)
             } // no longer "new"
-            let agencyCut  <-! amount.withdraw(amount: price * agencyRoyality)
-            let creatorCut <-! amount.withdraw(amount: price * creatorRoyality)
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
 
             let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
             let creatorPay = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
@@ -331,17 +341,15 @@ pub contract AuctionHouse {
             agencyPay.deposit(from: <-agencyCut)
             creatorPay.deposit(from: <-creatorCut)
 
-            if amount.balance != 0.0 {
+            if self.auctionVault.balance != 0.0 {
                 panic("Royality Error")
             }
-            destroy amount
         }
 
         destroy() {
             pre{ self.status == false }
             self.returnFunds()
-            let amount <- self.auctionVault.withdraw(amount: self.auctionVault.balance)
-            self.royality(amount: <- amount)
+            self.royality()
 
             destroy self.auctionVault
             destroy self.auctionNFT
