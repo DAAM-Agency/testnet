@@ -33,7 +33,7 @@ pub contract AuctionHouse {
         }
 
         pub fun createAuction(ownerCollection: Capability<&DAAM.Collection>, tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool,
-          extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64)
+          extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner!.address   : "You are not the owner."
@@ -42,7 +42,7 @@ pub contract AuctionHouse {
             post { self.currentAuctions.containsKey(tokenID) }
             
             let auction <- create Auction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
-              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
                          
             let oldAuction <- self.currentAuctions[tokenID] <- auction
             destroy oldAuction
@@ -96,11 +96,12 @@ pub contract AuctionHouse {
         pub let startingBid : UFix64
         pub let reserve     : UFix64
         pub let buyNow      : UFix64
+        pub let reprintSeries: Bool
         pub var auctionLog  : {Address: UFix64} // {Bidders, Amount}
         priv var auctionVault: @FungibleToken.Vault
     
         init(ownerCollection: Capability<&DAAM.Collection>, tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
-          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64) {
+          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start > getCurrentBlock().timestamp : "Time has already past."
                 length > 1.0 as UFix64              : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
@@ -127,6 +128,7 @@ pub contract AuctionHouse {
             self.startingBid = startingBid
             self.reserve = reserve
             self.buyNow = buyNow
+            self.reprintSeries = reprintSeries
             self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
         
@@ -363,12 +365,12 @@ pub contract AuctionHouse {
         }
 
         priv fun updateSeries() {
-            //if !self.reprintSeries { return }
             let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
             if nft.metadata.series == 1 as UInt64 { return } // 1 shot only
+            if nft.metadata.series == nft.metadata.counter{ return } // Series finished
             if self.owner?.address != nft.metadata.creator { return } // Is this the original Creators' wallet?
             AuctionHouse.loadMinter(creator: nft.metadata.creator, mid: nft.metadata.mid, 
-              ownerCollection: self.ownerCollection, auction: &self as &Auction)
+              ownerCollection: self.ownerCollection, auction: &self as &Auction, reprintSeries: self.reprintSeries)
         }
 
         destroy() {
@@ -380,7 +382,7 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
-    access(contract) fun loadMinter(creator: Address, mid: UInt64, ownerCollection: Capability<&DAAM.Collection>, auction: &Auction) {
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, ownerCollection: Capability<&DAAM.Collection>, auction: &Auction, reprintSeries: Bool) {
         let recipient = ownerCollection.borrow()!
         let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
@@ -392,14 +394,15 @@ pub contract AuctionHouse {
         let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
         let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
 
-        let auctionhouseRef = self.account.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-
-        let start = getCurrentBlock().timestamp + 40.0 as UFix64
-        let incrementByPrice = (auction.increment[true] != nil)
-        let incrementAmount = auction.increment[incrementByPrice]!
-        auctionhouseRef.createAuction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: auction.length,
-          isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice,
-          incrementAmount: incrementAmount, startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow)
+        if reprintSeries {
+            let auctionhouseRef = self.account.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+            let start = getCurrentBlock().timestamp + 40.0 as UFix64
+            let incrementByPrice = (auction.increment[true] != nil)
+            let incrementAmount = auction.increment[incrementByPrice]!
+            auctionhouseRef.createAuction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: auction.length,
+            isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
+            startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow, reprintSeries: auction.reprintSeries)
+        }
     }
 
     access(contract) fun notNew(tokenID: UInt64) {

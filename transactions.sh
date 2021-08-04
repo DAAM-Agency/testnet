@@ -64,7 +64,7 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
 flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 --arg UFix64:$START \
 --arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:true --arg UFix64:5.0 --arg UFix64:29.05 \
---arg UFix64:75.0 --arg UFix64:0.0 --signer creator
+--arg UFix64:75.0 --arg UFix64:0.0 --arg Bool:false --signer creator
 
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
 
