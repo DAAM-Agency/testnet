@@ -73,6 +73,17 @@ flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMI
 flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin2
 flow transactions send ./transactions/admin/remove_creator.cdc --arg Address:$CREATOR --signer admin
 
+# (Re)Invite Creator & Accept
+flow transactions send ./transactions/creator/reset_creator.cdc --signer creator
+flow transactions send ./transactions/admin/reset_admin.cdc --signer admin2
+
+flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
+flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
+
+# (Re)Invite Admin #2
+flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
+flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
+
 # Transfer NFT
 #flow transactions send ./transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client
 
