@@ -32,23 +32,22 @@ pub contract AuctionHouse {
             self.currentAuctions <- {}
         }
 
-        pub fun createAuction(ownerCollection: Capability<&DAAM.Collection>, tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
           extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner!.address   : "You are not the owner."
-                !self.currentAuctions.containsKey(tokenID): "Already created an Auction for this TokenID."
+                !self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
             }
-            post { self.currentAuctions.containsKey(tokenID) }
-            
-            let auction <- create Auction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+            let id = nft.id
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
                          
-            let oldAuction <- self.currentAuctions[tokenID] <- auction
+            let oldAuction <- self.currentAuctions[id] <- auction
             destroy oldAuction
             
             log("Auction Created. Start: ".concat(start.toString()) )
-            emit AuctionCreated(tokenID: tokenID)
+            emit AuctionCreated(tokenID: id)
         }
 
         pub fun closeAuctions() {
@@ -64,7 +63,6 @@ pub contract AuctionHouse {
                     self.currentAuctions[act]?.verifyWinnerPrice()
                     let auction <- self.currentAuctions.remove(key:tokenID)!
                     destroy auction
-                    
 
                     log("Auction Closed: ".concat(tokenID.toString()) )
                     emit AuctionClosed(tokenID: tokenID)
@@ -84,7 +82,6 @@ pub contract AuctionHouse {
 /************************************************************************/
     pub resource Auction {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
-        pub let ownerCollection: Capability<&DAAM.Collection>
         pub let tokenID     : UInt64
         pub let start       : UFix64
         pub var length      : UFix64  // post{!isExtended && length == before(length)}
@@ -97,10 +94,16 @@ pub contract AuctionHouse {
         pub let reserve     : UFix64
         pub let buyNow      : UFix64
         pub let reprintSeries: Bool
-        pub var auctionLog  : {Address: UFix64} // {Bidders, Amount}
+        pub var auctionLog   : {Address: UFix64} // {Bidders, Amount}
+        pub var auctionNFT  : @DAAM.NFT?
         priv var auctionVault: @FungibleToken.Vault
+        priv let creator : Address
+        priv let series : Bool
+        priv let agencyPercentage: UFix64
+        priv let creatorPercentage: UFix64
+        priv let mid: UInt64
     
-        init(ownerCollection: Capability<&DAAM.Collection>, tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start > getCurrentBlock().timestamp : "Time has already past."
@@ -114,9 +117,8 @@ pub contract AuctionHouse {
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The minimum increment is 5%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
 
-            self.ownerCollection = ownerCollection
             self.status = nil
-            self.tokenID = tokenID
+            self.tokenID = nft.id
             self.start = start
             self.length = length
             self.leader = nil
@@ -131,6 +133,17 @@ pub contract AuctionHouse {
             self.reprintSeries = reprintSeries
             self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
+
+            self.creator = nft.metadata.creator!
+            self.agencyPercentage  = nft.royality[DAAM.agency]!
+            self.creatorPercentage = nft.royality[self.creator]!
+            self.mid = nft.metadata.mid!
+            // 1 shot only or Series finished
+            self.series = (nft.metadata.series == 1 as UInt64) || (nft.metadata.series == nft.metadata.counter)? false : true
+
+            self.auctionNFT <- nft         
+            //let old_nft <- self.auctionNFT.insert(key: self.tokenID, <- nft)
+            //destroy old_nft
         
             log("Auction Initialized: ".concat(self.tokenID.toString()) )
             emit AuctionCreated(tokenID: self.tokenID)
@@ -229,17 +242,18 @@ pub contract AuctionHouse {
             pre { self.updateStatus() == false   : "Auction still in progress" }
             // Does it meet the reserve price?
             if self.auctionLog[self.leader!]! >= self.reserve {
-                let ownerCollectionRef = self.ownerCollection.borrow()!
-                let nft <- ownerCollectionRef.withdraw(withdrawID: self.tokenID)
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()!
                 self.royality()
+                // serial minter
+
                 let collectionRef = getAccount(self.leader!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
-                collectionRef.deposit(token: <- nft)
+                // nft deposot Must be LAST !!! 
+                let nft <- self.auctionNFT <- nil // as! @NonFungibleToken.NFT             
+                collectionRef.deposit(token: <- nft!)
                 log("Auction Collected")
                 emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)                
-                // serial minter
             } else {
                 self.returnFunds()!
                 log("Auction Returned")
@@ -259,18 +273,16 @@ pub contract AuctionHouse {
             self.auctionVault.deposit(from: <- amount)
             self.leader = bidder.address
             // remove leader from log before returnFunds!!!
-            self.auctionLog.remove(key: bidder.address)!
+            self.auctionLog.remove(key: bidder.address)
             self.returnFunds()!
             self.royality()
-            
-            let ownerCollectionRef = self.ownerCollection.borrow()!
-            let nft <- ownerCollectionRef.withdraw(withdrawID: self.tokenID)
-
             // serial minter
 
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)
-            return <- nft
+            // nft deposot Must be LAST !!!
+            let nft <- self.auctionNFT <- nil
+            return <- nft!
         }    
 
         
@@ -299,13 +311,13 @@ pub contract AuctionHouse {
             
             self.status = false
             self.length = 0.0 as UFix64
-
-            let ownerCollectionRef = self.ownerCollection.borrow()!
-            let nft <- ownerCollectionRef.withdraw(withdrawID: self.tokenID)
+            // nft deposot Must be LAST !!!           
 
             log("Auction Cancelled: ".concat(self.tokenID.toString()) )
             emit AuctionCancelled(tokenID: self.tokenID)
-            return <- nft
+            // nft deposot Must be LAST !!!
+            let nft <- self.auctionNFT <- nil
+            return <- nft!
         }
 
         priv fun extendAuction() {
@@ -335,16 +347,10 @@ pub contract AuctionHouse {
             if self.auctionVault.balance == 0.0 {
                 return
             }
-
-            let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
-
             let price = self.auctionVault.balance
-            let creator = nft.metadata.creator!
-            let agencyPercentage  = nft.royality[DAAM.agency]!
-            let creatorPercentage = nft.royality[creator]!    
 
-            let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.2 : agencyPercentage
-            let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.8 : creatorPercentage
+            let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.2 : self.agencyPercentage
+            let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.8 : self.creatorPercentage
             // If 1st sale set remove from 'new list'
             if DAAM.newNFTs.contains(self.tokenID) { 
                 AuctionHouse.notNew(tokenID: self.tokenID)
@@ -354,7 +360,7 @@ pub contract AuctionHouse {
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
 
             let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
-            let creatorPay = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+            let creatorPay = getAccount(self.creator).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
 
             agencyPay.deposit(from: <-agencyCut)
             creatorPay.deposit(from: <-creatorCut)
@@ -365,12 +371,9 @@ pub contract AuctionHouse {
         }
 
         priv fun updateSeries() {
-            let nft = self.ownerCollection.borrow()!.borrowDAAM(id: self.tokenID)!
-            if nft.metadata.series == 1 as UInt64 { return } // 1 shot only
-            if nft.metadata.series == nft.metadata.counter{ return } // Series finished
-            if self.owner?.address != nft.metadata.creator { return } // Is this the original Creators' wallet?
-            AuctionHouse.loadMinter(creator: nft.metadata.creator, mid: nft.metadata.mid, 
-              ownerCollection: self.ownerCollection, auction: &self as &Auction, reprintSeries: self.reprintSeries)
+            if !self.series { return }       
+            if self.owner?.address != self.creator { return } // Is this the original Creators' wallet?
+            AuctionHouse.loadMinter(creator: self.creator, mid: self.mid, auction: &self as &Auction, reprintSeries: self.reprintSeries)
         }
 
         destroy() {
@@ -378,12 +381,13 @@ pub contract AuctionHouse {
             self.returnFunds()
             self.royality()
             destroy self.auctionVault
+            destroy self.auctionNFT
         }
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
-    access(contract) fun loadMinter(creator: Address, mid: UInt64, ownerCollection: Capability<&DAAM.Collection>, auction: &Auction, reprintSeries: Bool) {
-        let recipient = ownerCollection.borrow()!
+    access(contract) fun loadMinter(creator: Address, mid: UInt64, auction: &Auction, reprintSeries: Bool) {
+        let recipient  = getAccount(creator).getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)
         let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
         let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
 
@@ -392,16 +396,16 @@ pub contract AuctionHouse {
         let metadataHolderRef = &metadataHolder as &DAAM.MetadataHolder
         
         let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
-        let tokenID = minter.mintNFT(recipient: recipient, metadata: <-metadataHolder, request: <-request)
+        let tokenID = minter.mintNFT(recipient: recipient.borrow()!, metadata: <-metadataHolder, request: <-request)
 
         if reprintSeries {
             let auctionhouseRef = self.account.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
             let start = getCurrentBlock().timestamp + 40.0 as UFix64
             let incrementByPrice = (auction.increment[true] != nil)
             let incrementAmount = auction.increment[incrementByPrice]!
-            auctionhouseRef.createAuction(ownerCollection: ownerCollection, tokenID: tokenID, start: start, length: auction.length,
-            isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
-            startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow, reprintSeries: auction.reprintSeries)
+            ///auctionhouseRef.createAuction(nft: <- nft, tokenID, start: start, length: auction.length,
+            //isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
+            //startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow, reprintSeries: auction.reprintSeries)
         }
     }
 
