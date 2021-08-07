@@ -112,11 +112,12 @@ pub contract AuctionHouse {
                 startingBid > 0.0                   : "You can not have a Starting Bid of zero."
                 reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
                 buyNow > reserve || buyNow == 0.0   : "The BuyNow option must be greater then the Reserve."
+                isExtended && extendedTime >= 60.0 || !isExtended : "Extended Time setting are incorrect. The minimim is 1 min."
+                reprintSeries == true && nft.metadata.series != 0 || !reprintSeries : "This can be reprinted."
             }
-
             if incrementByPrice == false && incrementAmount <= 0.025 { panic("The minimum increment is 2.5%.")   }
-            if incrementByPrice == false && incrementAmount > 0.05  { panic("The minimum increment is 5%.")     }
-            if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
+            if incrementByPrice == false && incrementAmount > 0.05   { panic("The maximum increment is 5%.")     }
+            if incrementByPrice == true  && incrementAmount < 1.0    { panic("The minimum increment is 1 FUSD.") }
 
             self.status = nil
             self.tokenID = nft.id
@@ -125,7 +126,7 @@ pub contract AuctionHouse {
             self.leader = nil
             self.minBid = startingBid
             self.isExtended = isExtended
-            self.extendedTime = extendedTime
+            self.extendedTime = (isExtended) ? extendedTime : 0.0 as UFix64
             self.increment = {incrementByPrice : incrementAmount}
             
             self.startingBid = startingBid
@@ -246,25 +247,29 @@ pub contract AuctionHouse {
 
         access(contract) fun verifyWinnerPrice() {
             pre { self.updateStatus() == false   : "Auction still in progress" }
-            // Does it meet the reserve price?
-            if self.auctionLog[self.leader!]! >= self.reserve {
-                // remove leader from log before returnFunds()!!
-                self.auctionLog.remove(key: self.leader!)!
-                self.returnFunds()!
-                self.royality()
-                // serial minter TODO
-
-                let collectionRef = getAccount(self.leader!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
-                // nft deposot Must be LAST !!! 
-                let nft <- self.auctionNFT <- nil            
-                collectionRef.deposit(token: <- nft!)
-                log("Auction Collected")
-                emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)                
+            var target = self.leader
+            if self.leader != nil {
+                target = self.leader!
+                // Does it meet the reserve price?
+                if self.auctionLog[self.leader!]! >= self.reserve {
+                    // remove leader from log before returnFunds()!!
+                    self.auctionLog.remove(key: self.leader!)!
+                    self.returnFunds()!
+                    self.royality()
+                    // serial minter TODO
+                    log("Auction Collected")
+                    emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)
+                }             
             } else {
+                target = self.creator
                 self.returnFunds()!
                 log("Auction Returned")
                 emit AuctionReturned(tokenID: self.tokenID)    
-            }                  
+            }          
+            let collectionRef = getAccount(target!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
+            // nft deposot Must be LAST !!! 
+            let nft <- self.auctionNFT <- nil            
+            collectionRef.deposit(token: <- nft!)
         }
 
         pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault): @NonFungibleToken.NFT {

@@ -82,13 +82,20 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 --arg UFix64:$START \
---arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
+--arg UFix64:60.0 --arg Bool:false --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
-sleep 60
+flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:2 --arg UFix64:$START \
+--arg UFix64:60.0 --arg Bool:true --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
+--arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
+
+sleep 90
 # Filler transaction
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
 
+
+flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
+'''
 flow transactions send ./transactions/auction/cancel_auction.cdc --arg UInt64:1 --signer creator
 
 sleep 20
