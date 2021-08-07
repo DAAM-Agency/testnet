@@ -75,7 +75,7 @@ flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=30.0
+OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
 # tokenID: UInt64, start: UFix64
@@ -85,16 +85,12 @@ flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 
 --arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
-# The following should NOT work, except for the 2nd, the first client bid at 10.0
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer creator
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client # not this one
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer nobody
-'''
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:14.0 --signer nobody
-#flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client
+sleep 10
 
-flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:36.0 --signer client
+
+#flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
 
 
 # Transfer NFT

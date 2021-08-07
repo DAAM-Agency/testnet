@@ -14,6 +14,7 @@ pub contract AuctionHouse {
     pub event AuctionCancelled(tokenID: UInt64)
     pub event AuctionReturned(tokenID: UInt64)
     pub event BidMade(tokenID: UInt64, bidder: Address )
+    pub event BidWithdrawn(bidder: Address)    
     pub event AuctionCollected(winner: Address, tokenID: UInt64)
     pub event BuyItNow(winner: Address, token: UInt64, amount: UFix64)
     pub event FundsReturned()
@@ -131,7 +132,7 @@ pub contract AuctionHouse {
             self.reserve = reserve
             self.buyNow = buyNow
             self.reprintSeries = reprintSeries
-            self.auctionLog = {}
+            self.auctionLog = {} // TODO post { auctionLog == auctionVault.balance}
             self.auctionVault <- FlowToken.createEmptyVault()
 
             self.creator = nft.metadata.creator!
@@ -142,8 +143,6 @@ pub contract AuctionHouse {
             self.series = (nft.metadata.series == 1 as UInt64) || (nft.metadata.series == nft.metadata.counter)? false : true
 
             self.auctionNFT <- nft         
-            //let old_nft <- self.auctionNFT.insert(key: self.tokenID, <- nft)
-            //destroy old_nft
         
             log("Auction Initialized: ".concat(self.tokenID.toString()) )
             emit AuctionCreated(tokenID: self.tokenID)
@@ -151,11 +150,11 @@ pub contract AuctionHouse {
 
         pub fun depositToBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {         
-                self.minBid != nil                        : "No Bidding. Buy It Now."     
-                self.updateStatus() != false              : "Auction has already ended."
+                self.minBid != nil                    : "No Bidding. Buy It Now."     
+                self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
-                self.leader != bidder.address             : "You are already lead bidder."
-                self.owner?.address != bidder.address     : "Yo can not bid in your own auction."
+                self.leader != bidder.address         : "You are already lead bidder."
+                self.owner?.address != bidder.address : "Yo can not bid in your own auction."
             }
 
             self.leader = bidder.address
@@ -224,14 +223,16 @@ pub contract AuctionHouse {
 
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault {
             pre {
-                self.updateStatus() != false : "Auction has Ended."
-                self.auctionLog.containsKey(bidder.address)
-                self.minBid != nil
+                self.leader! != bidder.address : "You have the Winning Bid. You can not withdraw."
+                self.updateStatus() != false   : "Auction has Ended."
+                self.auctionLog.containsKey(bidder.address) : "You have not made a Bid"
+                self.minBid != nil : "This is a Buy It Now only purchase."
             }
-            let bidder_address = bidder.address
-            let balance = self.auctionLog[bidder_address]!
-            self.auctionLog.remove(key: bidder_address)
+            let balance = self.auctionLog[bidder.address]!
+            self.auctionLog.remove(key: bidder.address)!
             let amount <- self.auctionVault.withdraw(amount: balance)!
+            log("BidWithdrawn")
+            emit BidWithdrawn(bidder: bidder.address)    
             return <- amount
         }
 
@@ -251,11 +252,11 @@ pub contract AuctionHouse {
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()!
                 self.royality()
-                // serial minter
+                // serial minter TODO
 
                 let collectionRef = getAccount(self.leader!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
                 // nft deposot Must be LAST !!! 
-                let nft <- self.auctionNFT <- nil // as! @NonFungibleToken.NFT             
+                let nft <- self.auctionNFT <- nil            
                 collectionRef.deposit(token: <- nft!)
                 log("Auction Collected")
                 emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)                
@@ -281,7 +282,7 @@ pub contract AuctionHouse {
             self.auctionLog.remove(key: bidder.address)
             self.returnFunds()!
             self.royality()
-            // serial minter
+            // serial minter TODO
 
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)
@@ -316,7 +317,6 @@ pub contract AuctionHouse {
             
             self.status = false
             self.length = 0.0 as UFix64
-            // nft deposot Must be LAST !!!           
 
             log("Auction Cancelled: ".concat(self.tokenID.toString()) )
             emit AuctionCancelled(tokenID: self.tokenID)
@@ -348,7 +348,7 @@ pub contract AuctionHouse {
             if timeNow < self.start { return nil }
             
             if timeNow >= self.start && timeNow <= end {
-                let timeleft = timeNow - end
+                let timeleft = end - timeNow
                 return timeleft
             }
             return 0.0 as UFix64
@@ -388,7 +388,10 @@ pub contract AuctionHouse {
         }
 
         destroy() {
-            pre{ self.status == false }
+            pre{
+                self.status == false
+                self.auctionVault.balance == 0.0
+            }
             self.returnFunds()
             self.royality()
             destroy self.auctionVault
