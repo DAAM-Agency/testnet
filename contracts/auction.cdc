@@ -275,15 +275,16 @@ pub contract AuctionHouse {
         pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault): @NonFungibleToken.NFT {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
-                self.buyItNowStatus()         : "Buy It Now option has expired."
+                self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.buyNow == amount.balance : "Wrong Amount."
+                // Must be after the above line.
+                self.buyItNowStatus() : "Buy It Now option has expired."
             }
             // ends the auction
             self.status = false  
             self.length = 0.0 as UFix64
             self.auctionVault.deposit(from: <- amount)
             self.leader = bidder.address
-            // remove leader from log before returnFunds!!!
             self.auctionLog.remove(key: bidder.address)
             self.returnFunds()!
             self.royality()
@@ -298,7 +299,10 @@ pub contract AuctionHouse {
 
         
         pub fun buyItNowStatus(): Bool {
-            return self.buyNow != 0.0 && self.buyNow > self.auctionLog[self.leader!]!
+            if self.leader != nil {
+                return self.buyNow > self.auctionLog[self.leader!]!
+            }
+            return true
         }
 
         priv fun returnFunds() {
