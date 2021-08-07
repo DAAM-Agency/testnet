@@ -153,7 +153,7 @@ pub contract AuctionHouse {
             pre {         
                 self.minBid != nil                        : "No Bidding. Buy It Now."     
                 self.updateStatus() != false              : "Auction has already ended."
-                self.validateBid(balance: amount.balance) : "You have made an invalid Bid."
+                self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder.address             : "You are already lead bidder."
                 self.owner?.address != bidder.address     : "Yo can not bid in your own auction."
             }
@@ -169,23 +169,24 @@ pub contract AuctionHouse {
             self.auctionVault.deposit(from: <- amount)
             self.extendAuction()
 
+            log("Balance: ".concat(self.auctionLog[self.leader!]!.toString()) )
+            log("Min Bid: ".concat(self.minBid!.toString()) )
+
             log("Bid Accepted")
             emit BidMade(tokenID: self.tokenID, bidder:self.leader! )
         }
 
-        priv fun validateBid(balance: UFix64): Bool {
-            log("Balance: ".concat(balance.toString()) )
-            log("Min Bid: ".concat(self.minBid!.toString()) )
-            if self.leader == nil { // First Bid
+        priv fun validateBid(bidder: Address, balance: UFix64): Bool {
+            // Bidders' first bid (New Bidder)
+            if !self.auctionLog.containsKey(bidder) {
                 if balance >= self.minBid! {
                     return true
                 }
                 log("Initial Bid too low.")
                 return false
-            } 
-            // Not the first bid
-            if self.auctionLog.containsKey(self.leader!) &&
-              (balance + self.auctionLog[self.leader!]!) >= self.minBid! {
+            }
+            // Otherwise ... (not the Bidders' first bid)
+            if (balance + self.auctionLog[bidder]!) >= self.minBid! {
                 return true
             }
             log("Bid Deposit too low.")
@@ -202,18 +203,22 @@ pub contract AuctionHouse {
         }
 
         access(contract) fun updateStatus(): Bool? {
-            let end = self.start + self.length
             if self.status == false {  // false = Auction has Ended
                 log("Auction had already ended.")
                 return false
             }      
-            let timeNow = getCurrentBlock().timestamp
-            if self.start < timeNow {  // nil = Auction hasn't startepd
-                log("")
-                return nil
-            } else if timeNow > end {  // false = Auction has Ended
+
+            let auction_time = self.timeLeft()
+            if auction_time == 0.0 {
+                self.status = false
+                log("Auction had already ended.")
                 return false
-            } 
+            }
+
+            if auction_time == nil {
+                log("Auction has not started yet.")
+                return nil
+            }
             return true
         }
 
@@ -329,14 +334,20 @@ pub contract AuctionHouse {
             return self.status
         }
 
-        pub fun timeLeft(): UFix64 {
-            //self.updateStatus()
+        pub fun timeLeft(): UFix64? {
             if self.length == 0.0 {
                 return 0.0 as UFix64
-            }
-            let end = self.start + self.length
+            } // Extended Auction Ended is over
+
             let timeNow = getCurrentBlock().timestamp
-            if end <= timeNow {
+            log("TimeNow: ".concat(timeNow.toString()) )
+
+            let end = self.start + self.length
+            log("End: ".concat(end.toString()) )
+
+            if timeNow < self.start { return nil }
+            
+            if timeNow >= self.start && timeNow <= end {
                 let timeleft = timeNow - end
                 return timeleft
             }

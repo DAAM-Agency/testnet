@@ -82,10 +82,17 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 --arg UFix64:$START \
---arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:true --arg UFix64:5.0 --arg UFix64:10.00 \
+--arg UFix64:300.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
+# The following should NOT work, except for the 2nd, the first client bid at 10.0
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer creator
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client # not this one
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer nobody
+'''
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:14.0 --signer nobody
+#flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:10.0 --signer client
 
 flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
 
@@ -96,3 +103,4 @@ flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREA
 # Scripts
 #flow scripts execute ./scripts/CheckTokenData.cdc --arg Address:$CLIENT --arg UInt64:1
 #flow scripts execute ./scripts/CheckMarketplaceData.cdc --arg Address:$CLIENT
+'''
