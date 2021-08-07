@@ -130,7 +130,7 @@ pub resource RequestGenerator {
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
             pre {
                 counter != 0 as UInt64 : "Illegal operation."
-                (series != 0 && counter <= series) : "Reached limit on prints."
+                (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
             self.mid       = DAAM.metadataCounterID
             self.creator   = creator

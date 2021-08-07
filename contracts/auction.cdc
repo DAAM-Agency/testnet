@@ -310,9 +310,9 @@ pub contract AuctionHouse {
 
         pub fun cancelAuction(auctioneer: AuthAccount): @NonFungibleToken.NFT {
             pre {
-                self.updateStatus() == nil  : "Too late to cancel Auction."
-                self.auctionLog.length == 0 : "You already have a bid. Too late to Cancel."
-                self.owner?.address! == auctioneer.address: "You are not the auctioneer."
+                self.updateStatus() == nil || true         : "Too late to cancel Auction."
+                self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
+                self.owner?.address! == auctioneer.address : "You are not the auctioneer."
             }
             
             self.status = false
@@ -347,7 +347,7 @@ pub contract AuctionHouse {
 
             if timeNow < self.start { return nil }
             
-            if timeNow >= self.start && timeNow <= end {
+            if timeNow >= self.start && timeNow < end {
                 let timeleft = end - timeNow
                 return timeleft
             }
