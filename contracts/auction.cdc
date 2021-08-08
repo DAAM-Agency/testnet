@@ -393,7 +393,7 @@ pub contract AuctionHouse {
         priv fun updateSeries() {
             if !self.series { return }       
             if self.owner?.address != self.creator { return } // Is this the original Creators' wallet?
-            AuctionHouse.loadMinter(creator: self.creator, mid: self.mid, auction: &self as &Auction, reprintSeries: self.reprintSeries)
+            // Minter Here TODO 
         }
 
         destroy() {
@@ -409,34 +409,8 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
-    access(contract) fun loadMinter(creator: Address, mid: UInt64, auction: &Auction, reprintSeries: Bool) {
-        let recipient  = getAccount(creator).getCapability<&DAAM.Collection>(DAAM.collectionPublicPath)
-        let requestGen = getAccount(creator).getCapability<&DAAM.RequestGenerator>(DAAM.requestPublicPath).borrow()!
-        let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
-
-        let metadataGen = getAccount(creator).getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath).borrow()!
-        let metadataHolder <- metadataGen.generateMetadata(mid: mid)
-        let metadataHolderRef = &metadataHolder as &DAAM.MetadataHolder
-        
-        let request <- requestGen.getRequest(metadata: metadataHolderRef ) // TODO BUG is here!!
-        let tokenID = minter.mintNFT(recipient: recipient.borrow()!, metadata: <-metadataHolder, request: <-request)
-
-        if reprintSeries {
-            let auctionhouseRef = self.account.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-            let start = getCurrentBlock().timestamp + 40.0 as UFix64
-            let incrementByPrice = (auction.increment[true] != nil)
-            let incrementAmount = auction.increment[incrementByPrice]!
-            
-            //let nft <- recipient.withdraw(withdrawID: tokenID)
-            
-            ///auctionhouseRef.createAuction(nft: <- nft, tokenID, start: start, length: auction.length,
-            //isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
-            //startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow, reprintSeries: auction.reprintSeries)
-        }
-    }
-
     access(contract) fun notNew(tokenID: UInt64) {
-        let minter = self.account.borrow<&DAAM.Creator{DAAM.SeriesMinter}>(from: DAAM.creatorStoragePath)!
+        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
         minter.notNew(tokenID: tokenID)
     }
 

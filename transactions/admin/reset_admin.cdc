@@ -9,7 +9,7 @@ transaction() {
         destroy adminRes
         destroy requestRes
         admin.unlink(DAAM.adminPrivatePath)
-        admin.unlink(DAAM.requestPublicPath)
+        admin.unlink(DAAM.requestPrivatePath)
         log("Admin Removed")
     } 
 }

@@ -17,7 +17,7 @@ transaction(mid: UInt64, answer: Bool) {
         if self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath) == nil {  // Create initial Requerst Generator, first time only
             let requestGen <- adminRef.newRequestGenerator()
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)            
+            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)            
             log("Request Generator Initialized")
         }
         adminRef.answerRequest(mid: mid, answer: answer)

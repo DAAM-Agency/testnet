@@ -18,7 +18,7 @@ transaction(submit: Bool) {
             let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
             let requestGen <- creatorRef.newRequestGenerator()!
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!
+            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }

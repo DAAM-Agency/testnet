@@ -28,9 +28,9 @@ flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --
 
 # Submit 2 Metadata: #1 Solo, #2 Series(of 2)
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --arg String:"data A" --arg String:"thumbnail A" --arg String:"file A" --signer creator
-flow scripts execute ./scripts/metadata.cdc --arg Address:$CREATOR
+flow transactions send ./transactions/metadata/metadata.cdc --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:7 --arg String:"data B" --arg String:"thumbnail B" --arg String:"file B" --signer creator
-flow scripts execute ./scripts/metadata.cdc --arg Address:$CREATOR
+flow transactions send ./transactions/metadata/metadata.cdc --signer creator
 
 # Approve the Metadatas
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
@@ -43,15 +43,10 @@ flow transactions send ./transactions/request/accept_default.cdc --arg UInt64:1 
 #flow transactions send ./transactions/request/make_request.cdc --arg UInt64:1 --signer creator
 #flow transactions send ./transactions/admin/answer_request.cdc --arg UInt64:1 --arg Bool:true --signer admin
 
-# Mint 4 NFTs
-flow transactions send ./transactions/creator/mint_nft.cdc --arg UInt64:1 --signer creator
-flow transactions send ./transactions/creator/mint_nft.cdc --arg UInt64:2 --signer creator
-flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR 
-
 # Change Copyright
 flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:1 --arg Int:3 --signer admin
 flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 --arg Int:3 --signer admin
-'''
+
 # Change Creator Status
 flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2
 
@@ -113,7 +108,7 @@ flow transactions send ./transactions/auction/close_auctions.cdc --signer creato
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
 flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
-'''
+
 flow transactions send ./transactions/auction/cancel_auction.cdc --arg UInt64:1 --signer creator
 
 sleep 20

@@ -18,7 +18,7 @@ transaction(submit: Bool) {
             let adminRef = self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
             let requestGen <- adminRef.newRequestGenerator()!
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPublicPath, target: DAAM.requestStoragePath)!
+            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
             log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }

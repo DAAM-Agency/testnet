@@ -13,9 +13,11 @@ pub contract DAAM: NonFungibleToken {
     pub event Deposit(id: UInt64,   to: Address?)
 
     pub event NewAdmin(admin  : Address)
+    pub event NewMinter(minter: Address)
     pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
     pub event CreatorInvited(creator: Address)
+    pub event MinterSetup(minter: Address)   
     pub event MetadataGeneratated()
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(metadataID: UInt64)
@@ -33,12 +35,15 @@ pub contract DAAM: NonFungibleToken {
     pub let metadataStoragePath   : StoragePath
     pub let adminPrivatePath      : PrivatePath
     pub let adminStoragePath      : StoragePath
+    pub let minterPrivatePath     : PrivatePath
+    pub let minterStoragePath     : StoragePath
     pub let creatorPrivatePath    : PrivatePath
     pub let creatorStoragePath    : StoragePath
     pub let requestPrivatePath    : PrivatePath
     pub let requestStoragePath    : StoragePath
                  
     access(contract) var adminPending : Address?
+    access(contract) var minterPending: Address?
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
     access(contract) var request : {UInt64: Bool}      // {Address Requested : Approved by Admin }
@@ -363,9 +368,16 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.creators.insert(key: creator, false )     
+            DAAM.creators.insert(key: creator, false )
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
+        }
+
+        pub fun inviteMinter(_ minter: Address) {  // Admin add a new creator
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            DAAM.minterPending = minter
+            log("Sent Minter Setup: ".concat(minter.toString()) )
+            emit MinterSetup(minter: minter)      
         }
 
         pub fun removeAdminInvite() {
@@ -492,11 +504,11 @@ pub resource interface CollectionPublic {
     // public function that anyone can call to create a new empty collection
     pub fun answerAdminInvite(newAdmin: Address, submit: Bool): @Admin{Founder} {
         pre {
-            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
-            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
+            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite."
+            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil
-        if !submit { panic("Well, ... fuck you too!!!") }        
+        if !submit { panic("Thank you for your consideration.") }        
         log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin)
         return <- create Admin()         
@@ -505,8 +517,8 @@ pub resource interface CollectionPublic {
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
-            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
-            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
+            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
+            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
         if !submit {
             DAAM.creators.remove(key: newCreator)
@@ -516,6 +528,15 @@ pub resource interface CollectionPublic {
         log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator)
         return <- create Creator()!
+    }
+
+    pub fun answerMinterInvite(minter: Address, submit: Bool): @Minter {
+        pre { DAAM.minterPending == minter }
+        DAAM.minterPending = nil
+        if !submit { panic("Thank you for your consideration.") }        
+        log("Minter: ".concat(minter.toString()) )
+        emit NewMinter(minter: minter)
+        return <- create Minter()         
     }
     
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
@@ -534,6 +555,8 @@ pub resource interface CollectionPublic {
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
+        self.minterPrivatePath     = /private/DAAM_Minter
+        self.minterStoragePath     = /storage/DAAM_Minter
         self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
         self.requestPrivatePath    = /private/DAAM_Request
@@ -541,6 +564,7 @@ pub resource interface CollectionPublic {
 
         //Custom variables should be contract arguments        
         self.adminPending = 0x01cf0e2f2f715450
+        self.minterPending = nil
         self.agency       = 0xeb179c27144f783c
         
         self.copyright = {}

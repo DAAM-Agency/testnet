@@ -9,7 +9,7 @@ transaction() {
         destroy creatorRes
         destroy requestRes
         creator.unlink(DAAM.creatorPrivatePath)
-        creator.unlink(DAAM.requestPublicPath)
+        creator.unlink(DAAM.requestPrivatePath)
         log("Creator Removed")
     } 
 }
