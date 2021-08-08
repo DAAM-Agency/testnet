@@ -133,7 +133,7 @@ pub contract AuctionHouse {
             self.reserve = reserve
             self.buyNow = buyNow
             self.reprintSeries = reprintSeries
-            self.auctionLog = {} // TODO post { auctionLog == auctionVault.balance}
+            self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
 
             self.creator = nft.metadata.creator!
@@ -157,6 +157,7 @@ pub contract AuctionHouse {
                 self.leader != bidder.address         : "You are already lead bidder."
                 self.owner?.address != bidder.address : "Yo can not bid in your own auction."
             }
+            post { self.verifyAuctionLog() }
 
             self.leader = bidder.address
             if !self.auctionLog.containsKey(self.leader!) { // First bid by user
@@ -228,7 +229,9 @@ pub contract AuctionHouse {
                 self.updateStatus() != false   : "Auction has Ended."
                 self.auctionLog.containsKey(bidder.address) : "You have not made a Bid"
                 self.minBid != nil : "This is a Buy It Now only purchase."
+                self.verifyAuctionLog() : "Internal Error!!"
             }
+            post { self.verifyAuctionLog() }
             let balance = self.auctionLog[bidder.address]!
             self.auctionLog.remove(key: bidder.address)!
             let amount <- self.auctionVault.withdraw(amount: balance)!
@@ -246,7 +249,8 @@ pub contract AuctionHouse {
         }
 
         access(contract) fun verifyWinnerPrice() {
-            pre { self.updateStatus() == false   : "Auction still in progress" }
+            pre  { self.updateStatus() == false   : "Auction still in progress" }
+            post { self.verifyAuctionLog() }
             var target = self.leader
             if self.leader != nil {
                 target = self.leader!
@@ -280,6 +284,7 @@ pub contract AuctionHouse {
                 // Must be after the above line.
                 self.buyItNowStatus() : "Buy It Now option has expired."
             }
+            post { self.verifyAuctionLog() }
             // ends the auction
             self.status = false  
             self.length = 0.0 as UFix64
@@ -394,6 +399,14 @@ pub contract AuctionHouse {
             if !self.series { return }       
             if self.owner?.address != self.creator { return } // Is this the original Creators' wallet?
             // Minter Here TODO 
+        }
+
+        priv fun verifyAuctionLog(): Bool {
+            var total = 0.0
+            for amount in self.auctionLog.keys {
+                total = total + self.auctionLog[amount]!
+            }
+            return total == self.auctionVault.balance
         }
 
         destroy() {
