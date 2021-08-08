@@ -426,6 +426,9 @@ pub contract AuctionHouse {
             let start = getCurrentBlock().timestamp + 40.0 as UFix64
             let incrementByPrice = (auction.increment[true] != nil)
             let incrementAmount = auction.increment[incrementByPrice]!
+            
+            //let nft <- recipient.withdraw(withdrawID: tokenID)
+            
             ///auctionhouseRef.createAuction(nft: <- nft, tokenID, start: start, length: auction.length,
             //isExtended: auction.isExtended, extendedTime: auction.extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
             //startingBid: auction.startingBid, reserve: auction.reserve, buyNow: auction.buyNow, reprintSeries: auction.reprintSeries)

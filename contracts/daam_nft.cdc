@@ -27,16 +27,16 @@ pub contract DAAM: NonFungibleToken {
     pub event RequestAccepted(mid: UInt64)
     pub event RemovedAdminInvite()
 
-    pub let collectionPublicPath : PublicPath
-    pub let collectionStoragePath: StoragePath
-    pub let metadataPublicPath   : PublicPath
-    pub let metadataStoragePath  : StoragePath
-    pub let adminStoragePath     : StoragePath
-    pub let adminPrivatePath     : PrivatePath
-    pub let creatorStoragePath   : StoragePath
-    pub let creatorPrivatePath   : PrivatePath
-    pub let requestPublicPath    : PublicPath
-    pub let requestStoragePath   : StoragePath
+    pub let collectionPublicPath  : PublicPath
+    pub let collectionStoragePath : StoragePath
+    pub let metadataPrivatePath   : PrivatePath
+    pub let metadataStoragePath   : StoragePath
+    pub let adminPrivatePath      : PrivatePath
+    pub let adminStoragePath      : StoragePath
+    pub let creatorPrivatePath    : PrivatePath
+    pub let creatorStoragePath    : StoragePath
+    pub let requestPrivatePath    : PrivatePath
+    pub let requestStoragePath    : StoragePath
                  
     access(contract) var adminPending : Address?
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
@@ -226,6 +226,7 @@ pub resource MetadataGenerator {
         pub let royality : {Address : UFix64}
 
         init(metadata: @MetadataHolder, request: @Request) {
+            pre { metadata.metadata.mid == request.mid }
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
 
@@ -426,18 +427,7 @@ pub resource interface CollectionPublic {
         }
 	}
 /************************************************************************/
-pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
-     pub fun notNew(tokenID: UInt64)
-}
-/************************************************************************/
-pub resource interface Minter {
-    pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator
-    pub fun newRequestGenerator(): @RequestGenerator
-    pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
-}
-/************************************************************************/
-    pub resource Creator: SeriesMinter {
+    pub resource Creator {
 
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
@@ -453,8 +443,10 @@ pub resource interface Minter {
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
             return <- create RequestGenerator()
-        }
-
+        } 
+    }
+/************************************************************************/
+    pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
             pre{
@@ -470,12 +462,6 @@ pub resource interface Minter {
             log("Minited NFT: ".concat(id.toString()))
             emit MintedNFT(id: id)
             return id            
-        }
-
-        priv fun newNFT(id: UInt64) {
-            pre  { !DAAM.newNFTs.contains(id) }
-            post { DAAM.newNFTs.contains(id)  }
-                DAAM.newNFTs.append(id)
         }
 
         pub fun notNew(tokenID: UInt64) {
@@ -495,6 +481,12 @@ pub resource interface Minter {
                 }
             }
         }
+
+        priv fun newNFT(id: UInt64) {
+            pre  { !DAAM.newNFTs.contains(id) }
+            post { DAAM.newNFTs.contains(id)  }
+                DAAM.newNFTs.append(id)
+        }        
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
@@ -538,13 +530,13 @@ pub resource interface Minter {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
+        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
-        self.metadataPublicPath    = /public/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
         self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
-        self.requestPublicPath     = /public/DAAM_Request
+        self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
 
         //Custom variables should be contract arguments        

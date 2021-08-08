@@ -86,15 +86,23 @@ flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
 flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:2 --arg UFix64:$START \
---arg UFix64:100.0 --arg Bool:true --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
+--arg UFix64:100.0 --arg Bool:true --arg UFix64:600.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
 sleep 30
 # Filler transaction
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
-
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
-flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer client
+
+sleep 30
+# Filler transaction
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:25.0 --signer client
+
+sleep 200
+# Filler transaction
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
 
 sleep 90
 # Filler transaction
