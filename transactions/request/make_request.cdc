@@ -9,7 +9,7 @@ transaction(mid: UInt64) {
 
     prepare(signer: AuthAccount) {
         self.signer = signer
-        self.requestGen = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)
+        self.requestGen = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
         self.metadataGen = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
@@ -28,7 +28,7 @@ transaction(mid: UInt64) {
         var royality = {DAAM.agency : 0.15 as UFix64} // Debug
         royality.insert(key: metadata.creator, 0.10 as UFix64) // Debug
 
-        requestGen?.makeRequest(metadata: metadata, royality: royality)!
+        self.requestGen.makeRequest(metadata: metadata, royality: royality)!
         log("Request Made")
     }
 }
