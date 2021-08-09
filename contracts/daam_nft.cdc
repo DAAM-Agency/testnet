@@ -13,9 +13,11 @@ pub contract DAAM: NonFungibleToken {
     pub event Deposit(id: UInt64,   to: Address?)
 
     pub event NewAdmin(admin  : Address)
+    pub event NewMinter(minter: Address)
     pub event NewCreator(creator: Address)
     pub event AdminInvited(admin  : Address)
     pub event CreatorInvited(creator: Address)
+    pub event MinterSetup(minter: Address)   
     pub event MetadataGeneratated()
     pub event MintedNFT(id: UInt64)
     pub event ChangedCopyright(metadataID: UInt64)
@@ -27,18 +29,21 @@ pub contract DAAM: NonFungibleToken {
     pub event RequestAccepted(mid: UInt64)
     pub event RemovedAdminInvite()
 
-    pub let collectionPublicPath : PublicPath
-    pub let collectionStoragePath: StoragePath
-    pub let metadataPublicPath   : PublicPath
-    pub let metadataStoragePath  : StoragePath
-    pub let adminStoragePath     : StoragePath
-    pub let adminPrivatePath     : PrivatePath
-    pub let creatorStoragePath   : StoragePath
-    pub let creatorPrivatePath   : PrivatePath
-    pub let requestPublicPath    : PublicPath
-    pub let requestStoragePath   : StoragePath
+    pub let collectionPublicPath  : PublicPath
+    pub let collectionStoragePath : StoragePath
+    pub let metadataPrivatePath   : PrivatePath
+    pub let metadataStoragePath   : StoragePath
+    pub let adminPrivatePath      : PrivatePath
+    pub let adminStoragePath      : StoragePath
+    pub let minterPrivatePath     : PrivatePath
+    pub let minterStoragePath     : StoragePath
+    pub let creatorPrivatePath    : PrivatePath
+    pub let creatorStoragePath    : StoragePath
+    pub let requestPrivatePath    : PrivatePath
+    pub let requestStoragePath    : StoragePath
                  
     access(contract) var adminPending : Address?
+    access(contract) var minterPending: Address?
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
     access(contract) var request : {UInt64: Bool}      // {Address Requested : Approved by Admin }
@@ -69,6 +74,8 @@ pub resource Request {
         self.mid      = metadata.mid
         self.royality = royality
     }
+
+    pub fun getMID(): UInt64 { return self.mid }
 }
 /***********************************************************************/
 pub resource RequestGenerator {
@@ -76,7 +83,7 @@ pub resource RequestGenerator {
    
     init() { self.request <- {} }
 
-    pub fun makeRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
+    pub fun createRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
         pre {
             metadata != nil
             //TODO Consider verifiing Only Creator
@@ -84,8 +91,8 @@ pub resource RequestGenerator {
         let mid = metadata.mid
         let request <-! create Request(metadata: metadata, royality: royality)
 
-        DAAM.request.insert(key: mid, false)
-        self.request[mid] <-! request
+        DAAM.request.insert(key: mid, false) // advice DAAM of request
+        self.request[mid] <-! request        // save request
                     
         log("Royality Request: ".concat(mid.toString()) )
         emit RoyalityRequest(mid: mid)
@@ -130,7 +137,7 @@ pub resource RequestGenerator {
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
             pre {
                 counter != 0 as UInt64 : "Illegal operation."
-                (series != 0 && counter <= series) : "Reached limit on prints."
+                (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
             self.mid       = DAAM.metadataCounterID
             self.creator   = creator
@@ -226,6 +233,7 @@ pub resource MetadataGenerator {
         pub let royality : {Address : UFix64}
 
         init(metadata: @MetadataHolder, request: @Request) {
+            pre { metadata.metadata.mid == request.mid }
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
 
@@ -309,6 +317,8 @@ pub resource interface CollectionPublic {
             }
         }
 
+        pub fun inviteMinter(_ minter: Address) 
+        
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
                 DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
@@ -362,9 +372,16 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.creators.insert(key: creator, false )     
+            DAAM.creators.insert(key: creator, false )
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
+        }
+
+        pub fun inviteMinter(_ minter: Address) {  // Admin add a new creator
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            DAAM.minterPending = minter
+            log("Sent Minter Setup: ".concat(minter.toString()) )
+            emit MinterSetup(minter: minter)      
         }
 
         pub fun removeAdminInvite() {
@@ -426,18 +443,7 @@ pub resource interface CollectionPublic {
         }
 	}
 /************************************************************************/
-pub resource interface SeriesMinter {
-     pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
-     pub fun notNew(tokenID: UInt64)
-}
-/************************************************************************/
-pub resource interface Minter {
-    pub fun newMetadataGenerator(metadata: Metadata): @MetadataGenerator
-    pub fun newRequestGenerator(): @RequestGenerator
-    pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64
-}
-/************************************************************************/
-    pub resource Creator: SeriesMinter {
+    pub resource Creator {
 
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
@@ -453,29 +459,23 @@ pub resource interface Minter {
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
             return <- create RequestGenerator()
-        }
-
+        } 
+    }
+/************************************************************************/
+    pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
+        pub fun mintNFT(metadata: @MetadataHolder, request: @Request): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
                 DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
             }
-			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
-            let id = newNFT.id
-            self.newNFT(id: id)
-			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
-            log("Minited NFT: ".concat(id.toString()))
-            emit MintedNFT(id: id)
-            return id            
-        }
-
-        priv fun newNFT(id: UInt64) {
-            pre  { !DAAM.newNFTs.contains(id) }
-            post { DAAM.newNFTs.contains(id)  }
-                DAAM.newNFTs.append(id)
+			let nft <- create NFT(metadata: <- metadata, request: <- request )
+            self.newNFT(id: nft.id)
+            log("Minited NFT: ".concat(nft.id.toString()))
+            emit MintedNFT(id: nft.id)
+            return <- nft          
         }
 
         pub fun notNew(tokenID: UInt64) {
@@ -495,16 +495,22 @@ pub resource interface Minter {
                 }
             }
         }
+
+        priv fun newNFT(id: UInt64) {
+            pre  { !DAAM.newNFTs.contains(id) }
+            post { DAAM.newNFTs.contains(id)  }
+                DAAM.newNFTs.append(id)
+        }        
     }
 /************************************************************************/
     // public function that anyone can call to create a new empty collection
     pub fun answerAdminInvite(newAdmin: Address, submit: Bool): @Admin{Founder} {
         pre {
-            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite!!!. Get outta here!!"
-            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first! Go make one Fool!!"
+            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite."
+            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil
-        if !submit { panic("Well, ... fuck you too!!!") }        
+        if !submit { panic("Thank you for your consideration.") }        
         log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin)
         return <- create Admin()         
@@ -513,8 +519,8 @@ pub resource interface Minter {
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
-            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite!!!. Get outta here!!"
-            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first! Go make one Fool!!"
+            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
+            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
         if !submit {
             DAAM.creators.remove(key: newCreator)
@@ -524,6 +530,15 @@ pub resource interface Minter {
         log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator)
         return <- create Creator()!
+    }
+
+    pub fun answerMinterInvite(minter: Address, submit: Bool): @Minter {
+        pre { DAAM.minterPending == minter }
+        DAAM.minterPending = nil
+        if !submit { panic("Thank you for your consideration.") }        
+        log("Minter: ".concat(minter.toString()) )
+        emit NewMinter(minter: minter)
+        return <- create Minter()         
     }
     
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
@@ -538,18 +553,26 @@ pub resource interface Minter {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
+        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
-        self.metadataPublicPath    = /public/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
+        self.minterPrivatePath     = /private/DAAM_Minter
+        self.minterStoragePath     = /storage/DAAM_Minter
         self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
-        self.requestPublicPath     = /public/DAAM_Request
+        self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
 
         //Custom variables should be contract arguments        
+<<<<<<< HEAD
         self.adminPending = 0x0408d5dc880b51fa
         self.agency       = 0xe06f6c0199f15125 
+=======
+        self.adminPending = 0x01cf0e2f2f715450
+        self.minterPending = nil
+        self.agency       = 0xeb179c27144f783c
+>>>>>>> dev
         
         self.copyright = {}
         self.creators  = {}

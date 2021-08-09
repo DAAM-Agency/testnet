@@ -13,7 +13,7 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String)
         if creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath) == nil {
             let mg <-! self.creatorRef.newMetadataGenerator()     
             creator.save<@DAAM.MetadataGenerator>(<- mg, to: DAAM.metadataStoragePath)
-            creator.link<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
+            creator.link<&DAAM.MetadataGenerator>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
         } 
         let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
         metadataGenerator?.addMetadata(series: series, data: data, thumbnail: thumbnail, file: file)!

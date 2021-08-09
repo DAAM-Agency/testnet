@@ -1,7 +1,12 @@
 // mint_nft.cdc
 
+<<<<<<< HEAD:transactions/creator/mint_nft.cdc
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM             from 0x51e2c02e69b53477
+=======
+//import NonFungibleToken from 0x120e725050340cab
+import DAAM             from 0xfd43f9148d4b725d
+>>>>>>> dev:transactions/minter/mint_nft.cdc
 
 transaction(mid: UInt64) {
 
@@ -14,7 +19,7 @@ transaction(mid: UInt64) {
         // borrow a reference to the creatorRef resource in storage
         self.creatorRef = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)
             ?? panic("Could not borrow a reference to the Creator Storage")        
-        let collection = creator.borrow<&{NonFungibleToken.CollectionPublic}>(from: DAAM.collectionStoragePath)
+        let collection = creator.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow Collection. Create a Collection first.")
 
         let metadataGenerator = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)       
