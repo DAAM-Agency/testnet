@@ -4,10 +4,9 @@ import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0x120e725050340cab
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
+transaction(metadata: @DAAM.Metadata, royality: @DAAM.Royality, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
-  let nftCollection: &NonFungibleToken.Collection
   let auctionHouse : &AuctionHouse.AuctionWallet
 
   prepare(auctioneer: AuthAccount) {
@@ -18,7 +17,7 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   execute {
       let nft <- self.nftCollection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
 
-      self.auctionHouse.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended,
+      self.auctionHouse.createAuction(metadata: <-metadata, royality: <-royality, start: start, length: length, isExtended: isExtended,
         extendedTime: extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
         startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
 

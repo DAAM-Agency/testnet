@@ -65,7 +65,6 @@ flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true 
 # (Re)Invite Admin #2
 flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
 flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
-'''
 
 # Start Bidding
 # starts in 30 seconds
@@ -76,11 +75,11 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 # tokenID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
-flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:1 --arg UFix64:$START \
+flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:1 --arg UFix64:$START \
 --arg UFix64:100.0 --arg Bool:false --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
-flow transactions send ./transactions/auction/create_auction.cdc --arg UInt64:2 --arg UFix64:$START \
+flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:2 --arg UFix64:$START \
 --arg UFix64:100.0 --arg Bool:true --arg UFix64:600.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
@@ -127,4 +126,3 @@ flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREA
 # Scripts
 #flow scripts execute ./scripts/CheckTokenData.cdc --arg Address:$CLIENT --arg UInt64:1
 #flow scripts execute ./scripts/CheckMarketplaceData.cdc --arg Address:$CLIENT
-'''

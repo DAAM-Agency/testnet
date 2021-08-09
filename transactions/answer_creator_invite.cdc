@@ -12,7 +12,7 @@ transaction(submit: Bool) {
     execute {
         let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer.address, submit: submit)
 
-        if creator != nil {
+        if creator != nil &7 submit {
             self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)!
             self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!

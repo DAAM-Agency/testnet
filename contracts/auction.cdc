@@ -33,6 +33,16 @@ pub contract AuctionHouse {
             self.currentAuctions <- {}
         }
 
+        pub fun createExclusiveAuction(metadata: @DAAM.MetadataHolder, request: @DAAM.Request, start: UFix64, length: UFix64, isExtended: Bool,
+        extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+        {
+            pre { metadata.getMID() == request.getMID() }
+            let nft <- AuctionHouse.mintNFT(metadata: <-metadata, request: <-request)
+
+            self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
+            incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+        }
+
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
           extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
@@ -74,7 +84,7 @@ pub contract AuctionHouse {
         pub fun item(_ id: UInt64): &Auction {
             pre { self.currentAuctions.containsKey(id) }
             return &self.currentAuctions[id] as &Auction
-        }
+        }        
 
         destroy() {
             destroy self.currentAuctions
@@ -425,6 +435,12 @@ pub contract AuctionHouse {
     access(contract) fun notNew(tokenID: UInt64) {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
         minter.notNew(tokenID: tokenID)
+    }
+
+    access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder, request: @DAAM.Request): @DAAM.NFT {
+        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+        let nft <- minter.mintNFT(metadata: <-metadata, request: <-request)!
+        return <- nft
     }
 
     pub fun createAuctionWallet(owner: AuthAccount): @AuctionWallet {

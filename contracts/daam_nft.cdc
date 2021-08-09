@@ -74,6 +74,8 @@ pub resource Request {
         self.mid      = metadata.mid
         self.royality = royality
     }
+
+    pub fun getMID(): UInt64 { return self.mid }
 }
 /***********************************************************************/
 pub resource RequestGenerator {
@@ -81,7 +83,7 @@ pub resource RequestGenerator {
    
     init() { self.request <- {} }
 
-    pub fun makeRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
+    pub fun createRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
         pre {
             metadata != nil
             //TODO Consider verifiing Only Creator
@@ -315,6 +317,8 @@ pub resource interface CollectionPublic {
             }
         }
 
+        pub fun inviteMinter(_ minter: Address) 
+        
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
                 DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
@@ -460,20 +464,18 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{DAAM.CollectionPublic}, metadata: @MetadataHolder, request: @Request): UInt64 {
+        pub fun mintNFT(metadata: @MetadataHolder, request: @Request): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
                 DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
             }
-			let newNFT <- create NFT(metadata: <- metadata, request: <- request )
-            let id = newNFT.id
-            self.newNFT(id: id)
-			recipient.deposit(token: <- newNFT) // deposit it in the recipient's account using their reference            
-            log("Minited NFT: ".concat(id.toString()))
-            emit MintedNFT(id: id)
-            return id            
+			let nft <- create NFT(metadata: <- metadata, request: <- request )
+            self.newNFT(id: nft.id)
+            log("Minited NFT: ".concat(nft.id.toString()))
+            emit MintedNFT(id: nft.id)
+            return <- nft          
         }
 
         pub fun notNew(tokenID: UInt64) {
