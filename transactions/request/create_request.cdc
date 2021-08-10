@@ -1,4 +1,4 @@
-// make_request.cdc
+// create_request.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 
@@ -28,7 +28,7 @@ transaction(mid: UInt64) {
         var royality = {DAAM.agency : 0.15 as UFix64} // Debug
         royality.insert(key: metadata.creator, 0.10 as UFix64) // Debug
 
-        self.requestGen.makeRequest(metadata: metadata, royality: royality)!
+        self.requestGen.createRequest(metadata: metadata, royality: royality)!
         log("Request Made")
     }
 }

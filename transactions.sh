@@ -37,7 +37,7 @@ flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UIn
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:2 --arg Bool:true --signer admin2
 
 # Request Royality
-flow transactions send ./transactions/request/make_request.cdc --arg UInt64:2 --signer creator
+flow transactions send ./transactions/request/create_request.cdc --arg UInt64:2 --signer creator
 flow transactions send ./transactions/admin/answer_request.cdc --arg UInt64:2 --arg Bool:true --signer admin
 flow transactions send ./transactions/request/accept_default.cdc --arg UInt64:1 --signer creator
 #flow transactions send ./transactions/request/make_request.cdc --arg UInt64:1 --signer creator
@@ -79,6 +79,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc --arg 
 --arg UFix64:100.0 --arg Bool:false --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
+'''
 flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:2 --arg UFix64:$START \
 --arg UFix64:100.0 --arg Bool:true --arg UFix64:600.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
@@ -118,7 +119,7 @@ flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CRE
 flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer client
 
 #flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
-
+'''
 
 # Transfer NFT
 #flow transactions send ./transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client

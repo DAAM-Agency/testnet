@@ -114,7 +114,7 @@ pub resource RequestGenerator {
     pub fun getRequest(metadata: &MetadataHolder): @Request {
         pre {
             metadata != nil
-            self.request[metadata.metadata.mid] != nil
+            self.request[metadata.getMID()] != nil
         } 
         let mid = metadata.metadata.mid
         let royality = self.request[mid]?.royality!

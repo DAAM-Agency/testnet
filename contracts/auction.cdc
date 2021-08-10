@@ -33,7 +33,7 @@ pub contract AuctionHouse {
             self.currentAuctions <- {}
         }
 
-        pub fun createExclusiveAuction(metadata: @DAAM.MetadataHolder, request: @DAAM.Request, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createOriginalAuction(metadata: @DAAM.MetadataHolder, request: @DAAM.Request, start: UFix64, length: UFix64, isExtended: Bool,
         extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre { metadata.getMID() == request.getMID() }
