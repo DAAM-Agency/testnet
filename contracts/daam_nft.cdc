@@ -46,7 +46,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var minterPending: Address?
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
-    access(contract) var request : {UInt64: Bool}      // {Address Requested : Approved by Admin }
+    access(contract) var request : @{UInt64: Request}      // {Address Requested : Approved by Admin }
 
     pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus}
     
@@ -67,32 +67,59 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 pub resource Request {
     access(contract) let mid       : UInt64
-    access(contract) let royality  : {Address : UFix64}
+    access(contract) var royality  : {Address : UFix64}
+    access(contract) var agreement : [Bool?; 2]
     
     init(metadata: &Metadata, royality: {Address : UFix64} ) {
         pre { royality.containsKey(DAAM.agency) }  // Agency must be included.
-        self.mid      = metadata.mid
-        self.royality = royality
+        self.mid       = metadata.mid
+        self.royality  = royality
+        self.agreement = [nil, nil] // [Admin, Creator] , nil == no choice made, false=disagree, true=agree
     }
 
     pub fun getMID(): UInt64 { return self.mid }
-}
+
+    pub fun barginCreator(creator: AuthAccount, status: Bool) {
+        // Verify is Creator
+        pre { creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You are not a Creator." }
+        self.barterCreator(status)
+    }
+
+    access(contract) fun barterCreator(_ status: Bool) {
+        pre { self.agreement[0]!=true || self.agreement[1]!=true : "Neogoation is already closed. Both parties have already agreed." }
+        self.agreement[0] = status
+        if !status { self.agreement[1] == nil }
+    }
+
+    pub fun barginAdmin(admin: AuthAccount, status: Bool) {
+        // Verify is Admin
+        pre { admin.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You are not an Admin." }
+        self.barterAdmin(status)
+    }
+
+    access(contract) fun barterAdmin(_ status: Bool) {
+        pre { self.agreement[0]!=true || self.agreement[1]!=true : "Neogoation is already closed. Both parties have already agreed." }
+        self.agreement[1] = status
+        if !status { self.agreement[0] == nil }
+    }
+
+    pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
+}    
 /***********************************************************************/
 pub resource RequestGenerator {
-    priv var request  : @{UInt64 : Request}  // { mid : Request }
-   
-    init() { self.request <- {} }
+    //priv var request  : @{UInt64 : Request}  // { mid : Request }`
+    init() { /*self.request <- {}*/ }
 
     pub fun createRequest(metadata: &Metadata, royality: {Address : UFix64} ) {
         pre {
             metadata != nil
-            //TODO Consider verifiing Only Creator
         }
         let mid = metadata.mid
-        let request <-! create Request(metadata: metadata, royality: royality)
+        let request <-! create Request(metadata: metadata, royality: royality)!
 
-        DAAM.request.insert(key: mid, false) // advice DAAM of request
-        self.request[mid] <-! request        // save request
+        let old <- DAAM.request.insert(key: mid, <-request)! // advice DAAM of request
+        destroy old
+        //self.request[mid] <-! request        // save request
                     
         log("Royality Request: ".concat(mid.toString()) )
         emit RoyalityRequest(mid: mid)
@@ -103,9 +130,14 @@ pub resource RequestGenerator {
         var royality = {DAAM.agency: 0.05 as UFix64 }
         royality.insert(key: self.owner?.address!, 0.15 )
 
+        //let request <- DAAM.request.remove(key: mid)!
         let request <-! create Request(metadata: metadata, royality: royality)
-        DAAM.request.insert(key: mid, true)
-        self.request[mid] <-! request
+        request.barterCreator(true)
+        request.barterAdmin(true)
+
+        let old <- DAAM.request.insert(key: mid, <-request)! // advice DAAM of request
+        destroy old
+        //self.request[mid] <-! request
         
         log("Request Acceppted, MID: ".concat(mid.toString()) )
         emit RequestAccepted(mid: mid)
@@ -114,15 +146,15 @@ pub resource RequestGenerator {
     pub fun getRequest(metadata: &MetadataHolder): @Request {
         pre {
             metadata != nil
-            self.request[metadata.getMID()] != nil
+            DAAM.request.containsKey(metadata.getMID() )
         } 
         let mid = metadata.metadata.mid
-        let royality = self.request[mid]?.royality!
-        let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
+        let request <- DAAM.request.remove(key: mid)!
+        //let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
         return <- request
     }
 
-    destroy() { destroy self.request }
+    //destroy() { destroy self.request }
 }
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
@@ -345,7 +377,7 @@ pub resource interface CollectionPublic {
 
         pub fun removeAdminInvite()
         pub fun newRequestGenerator(): @RequestGenerator
-        pub fun answerRequest(mid: UInt64, answer: Bool)
+        //pub fun answerRequest(mid: UInt64, answer: Bool)
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -364,7 +396,10 @@ pub resource interface CollectionPublic {
         }
 
         pub fun inviteAdmin(newAdmin: Address) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            pre{
+                self.status : "You're no longer a DAAM Admin!!"
+                DAAM.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
+            }
             DAAM.adminPending = newAdmin
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
@@ -431,7 +466,7 @@ pub resource interface CollectionPublic {
             DAAM.metadata[mid] = status
         }
 
-        pub fun answerRequest(mid: UInt64, answer: Bool) {
+        /*pub fun answerRequest(mid: UInt64, answer: Bool) {
             pre {
                 self.status : "You're no longer a DAAM Admin!!"
                 DAAM.request[mid] != nil
@@ -440,7 +475,7 @@ pub resource interface CollectionPublic {
             DAAM.request[mid] = answer
             log("Request Answered, MID: ".concat(mid.toString()) )
             emit RequestAnswered(mid: mid)
-        }
+        }*/
 	}
 /************************************************************************/
     pub resource Creator {
@@ -464,15 +499,20 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(metadata: @MetadataHolder, request: @Request): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.request[metadata.metadata.mid] == true          : "Not Approved by Admin"
+                //DAAM.request[metadata.metadata.mid]!.isValid() : ""
             }
+            let request <- DAAM.request.remove(key: metadata.metadata.mid)!
+            if request.isValid() == false { panic("Not Approved by Admin") }
+            if request.mid != metadata.metadata.mid { panic("Mismatch MIDs") }
+
 			let nft <- create NFT(metadata: <- metadata, request: <- request )
             self.newNFT(id: nft.id)
+            
             log("Minited NFT: ".concat(nft.id.toString()))
             emit MintedNFT(id: nft.id)
             return <- nft          
@@ -506,6 +546,7 @@ pub resource interface CollectionPublic {
     // public function that anyone can call to create a new empty collection
     pub fun answerAdminInvite(newAdmin: Address, submit: Bool): @Admin{Founder} {
         pre {
+            DAAM.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
             DAAM.adminPending == newAdmin : "You got no DAAM Admin invite."
             Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
@@ -519,6 +560,7 @@ pub resource interface CollectionPublic {
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
+            self.account.borrow<&Admin{Founder}>(from: DAAM.adminStoragePath) == nil : "A Creator can not use the same address as an Admin."
             DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
@@ -569,10 +611,10 @@ pub resource interface CollectionPublic {
         self.minterPending = nil
         self.agency       = 0xeb179c27144f783c
         
+        self.request  <- {}
         self.copyright = {}
         self.creators  = {}
         self.metadata  = {}
-        self.request   = {}
         self.newNFTs   = []
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs

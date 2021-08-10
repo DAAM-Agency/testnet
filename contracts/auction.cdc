@@ -33,11 +33,10 @@ pub contract AuctionHouse {
             self.currentAuctions <- {}
         }
 
-        pub fun createOriginalAuction(metadata: @DAAM.MetadataHolder, request: @DAAM.Request, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createOriginalAuction(metadata: @DAAM.MetadataHolder, start: UFix64, length: UFix64, isExtended: Bool,
         extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
-            pre { metadata.getMID() == request.getMID() }
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata, request: <-request)
+            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
 
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
             incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -437,9 +436,9 @@ pub contract AuctionHouse {
         minter.notNew(tokenID: tokenID)
     }
 
-    access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder, request: @DAAM.Request): @DAAM.NFT {
+    access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
-        let nft <- minter.mintNFT(metadata: <-metadata, request: <-request)!
+        let nft <- minter.mintNFT(metadata: <-metadata)!
         return <- nft
     }
 
