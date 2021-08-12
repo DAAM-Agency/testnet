@@ -6,7 +6,7 @@ import DAAM from x51e2c02e69b53477
 transaction(metadataID: UInt64, /*copyright: DAAM.CopyrightStatus*/) {
 
 =======
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
     
 transaction(mid: UInt64, copyright: Int) {
     

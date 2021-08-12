@@ -602,7 +602,7 @@ pub resource interface CollectionPublic {
         destroy old
     }
 
-	init() {
+	init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -617,15 +617,9 @@ pub resource interface CollectionPublic {
         self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
 
-        //Custom variables should be contract arguments        
-<<<<<<< HEAD
-        self.adminPending = 0x0408d5dc880b51fa
-        self.agency       = 0xe06f6c0199f15125 
-=======
-        self.adminPending = 0x01cf0e2f2f715450
+        self.agency        = agency
+        self.adminPending  = founder
         self.minterPending = nil
-        self.agency       = 0xeb179c27144f783c
->>>>>>> dev
         
         self.request  <- {}
         self.copyright = {}
