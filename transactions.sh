@@ -82,12 +82,12 @@ flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:1 --arg UFix64:$START \
---arg UFix64:100.0 --arg Bool:false --arg UFix64:60.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
+--arg UFix64:100.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
 
 flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:2 --arg UFix64:$START \
---arg UFix64:100.0 --arg Bool:true --arg UFix64:600.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
+--arg UFix64:100.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
 --arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
 sleep 30
