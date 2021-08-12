@@ -74,6 +74,10 @@ CURRENT_TIME=$(date +%s)
 OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
+flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
+flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
+
 # tokenID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
@@ -94,11 +98,16 @@ flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CRE
 sleep 30
 # Filler transaction // Auction already Ended, should fail
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data D" --arg String:"thumbnail D" --arg String:"file D" --signer creator
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:25.0 --signer client
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:28.0 --signer client
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:29.0 --signer nobody
 
+# Filler transaction
+sleep 130
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data E" --arg String:"thumbnail E" --arg String:"file E" --signer creator
 flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
+sleep 20
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data F" --arg String:"thumbnail F" --arg String:"file F" --signer creator
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
 flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY

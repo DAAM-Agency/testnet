@@ -239,7 +239,6 @@ pub resource MetadataGenerator {
 
             if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
                 self.removeMetadata(mid: mid)
-                log("REMOVED HERE") // DEBUG
             } else {
                 let counter = self.metadata[mid]!.counter + 1 as UInt64
                 let new_metadata = Metadata(
@@ -247,7 +246,6 @@ pub resource MetadataGenerator {
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: self.metadata[mid]!.counter
                 )
                 self.metadata[mid] = new_metadata
-                log("NORMAL HERE") // DEBUG
             }
             return <- mh         
         }
@@ -517,11 +515,7 @@ pub resource interface CollectionPublic {
         }
 
         pub fun notNew(tokenID: UInt64) {
-            pre{
-                DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
-                DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
-                DAAM.newNFTs.contains(tokenID)
-            }
+            pre  { DAAM.newNFTs.contains(tokenID)  }
             post { !DAAM.newNFTs.contains(tokenID) }
             var counter = 0
             for nft in DAAM.newNFTs {
@@ -601,7 +595,7 @@ pub resource interface CollectionPublic {
 
             !self.getRequestValidity(mid: mid) : "Request already is settled."
         }
-        
+
         let request <- self.request.remove(key: mid)!
         request.bargin(signer: signer, mid: mid, royality: royality)
         let old <- self.request[mid] <- request

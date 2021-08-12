@@ -67,11 +67,11 @@ pub contract AuctionHouse {
 
             for act in self.currentAuctions.keys {
                 self.currentAuctions[act]?.updateStatus()
-                let status  = self.currentAuctions[act]?.status
+                let status = self.currentAuctions[act]?.status
                 if status == false {
                     let tokenID = self.currentAuctions[act]?.tokenID!
-                    self.currentAuctions[act]?.verifyWinnerPrice()
                     let auction <- self.currentAuctions.remove(key:tokenID)!
+                    auction.verifyReservePrice()
                     destroy auction
 
                     log("Auction Closed: ".concat(tokenID.toString()) )
@@ -107,6 +107,7 @@ pub contract AuctionHouse {
         pub var auctionLog   : {Address: UFix64} // {Bidders, Amount}
         pub var auctionNFT  : @DAAM.NFT?
         priv var auctionVault: @FungibleToken.Vault
+        // nft data
         priv let creator : Address
         priv let series : Bool
         priv let agencyPercentage: UFix64
@@ -124,6 +125,8 @@ pub contract AuctionHouse {
                 isExtended && extendedTime >= 60.0 || !isExtended : "Extended Time setting are incorrect. The minimim is 1 min."
                 reprintSeries == true && nft.metadata.series != 0 || !reprintSeries : "This can be reprinted."
             }
+            post { self.auctionNFT != nil}
+            
             if incrementByPrice == false && incrementAmount <= 0.025 { panic("The minimum increment is 2.5%.")   }
             if incrementByPrice == false && incrementAmount > 0.05   { panic("The maximum increment is 5%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0    { panic("The minimum increment is 1 FUSD.") }
@@ -254,10 +257,10 @@ pub contract AuctionHouse {
                 self.minBid != nil
                 self.leader! == bidder.address : "You do not have access to the selected Auction"
             }
-            self.verifyWinnerPrice()
+            self.verifyReservePrice()
         }
 
-        access(contract) fun verifyWinnerPrice() {
+        access(contract) fun verifyReservePrice() {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
             post { self.verifyAuctionLog() }
             var target = self.leader
@@ -420,11 +423,14 @@ pub contract AuctionHouse {
 
         destroy() {
             pre{
+                self.auctionNFT == nil
                 self.status == false
                 self.auctionVault.balance == 0.0
             }
+
             self.returnFunds()
             self.royality()
+
             destroy self.auctionVault
             destroy self.auctionNFT
         }
