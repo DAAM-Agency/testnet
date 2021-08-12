@@ -1,17 +1,22 @@
-// answer_request.cdc
+// bargin_creator.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(mid: UInt64, royality: Bool) {
-    let creator: AuthAccount
+transaction(mid: UInt64, royality: {Address : UFix64} ) {
+    let mid        : UInt64
+    let royality   : {Address : UFix64}
+    let creator    : AuthAccount
+    let requestGen : &DAAM.RequestGenerator
 
-    prepare(signer: AuthAccount) {
-        self.creator = signer
-        self.requestGen = self.signer.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+    prepare(creator: AuthAccount) {
+        self.mid = mid
+        self.royality = royality
+        self.creator = creator
+        self.requestGen = self.creator.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
     }
 
     execute {
-        DAAM.barginCreator(signer: self.creator, mid: mid, royality: answer)
+        DAAM.barginCreator(creator: self.creator, mid: self.mid, royality: self.royality)
         log("Request Answered")
     }
 }

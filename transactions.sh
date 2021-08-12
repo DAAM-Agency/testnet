@@ -37,15 +37,12 @@ flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UIn
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:2 --arg Bool:true --signer admin2
 
 # Request Royality
-flow transactions send ./transactions/request/create_request.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.05"}}, {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer creator
-'''
-flow transactions send ./transactions/admin/bargin_admin.cdc --arg UInt64:2 --arg UFix64:0.155 --signer admin
-flow transactions send ./transactions/creator/bargin_creator.cdc --arg UInt64:2 UFix64:0.16 --signer creator
-flow transactions send ./transactions/admin/bargin_admin.cdc --arg UInt64:2 --arg UFix64:0.16 --signer admin
+flow transactions send ./transactions/request/create_request.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.05"}}, {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.18"}}] }]' --signer creator
+flow transactions send ./transactions/admin/bargin_admin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.155"}}] }]' --signer admin
+flow transactions send ./transactions/creator/bargin_creator.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer creator
+flow transactions send ./transactions/admin/bargin_admin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer admin
 
 flow transactions send ./transactions/request/accept_default.cdc --arg UInt64:1 --signer creator
-#flow transactions send ./transactions/request/make_request.cdc --arg UInt64:1 --signer creator
-#flow transactions send ./transactions/admin/answer_request.cdc --arg UInt64:1 --arg Bool:true --signer admin
 
 # Change Copyright
 flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:1 --arg Int:3 --signer admin
@@ -69,7 +66,7 @@ flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true 
 # (Re)Invite Admin #2
 flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
 flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
-
+'''
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
