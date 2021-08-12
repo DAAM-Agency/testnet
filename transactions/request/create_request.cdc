@@ -1,14 +1,19 @@
-// make_request.cdc
+// create_request.cdc
 
 import DAAM from 0x0670fa5367e021b7
 
-transaction(mid: UInt64) {
+transaction(mid: UInt64, royality: {Address:UFix64} ) {
     let signer: AuthAccount
+    var royality: {Address: UFix64}
     let requestGen: &DAAM.RequestGenerator
     let metadataGen: &DAAM.MetadataGenerator
 
     prepare(signer: AuthAccount) {
+        log(royality.length)
+        if royality.length <= 1 { panic("Both parties Must be included.") } // Minimum entry is 2; Agency & Creator
+
         self.signer = signer
+        self.royality = royality
         self.requestGen = self.signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
         self.metadataGen = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
@@ -23,12 +28,16 @@ transaction(mid: UInt64) {
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!            
             log("Request Generator Initialized")
         }
+
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
 
-        var royality = {DAAM.agency : 0.15 as UFix64} // Debug
-        royality.insert(key: metadata.creator, 0.10 as UFix64) // Debug
+        /*var counter = 0
+        for account in accounts {
+            self.royality.insert(key: account, percentage[counter])
+            counter = counter + 1
+        }*/
 
-        self.requestGen.makeRequest(metadata: metadata, royality: royality)!
+        self.requestGen.createRequest(signer: self.signer, metadata: metadata, royality: self.royality)!
         log("Request Made")
     }
 }
