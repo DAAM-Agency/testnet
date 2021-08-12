@@ -1,6 +1,6 @@
 // answer_creator_invite.cdc
 
-import DAAM from x51e2c02e69b53477
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount

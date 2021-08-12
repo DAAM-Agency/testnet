@@ -4,7 +4,7 @@ import DAAM from 0x0670fa5367e021b7
 
 transaction(mid: UInt64, royality: {Address:UFix64} ) {
     let signer: AuthAccount
-    var royality: {Address: UFix64}
+    let royality: {Address: UFix64}
     let requestGen: &DAAM.RequestGenerator
     let metadataGen: &DAAM.MetadataGenerator
 
@@ -30,13 +30,6 @@ transaction(mid: UInt64, royality: {Address:UFix64} ) {
         }
 
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
-
-        /*var counter = 0
-        for account in accounts {
-            self.royality.insert(key: account, percentage[counter])
-            counter = counter + 1
-        }*/
-
         self.requestGen.createRequest(signer: self.signer, metadata: metadata, royality: self.royality)!
         log("Request Made")
     }

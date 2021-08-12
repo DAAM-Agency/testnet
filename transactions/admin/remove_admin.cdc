@@ -1,12 +1,18 @@
-// remove_creator.cdc
+// remove_admin.cdc
 
-import DAAM from x51e2c02e69b53477
+import DAAM from 0xa4ad5ea5c0bd2fba
 
-transaction(xadmin: Address) {
+transaction(exAdmin: Address)
+{
+    let admin   : &{DAAM.Founder}
+    let exAdmin : Address
 
     prepare(acct: AuthAccount) {
-        let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        admin.removeAdmin(admin: xadmin)
+        self.admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+    }
+
+    execute {
+        self.admin.removeAdmin(admin: self.exAdmin)
         log("Remove Admin Requested")
     }
-}// transaction
+}

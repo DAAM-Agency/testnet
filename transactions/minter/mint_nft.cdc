@@ -1,12 +1,6 @@
 // mint_nft.cdc
 
-<<<<<<< HEAD:transactions/creator/mint_nft.cdc
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM             from 0x51e2c02e69b53477
-=======
-//import NonFungibleToken from 0x120e725050340cab
-import DAAM             from 0xa4ad5ea5c0bd2fba
->>>>>>> dev:transactions/minter/mint_nft.cdc
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64) {
 

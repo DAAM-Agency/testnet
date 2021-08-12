@@ -1,16 +1,9 @@
 // change_copyright.cdc
 
-<<<<<<< HEAD
-import DAAM from x51e2c02e69b53477
-
-transaction(metadataID: UInt64, /*copyright: DAAM.CopyrightStatus*/) {
-
-=======
 import DAAM from 0xa4ad5ea5c0bd2fba
     
-transaction(mid: UInt64, copyright: Int) {
-    
->>>>>>> dev
+transaction(mid: UInt64, copyright: Int)
+{
     prepare(acct: AuthAccount) {
         var cr = DAAM.CopyrightStatus.FRAUD
         switch(copyright) {

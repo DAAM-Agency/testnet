@@ -1,14 +1,20 @@
 // change_creator_status.cdc
 
-import DAAM from x51e2c02e69b53477
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, status: Bool) {
+    let admin  : &{DAAM.Founder}
+    let creator: Address
+    let status : Bool
 
     prepare(acct: AuthAccount) {
-        let copyright = DAAM.CopyrightStatus.CLAIM
+        self.creator = creator
+        self.status  = status
+        self.admin = acct.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+    }
 
-        let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-        admin.changeCreatorStatus(creator: creator, status: status)
+    execute {
+        self.admin.changeCreatorStatus(creator: self.creator, status: self.status)
         log("Change Creator Status")   
     }
-}// transaction
+}
