@@ -38,9 +38,9 @@ flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UIn
 
 # Request Royality
 flow transactions send ./transactions/request/create_request.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.05"}}, {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.18"}}] }]' --signer creator
-flow transactions send ./transactions/admin/bargin_admin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.155"}}] }]' --signer admin
-flow transactions send ./transactions/creator/bargin_creator.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer creator
-flow transactions send ./transactions/admin/bargin_admin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer admin
+flow transactions send ./transactions/request/bargin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.155"}}] }]' --signer admin
+flow transactions send ./transactions/request/bargin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer creator
+flow transactions send ./transactions/request/bargin.cdc --args-json '[{"type": "UInt64", "value": "2"}, {"type": "Dictionary", "value": [{"key": {"type": "Address", "value": "0xeb179c27144f783c"}, "value": {"type": "UFix64", "value": "0.5"}},  {"key": {"type": "Address", "value": "0x179b6b1cb6755e31"}, "value": {"type": "UFix64", "value": "0.16"}}] }]' --signer admin
 
 flow transactions send ./transactions/request/accept_default.cdc --arg UInt64:1 --signer creator
 
@@ -50,6 +50,7 @@ flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 
 
 # Change Creator Status
 flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2
+flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:true  --signer admin2
 
 # Remove Admin / Creator
 flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin
@@ -66,7 +67,7 @@ flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true 
 # (Re)Invite Admin #2
 flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
 flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
-'''
+
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
@@ -91,18 +92,10 @@ flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --ar
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
 
 sleep 30
-# Filler transaction
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
+# Filler transaction // Auction already Ended, should fail
+flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data D" --arg String:"thumbnail D" --arg String:"file D" --signer creator
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:25.0 --signer client
-
-sleep 200
-# Filler transaction
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
-
-sleep 90
-# Filler transaction
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
 
 flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
@@ -110,17 +103,9 @@ flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
 flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 
-flow transactions send ./transactions/auction/cancel_auction.cdc --arg UInt64:1 --signer creator
-
-sleep 20
-# Filler transaction
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:12 --arg String:"data D" --arg String:"thumbnail D" --arg String:"file D" --signer creator
-
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
-flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer client
+#flow transactions send ./transactions/auction/cancel_auction.cdc --arg UInt64:1 --signer creator
 
 #flow transactions send ./transactions/auction/buy_it_now.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:30.0 --signer nobody
-'''
 
 # Transfer NFT
 #flow transactions send ./transactions/transfer.cdc --arg Address:$NOBODY --arg UInt64:3 --signer client

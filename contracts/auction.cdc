@@ -244,7 +244,7 @@ pub contract AuctionHouse {
             let balance = self.auctionLog[bidder.address]!
             self.auctionLog.remove(key: bidder.address)!
             let amount <- self.auctionVault.withdraw(amount: balance)!
-            log("BidWithdrawn")
+            log("Bid Withdrawn")
             emit BidWithdrawn(bidder: bidder.address)    
             return <- amount
         }

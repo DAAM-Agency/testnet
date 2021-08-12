@@ -8,28 +8,21 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let requestGen   : &DAAM.RequestGenerator
   let metadataGen  : &DAAM.MetadataGenerator
 
   prepare(auctioneer: AuthAccount) {
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
       self.metadataGen  = auctioneer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-      self.requestGen   = auctioneer.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+      //self.requestGen   = auctioneer.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
   }
 
   execute {
       let metadata <- self.metadataGen.generateMetadata(mid: mid)!
-      log(metadata.getMID().toString() )
-      let request <- self.requestGen.getRequest(metadata: &metadata as &DAAM.MetadataHolder)!
-      log(request.getMID() == nil )
 
-      destroy metadata
-      destroy request
-
-      /*self.auctionHouse.createOriginalAuction(metadata: <-metadata, request: <-request, start: start, length: length, isExtended: isExtended,
+      self.auctionHouse.createOriginalAuction(metadata: <-metadata, start: start, length: length, isExtended: isExtended,
         extendedTime: extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
         startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)!
-*/
+
       log("New Auction has been created.")
   }
 }

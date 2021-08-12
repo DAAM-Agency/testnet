@@ -69,63 +69,51 @@ pub enum CopyrightStatus: UInt8 {
 pub resource Request {
     access(contract) let mid       : UInt64
     access(contract) var royality  : {Address : UFix64}
-    access(contract) var agreement : [Bool?; 2]
+    access(contract) var agreement : [Bool; 2]
     
-    init(metadata: &Metadata, royality: {Address : UFix64} ) {
-        pre { royality.containsKey(DAAM.agency) }  // Agency must be included.
+    init(metadata: &Metadata) {
         self.mid       = metadata.mid
-        self.royality  = royality
-        self.agreement = [nil, nil] // [Admin, Creator] , nil == no choice made, false=disagree, true=agree
+        self.royality  = {}
+        self.agreement = [false, false] // [Admin, Creator] ,
     }
 
     pub fun getMID(): UInt64 { return self.mid }
 
-    access(contract) fun barginCreator(creator: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
+    access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
         // Verify is Creator
-        pre { creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You are not a Creator." }
-        let status = self.verifyRoyality(royality)  
-        self.barterCreator(status: status, mid: mid)
-    }
+        pre {
+            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil ||
+            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You do not have access."
 
-    access(contract) fun barterCreator(status: Bool, mid: UInt64) {
-        pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed." }
-        self.agreement[0] = status              // [0] is Creator 
-        if !status {
-            self.agreement[1] == nil  // reset Admin, to re-bargin
-            return
+            royality.containsKey(DAAM.agency) : "Agency must be included in Royality."
+            !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
         }
+        // 0 = creator, 1 = admin
+        let selected   = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 0 : 1
+        let unselected = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 1 : 0
+
+        self.agreement[selected] = true
+        self.agreement[unselected] = self.royalityMatch(royality)
+        self.royality = royality
+
+        log("egotiating")
         if self.isValid() {
             log("Agreement Reached")
             emit AgreementReached(mid: mid)
         }
     }
 
-    access(contract) fun barginAdmin(admin: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
-        // Verify is Admin
-        pre { admin.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You are not an Admin." }
-        let status = self.verifyRoyality(royality)  
-        self.barterAdmin(status: status, mid: mid)
-    }
-
-    access(contract) fun barterAdmin(status: Bool, mid: UInt64) {
-        pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed." }
-        self.agreement[1] = status              // [1] is Admin
-        if !status {
-            self.agreement[0] == nil // reset Creator, to re-bargin
-            return
-        }
-        if self.isValid() {
-            log("Agreement Reached")
-            emit AgreementReached(mid: mid)
-        }
-    }
-
-    priv fun verifyRoyality(_ royalities: {Address:UFix64} ): Bool {
+    priv fun royalityMatch(_ royalities: {Address:UFix64} ): Bool {
         if self.royality.length != royalities.length { return false}
         for royality in royalities.keys {
-            if royalities[royality] != self.royality[royality] { return false}
+            if royalities[royality] != self.royality[royality] { return false }
         }
         return true
+    }
+
+    access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
+        self.royality = royality
+        self.agreement = [true, true]
     }
 
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
@@ -139,17 +127,15 @@ pub resource RequestGenerator {
         pre {
             !DAAM.request.containsKey(metadata.mid) : "Already made request for this MID."
             metadata != nil
+            royality.length > 1
 
             signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
             signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access"
         }
         let mid = metadata.mid
-        let request <-! create Request(metadata: metadata, royality: royality)!
-        if signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil {
-            request.barterCreator(status: true, mid: mid)
-        } else {
-            request.barterAdmin(status: true, mid: mid)
-        }
+        let request <-! create Request(metadata: metadata)!
+        request.bargin(signer: signer, mid: mid, royality: royality)
+
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old
                     
@@ -157,21 +143,18 @@ pub resource RequestGenerator {
         emit RoyalityRequest(mid: mid)
     }
 
-    pub fun acceptDefault(metadata: &Metadata) {
+    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata) {
         let mid = metadata.mid
         var royality = {DAAM.agency: 0.05 as UFix64 }
         royality.insert(key: self.owner?.address!, 0.15 )
 
-        //let request <- DAAM.request.remove(key: mid)!
-        let request <-! create Request(metadata: metadata, royality: royality)
-        request.barterCreator(status: true, mid: mid)
-        request.barterAdmin(status: true, mid: mid)
+        let request <-! create Request(metadata: metadata)
+        request.acceptDefault(royality: royality)
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old
-        //self.request[mid] <-! request
         
-        log("Request Acceppted, MID: ".concat(mid.toString()) )
+        log("Request Accepted, MID: ".concat(mid.toString()) )
         emit RequestAccepted(mid: mid)
     }
 
@@ -182,13 +165,8 @@ pub resource RequestGenerator {
             DAAM.getRequestValidity(mid: metadata.getMID() )
         }
         let request <- DAAM.request.remove(key: metadata.metadata.mid)!
-        //if request.mid != metadata.metadata.mid { panic("Mismatch MIDs") }
-        //let mid = metadata.metadata.mid
-        //let request <-! create Request(metadata: &metadata.metadata as &Metadata, royality: royality)
         return <- request
     }
-
-    //destroy() { destroy self.request }
 }
 /************************************************************************/
     pub struct Metadata {  // Metadata for NFT,metadata initialization
@@ -527,7 +505,7 @@ pub resource interface CollectionPublic {
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(mid: metadata.metadata.mid)       : "There is no Request for this MID."
+                DAAM.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
             }
             let request <- DAAM.request.remove(key: metadata.metadata.mid)!
             let nft <- create NFT(metadata: <- metadata, request: <- request )
@@ -606,37 +584,26 @@ pub resource interface CollectionPublic {
     }
     
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
-        post {
-            result.getIDs().length == 0: "The created collection must be empty!"
-        }
+        post { result.getIDs().length == 0: "The created collection must be empty!" }
         return <- create Collection()
     }
 
     pub fun getRequestValidity(mid: UInt64): Bool {
-        let valid = self.request[mid]?.isValid()
-        return valid == true ? true : false
+        pre { self.request.containsKey(mid)}
+        return self.request[mid]?.isValid() == true ? true : false
     }
 
-    pub fun barginCreator(creator: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
+    pub fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
         // Verify is Creator
         pre {
-            creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You are not a Creator."
-            !self.getRequestValidity(mid: mid) : "Request already is settled."
-        }
-        let request <- self.request.remove(key: mid)!
-        request.barginCreator(creator: creator, mid: mid, royality: royality)
-        let old <- self.request[mid] <- request
-        destroy old
-    }
+            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
+            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access."
 
-    pub fun barginAdmin(admin: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
-        // Verify is Admin
-        pre {
-            admin.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You are not a Admin."
             !self.getRequestValidity(mid: mid) : "Request already is settled."
         }
+        
         let request <- self.request.remove(key: mid)!
-        request.barginAdmin(admin: admin, mid: mid, royality: royality)
+        request.bargin(signer: signer, mid: mid, royality: royality)
         let old <- self.request[mid] <- request
         destroy old
     }

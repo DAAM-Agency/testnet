@@ -15,7 +15,7 @@ transaction(mid: UInt64) {
 
     execute {
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
-        self.requestGen.acceptDefault(metadata: metadata)!
+        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata)!
         log("Request Made")
     }
 }
