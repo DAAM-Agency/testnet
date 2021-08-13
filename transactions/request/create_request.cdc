@@ -1,6 +1,6 @@
 // create_request.cdc
 
-import DAAM from 0x0670fa5367e021b7
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(mid: UInt64, royality: {Address:UFix64} ) {
     let signer: AuthAccount

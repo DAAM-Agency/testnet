@@ -1,6 +1,6 @@
 // invite_admin.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(newAdmin: Address)
 {
@@ -13,7 +13,7 @@ transaction(newAdmin: Address)
     }
 
     execute {
-        admin.inviteAdmin(newAdmin: self.newAdmin)
+        self.admin.inviteAdmin(newAdmin: self.newAdmin)
         log("Admin Invited")
     }
 }

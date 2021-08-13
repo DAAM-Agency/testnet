@@ -1,6 +1,6 @@
 // auction_wallet.cdc
 
-import NonFungibleToken from 0x120e725050340cab
+import NonFungibleToken from 0xf8d6e0586b0a20c7
 import AuctionHouse     from 0x045a1763c93006ca
 
 // This transaction is what an account would run to set itself up to receive NFTs

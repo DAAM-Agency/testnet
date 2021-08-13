@@ -3,7 +3,7 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import FlowToken     from 0x0ae53cb6e3f42a79
 import AuctionHouse  from 0x045a1763c93006ca
-import DAAM          from 0xa4ad5ea5c0bd2fba
+import DAAM          from 0xfd43f9148d4b725d
 
 transaction(auction: Address, tokenID: UInt64, bid: UFix64)
 {
