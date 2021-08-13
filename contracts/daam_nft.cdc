@@ -602,6 +602,10 @@ pub resource interface CollectionPublic {
         destroy old
     }
 
+    pub fun getRuest(mid: UInt64): &Request {
+        return &self.request[mid]!
+    }
+
 	init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
