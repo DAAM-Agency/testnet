@@ -27,15 +27,20 @@ pub contract AuctionHouse {
     pub resource AuctionWallet {
         priv let titleholder  : Address
         pub var currentAuctions: @{UInt64 : Auction}
+        priv var metadataGen : Capabitity<&DAAM.MetadataGenerator>
+        //priv var rg : Capabitity<&DAAM.RequestGenerator>?
 
         init(owner: Address) {
             self.titleholder = owner
             self.currentAuctions <- {}
+            self.metadataGen = nil
         }
 
-        pub fun createOriginalAuction(metadata: @DAAM.MetadataHolder, start: UFix64, length: UFix64, isExtended: Bool,
-        extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+        pub fun createOriginalAuction(metadataGenerator: Capabitity<&DAAM.MetadataGenerator>, start: UFix64, length: UFix64,
+        isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
+            self.metadataGen = metadataGenerator
+            let metadata <- self.metadataGen.generateMetadata(mid: mid)!
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
 
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
@@ -410,7 +415,7 @@ pub contract AuctionHouse {
         priv fun updateSeries() {
             if !self.series { return }       
             if self.owner?.address != self.creator { return } // Is this the original Creators' wallet?
-            // Minter Here TODO 
+            // serial minter Here TODO 
         }
 
         priv fun verifyAuctionLog(): Bool {
