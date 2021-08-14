@@ -78,11 +78,15 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
-export CODE=$(cat ../dev/hex_daam_nft_enum)
-#export CTO=0xf7025fa05b578e3
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$PROFILE
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
+#export CODE_DAAM=$(echo ../dev/hex_daam_nft_enum)
+#flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$CODE_DAAM --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
+flow accounts add-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
+
+# FUSD
+flow accounts add-contract FUSD ./contracts/FUSD.cdc
+#export CODE_FUSD=$(echo ../dev/hex_fusd_enum)
+#flow transactions send ./transactions/init_fusd_enum.cdc --arg String:"FUSD" --arg String:$CODE_FUSD --arg Address:$CTO
 
 # Invite Admin/CTO
 flow transactions send ./transactions/create_profile.cdc --signer cto

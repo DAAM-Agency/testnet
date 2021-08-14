@@ -602,7 +602,7 @@ pub resource interface CollectionPublic {
         destroy old
     }    
 
-	init(agency: Address, founder: Address) {
+	init(/*agency: Address, founder: Address*/) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -616,6 +616,9 @@ pub resource interface CollectionPublic {
         self.creatorStoragePath    = /storage/DAAM_Creator
         self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
+
+        let agency  = Address(0xeb179c27144f783c)
+        let founder = Address(0x0f7025fa05b578e3)
 
         self.agency        = agency
         self.adminPending  = founder
@@ -639,4 +642,3 @@ pub resource interface CollectionPublic {
         emit ContractInitialized()
 	}
 }
-
