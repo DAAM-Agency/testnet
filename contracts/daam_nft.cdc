@@ -386,8 +386,8 @@ pub resource interface CollectionPublic {
         }
 
         pub fun removeAdminInvite()
+
         pub fun newRequestGenerator(): @RequestGenerator
-        //pub fun answerRequest(mid: UInt64, answer: Bool)
     }
 /************************************************************************/
 	pub resource Admin: Founder
@@ -474,7 +474,7 @@ pub resource interface CollectionPublic {
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.metadata[mid] = status
-        }        
+        }    
 	}
 /************************************************************************/
     pub resource Creator {
@@ -600,7 +600,11 @@ pub resource interface CollectionPublic {
         request.bargin(signer: signer, mid: mid, royality: royality)
         let old <- self.request[mid] <- request
         destroy old
-    }    
+    }
+    
+    pub fun getRequestMIDs(): [UInt64] {
+        return DAAM.request.keys
+    }        
 
 	init(/*agency: Address, founder: Address*/) {
         // init Paths
