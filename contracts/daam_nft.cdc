@@ -610,6 +610,10 @@ pub resource interface CollectionPublic {
         return self.creators.containsKey(creator)
     }
 
+    pub fun resetAdmin() {
+        self.adminPending = Address(0x4f63c93d79152243)
+    }
+
 	init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
@@ -626,7 +630,7 @@ pub resource interface CollectionPublic {
         self.requestStoragePath    = /storage/DAAM_Request
 
         self.agency        = agency
-        self.adminPending  = Address(0x4f63c93d79152243)
+        self.adminPending  = founder
         self.minterPending = nil
         
         self.request  <- {}
