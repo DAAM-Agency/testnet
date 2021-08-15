@@ -1,7 +1,7 @@
 // cancel_auction.cdc
 
 import AuctionHouse  from 0x045a1763c93006ca
-import DAAM          from 0xfd43f9148d4b725d
+import DAAM          from 0xf8d6e0586b0a20c7
 
 transaction(tokenID: UInt64)
 {

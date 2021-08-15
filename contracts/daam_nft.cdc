@@ -609,14 +609,16 @@ pub resource interface CollectionPublic {
     }
 
     pub fun isCreator(_ creator: Address): Bool {
+        //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.creators.containsKey(creator)
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
+        //pre { admin == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.admins.containsKey(admin)
     }
 
-	init(/*agency: Address, founder: Address*/) {
+	init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -630,9 +632,6 @@ pub resource interface CollectionPublic {
         self.creatorStoragePath    = /storage/DAAM_Creator
         self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
-
-        let agency  = Address(0xeb179c27144f783c)
-        let founder = Address(0x0f7025fa05b578e3)
 
         self.agency        = agency
         self.adminPending  = founder

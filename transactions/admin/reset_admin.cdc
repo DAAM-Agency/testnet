@@ -1,6 +1,6 @@
 // reset_admin.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xf8d6e0586b0a20c7
 
 transaction() {
     prepare(admin: AuthAccount) {

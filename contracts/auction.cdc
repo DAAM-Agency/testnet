@@ -3,7 +3,7 @@
 
 import FungibleToken    from 0xee82856bf20e2aa6
 import FlowToken        from 0x0ae53cb6e3f42a79
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM             from 0xf8d6e0586b0a20c7
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract AuctionHouse {
@@ -436,7 +436,7 @@ pub contract AuctionHouse {
             if !self.reprintSeries { return } // reprint is set to off (false)    
             let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
             let metadata <- metadataRef.generateMetadata(mid: mid)
-            i//if metadataRef?.creator != self.owner?.address! { return }
+            //if metadataRef?.creator != self.owner?.address! { return }  TODO
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
             self.tokenID = nft.id
             let old <- self.auctionNFT <- nft
