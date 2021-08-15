@@ -606,7 +606,7 @@ pub resource interface CollectionPublic {
         return DAAM.request.keys
     }
 
-    pub isCreator(_ creator: Address): Bool {
+    pub fun isCreator(_ creator: Address): Bool {
         return self.creators.containsKey(creator)
     }
 
