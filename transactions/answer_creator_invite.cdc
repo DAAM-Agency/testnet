@@ -1,6 +1,6 @@
 // answer_creator_invite.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V1 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -10,16 +10,16 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer.address, submit: submit)
+        let creator  <- DAAM_V1.answerCreatorInvite(newCreator: self.signer.address, submit: submit)
 
         if creator != nil && submit {
-            self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)!
-            self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
-            let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+            self.signer.save<@DAAM_V1.Creator>(<- creator!, to: DAAM_V1.creatorStoragePath)!
+            self.signer.link<&DAAM_V1.Creator>(DAAM_V1.creatorPrivatePath, target: DAAM_V1.creatorStoragePath)!
+            let creatorRef = self.signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath)!
             let requestGen <- creatorRef.newRequestGenerator()!
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
-            log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
+            self.signer.save<@DAAM_V1.RequestGenerator>(<- requestGen, to: DAAM_V1.requestStoragePath)!
+            self.signer.link<&DAAM_V1.RequestGenerator>(DAAM_V1.requestPrivatePath, target: DAAM_V1.requestStoragePath)!
+            log("You are now a DAAM_V1 Creator: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }

@@ -1,23 +1,23 @@
 // change_copyright.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V1 from 0xa4ad5ea5c0bd2fba
     
 transaction(mid: UInt64, copyright: Int)
 {
     prepare(acct: AuthAccount) {
-        var cr = DAAM.CopyrightStatus.FRAUD
+        var cr = DAAM_V1.CopyrightStatus.FRAUD
         switch(copyright) {
             case 0:
-                cr = DAAM.CopyrightStatus.FRAUD
+                cr = DAAM_V1.CopyrightStatus.FRAUD
             case 1:
-                cr = DAAM.CopyrightStatus.CLAIM
+                cr = DAAM_V1.CopyrightStatus.CLAIM
             case 2:
-                cr = DAAM.CopyrightStatus.UNVERIFIED
+                cr = DAAM_V1.CopyrightStatus.UNVERIFIED
             case 3:
-                cr = DAAM.CopyrightStatus.VERIFIED
+                cr = DAAM_V1.CopyrightStatus.VERIFIED
             default: return
         }
-        let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        let admin = acct.borrow<&DAAM_V1.Admin{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath)!
         admin.changeCopyright(mid: mid, copyright: cr)
         log("Copyright Changed")
     }

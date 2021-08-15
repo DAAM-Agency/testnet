@@ -4,7 +4,7 @@ import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
 import Profile          from 0xba1132bc08f82fe2
 /************************************************************************/
-pub contract DAAM: NonFungibleToken {
+pub contract DAAM_V1_V1: NonFungibleToken {
 
     pub var totalSupply: UInt64
 
@@ -83,15 +83,15 @@ pub resource Request {
     access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
         // Verify is Creator
         pre {
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil ||
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You do not have access."
+            signer.borrow<&{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath) != nil ||
+            signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath) != nil : "You do not have access."
 
-            royality.containsKey(DAAM.agency) : "Agency must be included in Royality."
+            royality.containsKey(DAAM_V1.agency) : "Agency must be included in Royality."
             !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
         }
         // 0 = creator, 1 = admin
-        let selected   = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 0 : 1
-        let unselected = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 1 : 0
+        let selected   = signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath) != nil ? 0 : 1
+        let unselected = signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath) != nil ? 1 : 0
 
         self.agreement[selected] = true
         self.agreement[unselected] = self.royalityMatch(royality)
@@ -126,18 +126,18 @@ pub resource RequestGenerator {
 
     pub fun createRequest(signer: AuthAccount, metadata: &Metadata, royality: {Address : UFix64} ) {
         pre {
-            !DAAM.request.containsKey(metadata.mid) : "Already made request for this MID."
+            !DAAM_V1.request.containsKey(metadata.mid) : "Already made request for this MID."
             metadata != nil
             royality.length > 1
 
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access"
+            signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath) != nil ||
+            signer.borrow<&{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath) != nil : "You do not have access"
         }
         let mid = metadata.mid
         let request <-! create Request(metadata: metadata)!
         request.bargin(signer: signer, mid: mid, royality: royality)
 
-        let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
+        let old <- DAAM_V1.request.insert(key: mid, <-request) // advice DAAM_V1 of request
         destroy old
                     
         log("Royality Request: ".concat(mid.toString()) )
@@ -146,13 +146,13 @@ pub resource RequestGenerator {
 
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata) {
         let mid = metadata.mid
-        var royality = {DAAM.agency: 0.05 as UFix64 }
+        var royality = {DAAM_V1.agency: 0.05 as UFix64 }
         royality.insert(key: self.owner?.address!, 0.15 )
 
         let request <-! create Request(metadata: metadata)
         request.acceptDefault(royality: royality)
 
-        let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
+        let old <- DAAM_V1.request.insert(key: mid, <-request) // advice DAAM_V1 of request
         destroy old
         
         log("Request Accepted, MID: ".concat(mid.toString()) )
@@ -162,10 +162,10 @@ pub resource RequestGenerator {
     pub fun getRequest(metadata: &MetadataHolder): @Request {
         pre {
             metadata != nil
-            DAAM.request.containsKey(metadata.getMID() )
-            DAAM.getRequestValidity(mid: metadata.getMID() )
+            DAAM_V1.request.containsKey(metadata.getMID() )
+            DAAM_V1.getRequestValidity(mid: metadata.getMID() )
         }
-        let request <- DAAM.request.remove(key: metadata.metadata.mid)!
+        let request <- DAAM_V1.request.remove(key: metadata.metadata.mid)!
         return <- request
     }
 }
@@ -184,7 +184,7 @@ pub resource RequestGenerator {
                 counter != 0 as UInt64 : "Illegal operation."
                 (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
-            self.mid       = DAAM.metadataCounterID
+            self.mid       = DAAM_V1.metadataCounterID
             self.creator   = creator
             self.series    = series
             self.counter   = counter
@@ -201,26 +201,26 @@ pub resource MetadataGenerator {
 
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                DAAM.creators[self.owner?.address!] != nil : "You are no longer a Creator."
-                DAAM.creators[self.owner?.address!]!       : "Your Creator account is Frozen."
+                DAAM_V1.creators[self.owner?.address!] != nil : "You are no longer a Creator."
+                DAAM_V1.creators[self.owner?.address!]!       : "Your Creator account is Frozen."
             }
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first/
+            DAAM_V1.metadataCounterID = DAAM_V1.metadataCounterID + 1 as UInt64  // Must be first/
             let creator = self.owner?.address!
             log("Creator: ".concat(creator.toString()) ) // DEBUG
             let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail,
                 file: file, counter: 1 as UInt64)
             self.metadata.insert(key:metadata.mid, metadata)
-            DAAM.metadata.insert(key: metadata.mid, false)
-            DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
+            DAAM_V1.metadata.insert(key: metadata.mid, false)
+            DAAM_V1.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
 
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
-            emit DAAM.MetadataGeneratated()
+            emit DAAM_V1.MetadataGeneratated()
         }
 
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                DAAM.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM_V1.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
+                DAAM_V1.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid)
@@ -228,11 +228,11 @@ pub resource MetadataGenerator {
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
-                DAAM.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM_V1.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
+                DAAM_V1.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
-                DAAM.metadata[mid] != nil : "This already has been published."
-                DAAM.metadata[mid]!       : "Your Submission was Rejected."
+                DAAM_V1.metadata[mid] != nil : "This already has been published."
+                DAAM_V1.metadata[mid]!       : "Your Submission was Rejected."
             }            
                         
             let ref = &self as &MetadataGenerator
@@ -277,8 +277,8 @@ pub resource MetadataGenerator {
 
         init(metadata: @MetadataHolder, request: @Request) {
             pre { metadata.metadata.mid == request.mid }
-            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
-            self.id = DAAM.totalSupply
+            DAAM_V1.totalSupply = DAAM_V1.totalSupply + 1 as UInt64
+            self.id = DAAM_V1.totalSupply
 
             self.metadata = metadata.metadata
             destroy metadata
@@ -288,7 +288,7 @@ pub resource MetadataGenerator {
         }
 
         pub fun getCopyright(): CopyrightStatus {
-            return DAAM.copyright[self.id]!
+            return DAAM_V1.copyright[self.id]!
         }
     }
 /************************************************************************/
@@ -296,7 +296,7 @@ pub resource interface CollectionPublic {
     pub fun deposit(token: @NonFungibleToken.NFT)
     pub fun getIDs(): [UInt64]
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT
+    pub fun borrowDAAM_V1(id: UInt64): &DAAM_V1.NFT
 }     
 /************************************************************************/
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
@@ -306,8 +306,8 @@ pub resource interface CollectionPublic {
                         
         init() {
             self.ownedNFTs <- {}
-            DAAM.collectionCounterID = DAAM.collectionCounterID + 1 as UInt64
-            self.id = DAAM.collectionCounterID
+            DAAM_V1.collectionCounterID = DAAM_V1.collectionCounterID + 1 as UInt64
+            self.id = DAAM_V1.collectionCounterID
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -319,7 +319,7 @@ pub resource interface CollectionPublic {
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM.NFT
+            let token <- token as! @DAAM_V1.NFT
             let id: UInt64 = token.id
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token
@@ -335,10 +335,10 @@ pub resource interface CollectionPublic {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
 
-        pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
+        pub fun borrowDAAM_V1(id: UInt64): &DAAM_V1.NFT {
             pre { self.ownedNFTs[id] != nil }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-            return ref as! &DAAM.NFT
+            return ref as! &DAAM_V1.NFT
         }        
 
         destroy() { destroy self.ownedNFTs }
@@ -347,16 +347,16 @@ pub resource interface CollectionPublic {
     pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
-                Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
+                DAAM_V1.adminPending == nil : "Admin already pending. Waiting on confirmation."
+                Profile.check(newAdmin)  : "You can't add DAAM_V1 Admin without a Profile! Tell'em to make one first!!"
             }
-            post { DAAM.adminPending != nil : "We're being hacked or something" }
+            post { DAAM_V1.adminPending != nil : "We're being hacked or something" }
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre {
-                DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
-                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
+                DAAM_V1.creators.containsKey(creator) == false : "They're already a DAAM_V1 Creator!!!"
+                Profile.check(creator) : "You can't be a DAAM_V1 Creator without a Profile! Go make one Fool!!"
             }
         }
 
@@ -364,26 +364,26 @@ pub resource interface CollectionPublic {
         
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
-                DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
-                DAAM.creators[creator] != status   : "Creator already has this status."
+                DAAM_V1.creators.containsKey(creator) : "They're no DAAM_V1 Creator!!!"
+                DAAM_V1.creators[creator] != status   : "Creator already has this status."
             }
-            post { DAAM.creators[creator] == status}
+            post { DAAM_V1.creators[creator] == status}
         }
 
         pub fun removeCreator(creator: Address) {
-            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
-            post { !DAAM.creators.containsKey(creator) }
+            pre  { DAAM_V1.creators.containsKey(creator) : "They're no DAAM_V1 Creator!!!" }
+            post { !DAAM_V1.creators.containsKey(creator) }
         }
 
         pub fun removeAdmin(admin: Address)
 
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
-            pre  { DAAM.copyright.containsKey(mid): "This is an Invalid MID" }
-            post { DAAM.copyright[mid] == copyright }
+            pre  { DAAM_V1.copyright.containsKey(mid): "This is an Invalid MID" }
+            post { DAAM_V1.copyright[mid] == copyright }
         }
 
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
-            pre  { DAAM.copyright.containsKey(mid): "This is an Invalid MID" }
+            pre  { DAAM_V1.copyright.containsKey(mid): "This is an Invalid MID" }
         }
 
         pub fun removeAdminInvite()
@@ -399,84 +399,84 @@ pub resource interface CollectionPublic {
         init(_ admin: AuthAccount) {
             self.status = true
             self.remove = []
-            DAAM.admins.insert(key: admin.address, true)
+            DAAM_V1.admins.insert(key: admin.address, true)
         }
 
         pub fun newRequestGenerator(): @RequestGenerator {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
             return <- create RequestGenerator()
         }
 
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
-                self.status : "You're no longer a DAAM Admin!!"
-                DAAM.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
+                self.status : "You're no longer a DAAM_V1 Admin!!"
+                DAAM_V1.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
             }
-            DAAM.adminPending = newAdmin
+            DAAM_V1.adminPending = newAdmin
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.creators.insert(key: creator, false )
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
+            DAAM_V1.creators.insert(key: creator, false )
             log("Sent Creator Invation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)         
         }
 
         pub fun inviteMinter(_ minter: Address) {  // Admin add a new creator
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.minterPending = minter
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
+            DAAM_V1.minterPending = minter
             log("Sent Minter Setup: ".concat(minter.toString()) )
             emit MinterSetup(minter: minter)      
         }
 
         pub fun removeAdminInvite() {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.adminPending = nil
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
+            DAAM_V1.adminPending = nil
             log("Admin Invation Removed")
             emit RemovedAdminInvite()                      
         }
 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre{ self.status : "This account is already frozen" }
-            DAAM.creators[creator] = status
+            DAAM_V1.creators[creator] = status
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
 
         pub fun removeCreator(creator: Address) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }            
-            DAAM.creators.remove(key: creator)
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }            
+            DAAM_V1.creators.remove(key: creator)
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
 
         pub fun removeAdmin(admin: Address) {
             pre{
-                self.status : "You're no longer a DAAM Admin!!"
+                self.status : "You're no longer a DAAM_V1 Admin!!"
                 !self.remove.contains(admin) : "You already did"
             }
             self.remove.append(admin)
             if self.remove.length >= 2 {
                 self.status = false
                 // TODO make Admin self destruct
-                DAAM.admins.remove(key: admin)
+                DAAM_V1.admins.remove(key: admin)
                 log("Removed Admin")
                 emit AdminRemoved(admin: admin)
             }
         }
 
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.copyright[mid] = copyright
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
+            DAAM_V1.copyright[mid] = copyright
             log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
 
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
-            pre{ self.status : "You're no longer a DAAM Admin!!" }
-            DAAM.metadata[mid] = status
+            pre{ self.status : "You're no longer a DAAM_V1 Admin!!" }
+            DAAM_V1.metadata[mid] = status
         }    
 	}
 /************************************************************************/
@@ -484,16 +484,16 @@ pub resource interface CollectionPublic {
 
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
-                DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
-                DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
+                DAAM_V1.creators.containsKey(self.owner?.address!) : "You're not a Creator."
+                DAAM_V1.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
             return <- create MetadataGenerator()
         }
 
         pub fun newRequestGenerator(): @RequestGenerator {
             pre{
-                DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
-                DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
+                DAAM_V1.creators.containsKey(self.owner?.address!) : "You're not a Creator."
+                DAAM_V1.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
             return <- create RequestGenerator()
         } 
@@ -501,14 +501,14 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder): @DAAM_V1.NFT {
             pre{
-                DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
-                DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
-                DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
+                DAAM_V1.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
+                DAAM_V1.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
+                DAAM_V1.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
+                DAAM_V1.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
             }
-            let request <- DAAM.request.remove(key: metadata.metadata.mid)!
+            let request <- DAAM_V1.request.remove(key: metadata.metadata.mid)!
             let nft <- create NFT(metadata: <- metadata, request: <- request )
             self.newNFT(id: nft.id)
             
@@ -518,12 +518,12 @@ pub resource interface CollectionPublic {
         }
 
         pub fun notNew(tokenID: UInt64) {
-            pre  { DAAM.newNFTs.contains(tokenID)  }
-            post { !DAAM.newNFTs.contains(tokenID) }
+            pre  { DAAM_V1.newNFTs.contains(tokenID)  }
+            post { !DAAM_V1.newNFTs.contains(tokenID) }
             var counter = 0
-            for nft in DAAM.newNFTs {
+            for nft in DAAM_V1.newNFTs {
                 if nft == tokenID {
-                    DAAM.newNFTs.remove(at: counter)
+                    DAAM_V1.newNFTs.remove(at: counter)
                     break
                 } else {
                     counter = counter + 1
@@ -532,23 +532,23 @@ pub resource interface CollectionPublic {
         }
 
         priv fun newNFT(id: UInt64) {
-            pre  { !DAAM.newNFTs.contains(id) }
-            post { DAAM.newNFTs.contains(id)  }
-                DAAM.newNFTs.append(id)
+            pre  { !DAAM_V1.newNFTs.contains(id) }
+            post { DAAM_V1.newNFTs.contains(id)  }
+                DAAM_V1.newNFTs.append(id)
         }        
     }
 /************************************************************************/
-    // DAAM Functions
+    // DAAM_V1 Functions
     // public function that anyone can call to create a new empty collection
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder} {
         pre {
-            DAAM.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
-            DAAM.adminPending == newAdmin.address : "You got no DAAM Admin invite."
-            Profile.check(newAdmin.address)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            DAAM_V1.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
+            DAAM_V1.adminPending == newAdmin.address : "You got no DAAM_V1 Admin invite."
+            Profile.check(newAdmin.address)       : "You can't be a DAAM_V1 Admin without a Profile first. Go make a Profile first."
         }
-        DAAM.adminPending = nil
+        DAAM_V1.adminPending = nil
         if !submit { panic("Thank you for your consideration.") }        
-        log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
+        log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM_V1") )
         emit NewAdmin(admin: newAdmin.address)
         return <- create Admin(newAdmin)      
     }
@@ -556,24 +556,24 @@ pub resource interface CollectionPublic {
     // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
-            //self.account.borrow<&Admin{Founder}>(from: DAAM.adminStoragePath) == nil : "A Creator can not use the same address as an Admin."
-            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
-            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
+            //self.account.borrow<&Admin{Founder}>(from: DAAM_V1.adminStoragePath) == nil : "A Creator can not use the same address as an Admin."
+            DAAM_V1.creators.containsKey(newCreator) : "You got no DAAM_V1 Creator invite."
+            Profile.check(newCreator)  : "You can't be a DAAM_V1 Creator without a Profile first. Go make a Profile first."
         }
         if !submit {
-            DAAM.creators.remove(key: newCreator)
+            DAAM_V1.creators.remove(key: newCreator)
             return nil
         }      
         log(self.account.address.toString())
-        DAAM.creators[newCreator] = submit        
-        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
+        DAAM_V1.creators[newCreator] = submit        
+        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM_V1") )
         emit NewCreator(creator: newCreator)
         return <- create Creator()!
     }
 
     pub fun answerMinterInvite(minter: Address, submit: Bool): @Minter {
-        pre { DAAM.minterPending == minter }
-        DAAM.minterPending = nil
+        pre { DAAM_V1.minterPending == minter }
+        DAAM_V1.minterPending = nil
         if !submit { panic("Thank you for your consideration.") }        
         log("Minter: ".concat(minter.toString()) )
         emit NewMinter(minter: minter)
@@ -593,8 +593,8 @@ pub resource interface CollectionPublic {
     pub fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
         // Verify is Creator
         pre {
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access."
+            signer.borrow<&DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath) != nil ||
+            signer.borrow<&{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath) != nil : "You do not have access."
 
             !self.getRequestValidity(mid: mid) : "Request already is settled."
         }
@@ -606,7 +606,7 @@ pub resource interface CollectionPublic {
     }
     
     pub fun getRequestMIDs(): [UInt64] {
-        return DAAM.request.keys
+        return DAAM_V1.request.keys
     }
 
     pub fun isCreator(_ creator: Address): Bool {
@@ -619,18 +619,18 @@ pub resource interface CollectionPublic {
 
 	init(agency: Address, founder: Address) {
         // init Paths
-        self.collectionPublicPath  = /public/DAAM_Collection
-        self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
-        self.metadataStoragePath   = /storage/DAAM_SubmitNFT
-        self.adminPrivatePath      = /private/DAAM_Admin
-        self.adminStoragePath      = /storage/DAAM_Admin
-        self.minterPrivatePath     = /private/DAAM_Minter
-        self.minterStoragePath     = /storage/DAAM_Minter
-        self.creatorPrivatePath    = /private/DAAM_Creator
-        self.creatorStoragePath    = /storage/DAAM_Creator
-        self.requestPrivatePath    = /private/DAAM_Request
-        self.requestStoragePath    = /storage/DAAM_Request
+        self.collectionPublicPath  = /public/DAAM_V1_Collection
+        self.collectionStoragePath = /storage/DAAM_V1_Collection
+        self.metadataPrivatePath   = /private/DAAM_V1_SubmitNFT
+        self.metadataStoragePath   = /storage/DAAM_V1_SubmitNFT
+        self.adminPrivatePath      = /private/DAAM_V1_Admin
+        self.adminStoragePath      = /storage/DAAM_V1_Admin
+        self.minterPrivatePath     = /private/DAAM_V1_Minter
+        self.minterStoragePath     = /storage/DAAM_V1_Minter
+        self.creatorPrivatePath    = /private/DAAM_V1_Creator
+        self.creatorStoragePath    = /storage/DAAM_V1_Creator
+        self.requestPrivatePath    = /private/DAAM_V1_Request
+        self.requestStoragePath    = /storage/DAAM_V1_Request
 
         self.agency        = agency
         self.adminPending  = founder
