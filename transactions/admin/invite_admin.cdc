@@ -13,7 +13,7 @@ transaction(newAdmin: Address)
     }
 
     execute {
-        admin.inviteAdmin(newAdmin: self.newAdmin)
+        self.admin.inviteAdmin(newAdmin: self.newAdmin)
         log("Admin Invited")
     }
 }

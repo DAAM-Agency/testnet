@@ -10,7 +10,7 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let admin  <- DAAM.answerAdminInvite(newAdmin: self.signer.address, submit: submit)
+        let admin  <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: submit)
 
         if admin != nil && submit {
             self.signer.save<@DAAM.Admin{DAAM.Founder}>(<- admin!, to: DAAM.adminStoragePath)!
