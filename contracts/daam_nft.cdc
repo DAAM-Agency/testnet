@@ -553,10 +553,9 @@ pub resource interface CollectionPublic {
         return <- create Admin(newAdmin)      
     }
 
-    // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
-            //self.account.borrow<&Admin{Founder}>(from: DAAM.adminStoragePath) == nil : "A Creator can not use the same address as an Admin."
+            !DAAM.admins.containsKey(newCreator)  : "A Creator can not use the same address as an Admin."
             DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
@@ -649,11 +648,6 @@ pub resource interface CollectionPublic {
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
-
-        // Create a Minter resource and save it to storage
-        //let admin <- create Admin()
-        //self.account.save(<-admin, to: self.adminStoragePath)
-        //self.account.link<&Admin>(self.adminPrivatePath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}

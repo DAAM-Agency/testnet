@@ -129,7 +129,6 @@ pub contract AuctionHouse {
                 isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0: "Extended Time setting are incorrect. The minimim is 1 min."
                 reprintSeries == true && nft.metadata.series != 0 || !reprintSeries : "This can be reprinted."
             }
-            //post { self.auctionNFT != nil}
 
             if incrementByPrice == false && incrementAmount <= 0.025 { panic("The minimum increment is 2.5%.")   }
             if incrementByPrice == false && incrementAmount > 0.05   { panic("The maximum increment is 5%.")     }
@@ -262,6 +261,8 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() }
 
             var target = self.leader
+            let metadataRef = self.getMetadataRef()
+
             if self.leader != nil {
                 target = self.leader!
                 // Does it meet the reserve price?
@@ -270,12 +271,11 @@ pub contract AuctionHouse {
                     self.auctionLog.remove(key: self.leader!)!
                     self.returnFunds()!
                     self.royality()
-                    self.updateSeries()
+                    self.seriesMinter(mid: metadataRef.mid)
                     log("Auction Collected")
                     emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID)
                 }             
-            } else {
-                let metadataRef = self.getMetadataRef()
+            } else {                
                 target = metadataRef.creator!          
                 self.returnFunds()!
                 log("Auction Returned")
@@ -304,12 +304,14 @@ pub contract AuctionHouse {
             self.auctionLog.remove(key: bidder.address)
             self.returnFunds()!
             self.royality()
-            self.updateSeries()
+            // nft deposot Must be LAST !!!
+            let nft <- self.auctionNFT <- nil
+            let mid  = nft?.metadata?.mid!
+            self.seriesMinter(mid: mid)
 
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)
-            // nft deposot Must be LAST !!!
-            let nft <- self.auctionNFT <- nil
+            
             return <- nft!
         }    
 
@@ -412,15 +414,6 @@ pub contract AuctionHouse {
             }
         }
 
-        priv fun updateSeries() {
-            let metadataRef = self.getMetadataRef()
-            let creator = metadataRef.creator!
-            log("Creator: ".concat(creator.toString()) )
-            //if !self.series { return }       
-            //if self.owner?.address != self.creator { return } // Is this the original Creators' wallet?
-            // serial minter Here TODO 
-        }
-
         priv fun verifyAuctionLog(): Bool {
             var total = 0.0
             for amount in self.auctionLog.keys {
@@ -441,12 +434,9 @@ pub contract AuctionHouse {
 
         priv fun seriesMinter(mid: UInt64) {
             if !self.reprintSeries { return } // reprint is set to off (false)    
-            //self.reset()
-        }
-
-        priv fun reset(mid: UInt64) {
             let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
-            let metadata <- metadataRef.generateMetadata(mid: self.tokenID)!
+            let metadata <- metadataRef.generateMetadata(mid: mid)
+            i//if metadataRef?.creator != self.owner?.address! { return }
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
             self.tokenID = nft.id
             let old <- self.auctionNFT <- nft
@@ -456,7 +446,6 @@ pub contract AuctionHouse {
             self.leader = nil
             self.start = getCurrentBlock().timestamp + 5.0
             self.auctionLog = {}
-
             self.minBid = self.startingBid
 
             log("Auction Re-Initialized: ".concat(self.tokenID.toString()) )
