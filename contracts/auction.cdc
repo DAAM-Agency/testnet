@@ -22,17 +22,18 @@ pub contract AuctionHouse {
     pub let auctionStoragePath: StoragePath
     pub let auctionPublicPath : PublicPath
     // Variables
+    // Note: Do not confuse (Token)ID with MID
+    access(contract) var metadataGen : {UInt64 : Capability<&DAAM.MetadataGenerator>} // {MID  :Capability<&DAAM.MetadataGenerator>}
 
 /************************************************************************/
     pub resource AuctionWallet {
         priv let titleholder  : Address
         pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
-        priv var metadataGen : Capability<&DAAM.MetadataGenerator>?
+        
 
         init(owner: Address) {
             self.titleholder = owner
-            self.currentAuctions <- {}
-            self.metadataGen = nil
+            self.currentAuctions <- {}            
         }
 
         pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
@@ -40,8 +41,8 @@ pub contract AuctionHouse {
         {
             pre { metadataGenerator != nil }
 
-            self.metadataGen = metadataGenerator
-            let metadataRef = self.metadataGen!.borrow()!
+            AuctionHouse.metadataGen.insert(key: mid, metadataGenerator)
+            let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
             let metadata <- metadataRef.generateMetadata(mid: mid)!
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
 
@@ -100,8 +101,8 @@ pub contract AuctionHouse {
 /************************************************************************/
     pub resource Auction {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
-        pub let tokenID     : UInt64
-        pub let start       : UFix64
+        pub var tokenID     : UInt64
+        pub var start       : UFix64
         pub var length      : UFix64  // post{!isExtended && length == before(length)}
         pub let isExtended  : Bool
         pub let extendedTime: UFix64 // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase.
@@ -116,13 +117,6 @@ pub contract AuctionHouse {
         pub var auctionNFT  : @DAAM.NFT?
         priv var auctionVault: @FungibleToken.Vault
         // nft data
-        /*
-        priv let creator : Address
-        priv let series : Bool
-        priv let agencyPercentage: UFix64
-        priv let creatorPercentage: UFix64
-        priv let mid: UInt64
-        */
     
         init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
@@ -157,14 +151,7 @@ pub contract AuctionHouse {
             self.reprintSeries = reprintSeries
             self.auctionLog = {}
             self.auctionVault <- FlowToken.createEmptyVault()
-/*
-            self.creator = nft.metadata.creator!
-            self.agencyPercentage  = nft.royality[DAAM.agency]!
-            self.creatorPercentage = nft.royality[self.creator]!
-            self.mid = nft.metadata.mid!
-            // 1 shot only or Series finished
-            self.series = (nft.metadata.series == 1 as UInt64) || (nft.metadata.series == nft.metadata.counter)? false : true
-*/
+
             self.auctionNFT <- nft
 
             log("Auction Initialized: ".concat(self.tokenID.toString()) )
@@ -229,7 +216,7 @@ pub contract AuctionHouse {
             if self.status == false {  // false = Auction has Ended
                 log("Auction had already ended.")
                 return false
-            }      
+            }
 
             let auction_time = self.timeLeft()
             if auction_time == 0.0 {
@@ -452,6 +439,30 @@ pub contract AuctionHouse {
             return royality 
         }
 
+        priv fun seriesMinter(mid: UInt64) {
+            if !self.reprintSeries { return } // reprint is set to off (false)    
+            //self.reset()
+        }
+
+        priv fun reset(mid: UInt64) {
+            let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
+            let metadata <- metadataRef.generateMetadata(mid: self.tokenID)!
+            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
+            self.tokenID = nft.id
+            let old <- self.auctionNFT <- nft
+            destroy old
+
+            self.status = nil            
+            self.leader = nil
+            self.start = getCurrentBlock().timestamp + 5.0
+            self.auctionLog = {}
+
+            self.minBid = self.startingBid
+
+            log("Auction Re-Initialized: ".concat(self.tokenID.toString()) )
+            emit AuctionCreated(tokenID: self.tokenID)
+        } 
+
         destroy() {
             pre{
                 self.auctionNFT == nil
@@ -484,6 +495,7 @@ pub contract AuctionHouse {
     }
 
     init() {
+        self.metadataGen = {}
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
     }

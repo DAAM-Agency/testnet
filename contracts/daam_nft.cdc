@@ -604,7 +604,15 @@ pub resource interface CollectionPublic {
     
     pub fun getRequestMIDs(): [UInt64] {
         return DAAM.request.keys
-    }        
+    }
+
+    pub isCreator(_ creator: Address): Bool {
+        return self.creators.containsKey(creator)
+    }
+
+    pub isAdmin(_ admin: Address): Bool {
+
+    }
 
 	init(/*agency: Address, founder: Address*/) {
         // init Paths
