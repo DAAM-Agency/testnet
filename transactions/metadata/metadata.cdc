@@ -1,13 +1,13 @@
-import DAAM_V1             from 0xa4ad5ea5c0bd2fba
+import DAAM             from 0xa4ad5ea5c0bd2fba
 
 transaction()
 {
     let signer: AuthAccount
-    let metadataRef: &DAAM_V1.MetadataGenerator
+    let metadataRef: &DAAM.MetadataGenerator
 
     prepare(signer: AuthAccount) {
         self.signer = signer
-        self.metadataRef = self.signer.borrow<&DAAM_V1.MetadataGenerator>(from: DAAM_V1.metadataStoragePath)
+        self.metadataRef = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
         ?? panic("Could not borrow capability from Metadata")
     }
 

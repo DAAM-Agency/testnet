@@ -1,14 +1,14 @@
 // remove_creator.cdc
 
-import DAAM_V1 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address)
 {
-    let admin   : &{DAAM_V1.Founder}
+    let admin   : &{DAAM.Founder}
     let creator : Address
 
     prepare(acct: AuthAccount) {
-        self.admin   = acct.borrow<&DAAM_V1.Admin{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath)!
+        self.admin   = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         self.creator = creator
     }
 

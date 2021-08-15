@@ -1,7 +1,7 @@
 // is_admin.cdc
 
-import DAAM_V1 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 pub fun main(admin: Address): Bool {
-    return DAAM_V1.isAdmin(admin)
+    return DAAM.isAdmin(admin)
 }

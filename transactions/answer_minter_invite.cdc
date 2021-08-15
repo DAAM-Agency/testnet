@@ -1,6 +1,6 @@
 // answer_minter_invite.cdc
 
-import DAAM_V1 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -10,12 +10,12 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let minter  <- DAAM_V1.answerMinterInvite(minter: self.signer.address, submit: submit)
+        let minter  <- DAAM.answerMinterInvite(minter: self.signer.address, submit: submit)
 
         if minter != nil && submit {
-            self.signer.save<@DAAM_V1.Minter>(<- minter!, to: DAAM_V1.minterStoragePath)!
-            self.signer.link<&DAAM_V1.Minter>(DAAM_V1.minterPrivatePath, target: DAAM_V1.minterStoragePath)!
-            log("You are now a DAAM_V1 Minter: ".concat(self.signer.address.toString()) )
+            self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)!
+            self.signer.link<&DAAM.Minter>(DAAM.minterPrivatePath, target: DAAM.minterStoragePath)!
+            log("You are now a DAAM Minter: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }

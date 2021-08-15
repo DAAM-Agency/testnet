@@ -1,14 +1,14 @@
 // invite_admin.cdc
 
-import DAAM_V1 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(newAdmin: Address)
 {
-    let admin    : &{DAAM_V1.Founder}
+    let admin    : &{DAAM.Founder}
     let newAdmin : Address 
 
     prepare(acct: AuthAccount) {
-        self.admin    = acct.borrow<&{DAAM_V1.Founder}>(from: DAAM_V1.adminStoragePath)!
+        self.admin    = acct.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         self.newAdmin = newAdmin
     }
 
