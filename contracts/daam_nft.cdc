@@ -606,6 +606,10 @@ pub resource interface CollectionPublic {
         return DAAM.request.keys
     }
 
+    pub isCreator(_ creator): Bool {
+        return self.creators.containsKey(creator)
+    }
+
 	init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
