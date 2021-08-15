@@ -45,6 +45,7 @@ pub contract DAAM: NonFungibleToken {
                  
     access(contract) var adminPending : Address?
     access(contract) var minterPending: Address?
+    access(contract) var admins  : {Address: Bool}     // {Admin Address : status}
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
     access(contract) var request : @{UInt64: Request}  // {MID : @Request }
@@ -395,9 +396,10 @@ pub resource interface CollectionPublic {
         priv var status: Bool
         priv var remove: [Address]
 
-        init() {
+        init(_ admin: AuthAccount) {
             self.status = true
             self.remove = []
+            DAAM.admins.insert(key: admin.address, true)
         }
 
         pub fun newRequestGenerator(): @RequestGenerator {
@@ -459,6 +461,7 @@ pub resource interface CollectionPublic {
             if self.remove.length >= 2 {
                 self.status = false
                 // TODO make Admin self destruct
+                DAAM.admins.remove(key: admin)
                 log("Removed Admin")
                 emit AdminRemoved(admin: admin)
             }
@@ -537,17 +540,17 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     // DAAM Functions
     // public function that anyone can call to create a new empty collection
-    pub fun answerAdminInvite(newAdmin: Address, submit: Bool): @Admin{Founder} {
+    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder} {
         pre {
-            DAAM.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
-            DAAM.adminPending == newAdmin : "You got no DAAM Admin invite."
-            Profile.check(newAdmin)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            DAAM.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
+            DAAM.adminPending == newAdmin.address : "You got no DAAM Admin invite."
+            Profile.check(newAdmin.address)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil
         if !submit { panic("Thank you for your consideration.") }        
-        log("Admin: ".concat(newAdmin.toString()).concat(" added to DAAM") )
-        emit NewAdmin(admin: newAdmin)
-        return <- create Admin()         
+        log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
+        emit NewAdmin(admin: newAdmin.address)
+        return <- create Admin(newAdmin)      
     }
 
     // TODO add interface restriction to collection
@@ -610,8 +613,8 @@ pub resource interface CollectionPublic {
         return self.creators.containsKey(creator)
     }
 
-    pub isAdmin(_ admin: Address): Bool {
-
+    pub fun isAdmin(_ admin: Address): Bool {
+        return self.admins.containsKey(admin)
     }
 
 	init(/*agency: Address, founder: Address*/) {
@@ -638,6 +641,7 @@ pub resource interface CollectionPublic {
         
         self.request  <- {}
         self.copyright = {}
+        self.admins    = {}
         self.creators  = {}
         self.metadata  = {}
         self.newNFTs   = []
@@ -647,9 +651,9 @@ pub resource interface CollectionPublic {
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
         // Create a Minter resource and save it to storage
-        let admin <- create Admin()
-        self.account.save(<-admin, to: self.adminStoragePath)
-        self.account.link<&Admin>(self.adminPrivatePath, target: self.adminStoragePath)
+        //let admin <- create Admin()
+        //self.account.save(<-admin, to: self.adminStoragePath)
+        //self.account.link<&Admin>(self.adminPrivatePath, target: self.adminStoragePath)
 
         emit ContractInitialized()
 	}
