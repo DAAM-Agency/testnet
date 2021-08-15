@@ -32,7 +32,7 @@ pub contract DAAM: NonFungibleToken {
 
     pub let collectionPublicPath  : PublicPath
     pub let collectionStoragePath : StoragePath
-    pub let metadataPrivatePath   : PrivatePath
+    pub let metadataPublicPath    : PublicPath
     pub let metadataStoragePath   : StoragePath
     pub let adminPrivatePath      : PrivatePath
     pub let adminStoragePath      : StoragePath
@@ -201,8 +201,8 @@ pub resource MetadataGenerator {
 
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                DAAM.creators[self.owner?.address!] != nil : "You are no longer a Creator."
-                DAAM.creators[self.owner?.address!]!       : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
             }
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first/
             let creator = self.owner?.address!
@@ -219,8 +219,8 @@ pub resource MetadataGenerator {
 
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                DAAM.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid)
@@ -228,8 +228,9 @@ pub resource MetadataGenerator {
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
-                DAAM.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
+        
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM.metadata[mid] != nil : "This already has been published."
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
@@ -251,13 +252,13 @@ pub resource MetadataGenerator {
             return <- mh         
         }
 
+        pub fun getMetadata(): &{UInt64:Metadata} {
+            return &self.metadata as &{UInt64:Metadata}
+        }
+
         pub fun getMetadataRef(mid: UInt64): &Metadata {
             pre { self.metadata[mid] != nil }
             return &self.metadata[mid] as &Metadata
-        }
-
-        pub fun getMetadata(): {UInt64:Metadata} {
-            return self.metadata
         }
 }
 /************************************************************************/
@@ -622,7 +623,7 @@ pub resource interface CollectionPublic {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
+        self.metadataPublicPath    = /public/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin

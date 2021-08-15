@@ -78,8 +78,8 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
-export CODE_DAAM=$(echo ../dev/hex_daam_nft_enum)
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$CODE --arg Address:$AGENCY --arg Address:$CTO
+export CODE=$(cat ../dev/hex_nft_enum)
+flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
 
 # FUSD
