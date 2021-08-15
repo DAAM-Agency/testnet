@@ -3,7 +3,7 @@
 
 import FungibleToken    from 0x9a0766d93b6608b7
 import FlowToken        from 0x7e60df042a9c0868
-import DAAM_V2          from 0xa4ad5ea5c0bd2fba
+import DAAM_V3          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
 
 pub contract AuctionHouse {
@@ -23,7 +23,7 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen : {UInt64 : Capability<&DAAM_V2.MetadataGenerator>} // {MID  :Capability<&DAAM.MetadataGenerator>}
+    access(contract) var metadataGen : {UInt64 : Capability<&DAAM_V3.MetadataGenerator>} // {MID  :Capability<&DAAM.MetadataGenerator>}
 
 /************************************************************************/
     pub resource AuctionWallet {
@@ -36,7 +36,7 @@ pub contract AuctionHouse {
             self.currentAuctions <- {}            
         }
 
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V2.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
+        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V3.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre { metadataGenerator != nil }
@@ -50,7 +50,7 @@ pub contract AuctionHouse {
             incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
         }
 
-        pub fun createAuction(nft: @DAAM_V2.NFT, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createAuction(nft: @DAAM_V3.NFT, start: UFix64, length: UFix64, isExtended: Bool,
           extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
@@ -114,11 +114,11 @@ pub contract AuctionHouse {
         pub let buyNow      : UFix64
         pub let reprintSeries: Bool
         pub var auctionLog   : {Address: UFix64} // {Bidders, Amount}
-        pub var auctionNFT  : @DAAM_V2.NFT?
+        pub var auctionNFT  : @DAAM_V3.NFT?
         priv var auctionVault: @FungibleToken.Vault
         // nft data
     
-        init(nft: @DAAM_V2.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+        init(nft: @DAAM_V3.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start > getCurrentBlock().timestamp : "Time has already past."
@@ -281,7 +281,7 @@ pub contract AuctionHouse {
                 log("Auction Returned")
                 emit AuctionReturned(tokenID: self.tokenID)    
             }          
-            let collectionRef = getAccount(target!).getCapability<&{DAAM_V2.CollectionPublic}>(DAAM_V2.collectionPublicPath).borrow()!
+            let collectionRef = getAccount(target!).getCapability<&{DAAM_V3.CollectionPublic}>(DAAM_V3.collectionPublicPath).borrow()!
             // nft deposot Must be LAST !!! 
             let nft <- self.auctionNFT <- nil            
             collectionRef.deposit(token: <- nft!)
@@ -390,20 +390,20 @@ pub contract AuctionHouse {
             let metadataRef = self.getMetadataRef()
             let royality = self.getRoyality()
 
-            let agencyPercentage  = royality[DAAM_V2.agency]!
+            let agencyPercentage  = royality[DAAM_V3.agency]!
             let creatorPercentage = royality[metadataRef.creator]!
 
-            let agencyRoyality  = DAAM_V2.newNFTs.contains(self.tokenID) ? 0.2 : agencyPercentage
-            let creatorRoyality = DAAM_V2.newNFTs.contains(self.tokenID) ? 0.8 : creatorPercentage
+            let agencyRoyality  = DAAM_V3.newNFTs.contains(self.tokenID) ? 0.2 : agencyPercentage
+            let creatorRoyality = DAAM_V3.newNFTs.contains(self.tokenID) ? 0.8 : creatorPercentage
             // If 1st sale set remove from 'new list'
-            if DAAM_V2.newNFTs.contains(self.tokenID) { 
+            if DAAM_V3.newNFTs.contains(self.tokenID) { 
                 AuctionHouse.notNew(tokenID: self.tokenID)
             } // no longer "new"
 
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
 
-            let agencyPay  = getAccount(DAAM_V2.agency).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+            let agencyPay  = getAccount(DAAM_V3.agency).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
             let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
 
             agencyPay.deposit(from: <-agencyCut)
@@ -422,8 +422,8 @@ pub contract AuctionHouse {
             return total == self.auctionVault.balance
         }
 
-        pub fun getMetadataRef(): &DAAM_V2.Metadata {
-            let ref = &self.auctionNFT?.metadata! as &DAAM_V2.Metadata
+        pub fun getMetadataRef(): &DAAM_V3.Metadata {
+            let ref = &self.auctionNFT?.metadata! as &DAAM_V3.Metadata
             return ref 
         }
 
@@ -469,12 +469,12 @@ pub contract AuctionHouse {
 /************************************************************************/
 // AuctionHouse Functions & Constructor
     access(contract) fun notNew(tokenID: UInt64) {
-        let minter = self.account.borrow<&DAAM_V2.Minter>(from: DAAM_V2.minterStoragePath)!
+        let minter = self.account.borrow<&DAAM_V3.Minter>(from: DAAM_V3.minterStoragePath)!
         minter.notNew(tokenID: tokenID)
     }
 
-    access(contract) fun mintNFT(metadata: @DAAM_V2.MetadataHolder): @DAAM_V2.NFT {
-        let minter = self.account.borrow<&DAAM_V2.Minter>(from: DAAM_V2.minterStoragePath)!
+    access(contract) fun mintNFT(metadata: @DAAM_V3.MetadataHolder): @DAAM_V3.NFT {
+        let minter = self.account.borrow<&DAAM_V3.Minter>(from: DAAM_V3.minterStoragePath)!
         let nft <- minter.mintNFT(metadata: <-metadata)!
         return <- nft
     }

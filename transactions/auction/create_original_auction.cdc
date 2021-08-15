@@ -2,17 +2,17 @@
 
 import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V2.V2             from 0xa4ad5ea5c0bd2fba
+import DAAM_V3.V2             from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let metadataCap  : Capability<&DAAM_V2.MetadataGenerator>
+  let metadataCap  : Capability<&DAAM_V3.MetadataGenerator>
 
   prepare(auctioneer: AuthAccount) {
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-      self.metadataCap  = auctioneer.getCapability<&DAAM_V2.MetadataGenerator>(DAAM_V2.metadataPublicPath)!
+      self.metadataCap  = auctioneer.getCapability<&DAAM_V3.MetadataGenerator>(DAAM_V3.metadataPublicPath)!
   }
 
   execute {
