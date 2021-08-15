@@ -32,7 +32,7 @@ pub contract DAAM_V2: NonFungibleToken {
 
     pub let collectionPublicPath  : PublicPath
     pub let collectionStoragePath : StoragePath
-    pub let metadataPrivatePath   : PrivatePath
+    pub let metadataPublicPath    : PublicPath
     pub let metadataStoragePath   : StoragePath
     pub let adminPrivatePath      : PrivatePath
     pub let adminStoragePath      : StoragePath
@@ -201,8 +201,8 @@ pub resource MetadataGenerator {
 
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                DAAM_V2.creators[self.owner?.address!] != nil : "You are no longer a Creator."
-                DAAM_V2.creators[self.owner?.address!]!       : "Your Creator account is Frozen."
+                DAAM_V2.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM_V2.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
             }
             DAAM_V2.metadataCounterID = DAAM_V2.metadataCounterID + 1 as UInt64  // Must be first/
             let creator = self.owner?.address!
@@ -219,8 +219,8 @@ pub resource MetadataGenerator {
 
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                DAAM_V2.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM_V2.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM_V2.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM_V2.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid)
@@ -228,8 +228,8 @@ pub resource MetadataGenerator {
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
-                DAAM_V2.creators[self.metadata[mid]!.creator] != nil : "You are no longer a Creator."
-                DAAM_V2.creators[self.metadata[mid]!.creator]!       : "Your Creator account is Frozen."
+                DAAM_V2.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM_V2.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM_V2.metadata[mid] != nil : "This already has been published."
                 DAAM_V2.metadata[mid]!       : "Your Submission was Rejected."
@@ -251,13 +251,13 @@ pub resource MetadataGenerator {
             return <- mh         
         }
 
+        pub fun getMetadata(): &{UInt64:Metadata} {
+            return &self.metadata as &{UInt64:Metadata}
+        }
+
         pub fun getMetadataRef(mid: UInt64): &Metadata {
             pre { self.metadata[mid] != nil }
             return &self.metadata[mid] as &Metadata
-        }
-
-        pub fun getMetadata(): {UInt64:Metadata} {
-            return self.metadata
         }
 }
 /************************************************************************/
@@ -553,10 +553,9 @@ pub resource interface CollectionPublic {
         return <- create Admin(newAdmin)      
     }
 
-    // TODO add interface restriction to collection
     pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
         pre {
-            //self.account.borrow<&Admin{Founder}>(from: DAAM.adminStoragePath) == nil : "A Creator can not use the same address as an Admin."
+            !DAAM_V2.admins.containsKey(newCreator)  : "A Creator can not use the same address as an Admin."
             DAAM_V2.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
@@ -610,25 +609,25 @@ pub resource interface CollectionPublic {
     }
 
     pub fun isCreator(_ creator: Address): Bool {
-        // verify Authaccount
+        //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.creators.containsKey(creator)
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
-        // verify Authaccount
+        //pre { admin == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.admins.containsKey(admin)
     }
 
-    // Testnet only
+	// Testnet only
     pub fun resetAdmin(_ admin: Address) {
         self.adminPending = admin
     }
-
-	init(agency: Address, founder: Address) {
+    
+    init(agency: Address, founder: Address) {
         // init Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
+        self.metadataPublicPath    = /public/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin

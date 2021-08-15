@@ -1,14 +1,14 @@
 // remove_admin.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V2.V2 from 0xa4ad5ea5c0bd2fba
 
 transaction(exAdmin: Address)
 {
-    let admin   : &{DAAM.Founder}
+    let admin   : &{DAAM_V2.Founder}
     let exAdmin : Address
 
     prepare(acct: AuthAccount) {
-        self.admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        self.admin = acct.borrow<&DAAM_V2.Admin{DAAM_V2.Founder}>(from: DAAM_V2.adminStoragePath)!
 	self.exAdmin = exAdmin
     }
 

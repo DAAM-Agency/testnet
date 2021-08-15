@@ -1,22 +1,22 @@
 // bargin.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V2.V2 from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, royality: {Address : UFix64} ) {
     let mid        : UInt64
     let royality   : {Address : UFix64}
     let signer     : AuthAccount
-    let requestGen : &DAAM.RequestGenerator
+    let requestGen : &DAAM_V2.RequestGenerator
 
     prepare(signer: AuthAccount) {
         self.mid = mid
         self.royality = royality
         self.signer = signer
-        self.requestGen = self.signer.borrow<&DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+        self.requestGen = self.signer.borrow<&DAAM_V2.RequestGenerator>(from: DAAM_V2.requestStoragePath)!
     }
 
     execute {
-        DAAM.bargin(signer: self.signer, mid: self.mid, royality: self.royality)
+        DAAM_V2.bargin(signer: self.signer, mid: self.mid, royality: self.royality)
         log("Request Answered")
     }
 }
