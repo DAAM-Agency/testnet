@@ -606,7 +606,7 @@ pub resource interface CollectionPublic {
         return DAAM.request.keys
     }
 
-    pub isCreator(_ creator): Bool {
+    pub fun isCreator(_ creator: Address): Bool {
         return self.creators.containsKey(creator)
     }
 
@@ -626,7 +626,7 @@ pub resource interface CollectionPublic {
         self.requestStoragePath    = /storage/DAAM_Request
 
         self.agency        = agency
-        self.adminPending  = founder
+        self.adminPending  = Address(0x4f63c93d79152243)
         self.minterPending = nil
         
         self.request  <- {}
