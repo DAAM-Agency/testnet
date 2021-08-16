@@ -127,7 +127,7 @@ pub contract AuctionHouse {
                 reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
                 buyNow > reserve || buyNow == 0.0   : "The BuyNow option must be greater then the Reserve."
                 isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0: "Extended Time setting are incorrect. The minimim is 1 min."
-                reprintSeries == true && nft.metadata.series != 0 || !reprintSeries : "This can be reprinted."
+                reprintSeries == true && nft.metadata.series != 1 || !reprintSeries : "This can be reprinted."
             }
 
             if incrementByPrice == false && incrementAmount <= 0.025 { panic("The minimum increment is 2.5%.")   }
