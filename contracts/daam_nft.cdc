@@ -610,7 +610,7 @@ pub resource interface CollectionPublic {
 
     pub fun isCreator(_ creator: Address): Bool {
         //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
-        return self.creators.containsKey(creator)
+        return self.creators == true ? : true : false
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
