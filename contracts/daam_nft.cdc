@@ -608,9 +608,9 @@ pub resource interface CollectionPublic {
         return DAAM_V3.request.keys
     }
 
-    pub fun isCreator(_ creator: Address): Bool {
+    pub fun isCreator(_ creator: Address): Bool? {
         //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
-        return self.creators == true ? : true : false
+        return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
