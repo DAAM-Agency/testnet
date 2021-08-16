@@ -28,9 +28,7 @@ flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --
 
 # Submit 2 Metadata: #1 Solo, #2 Series(of 2)
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --arg String:"data A" --arg String:"thumbnail A" --arg String:"file A" --signer creator
-flow transactions send ./transactions/metadata/metadata.cdc --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:7 --arg String:"data B" --arg String:"thumbnail B" --arg String:"file B" --signer creator
-flow transactions send ./transactions/metadata/metadata.cdc --signer creator
 
 # Approve the Metadatas
 flow transactions send ./transactions/admin/change_metadata_status.cdc --arg UInt64:1 --arg Bool:true --signer admin
@@ -83,7 +81,7 @@ flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:1 --arg UFix64:$START \
 --arg UFix64:100.0 --arg Bool:false --arg UFix64:0.0 --arg Bool:false --arg UFix64:0.05 --arg UFix64:10.00 \
---arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:true --signer creator
+--arg UFix64:25.0 --arg UFix64:30.0 --arg Bool:false --signer creator
 
 
 flow transactions send ./transactions/auction/create_original_auction.cdc --arg UInt64:2 --arg UFix64:$START \
@@ -92,22 +90,22 @@ flow transactions send ./transactions/auction/create_original_auction.cdc --arg 
 
 sleep 30
 # Filler transaction
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data C" --arg String:"thumbnail C" --arg String:"file C" --signer creator
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$PROFILE
 flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:25.0 --signer nobody
 
 sleep 30
 # Filler transaction // Auction already Ended, should fail
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data D" --arg String:"thumbnail D" --arg String:"file D" --signer creator
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:28.0 --signer client
-flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:29.0 --signer nobody
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$PROFILE
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:1 --arg UFix64:38.0 --signer client
+flow transactions send ./transactions/auction/deposit_bid.cdc --arg Address:$CREATOR --arg UInt64:2 --arg UFix64:39.0 --signer nobody
 
 # Filler transaction
 sleep 130
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data E" --arg String:"thumbnail E" --arg String:"file E" --signer creator
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$PROFILE
 flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
 sleep 20
-flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:0 --arg String:"data F" --arg String:"thumbnail F" --arg String:"file F" --signer creator
+flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:1.0 --arg Address:$PROFILE
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CREATOR
 flow scripts execute ./scripts/collecion.cdc --arg Address:$CLIENT
 flow scripts execute ./scripts/collecion.cdc --arg Address:$NOBODY

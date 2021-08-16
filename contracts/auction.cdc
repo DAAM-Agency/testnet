@@ -26,20 +26,28 @@ pub contract AuctionHouse {
     access(contract) var metadataGen : {UInt64 : Capability<&DAAM.MetadataGenerator>} // {MID  :Capability<&DAAM.MetadataGenerator>}
 
 /************************************************************************/
-    pub resource AuctionWallet {
-        priv let titleholder  : Address
+    pub resource interface AuctionPublic {
+        //pub fun getAuctions(): &DAAM.Metadata // TODO uncomment
+        pub fun item(_ id: UInt64): &Auction
+    }
+/************************************************************************/
+    pub resource AuctionWallet: AuctionPublic {
+        pub let titleholder  : Address
         pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
         
 
-        init(owner: Address) {
-            self.titleholder = owner
+        init(auctioneer: AuthAccount) {
+            self.titleholder = auctioneer.address
             self.currentAuctions <- {}            
         }
 
         pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
-            pre { metadataGenerator != nil }
+            pre {
+                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
+                metadataGenerator != nil : "There is no Metadata."
+                }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator)
             let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
@@ -54,7 +62,7 @@ pub contract AuctionHouse {
           extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
-                self.titleholder == self.owner!.address   : "You are not the owner."
+                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
                 !self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
             }
 
@@ -71,7 +79,7 @@ pub contract AuctionHouse {
 
         pub fun closeAuctions() {
             pre {
-                self.titleholder == self.owner!.address  : "You are not the owner."
+                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
             }
 
             for act in self.currentAuctions.keys {
@@ -93,6 +101,8 @@ pub contract AuctionHouse {
             pre { self.currentAuctions.containsKey(id) }
             return &self.currentAuctions[id] as &Auction
         }        
+
+        //pub fun getAuctions(): &DAAM.Metadata {}  // TODO uncomment
 
         destroy() {
             destroy self.currentAuctions
@@ -121,7 +131,7 @@ pub contract AuctionHouse {
         init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
-                start > getCurrentBlock().timestamp : "Time has already past."
+                start >= getCurrentBlock().timestamp : "Time has already past."
                 length > 1.0 as UFix64              : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
                 startingBid > 0.0                   : "You can not have a Starting Bid of zero."
                 reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
@@ -358,13 +368,14 @@ pub contract AuctionHouse {
         }
 
         pub fun getStatus(): Bool? {
+            log("Owner: ".concat(self.owner?.address!.toString()) )  // TODO DEBUG
             return self.status
         }
 
         pub fun timeLeft(): UFix64? {
             if self.length == 0.0 {
                 return 0.0 as UFix64
-            } // Extended Auction Ended is over
+            } // Extended Auction ended.
 
             let timeNow = getCurrentBlock().timestamp
             log("TimeNow: ".concat(timeNow.toString()) )
@@ -422,7 +433,7 @@ pub contract AuctionHouse {
             return total == self.auctionVault.balance
         }
 
-        pub fun getMetadataRef(): &DAAM.Metadata {
+        pub fun getMetadataRef(): &DAAM.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
             let ref = &self.auctionNFT?.metadata! as &DAAM.Metadata
             return ref 
         }
@@ -434,17 +445,17 @@ pub contract AuctionHouse {
 
         priv fun seriesMinter(mid: UInt64) {
             if !self.reprintSeries { return } // reprint is set to off (false)    
-            let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
-            let metadata <- metadataRef.generateMetadata(mid: mid)
-            //if metadataRef?.creator != self.owner?.address! { return }  TODO
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
-            self.tokenID = nft.id
-            let old <- self.auctionNFT <- nft
-            destroy old
+            //let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
+            //let metadata <- metadataRef.generateMetadata(mid: mid)
+            //if metadataRef?.creator != self.owner?.address! { return }  TODO check royality function
+            //let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
+            //self.tokenID = nft.id
+            //let old <- self.auctionNFT <- nft
+            //destroy old
 
-            self.status = nil            
+            self.status = true        
             self.leader = nil
-            self.start = getCurrentBlock().timestamp + 5.0
+            self.start = getCurrentBlock().timestamp
             self.auctionLog = {}
             self.minBid = self.startingBid
 
@@ -479,8 +490,8 @@ pub contract AuctionHouse {
         return <- nft
     }
 
-    pub fun createAuctionWallet(owner: AuthAccount): @AuctionWallet {
-        return <- create AuctionWallet(owner: owner.address)
+    pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet {
+        return <- create AuctionWallet(auctioneer: auctioneer)
     }
 
     init() {

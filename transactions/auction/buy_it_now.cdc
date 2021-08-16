@@ -8,15 +8,21 @@ import DAAM          from 0xfd43f9148d4b725d
 transaction(auction: Address, tokenID: UInt64, bid: UFix64)
 {
     let bidder          : AuthAccount
-    let auctionHouse    : &AuctionHouse.AuctionWallet
+    let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let flowStoragePath : StoragePath
     let collection      : &{DAAM.CollectionPublic}
     
     prepare(bidder: AuthAccount) {
         self.bidder = bidder
         self.flowStoragePath = /storage/flowTokenVault
-        self.auctionHouse = getAccount(auction).getCapability<&AuctionHouse.AuctionWallet>(AuctionHouse.auctionPublicPath).borrow()!
-        self.collection = getAccount(bidder.address).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
+        
+        self.auctionHouse = getAccount(auction)
+            .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
+            .borrow()!
+
+        self.collection = getAccount(bidder.address)
+            .getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath)
+            .borrow()!
     }
 
     execute {

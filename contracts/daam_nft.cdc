@@ -97,7 +97,7 @@ pub resource Request {
         self.agreement[unselected] = self.royalityMatch(royality)
         self.royality = royality
 
-        log("egotiating")
+        log("Negotiating")
         if self.isValid() {
             log("Agreement Reached")
             emit AgreementReached(mid: mid)
@@ -214,7 +214,7 @@ pub resource MetadataGenerator {
             DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
 
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
-            emit DAAM.MetadataGeneratated()
+            emit MetadataGeneratated()
         }
 
         pub fun removeMetadata(mid: UInt64) {
@@ -223,7 +223,13 @@ pub resource MetadataGenerator {
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
+
+            let old_request <- DAAM.request.remove(key:self.metadata[mid])!
+            destroy old_request
             self.metadata.remove(key: mid)
+            
+           log("Removed Metadata")
+           emit RemovedMetadata(mid: mid)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
@@ -276,21 +282,16 @@ pub resource MetadataGenerator {
         pub let metadata : Metadata
         pub let royality : {Address : UFix64}
 
-        init(metadata: @MetadataHolder, request: @Request) {
+        init(metadata: @MetadataHolder, request: &Request) {
             pre { metadata.metadata.mid == request.mid }
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
             self.id = DAAM.totalSupply
-
+            self.royality = request.royality            
             self.metadata = metadata.metadata
             destroy metadata
-
-            self.royality = request.royality            
-            destroy request            
         }
 
-        pub fun getCopyright(): CopyrightStatus {
-            return DAAM.copyright[self.id]!
-        }
+        pub fun getCopyright(): CopyrightStatus { return DAAM.copyright[self.id]! }
     }
 /************************************************************************/
 pub resource interface CollectionPublic {
@@ -509,8 +510,9 @@ pub resource interface CollectionPublic {
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
                 DAAM.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
             }
-            let request <- DAAM.request.remove(key: metadata.metadata.mid)!
-            let nft <- create NFT(metadata: <- metadata, request: <- request )
+            //let request <- DAAM.request.remove(key: metadata.metadata.mid)!
+            let request = &DAAM.request[metadata.metadata.mid]!
+            let nft <- create NFT(metadata: <- metadata, request: request )
             self.newNFT(id: nft.id)
             
             log("Minited NFT: ".concat(nft.id.toString()))
@@ -611,7 +613,7 @@ pub resource interface CollectionPublic {
 
     pub fun isCreator(_ creator: Address): Bool {
         //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
-        return self.creators.containsKey(creator)
+        return self.creators == true ? : true : false
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
