@@ -1,6 +1,6 @@
 // collection.cdc
 
-import DAAM_V3.V2 from 0xa4ad5ea5c0bd2fba
+import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(account: Address): [UInt64] {
     let collectionRef = getAccount(account)

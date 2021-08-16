@@ -1,6 +1,6 @@
 // get_metadata_list.cdc
 
-import DAAM_V3.V2 from 0xfd43f9148d4b725d
+import DAAM_V3 from 0xfd43f9148d4b725d
 
 pub fun main(creator: Address): &{UInt64 : DAAM_V3.Metadata}
 {
