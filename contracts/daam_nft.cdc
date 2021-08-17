@@ -27,6 +27,7 @@ pub contract DAAM: NonFungibleToken {
     pub event AdminRemoved(admin: Address)
     pub event RequestAnswered(mid: UInt64)
     pub event RequestAccepted(mid: UInt64)
+    pub event RemovedMetadata(mid: UInt64)
     pub event RemovedAdminInvite()
     pub event AgreementReached(mid: UInt64)
 
@@ -223,13 +224,10 @@ pub resource MetadataGenerator {
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
-
-            let old_request <- DAAM.request.remove(key:self.metadata[mid])!
-            destroy old_request
             self.metadata.remove(key: mid)
             
-           log("Removed Metadata")
-           emit RemovedMetadata(mid: mid)
+            log("Destroyed Metadata")
+            emit RemovedMetadata(mid: mid)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
@@ -510,13 +508,24 @@ pub resource interface CollectionPublic {
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
                 DAAM.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
             }
-            //let request <- DAAM.request.remove(key: metadata.metadata.mid)!
-            let request = &DAAM.request[metadata.metadata.mid]!
-            let nft <- create NFT(metadata: <- metadata, request: request )
+            let isLast = metadata.metadata.counter == metadata.metadata.series
+            let mid = metadata.metadata.mid
+            let request <- DAAM.request.remove(key: mid)!
+            let requestRef = &request as & Request
+            let nft <- create NFT(metadata: <- metadata, request: requestRef)
+
+            // Update Request, if last remove.
+            if isLast {
+                destroy request
+            } else {
+                let old_request <- DAAM.request.insert(key: mid, <- request)
+                destroy old_request
+            }            
             self.newNFT(id: nft.id)
             
             log("Minited NFT: ".concat(nft.id.toString()))
             emit MintedNFT(id: nft.id)
+
             return <- nft          
         }
 

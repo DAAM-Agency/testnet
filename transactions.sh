@@ -26,6 +26,22 @@ flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true 
 flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
 flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
 
+# Remove Admin / Creator
+flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin
+flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin2
+flow transactions send ./transactions/admin/remove_creator.cdc --arg Address:$CREATOR --signer admin
+
+# (Re)Invite Creator & Accept
+flow transactions send ./transactions/creator/delete_creator.cdc --signer creator
+flow transactions send ./transactions/admin/delete_admin.cdc --signer admin2
+
+flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
+flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
+
+# (Re)Invite Admin #2
+flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
+flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
+
 # Submit 2 Metadata: #1 Solo, #2 Series(of 2)
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:1 --arg String:"data A" --arg String:"thumbnail A" --arg String:"file A" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc --arg UInt64:7 --arg String:"data B" --arg String:"thumbnail B" --arg String:"file B" --signer creator
@@ -50,21 +66,7 @@ flow transactions send ./transactions/admin/change_copyright.cdc --arg UInt64:2 
 flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:false --signer admin2
 flow transactions send ./transactions/admin/change_creator_status.cdc --arg Address:$CREATOR --arg Bool:true  --signer admin2
 
-# Remove Admin / Creator
-flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin
-flow transactions send ./transactions/admin/remove_admin.cdc --arg Address:$ADMIN2 --signer admin2
-flow transactions send ./transactions/admin/remove_creator.cdc --arg Address:$CREATOR --signer admin
 
-# (Re)Invite Creator & Accept
-flow transactions send ./transactions/creator/reset_creator.cdc --signer creator
-flow transactions send ./transactions/admin/reset_admin.cdc --signer admin2
-
-flow transactions send ./transactions/admin/invite_creator.cdc --arg Address:$CREATOR --signer admin
-flow transactions send ./transactions/answer_creator_invite.cdc --arg Bool:true --signer creator
-
-# (Re)Invite Admin #2
-flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN2 --signer admin
-flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin2
 
 # Start Bidding
 # starts in 30 seconds

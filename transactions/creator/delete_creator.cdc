@@ -1,4 +1,4 @@
-// reset_creator.cdc
+// delete_creator.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 
@@ -9,6 +9,7 @@ transaction() {
         let requestRes  <- creator.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
         destroy creatorRes
         destroy requestRes
+        destroy metadataRes
         creator.unlink(DAAM.creatorPrivatePath)
         creator.unlink(DAAM.requestPrivatePath)
         log("Creator Removed")
