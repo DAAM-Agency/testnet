@@ -552,43 +552,44 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     // DAAM Functions
     // public function that anyone can call to create a new empty collection
-    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder} {
+    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder}? {
         pre {
             DAAM.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
             DAAM.adminPending == newAdmin.address : "You got no DAAM Admin invite."
             Profile.check(newAdmin.address)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil
-        if !submit { panic("Thank you for your consideration.") }        
+        if !submit { return nil }  
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin)      
+        return <- create Admin(newAdmin)!   
     }
 
-    pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
+    pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
-            !DAAM.admins.containsKey(newCreator)  : "A Creator can not use the same address as an Admin."
-            DAAM.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
-            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
+            !DAAM.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
+            DAAM.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
+            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
+
         if !submit {
-            DAAM.creators.remove(key: newCreator)
+            DAAM.creators.remove(key: newCreator.address)
             return nil
-        }      
-        log(self.account.address.toString())
-        DAAM.creators[newCreator] = submit        
-        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
-        emit NewCreator(creator: newCreator)
+        }
+        
+        DAAM.creators[newCreator.address] = submit        
+        log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: newCreator.address)
         return <- create Creator()!
     }
 
-    pub fun answerMinterInvite(minter: Address, submit: Bool): @Minter {
-        pre { DAAM.minterPending == minter }
+    pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
+        pre { DAAM.minterPending == minter.address }
         DAAM.minterPending = nil
-        if !submit { panic("Thank you for your consideration.") }        
-        log("Minter: ".concat(minter.toString()) )
-        emit NewMinter(minter: minter)
-        return <- create Minter()         
+        if !submit { return nil }        
+        log("Minter: ".concat(minter.address.toString()) )
+        emit NewMinter(minter: minter.address)
+        return <- create Minter()!     
     }
     
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
