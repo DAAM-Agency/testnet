@@ -27,7 +27,7 @@ pub contract AuctionHouse {
 
 /************************************************************************/
     pub resource interface AuctionPublic {
-        //pub fun getAuctions(): &DAAM.Metadata // TODO uncomment
+        pub fun getAuctions(): [UInt64] // MIDs in Auctions
         pub fun item(_ id: UInt64): &Auction
     }
 /************************************************************************/
@@ -103,11 +103,9 @@ pub contract AuctionHouse {
             return &self.currentAuctions[id] as &Auction
         }        
 
-        //pub fun getAuctions(): &DAAM.Metadata {}  // TODO uncomment
+        pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys }
 
-        destroy() {
-            destroy self.currentAuctions
-        }
+        destroy() { destroy self.currentAuctions }
     }
 /************************************************************************/
     pub resource Auction {
