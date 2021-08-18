@@ -78,6 +78,9 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 
 # FUSD Enulator Contract
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
+flow transactions send ./transactions/setup_fusd.cdc --arg UFix64:1000000.0 --arg Address:$CTO --signer profile
+'''
 #export FUSD=$(cat ../dev/hex_fusd)
 #flow transactions send ./transactions/init_fusd.cdc --arg String:"FUSD" --arg String:$FUSD --signer cto
 
