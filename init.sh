@@ -74,7 +74,14 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 
 flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CTO
 
-# init contracts
+# Init Contracts
+
+# FUSD Enulator Contract
+flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
+#export FUSD=$(cat ../dev/hex_fusd)
+#flow transactions send ./transactions/init_fusd.cdc --arg String:"FUSD" --arg String:$FUSD --signer cto
+
+# Emulator Contracts
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
@@ -85,11 +92,6 @@ flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
-
-# FUSD
-flow accounts add-contract FUSD ./contracts/FUSD.cdc
-#export CODE_FUSD=$(echo ../dev/hex_fusd_enum)
-#flow transactions send ./transactions/init_fusd_enum.cdc --arg String:"FUSD" --arg String:$CODE_FUSD --arg Address:$CTO
 
 # Invite Admin/CTO
 flow transactions send ./transactions/create_profile.cdc --signer cto

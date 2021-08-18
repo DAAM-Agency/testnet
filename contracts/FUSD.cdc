@@ -196,6 +196,9 @@ pub contract FUSD: FungibleToken {
         self.MinterProxyPublicPath = /public/fusdMinterProxy
         self.MinterProxyStoragePath = /storage/fusdMinterProxy
 
+        let admin_address = Address(0x0f7025fa05b578e3)
+        let adminAccount  = getAccount(admin_address) 
+
         self.totalSupply = 0.0
 
         let admin <- create Administrator()
