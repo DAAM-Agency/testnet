@@ -460,7 +460,6 @@ pub resource interface CollectionPublic {
             self.remove.append(admin)
             if self.remove.length >= 2 {
                 self.status = false
-                // TODO make Admin self destruct
                 DAAM.admins.remove(key: admin)
                 log("Removed Admin")
                 emit AdminRemoved(admin: admin)
@@ -622,12 +621,10 @@ pub resource interface CollectionPublic {
     }
 
     pub fun isCreator(_ creator: Address): Bool? {
-        //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
-        //pre { admin == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.admins.containsKey(admin)
     }
 
