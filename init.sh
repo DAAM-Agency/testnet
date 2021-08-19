@@ -80,6 +80,27 @@ flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --ar
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
 flow transactions send ./transactions/setup_fusd.cdc --arg UFix64:1000000.0 --arg Address:$CTO --signer profile
+
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer creator
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer nobody
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer daam_nft
+
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer marketplace
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer client
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin2
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer profile
+
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$CREATOR --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$ADMIN --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$NOBODY --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$DAAM_NFT --signer cto
+
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$MARKETPLACE --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$CLIENT --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$ADMIN2 --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$PROFILE --signer cto
+
 '''
 #export FUSD=$(cat ../dev/hex_fusd)
 #flow transactions send ./transactions/init_fusd.cdc --arg String:"FUSD" --arg String:$FUSD --signer cto
