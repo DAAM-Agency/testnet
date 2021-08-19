@@ -2,7 +2,8 @@
 // by Ami Rajpal, 2021 // DAAM Agency
 
 import FungibleToken    from 0xee82856bf20e2aa6
-import FlowToken        from 0x0ae53cb6e3f42a79
+import FUSD          from 0x192440c99cb17282
+//import FlowToken        from 0x0ae53cb6e3f42a79
 import DAAM             from 0xfd43f9148d4b725d
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 
@@ -162,7 +163,7 @@ pub contract AuctionHouse {
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
             self.auctionLog = {}
-            self.auctionVault <- FlowToken.createEmptyVault()
+            self.auctionVault <- FUSD.createEmptyVault()
 
             self.auctionNFT <- nft
 
@@ -343,7 +344,7 @@ pub contract AuctionHouse {
 
         priv fun returnFunds() {
             for bidder in self.auctionLog.keys {
-                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)
                 bidderRef.deposit(from: <- amount)
             }
@@ -422,8 +423,8 @@ pub contract AuctionHouse {
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
 
-            let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
-            let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver).borrow()!
+            let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+            let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
 
             agencyPay.deposit(from: <-agencyCut)
             creatorPay.deposit(from: <-creatorCut)
