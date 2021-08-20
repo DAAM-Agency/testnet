@@ -5,9 +5,9 @@ import FungibleToken    from 0x9a0766d93b6608b7
 import FlowToken        from 0x7e60df042a9c0868
 import DAAM_V3          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import FUSD             from 0x192440c99cb17282
+import FUSD             from 0xe223d8a629e49c68
 
-pub contract AuctionHouse {
+pub contract AuctionHouse_V1 {
     // Events
     pub event AuctionInitialized()
     pub event AuctionCreated(tokenID: UInt64)
@@ -50,10 +50,10 @@ pub contract AuctionHouse {
                 metadataGenerator != nil : "There is no Metadata."
                 }
 
-            AuctionHouse.metadataGen.insert(key: mid, metadataGenerator)
-            let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!
+            AuctionHouse_V1.metadataGen.insert(key: mid, metadataGenerator)
+            let metadataRef = AuctionHouse_V1.metadataGen[mid]!.borrow()!
             let metadata <- metadataRef.generateMetadata(mid: mid)!
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
+            let nft <- AuctionHouse_V1.mintNFT(metadata: <-metadata)
 
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
             incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -417,7 +417,7 @@ pub contract AuctionHouse {
             let creatorRoyality = DAAM_V3.newNFTs.contains(self.tokenID) ? 0.8 : creatorPercentage
             // If 1st sale set remove from 'new list'
             if DAAM_V3.newNFTs.contains(self.tokenID) { 
-                AuctionHouse.notNew(tokenID: self.tokenID)
+                AuctionHouse_V1.notNew(tokenID: self.tokenID)
             } // no longer "new"
 
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
@@ -450,12 +450,12 @@ pub contract AuctionHouse {
 
         priv fun seriesMinter(mid: UInt64) {
             if !self.reprintSeries { return } // if reprint is set to off (false)    
-            let metadataGen = AuctionHouse.metadataGen[mid]!.borrow()!
+            let metadataGen = AuctionHouse_V1.metadataGen[mid]!.borrow()!
             let metadataRef = self.getMetadataRef()
             let creator = metadataRef.creator
             if creator != self.owner?.address! { return }
             let metadata <- metadataGen.generateMetadata(mid: mid)
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
+            let nft <- AuctionHouse_V1.mintNFT(metadata: <-metadata)
             self.tokenID = nft.id
             let old <- self.auctionNFT <- nft
             destroy old
@@ -487,7 +487,7 @@ pub contract AuctionHouse {
         }
     }
 /************************************************************************/
-// AuctionHouse Functions & Constructor
+// AuctionHouse_V1 Functions & Constructor
     access(contract) fun notNew(tokenID: UInt64) {
         let minter = self.account.borrow<&DAAM_V3.Minter>(from: DAAM_V3.minterStoragePath)!
         minter.notNew(tokenID: tokenID)

@@ -113,7 +113,7 @@ flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" 
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
-flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
+flow accounts add-contract AuctionHouse_V1 ./contracts/auction.cdc --signer marketplace
 
 # Invite Admin/CTO
 flow transactions send ./transactions/create_profile.cdc --signer cto

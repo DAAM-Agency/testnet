@@ -568,9 +568,9 @@ pub resource interface CollectionPublic {
 
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
-            !DAAM_V3.admins.containsKey(newCreator)  : "A Creator can not use the same address as an Admin."
-            DAAM_V3.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
-            Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
+            !DAAM_V3.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
+            DAAM_V3.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
+            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
         if !submit {
