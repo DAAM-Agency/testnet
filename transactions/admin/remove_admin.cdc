@@ -8,8 +8,8 @@ transaction(exAdmin: Address)
     let exAdmin : Address
 
     prepare(acct: AuthAccount) {
-        self.admin = acct.borrow<&DAAM_V3.Admin{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath)!
-	self.exAdmin = exAdmin
+        self.admin = acct.borrow<&{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath)!
+	    self.exAdmin = exAdmin
     }
 
     execute {

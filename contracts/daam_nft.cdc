@@ -27,6 +27,7 @@ pub contract DAAM_V3: NonFungibleToken {
     pub event AdminRemoved(admin: Address)
     pub event RequestAnswered(mid: UInt64)
     pub event RequestAccepted(mid: UInt64)
+    pub event RemovedMetadata(mid: UInt64)
     pub event RemovedAdminInvite()
     pub event AgreementReached(mid: UInt64)
 
@@ -97,7 +98,7 @@ pub resource Request {
         self.agreement[unselected] = self.royalityMatch(royality)
         self.royality = royality
 
-        log("egotiating")
+        log("Negotiating")
         if self.isValid() {
             log("Agreement Reached")
             emit AgreementReached(mid: mid)
@@ -214,7 +215,7 @@ pub resource MetadataGenerator {
             DAAM_V3.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
 
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
-            emit DAAM_V3.MetadataGeneratated()
+            emit MetadataGeneratated()
         }
 
         pub fun removeMetadata(mid: UInt64) {
@@ -224,6 +225,9 @@ pub resource MetadataGenerator {
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid)
+            
+            log("Destroyed Metadata")
+            emit RemovedMetadata(mid: mid)
         }
 
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
@@ -275,16 +279,13 @@ pub resource MetadataGenerator {
         pub let metadata : Metadata
         pub let royality : {Address : UFix64}
 
-        init(metadata: @MetadataHolder, request: @Request) {
+        init(metadata: @MetadataHolder, request: &Request) {
             pre { metadata.metadata.mid == request.mid }
             DAAM_V3.totalSupply = DAAM_V3.totalSupply + 1 as UInt64
             self.id = DAAM_V3.totalSupply
-
+            self.royality = request.royality            
             self.metadata = metadata.metadata
             destroy metadata
-
-            self.royality = request.royality            
-            destroy request            
         }
 
         pub fun getCopyright(): CopyrightStatus {
@@ -508,12 +509,24 @@ pub resource interface CollectionPublic {
                 DAAM_V3.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
                 DAAM_V3.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
             }
-            let request <- DAAM_V3.request.remove(key: metadata.metadata.mid)!
-            let nft <- create NFT(metadata: <- metadata, request: <- request )
+            let isLast = metadata.metadata.counter == metadata.metadata.series
+            let mid = metadata.metadata.mid
+            let request <- DAAM_V3.request.remove(key: mid)!
+            let requestRef = &request as & Request
+            let nft <- create NFT(metadata: <- metadata, request: requestRef)
+
+            // Update Request, if last remove.
+            if isLast {
+                destroy request
+            } else {
+                let old_request <- DAAM_V3.request.insert(key: mid, <- request)
+                destroy old_request
+            }            
             self.newNFT(id: nft.id)
             
             log("Minited NFT: ".concat(nft.id.toString()))
             emit MintedNFT(id: nft.id)
+
             return <- nft          
         }
 
@@ -540,43 +553,44 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     // DAAM Functions
     // public function that anyone can call to create a new empty collection
-    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder} {
+    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder}? {
         pre {
             DAAM_V3.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
             DAAM_V3.adminPending == newAdmin.address : "You got no DAAM Admin invite."
             Profile.check(newAdmin.address)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM_V3.adminPending = nil
-        if !submit { panic("Thank you for your consideration.") }        
+        if !submit { return nil }  
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin)      
+        return <- create Admin(newAdmin)!   
     }
 
-    pub fun answerCreatorInvite(newCreator: Address, submit: Bool): @Creator? {
+    pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
             !DAAM_V3.admins.containsKey(newCreator)  : "A Creator can not use the same address as an Admin."
             DAAM_V3.creators.containsKey(newCreator) : "You got no DAAM Creator invite."
             Profile.check(newCreator)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
+
         if !submit {
-            DAAM_V3.creators.remove(key: newCreator)
+            DAAM_V3.creators.remove(key: newCreator.address)
             return nil
-        }      
-        log(self.account.address.toString())
-        DAAM_V3.creators[newCreator] = submit        
-        log("Creator: ".concat(newCreator.toString()).concat(" added to DAAM") )
-        emit NewCreator(creator: newCreator)
+        }
+        
+        DAAM_V3.creators[newCreator.address] = submit        
+        log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: newCreator.address)
         return <- create Creator()!
     }
 
-    pub fun answerMinterInvite(minter: Address, submit: Bool): @Minter {
-        pre { DAAM_V3.minterPending == minter }
+    pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
+        pre { DAAM_V3.minterPending == minter.address }
         DAAM_V3.minterPending = nil
-        if !submit { panic("Thank you for your consideration.") }        
-        log("Minter: ".concat(minter.toString()) )
-        emit NewMinter(minter: minter)
-        return <- create Minter()         
+        if !submit { return nil }        
+        log("Minter: ".concat(minter.address.toString()) )
+        emit NewMinter(minter: minter.address)
+        return <- create Minter()!     
     }
     
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
@@ -609,12 +623,10 @@ pub resource interface CollectionPublic {
     }
 
     pub fun isCreator(_ creator: Address): Bool? {
-        //pre { creator == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 
     pub fun isAdmin(_ admin: Address): Bool {
-        //pre { admin == self.owner?.address! : "You may only verify your own address." } // TODO
         return self.admins.containsKey(admin)
     }
 
