@@ -55,18 +55,44 @@ pub contract AuctionHouse {
             let metadata <- metadataRef.generateMetadata(mid: mid)!
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)
 
-            self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
+            self.createAuctionNFT(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
             incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
         }
 
-        pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createAuction(nftCap: Capability<&DAAM.Collection>, tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool,
+          extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+        {
+            pre {
+                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
+                !self.currentAuctions.containsKey(tokenID): "Already created an Auction for this TokenID."
+            }
+
+            let collection = nftCap.borrow()!
+
+            //let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+
+            AuctionHouse.allowWithdraw(tokenID)
+            let nft <- collection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
+            AuctionHouse.closeWithdraw(tokenID)
+
+            let id = nft.id
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+                         
+            let oldAuction <- self.currentAuctions[id] <- auction
+            destroy oldAuction
+            
+            log("Auction Created. Start: ".concat(start.toString()) )
+            emit AuctionCreated(tokenID: id)
+        }
+
+        pub fun createAuctionNFT(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
           extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
                 !self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
             }
-
             let id = nft.id
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -497,6 +523,16 @@ pub contract AuctionHouse {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
         let nft <- minter.mintNFT(metadata: <-metadata)!
         return <- nft
+    }
+
+    access(contract) fun allowWithdraw(_ tokenID: UInt64) {
+        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+        minter.allowWithdraw(tokenID)
+    }
+
+    access(contract) fun closeWithdraw(_ tokenID: UInt64) {
+        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+        minter.closeWithdraw(tokenID)
     }
 
     pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet {

@@ -8,17 +8,17 @@ transaction(tokenID: Uint64, start: UFix64, length: UFix64, isExtended: Bool, ex
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let nftCollection: &DAAM.Collection
+  let nftCollectionCap: Capability<&DAAM.Collection>
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-    self.nftCollection = auctioneer.borrow<&NonFungibleToken.Collection>(from: DAAM.collectionStoragePath)!
+    self.nftCollectionCap = auctioneer.getCapability<&NonFungibleToken.Collection>(DAAM.collectionStoragePath)!
   }
 
   execute {
-      let nft <- self.nftCollection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
+      //let nft <- self.nftCollection.withdraw(withdrawID: tokenID) as! @DAAM.NFT
 
-      self.auctionHouse.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended,
+      self.auctionHouse.createAuction(nftCap: self.nftCollectionCap, tokenID: tokenID, start: start, length: length, isExtended: isExtended,
         extendedTime: extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
         startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
 

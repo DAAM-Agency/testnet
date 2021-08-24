@@ -56,7 +56,8 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var collectionCounterID: UInt64
     access(contract) var metadataCounterID  : UInt64
     
-    pub var newNFTs: [UInt64]    // {Creator : [UInt64]
+    pub var newNFTs: [UInt64]    // [TokenID]
+    pub var withdrawAccess: [UInt64]
 
     pub let agency: Address
 /***********************************************************************/
@@ -312,6 +313,7 @@ pub resource interface CollectionPublic {
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+            pre { DAAM.withdrawAccess.contains(withdrawID) }
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
@@ -546,7 +548,25 @@ pub resource interface CollectionPublic {
             pre  { !DAAM.newNFTs.contains(id) }
             post { DAAM.newNFTs.contains(id)  }
                 DAAM.newNFTs.append(id)
-        }        
+        }
+
+        pub fun allowWithdraw(_ tokenID: UInt64) {
+            pre  { !DAAM.withdrawAccess.contains(tokenID) }
+            post { DAAM.withdrawAccess.contains(tokenID) }
+            DAAM.withdrawAccess.append(tokenID)
+        }
+
+        pub fun closeWithdraw(_ tokenID: UInt64) {
+            pre  { DAAM.withdrawAccess.contains(tokenID) }
+            post { !DAAM.withdrawAccess.contains(tokenID) }
+            var counter = 0
+            for token in DAAM.withdrawAccess {
+                if tokenID == token {
+                    DAAM.withdrawAccess.remove(at: counter)
+                }
+                counter = counter + 1
+            }
+        } 
     }
 /************************************************************************/
     // DAAM Functions
@@ -652,6 +672,7 @@ pub resource interface CollectionPublic {
         self.creators  = {}
         self.metadata  = {}
         self.newNFTs   = []
+        self.withdrawAccess = []
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.collectionCounterID = 0  // Incremental Serial Number for the Collections
