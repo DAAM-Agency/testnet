@@ -5,13 +5,12 @@ import FungibleToken    from 0x9a0766d93b6608b7
 import Profile          from 0xba1132bc08f82fe2
 /************************************************************************/
 pub contract DAAM_V3: NonFungibleToken {
-
-    pub var totalSupply: UInt64
-
+    pub var totalSupply: UInt64 // the total supply of NFTs, also used as counter for token ID
+    // Events
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64,   to: Address?)
-
+    // Events
     pub event NewAdmin(admin  : Address)
     pub event NewMinter(minter: Address)
     pub event NewCreator(creator: Address)
@@ -30,7 +29,7 @@ pub contract DAAM_V3: NonFungibleToken {
     pub event RemovedMetadata(mid: UInt64)
     pub event RemovedAdminInvite()
     pub event AgreementReached(mid: UInt64)
-
+    // Paths
     pub let collectionPublicPath  : PublicPath
     pub let collectionStoragePath : StoragePath
     pub let metadataPublicPath    : PublicPath
@@ -43,9 +42,9 @@ pub contract DAAM_V3: NonFungibleToken {
     pub let creatorStoragePath    : StoragePath
     pub let requestPrivatePath    : PrivatePath
     pub let requestStoragePath    : StoragePath
-                 
-    access(contract) var adminPending : Address?
-    access(contract) var minterPending: Address?
+    // Variables
+    access(contract) var adminPending : Address?       // Only 1 admin can be invited at a time
+    access(contract) var minterPending: Address?       // Only 1 Minter can be invited at a time & there should only be one.
     access(contract) var admins  : {Address: Bool}     // {Admin Address : status}
     access(contract) var creators: {Address: Bool}     // {Creator Address : status}
     access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
@@ -53,36 +52,39 @@ pub contract DAAM_V3: NonFungibleToken {
 
     pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus}
     
-    access(contract) var collectionCounterID: UInt64
-    access(contract) var metadataCounterID  : UInt64
+    access(contract) var collectionCounterID: UInt64   // Gives Collection an ID number // V2 Preperation
+    access(contract) var metadataCounterID  : UInt64   // The Metadta ID counter for MetadataID.
     
-    pub var newNFTs: [UInt64]    // {Creator : [UInt64]
-
-    pub let agency: Address
+    pub var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold' not age of NFT.
+    pub let agency: Address      // DAAM Ageny Address
 /***********************************************************************/
 pub enum CopyrightStatus: UInt8 {
             pub case FRAUD
             pub case CLAIM
             pub case UNVERIFIED
             pub case VERIFIED
-            //pub case INCLUDED TODO v2
+            //pub case INCLUDED // V2
 }
 /***********************************************************************/
+// Used to make requests for royality. A resource for Neogoation of royalities.
+// When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
+// Neogoation may not continue.
 pub resource Request {
-    access(contract) let mid       : UInt64
-    access(contract) var royality  : {Address : UFix64}
-    access(contract) var agreement : [Bool; 2]
+    access(contract) let mid       : UInt64                // Metadata ID number is stored
+    access(contract) var royality  : {Address : UFix64}    // current royality neogoation/bargin state.
+    access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(metadata: &Metadata) {
-        self.mid       = metadata.mid
-        self.royality  = {}
-        self.agreement = [false, false] // [Admin, Creator] ,
+        self.mid       = metadata.mid   // get Metadata ID
+        self.royality  = {}             
+        self.agreement = [false, false] // [Admin, Creator] are both set to disagree by default
     }
 
-    pub fun getMID(): UInt64 { return self.mid }
+    pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
 
-    access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
-        // Verify is Creator
+    // Bargin: Used to 'bargin' between Admin & Creator. If both 'agree'(true) Request return true via isValid()
+    access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} )
+    {   // Verify is Admin or Creator
         pre {
             signer.borrow<&{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath) != nil ||
             signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil : "You do not have access."
@@ -90,21 +92,24 @@ pub resource Request {
             royality.containsKey(DAAM_V3.agency) : "Agency must be included in Royality."
             !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
         }
-        // 0 = creator, 1 = admin
+        // 0 = Creator, 1 = Admin for un/selected
         let selected   = signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ? 0 : 1
         let unselected = signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ? 1 : 0
 
-        self.agreement[selected] = true
-        self.agreement[unselected] = self.royalityMatch(royality)
-        self.royality = royality
+        self.agreement[selected] = true  // royality proposal made
+        self.agreement[unselected] = self.royalityMatch(royality)  // royality set for response; counter propsoal or accepted
+        self.royality = royality  // sqave royality request
 
         log("Negotiating")
+
         if self.isValid() {
             log("Agreement Reached")
             emit AgreementReached(mid: mid)
         }
     }
 
+    // If royalities match an agreement the agreement is prepped to be validied aka isValid() = true.
+    // Compares two list.
     priv fun royalityMatch(_ royalities: {Address:UFix64} ): Bool {
         if self.royality.length != royalities.length { return false}
         for royality in royalities.keys {
@@ -112,19 +117,20 @@ pub resource Request {
         }
         return true
     }
-
+    // Accept Default royality. Skip Neogations.
     access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
         self.royality = royality
         self.agreement = [true, true]
     }
-
+    // If both parties agree (Creator & Admin) return true
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
 }    
 /***********************************************************************/
-pub resource RequestGenerator {
-    
+pub resource RequestGenerator
+{ // Used to create 'Request's. Hardcodes/Incapcilates Metadata ID into Request.     
     init() {}
 
+    // CreateRequets: Create a new 'Request'
     pub fun createRequest(signer: AuthAccount, metadata: &Metadata, royality: {Address : UFix64} ) {
         pre {
             !DAAM_V3.request.containsKey(metadata.mid) : "Already made request for this MID."
@@ -144,7 +150,7 @@ pub resource RequestGenerator {
         log("Royality Request: ".concat(mid.toString()) )
         emit RoyalityRequest(mid: mid)
     }
-
+    // Accept the default Request. No Neogoation is required.
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata) {
         let mid = metadata.mid
         var royality = {DAAM_V3.agency: 0.05 as UFix64 }
