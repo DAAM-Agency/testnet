@@ -71,7 +71,7 @@ pub enum CopyrightStatus: UInt8 {
 // Neogoation may not continue.
 pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royality  : {Address : UFix64}    // current royality neogoation/bargin state.
+    access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(metadata: &Metadata) {
@@ -82,42 +82,7 @@ pub resource Request {
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
 
-    // Bargin: Used to 'bargin' between Admin & Creator. If both 'agree'(true) Request return true via isValid()
-    access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} )
-    {   // Verify is Admin or Creator
-        pre {
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil ||
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil : "You do not have access."
-
-            royality.containsKey(DAAM.agency) : "Agency must be included in Royality."
-            !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
-        }
-        // 0 = Creator, 1 = Admin for un/selected
-        let selected   = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 0 : 1
-        let unselected = signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ? 1 : 0
-
-        self.agreement[selected] = true  // royality proposal made
-        self.agreement[unselected] = self.royalityMatch(royality)  // royality set for response; counter propsoal or accepted
-        self.royality = royality  // save royality request
-
-        log("Negotiating")
-        //emit Neogiation ?? // overkill ??
-
-        if self.isValid() {
-            log("Agreement Reached")
-            emit AgreementReached(mid: mid)
-        }
-    }
-
-    // If royalities match an agreement the agreement is prepped to be validied aka isValid() = true.
-    // Compares two list.
-    priv fun royalityMatch(_ royalities: {Address:UFix64} ): Bool {
-        if self.royality.length != royalities.length { return false}
-        for royality in royalities.keys {
-            if royalities[royality] != self.royality[royality] { return false }
-        }
-        return true
-    }
+    
     // Accept Default royality. Skip Neogations.
     access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
         self.royality = royality
@@ -596,21 +561,6 @@ pub resource interface CollectionPublic {
         return self.request[mid]?.isValid() == true ? true : false
     }
 
-    pub fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
-        // Verify is Creator or Admin
-        pre {
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access."
-
-            !self.getRequestValidity(mid: mid) : "Request already is settled."
-        }
-
-        let request <- self.request.remove(key: mid)!
-        request.bargin(signer: signer, mid: mid, royality: royality)
-        let old <- self.request[mid] <- request
-        destroy old
-    }
-    
     pub fun getRequestMIDs(): [UInt64] {
         return DAAM.request.keys
     }
