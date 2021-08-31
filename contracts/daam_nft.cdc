@@ -131,32 +131,13 @@ pub resource RequestGenerator
 { // Used to create 'Request's. Hardcodes/Incapcilates Metadata ID into Request.     
     init() {}
 
-    // CreateRequets: Create a new 'Request'. It is stored in DAA.request for 2 way neogoations.
-    pub fun createRequest(signer: AuthAccount, metadata: &Metadata, royality: {Address : UFix64} ) {
-        pre {
-            !DAAM.request.containsKey(metadata.mid) : "Already made request for this MID."
-            metadata != nil
-            royality.length > 1
-
-            signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath) != nil : "You do not have access"
-        }
-        let mid = metadata.mid
-        let request <-! create Request(metadata: metadata)!
-        request.bargin(signer: signer, mid: mid, royality: royality) // Create with an inital royality
-
-        let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
-        destroy old
-                    
-        log("Royality Request: ".concat(mid.toString()) )
-        emit RoyalityRequest(mid: mid)
-    }
-
     // Accept the default Request. No Neogoation is required.
-    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata) {
-        let mid = metadata.mid
-        var royality = {DAAM.agency: 0.05 as UFix64 }
-        royality.insert(key: self.owner?.address!, 0.15 )
+    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
+        pre { percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%." }
+
+        let mid = metadata.mid                             // get MID
+        var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
+        royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // get Creator percentage
 
         let request <-! create Request(metadata: metadata)
         request.acceptDefault(royality: royality) 

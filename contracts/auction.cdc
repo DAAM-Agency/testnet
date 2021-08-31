@@ -2,8 +2,7 @@
 // by Ami Rajpal, 2021 // DAAM Agency
 
 import FungibleToken    from 0xee82856bf20e2aa6
-import FUSD          from 0x192440c99cb17282
-//import FlowToken        from 0x0ae53cb6e3f42a79
+import FUSD             from 0x192440c99cb17282
 import DAAM             from 0xfd43f9148d4b725d
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 
@@ -413,30 +412,29 @@ pub contract AuctionHouse {
         // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
         priv fun royality()
         {
-            post { self.auctionVault.balance == 0.0 : "Royality Error" }
+            post { self.auctionVault.balance == 0.0 : "Royality Error" } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
-            let price = self.auctionVault.balance
-            let metadataRef = self.getMetadataRef()
-            let royality = self.getRoyality()
+            let price = self.auctionVault.balance   // get price of NFT
+            let metadataRef = self.getMetadataRef() // get NFT Metadata Reference
+            let royality = self.getRoyality()       // get all royalities percentages
 
-            let agencyPercentage  = royality[DAAM.agency]!
-            let creatorPercentage = royality[metadataRef.creator]!
+            let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
+            let creatorPercentage = royality[metadataRef.creator]!  // extract creators percentage using Metadata Reference
 
-            let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.15 : agencyPercentage
-            let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.85 : creatorPercentage
-
-            // If 1st sale aka 'new' remove from 'new list'
+            let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.15 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.85 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            // If 1st sale is 'new' remove from 'new list'
             if DAAM.newNFTs.contains(self.tokenID) { AuctionHouse.notNew(tokenID: self.tokenID) } // no longer "new"
 
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality)
-
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
+            // get FUSD Receivers for Agency & Creator
             let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
-
-            agencyPay.deposit(from: <-agencyCut)
+            
+            agencyPay.deposit(from: <-agencyCut)  // Deposit into accounts
             creatorPay.deposit(from: <-creatorCut)
         }
 
