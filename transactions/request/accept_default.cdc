@@ -2,7 +2,7 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(mid: UInt64, percentage: UFix64(value)) {
+transaction(mid: UInt64, percentage: UFix64) {
     let creator      : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
     let metadataGen : &DAAM.MetadataGenerator
@@ -15,7 +15,7 @@ transaction(mid: UInt64, percentage: UFix64(value)) {
 
     execute {
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
-        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)!
+        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)
         log("Request Made")
     }
 }
