@@ -17,7 +17,7 @@ transaction(mid: UInt64, copyright: Int)
                 cr = DAAM.CopyrightStatus.VERIFIED
             default: return
         }
-        let admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        let admin = acct.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
         admin.changeCopyright(mid: mid, copyright: cr)
         log("Copyright Changed")
     }

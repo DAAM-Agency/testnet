@@ -10,17 +10,24 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer.address, submit: submit)
+        let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: submit)
 
         if creator != nil && submit {
             self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)!
             self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+            
             let requestGen <- creatorRef.newRequestGenerator()!
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
+            
+            let metadataGen <- creatorRef.newMetadataGenerator()!
+            self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
+            self.signer.link<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
+            
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }
+
         if !submit { log("Thank You for your consideration.") }
     }
 }

@@ -10,7 +10,7 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let minter  <- DAAM.answerMinterInvite(minter: self.signer.address, submit: submit)
+        let minter  <- DAAM.answerMinterInvite(minter: self.signer, submit: submit)
 
         if minter != nil && submit {
             self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)!

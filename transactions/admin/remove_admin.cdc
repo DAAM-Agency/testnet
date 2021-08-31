@@ -9,7 +9,7 @@ transaction(exAdmin: Address)
 
     prepare(acct: AuthAccount) {
         self.admin = acct.borrow<&DAAM.Admin{DAAM.Founder}>(from: DAAM.adminStoragePath)!
-	self.exAdmin = exAdmin
+	    self.exAdmin = exAdmin
     }
 
     execute {

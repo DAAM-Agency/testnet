@@ -59,27 +59,27 @@ echo DAAM NFT: $DAAM_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
 export CTO=$(head -1 cto | awk '{print $2}')
-echo Agency: $CTO
+echo CTO: $CTO
 
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CREATOR
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$ADMIN
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$NOBODY
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$NFT
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$DAAM_NFT
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $CREATOR
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $ADMIN
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $NOBODY
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $NFT
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $DAAM_NFT
 
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$MARKETPLACE
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CLIENT
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$ADMIN2
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$PROFILE
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $MARKETPLACE
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $CLIENT
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $ADMIN2
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $PROFILE
 
-flow transactions send ./transactions/send_flow_em.cdc --arg UFix64:199.999 --arg Address:$CTO
+flow transactions send ./transactions/send_flow_em.cdc 199.999 $CTO
 
 # Init Contracts
 
 # FUSD Enulator Contract
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
-flow transactions send ./transactions/setup_fusd.cdc --arg UFix64:1000000.0 --arg Address:$CTO --signer profile
+flow transactions send ./transactions/setup_fusd.cdc 1000000.0 $CTO --signer profile
 
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
 
@@ -93,15 +93,15 @@ flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer client
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin2
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer profile
 
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$CREATOR --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$ADMIN --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$NOBODY --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$DAAM_NFT --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $NOBODY --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $DAAM_NFT --signer cto
 
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$MARKETPLACE --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$CLIENT --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$ADMIN2 --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc --arg UFix64:100000.0 --arg Address:$PROFILE --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $MARKETPLACE --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN2 --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $PROFILE --signer cto
 
 # Emulator Contracts
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
@@ -109,7 +109,7 @@ flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
+flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE $AGENCY $CTO --signer daam_nft
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
@@ -117,13 +117,13 @@ flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketp
 
 # Invite Admin/CTO
 flow transactions send ./transactions/create_profile.cdc --signer cto
-flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer cto
+flow transactions send ./transactions/answer_admin_invite.cdc true --signer cto
 
 # Invite Admin
 flow transactions send ./transactions/create_profile.cdc --signer admin
-flow transactions send ./transactions/admin/invite_admin.cdc --arg Address:$ADMIN --signer cto
-flow transactions send ./transactions/answer_admin_invite.cdc --arg Bool:true --signer admin
+flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN --signer cto
+flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin
 
 # Setup Marketplace
-flow transactions send ./transactions/admin/invite_minter.cdc --arg Address:$MARKETPLACE --signer admin
-flow transactions send ./transactions/answer_minter_invite.cdc --arg Bool:true --signer marketplace
+flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer admin
+flow transactions send ./transactions/answer_minter_invite.cdc true --signer marketplace
