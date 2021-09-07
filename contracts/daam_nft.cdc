@@ -4,11 +4,8 @@ import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
 import Profile          from 0xba1132bc08f82fe2
 /************************************************************************/
-<<<<<<< HEAD
-pub contract DAAM_V3: NonFungibleToken {
-=======
-pub contract DAAM: NonFungibleToken {
->>>>>>> master-emulator
+pub contract DAAM_V3: NonFungibleToken
+{
     pub var totalSupply: UInt64 // the total supply of NFTs, also used as counter for token ID
     // Events
     pub event ContractInitialized()
@@ -75,64 +72,17 @@ pub enum CopyrightStatus: UInt8 {
 // Neogoation may not continue.
 pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
-<<<<<<< HEAD
-    access(contract) var royality  : {Address : UFix64}    // current royality neogoation/bargin state.
-=======
     access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
->>>>>>> master-emulator
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(metadata: &Metadata) {
         self.mid       = metadata.mid   // get Metadata ID
         self.royality  = {}             
         self.agreement = [false, false] // [Admin, Creator] are both set to disagree by default
-<<<<<<< HEAD
     }
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
 
-    // Bargin: Used to 'bargin' between Admin & Creator. If both 'agree'(true) Request return true via isValid()
-    access(contract) fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} )
-    {   // Verify is Admin or Creator
-        pre {
-            signer.borrow<&{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath) != nil ||
-            signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil : "You do not have access."
-
-            royality.containsKey(DAAM_V3.agency) : "Agency must be included in Royality."
-            !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
-        }
-        // 0 = Creator, 1 = Admin for un/selected
-        let selected   = signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ? 0 : 1
-        let unselected = signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ? 1 : 0
-
-        self.agreement[selected] = true  // royality proposal made
-        self.agreement[unselected] = self.royalityMatch(royality)  // royality set for response; counter propsoal or accepted
-        self.royality = royality  // sqave royality request
-
-        log("Negotiating")
-
-        if self.isValid() {
-            log("Agreement Reached")
-            emit AgreementReached(mid: mid)
-        }
-    }
-
-    // If royalities match an agreement the agreement is prepped to be validied aka isValid() = true.
-    // Compares two list.
-    priv fun royalityMatch(_ royalities: {Address:UFix64} ): Bool {
-        if self.royality.length != royalities.length { return false}
-        for royality in royalities.keys {
-            if royalities[royality] != self.royality[royality] { return false }
-        }
-        return true
-    }
-=======
-    }
-
-    pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
-
-    
->>>>>>> master-emulator
     // Accept Default royality. Skip Neogations.
     access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
         self.royality = royality
@@ -146,41 +96,13 @@ pub resource RequestGenerator
 { // Used to create 'Request's. Hardcodes/Incapcilates Metadata ID into Request.     
     init() {}
 
-<<<<<<< HEAD
-    // CreateRequets: Create a new 'Request'
-    pub fun createRequest(signer: AuthAccount, metadata: &Metadata, royality: {Address : UFix64} ) {
-        pre {
-            !DAAM_V3.request.containsKey(metadata.mid) : "Already made request for this MID."
-            metadata != nil
-            royality.length > 1
-
-            signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath) != nil : "You do not have access"
-        }
-        let mid = metadata.mid
-        let request <-! create Request(metadata: metadata)!
-        request.bargin(signer: signer, mid: mid, royality: royality)
-
-        let old <- DAAM_V3.request.insert(key: mid, <-request) // advice DAAM of request
-        destroy old
-                    
-        log("Royality Request: ".concat(mid.toString()) )
-        emit RoyalityRequest(mid: mid)
-    }
-    // Accept the default Request. No Neogoation is required.
-    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata) {
-        let mid = metadata.mid
-        var royality = {DAAM_V3.agency: 0.05 as UFix64 }
-        royality.insert(key: self.owner?.address!, 0.15 )
-=======
     // Accept the default Request. No Neogoation is required.
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
         pre { percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%." }
 
         let mid = metadata.mid                             // get MID
-        var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
+        var royality = {DAAM_V3.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
         royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // get Creator percentage
->>>>>>> master-emulator
 
         let request <-! create Request(metadata: metadata)
         request.acceptDefault(royality: royality) 
@@ -243,15 +165,9 @@ pub resource MetadataGenerator
             let creator = self.owner?.address!
             let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail,
                 file: file, counter: 1 as UInt64)
-<<<<<<< HEAD
-            self.metadata.insert(key:metadata.mid, metadata)
-            DAAM_V3.metadata.insert(key: metadata.mid, false)
-            DAAM_V3.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED)
-=======
             self.metadata.insert(key:metadata.mid, metadata) // save Metadata
-            DAAM.metadata.insert(key: metadata.mid, false)   // accounce metadata as unapproved
-            DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
->>>>>>> master-emulator
+            DAAM_V3.metadata.insert(key: metadata.mid, false)   // accounce metadata as unapproved
+            DAAM_V3.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
             emit MetadataGeneratated()
@@ -272,13 +188,8 @@ pub resource MetadataGenerator
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
-<<<<<<< HEAD
                 DAAM_V3.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM_V3.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
-=======
-                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
->>>>>>> master-emulator
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM_V3.metadata[mid] != nil : "This already has been published."
                 DAAM_V3.metadata[mid]!       : "Your Submission was Rejected."
@@ -335,11 +246,7 @@ pub resource MetadataGenerator
         }
 
         pub fun getCopyright(): CopyrightStatus {
-<<<<<<< HEAD
             return DAAM_V3.copyright[self.id]!
-=======
-            return DAAM.copyright[self.id]!
->>>>>>> master-emulator
         }
     }
 /************************************************************************/
@@ -385,13 +292,8 @@ pub resource interface CollectionPublic {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
-<<<<<<< HEAD
-
-        pub fun borrowDAAM(id: UInt64): &DAAM_V3.NFT {
-=======
         // borrowDAAM gets a reference to an DAAM.NFT in the collection so that the caller can read its metadata and call its methods
-        pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
->>>>>>> master-emulator
+        pub fun borrowDAAM(id: UInt64): &DAAM_V3.NFT {
             pre { self.ownedNFTs[id] != nil }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
             return ref as! &DAAM_V3.NFT
@@ -517,11 +419,7 @@ pub resource interface CollectionPublic {
             if self.remove.length >= 2 {
                 self.status = false
                 // TODO make Admin self destruct
-<<<<<<< HEAD
                 DAAM_V3.admins.remove(key: admin)
-=======
-                DAAM.admins.remove(key: admin)
->>>>>>> master-emulator
                 log("Removed Admin")
                 emit AdminRemoved(admin: admin)
             }
@@ -663,24 +561,6 @@ pub resource interface CollectionPublic {
         return self.request[mid]?.isValid() == true ? true : false
     }
 
-<<<<<<< HEAD
-    pub fun bargin(signer: AuthAccount, mid: UInt64, royality: {Address:UFix64} ) {
-        // Verify is Creator
-        pre {
-            signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath) != nil ||
-            signer.borrow<&{DAAM_V3.Founder}>(from: DAAM_V3.adminStoragePath) != nil : "You do not have access."
-
-            !self.getRequestValidity(mid: mid) : "Request already is settled."
-        }
-
-        let request <- self.request.remove(key: mid)!
-        request.bargin(signer: signer, mid: mid, royality: royality)
-        let old <- self.request[mid] <- request
-        destroy old
-    }
-    
-=======
->>>>>>> master-emulator
     pub fun getRequestMIDs(): [UInt64] {
         return DAAM_V3.request.keys
     }
@@ -693,15 +573,6 @@ pub resource interface CollectionPublic {
         return self.admins.containsKey(admin)
     }
 
-<<<<<<< HEAD
-	// Testnet only
-    pub fun resetAdmin(_ admin: Address) {
-        self.adminPending = admin
-    }
-    
-    init(agency: Address, founder: Address) {
-        // init Paths
-=======
 /************************************************************************/
 	// TESTNET ONLY FUNCTIONS !!!! // TODO REMOVE
 
@@ -714,7 +585,6 @@ pub resource interface CollectionPublic {
     
     init(agency: Address, founder: Address) {
         // Paths
->>>>>>> master-emulator
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
         self.metadataPublicPath    = /public/DAAM_SubmitNFT

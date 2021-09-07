@@ -45,7 +45,7 @@ pub contract AuctionHouse_V1 {
 
         // Creates a 'new' auction. It is Minted here, and auctioned. Creates an auction for 'Submitted NFT'
         // new is defines as "never sold", age is not a consideration.
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
+        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V3.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
@@ -63,7 +63,7 @@ pub contract AuctionHouse_V1 {
         }
 
         // Creates an auction for a NFT.
-        pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
+        pub fun createAuction(nft: @DAAM_V3.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
             reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
@@ -130,7 +130,7 @@ pub contract AuctionHouse_V1 {
         pub let buyNow      : UFix64  // buy now price
         pub let reprintSeries: Bool   // Active Series Minter (if series)
         pub var auctionLog   : {Address: UFix64} // {Bidders, Amount} // Log of the Auction
-        pub var auctionNFT  : @DAAM.NFT?
+        pub var auctionNFT  : @DAAM_V3.NFT?
         priv var auctionVault: @FungibleToken.Vault // Vault, All funds are stored.
     
         init(nft: @DAAM_V3.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
@@ -420,18 +420,18 @@ pub contract AuctionHouse_V1 {
             let metadataRef = self.getMetadataRef() // get NFT Metadata Reference
             let royality = self.getRoyality()       // get all royalities percentages
 
-            let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
+            let agencyPercentage  = royality[DAAM_V3.agency]!          // extract Agency percentage
             let creatorPercentage = royality[metadataRef.creator]!  // extract creators percentage using Metadata Reference
 
-            let agencyRoyality  = DAAM.newNFTs.contains(self.tokenID) ? 0.15 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyality = DAAM.newNFTs.contains(self.tokenID) ? 0.85 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            let agencyRoyality  = DAAM_V3.newNFTs.contains(self.tokenID) ? 0.15 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyality = DAAM_V3.newNFTs.contains(self.tokenID) ? 0.85 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             // If 1st sale is 'new' remove from 'new list'
-            if DAAM.newNFTs.contains(self.tokenID) { AuctionHouse_V1.notNew(tokenID: self.tokenID) } // no longer "new"
+            if DAAM_V3.newNFTs.contains(self.tokenID) { AuctionHouse_V1.notNew(tokenID: self.tokenID) } // no longer "new"
 
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
             // get FUSD Receivers for Agency & Creator
-            let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+            let agencyPay  = getAccount(DAAM_V3.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             
             agencyPay.deposit(from: <-agencyCut)  // Deposit into accounts
@@ -448,8 +448,8 @@ pub contract AuctionHouse_V1 {
         }
 
         // get Metadata Reference
-        pub fun getMetadataRef(): &DAAM.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
-            let ref = &self.auctionNFT?.metadata! as &DAAM.Metadata
+        pub fun getMetadataRef(): &DAAM_V3.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
+            let ref = &self.auctionNFT?.metadata! as &DAAM_V3.Metadata
             return ref 
         }
 
@@ -508,8 +508,8 @@ pub contract AuctionHouse_V1 {
     }
 
     // Requires Minter Key // Minter function to mint
-    access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
-        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+    access(contract) fun mintNFT(metadata: @DAAM_V3.MetadataHolder): @DAAM_V3.NFT {
+        let minter = self.account.borrow<&DAAM_V3.Minter>(from: DAAM_V3.minterStoragePath)!
         let nft <- minter.mintNFT(metadata: <-metadata)!
         return <- nft
     }
