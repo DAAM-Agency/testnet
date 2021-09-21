@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#NOTE: . ./init.sh
+# Don't forget the first '.' to carry over to transactions.sh
+
 export CREATOR_PUBKEY=0x$(tail -1 ./keys/creator_keys   | awk '{print $3}' | tr -d '\n')
 export ADMIN_PUBKEY=$(tail -1 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
 export CLIENT_PUBKEY=$(tail -1 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')

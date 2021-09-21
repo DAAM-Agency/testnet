@@ -180,6 +180,7 @@ pub resource MetadataGenerator
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
+            DAAM.copyright.remove(key:mid) // default copyright setting
             
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
@@ -600,7 +601,7 @@ pub resource interface CollectionPublic {
         // internal agency values
         self.agency        = agency
         self.adminPending  = founder
-        self.minterPending = nil  // Consider making argument... not likely
+        self.minterPending = nil
         
         self.request  <- {}
         self.copyright = {}

@@ -281,9 +281,8 @@ pub contract AuctionHouse {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
             post { self.verifyAuctionLog() }
 
-            var target = self.leader
+            var target = self.leader // init as Address?
             let metadataRef = self.getMetadataRef()
-
             if self.leader != nil {
                 target = self.leader!
                 // Does it meet the reserve price?
@@ -298,7 +297,9 @@ pub contract AuctionHouse {
                     self.resetAuction()
                     self.seriesMinter(mid: metadataRef.mid)
                     
-                }             
+                } else {
+                    self.returnFunds()!
+                }         
             } else {                
                 target = metadataRef.creator!          
                 self.returnFunds()!

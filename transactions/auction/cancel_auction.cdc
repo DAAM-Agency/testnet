@@ -11,7 +11,7 @@ transaction(tokenID: UInt64)
     
     prepare(auctioneer: AuthAccount) {
         self.auctioneer = auctioneer
-        self.auctionHouse = auctioneer.borrow<AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+        self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
         self.collection = auctioneer.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)!
     }
 
