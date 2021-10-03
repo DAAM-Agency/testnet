@@ -282,7 +282,7 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() }
 
             var target = self.leader // init as Address?
-            let metadataRef = self.getMetadataRef()
+            let metadataRef = self.getAuctionNFTRef()
             if self.leader != nil {
                 target = self.leader!
                 // Does it meet the reserve price?
@@ -418,7 +418,7 @@ pub contract AuctionHouse {
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance   // get price of NFT
-            let metadataRef = self.getMetadataRef() // get NFT Metadata Reference
+            let metadataRef = self.getAuctionNFTRef() // get NFT Metadata Reference
             let royality = self.getRoyality()       // get all royalities percentages
 
             let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
@@ -449,7 +449,7 @@ pub contract AuctionHouse {
         }
 
         // get Metadata Reference
-        pub fun getMetadataRef(): &DAAM.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
+        pub fun getAuctionNFTRef(): &DAAM.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
             let ref = &self.auctionNFT?.metadata! as &DAAM.Metadata
             return ref 
         }
@@ -462,8 +462,9 @@ pub contract AuctionHouse {
 
         priv fun seriesMinter(mid: UInt64) {
             if !self.reprintSeries { return } // if reprint is set to off (false) return
+
             let metadataGen = AuctionHouse.metadataGen[mid]!.borrow()!
-            let metadataRef = self.getMetadataRef()
+            let metadataRef = metadataGen.getMetadataRef(mid: mid)
             let creator = metadataRef.creator
             if creator != self.owner?.address! { return }  // verify owner is creator
             let metadata <- metadataGen.generateMetadata(mid: mid)

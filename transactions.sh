@@ -170,7 +170,7 @@ flow scripts execute ./scripts/collecion.cdc $NOBODY
 echo "---------- Create Original Auctions ----------"
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 11.00 \
-20.0 0.0 false --signer creator #A MID: 1, ID: 1
+20.0 30.0 false --signer creator #A MID: 1, ID: 1
 
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
 100.0 false 0.0 false 0.04 12.00 \
@@ -193,11 +193,11 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 5 $STA
 
 flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
 200.0 false 0.0 false 0.05 14.00 \
-27.0 35.0 true --signer creator #F, MID: 6, ID: 3
+27.0 30.0 true --signer creator #F, MID: 6, ID: 3
 
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 200.0 false 0.0 false 0.025 15.00 \
-28.0 40.0 true --signer creator #G, MID: 7, ID: 4
+28.0 30.0 true --signer creator #G, MID: 7, ID: 4
 
 # Verify Metadata
 echo "---------- Verify Metadata ----------"
@@ -240,6 +240,7 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 1 50.0 --s
 # NFT will be transfered to Creator. Will NOT meet reserve price.
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 12.0 --signer client #A
 
+
 # B ID: 2
 # Testing Buy It Now
 echo "FAIL Test: Did not meet Buy It Now: Not Enough ----------"
@@ -249,12 +250,11 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 28.0 --s
 echo "FAIL Test: Did not meet Buy It Now: Too much ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 33.0 --signer client #B
-'''
-'''
+
 echo "--------- Buy It Now ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.0 --signer client #B
-'''
+
 # C & # D non-existenct
 
 # E : ID 5
@@ -274,6 +274,7 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 24.0 --s
 echo "---------  Nobody Bid: 30 ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --signer nobody #E
+
 
 sleep 130
 
