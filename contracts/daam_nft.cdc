@@ -93,7 +93,7 @@ pub resource Request {
 }    
 /***********************************************************************/
 pub resource RequestGenerator
-{ // Used to create 'Request's. Hardcodes/Incapcilates Metadata ID into Request.     
+{ // Used to create 'Request's. Metadata ID is passed into Request.
     init() {}
 
     // Accept the default Request. No Neogoation is required.
