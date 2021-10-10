@@ -282,8 +282,7 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() }
 
             var target = self.leader // init as Address?
-            let metadataRef = self.getAuctionNFTRef()
-            log(" DEBUG: target: ".concat(target!.toString().concat(" MetadataRef: ")) )
+            let metadataRef = &self.auctionNFT?.metadata! as &DAAM.Metadata
             // Does the leader meet the reserve price?
             if target != nil && self.auctionLog[self.leader!]! >= self.reserve {
                 // remove leader from log before returnFunds()!!
@@ -413,7 +412,7 @@ pub contract AuctionHouse {
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance   // get price of NFT
-            let metadataRef = self.getAuctionNFTRef() // get NFT Metadata Reference
+            let metadataRef = &self.auctionNFT?.metadata! as &DAAM.Metadata // get NFT Metadata Reference
             let royality = self.getRoyality()       // get all royalities percentages
 
             let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
@@ -441,12 +440,6 @@ pub contract AuctionHouse {
                 total = total + self.auctionLog[amount]!
             }
             return total == self.auctionVault.balance
-        }
-
-        // get Metadata Reference
-        pub fun getAuctionNFTRef(): &DAAM.Metadata { // Redundent Remove, item(mid).auctionNFT.borrowDAAM() verify TODO
-            let ref = &self.auctionNFT?.metadata! as &DAAM.Metadata
-            return ref 
         }
 
         // return royality information

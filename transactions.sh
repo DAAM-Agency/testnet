@@ -171,11 +171,11 @@ echo "---------- Create Original Auctions ----------"
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 11.00 \
 20.0 30.0 false --signer creator #A MID: 1, ID: 1
-'''
+
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
 100.0 false 0.0 false 0.04 12.00 \
 25.0 30.0 true --signer creator #B MID: 2, ID: 2
-
+'''
 echo "FAIL Test #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
 100.0 false 0.0 false 0.04 10.00 \
@@ -215,7 +215,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 5 $STA
 # Auction Scripts
 echo "---------- Verify Auctions ----------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-'''
+
 # ---------------------- BIDS ------------------------------
 sleep 10
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -228,7 +228,7 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 -
 echo "BID: Client :ID 1 : 11.0 ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.0 --signer client #A
-'''
+
 echo "FAIL Test: Client bids twice. Already leader. ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.01 --signer client #A
@@ -312,6 +312,11 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 31.0 --
 echo "Fail Test: Bid made. Too late to Cancel Auction: ID: 4"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/cancel_auction.cdc 4 --signer creator
+'''
+sleep 100
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- Close Auctions ----------"
+flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
 # Verify Collection
 echo "----- verify collections -----"
@@ -322,12 +327,7 @@ flow scripts execute ./scripts/collecion.cdc $CLIENT
 echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
 '''
-sleep 100
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Close Auctions ----------"
-flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
-'''
 # Winner 
 echo "--------- Winner Test ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
