@@ -283,23 +283,18 @@ pub contract AuctionHouse {
 
             var target = self.leader // init as Address?
             let metadataRef = self.getAuctionNFTRef()
-            if self.leader != nil {
-                target = self.leader!
-                // Does it meet the reserve price?
-                if self.auctionLog[self.leader!]! >= self.reserve {
-                    // remove leader from log before returnFunds()!!
-                    self.auctionLog.remove(key: self.leader!)!
-                    self.returnFunds()!
-                    self.royality()
-                    log("Item: Won")
-                    emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID) // Auction Ended, but Item not delivered yet.
-                    // possible re-auction Series Minter
-                    self.resetAuction()
-                    self.seriesMinter(mid: metadataRef.mid)
-                    
-                } else {
-                    self.returnFunds()!
-                }         
+            log(" DEBUG: target: ".concat(target!.toString().concat(" MetadataRef: ")) )
+            // Does the leader meet the reserve price?
+            if target != nil && self.auctionLog[self.leader!]! >= self.reserve {
+                // remove leader from log before returnFunds()!!
+                self.auctionLog.remove(key: self.leader!)!
+                self.returnFunds()!
+                self.royality()
+                log("Item: Won")
+                emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID) // Auction Ended, but Item not delivered yet.
+                // possible re-auction Series Minter
+                self.resetAuction()
+                self.seriesMinter(mid: metadataRef.mid)
             } else {                
                 target = metadataRef.creator!          
                 self.returnFunds()!

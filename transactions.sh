@@ -218,6 +218,7 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 '''
 # ---------------------- BIDS ------------------------------
 sleep 10
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 # A ID: 1
 # The reserve price will NOT be met.
 echo "Fail: Test: BID: Client :ID 1 : 11.0 too low ----------"
@@ -322,6 +323,7 @@ echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
 '''
 sleep 100
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Close Auctions ----------"
 flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
