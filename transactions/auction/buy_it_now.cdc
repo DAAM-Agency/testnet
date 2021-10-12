@@ -11,24 +11,28 @@ transaction(auction: Address, tokenID: UInt64, bid: UFix64)
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath
     let collection      : &{DAAM.CollectionPublic}
+    let vaultRef        : &FUSD.Vault{FungibleToken.Provider}
     
     prepare(bidder: AuthAccount) {
         self.bidder = bidder
         self.fusdStoragePath = /storage/fusdVault
+
+        self.vaultRef   = self.bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
+        self.collection = self.bidder.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)!
         
         self.auctionHouse = getAccount(auction)
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
-
-        self.collection = getAccount(bidder.address)
-            .getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath)
-            .borrow()!
     }
 
     execute {
-        let vaultRef = self.bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
-        let amount <- vaultRef.withdraw(amount: bid)!
-        let nft <- self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!
-        self.collection.deposit(token: <- nft)
+        let amount <- self.vaultRef.withdraw(amount: bid)!
+        //let nft <- self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!
+        self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!
+        //self.collection.deposit(token: <- nft)
+    }
+
+    post {
+        self.collection.getIDs().contains(tokenID)
     }
 }

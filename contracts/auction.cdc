@@ -35,7 +35,6 @@ pub contract AuctionHouse {
     pub resource AuctionWallet: AuctionPublic {
         pub let titleholder  : Address  // owner of the wallet
         pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
-        
 
         init(auctioneer: AuthAccount) {
             self.titleholder = auctioneer.address
@@ -306,7 +305,7 @@ pub contract AuctionHouse {
             collectionRef.deposit(token: <- nft!)
         }
 
-        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault): @NonFungibleToken.NFT {
+        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
@@ -322,18 +321,13 @@ pub contract AuctionHouse {
             self.leader = bidder.address                // set new leader
             self.auctionLog.remove(key: bidder.address) // remove from auction log
             self.returnFunds()!                         // return reameaning bids
-            self.royality()                             // pay royalities
-            // nft deposot Must be LAST !!!
-            let nft <- self.auctionNFT <- nil           // get nft
-            let mid  = nft?.metadata?.mid!      
+            self.royality()
+            let mid  = self.auctionNFT?.metadata?.mid!      
 
             log("Buy It Now")
-            emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)
-            
-            self.resetAuction()         // Only if SeriesMinter Conditions apply
-            self.seriesMinter(mid: mid) // Only if SeriesMinter Conditions apply
-            
-            return <- nft!              // give NFT
+            emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)                         // pay royalities
+
+            self.winnerCollect(bidder: bidder)
         }    
 
         // returns BuyItNowStaus, true = active, false = inactive
