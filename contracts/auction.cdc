@@ -352,7 +352,7 @@ pub contract AuctionHouse {
         }
 
         // Auctions can be cancelled if they have no bids. 
-        pub fun cancelAuction(auctioneer: AuthAccount): @NonFungibleToken.NFT {
+        pub fun cancelAuction(auctioneer: AuthAccount)/* : @NonFungibleToken.NFT*/ {
             pre {
                 self.updateStatus() == nil || true         : "Too late to cancel Auction."
                 self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
@@ -364,9 +364,6 @@ pub contract AuctionHouse {
 
             log("Auction Cancelled: ".concat(self.tokenID.toString()) )
             emit AuctionCancelled(tokenID: self.tokenID)
-            // nft deposit Must be LAST !!!
-            let nft <- self.auctionNFT <- nil
-            return <- nft!
         }
 
         priv fun extendAuction() { // extends auction by extendedTime

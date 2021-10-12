@@ -7,16 +7,13 @@ transaction(tokenID: UInt64)
 {
     let auctioneer   : AuthAccount
     let auctionHouse : &AuctionHouse.AuctionWallet
-    let collection   : &{DAAM.CollectionPublic}
     
     prepare(auctioneer: AuthAccount) {
         self.auctioneer = auctioneer
         self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        self.collection = auctioneer.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)!
     }
 
     execute {
-        let nft <- self.auctionHouse.item(tokenID)!.cancelAuction(auctioneer: self.auctioneer)!
-        self.collection.deposit(token: <- nft)
+        self.auctionHouse.item(tokenID)!.cancelAuction(auctioneer: self.auctioneer)!
     }
 }

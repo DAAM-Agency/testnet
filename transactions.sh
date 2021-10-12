@@ -290,7 +290,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --signer nobody #E
 
 # NFT will be sent to Winner.
-'''
+
 # F
 echo "---------- Cancel Auction ID: 3  ----------"
 
@@ -310,7 +310,7 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 31.0 --
 echo "Fail Test: Bid made. Too late to Cancel Auction: ID: 4"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/cancel_auction.cdc 4 --signer creator
-'''
+
 sleep 120
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Close Auctions ----------"
