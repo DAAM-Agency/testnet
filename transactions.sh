@@ -167,7 +167,7 @@ flow scripts execute ./scripts/collecion.cdc $NOBODY
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
-echo "---------- Create Original Auctions ----------"
+echo "---------- Create Original Auctions I ----------"
 
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 11.00 \
@@ -208,10 +208,16 @@ flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
 echo "---------- Reset Copyright ----------"
 flow transactions send ./transactions/admin/change_copyright.cdc 5 3 --signer admin #E Verfied
 
+echo "---------- Create Original Auctions II ----------"
 # Auction MID 5, ID: 5 after copyright adjustment. (set to Verfied)
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 13.00 \
 26.0 30.0 true --signer creator #E ID: 5
+
+# Auction ID: 6, Winner and Collect
+flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
+200.0 false 0.0 false 0.025 15.00 \
+28.0 30.0 true --signer creator #H, ID: 6
 
 # Auction Scripts
 echo "---------- Verify Auctions ----------"
@@ -291,7 +297,7 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --s
 
 # NFT will be sent to Winner.
 
-# F
+# F ID: 3
 echo "---------- Cancel Auction ID: 3  ----------"
 
 echo "Fail Test:  Nobody makes the same bid too low -----"
@@ -302,7 +308,7 @@ echo "Cancel Auction: ID: 3"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/cancel_auction.cdc 3 --signer creator
 
-# G
+# G ID: 4
 echo "---------- Auction: 4 # G  ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 31.0 --signer client #G
@@ -311,10 +317,48 @@ echo "Fail Test: Bid made. Too late to Cancel Auction: ID: 4"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow transactions send ./transactions/auction/cancel_auction.cdc 4 --signer creator
 
-sleep 120
+# H : ID 6
+# reserve price will be met and Collected
+# test Withdraw
+echo "---------- Bid: Nobody ID:1 11.0 ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Close Auctions ----------"
-flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 23.0 --signer client #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E // total 40
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 30.0 --signer client #E // total 50
+
+# Withdraw
+echo "Fail Test: Client can not withdraw bid, is leader."
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer client #E
+
+echo "---------- Withdraw ----------"
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer nobody #E
+
+echo "Fail Test: Nobody can not withdraw bid a 2nd time."
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer nobody #E
+
+# NFT will be 'Collected' by Winner.
+
+# End of Auctions
+sleep 120
+
+# Winner Colection
+echo "========= Winner Tests ========="
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "Fail Test: Wrong Bidder attempting to collect NFT"
+flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer nobody
+
+echo "---------- Winner Collect: Client, #G ID: 6 ----------"
+flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer client
 
 # Verify Collection
 echo "----- verify collections -----"
@@ -326,35 +370,17 @@ flow scripts execute ./scripts/collecion.cdc $CLIENT
 echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
 
-'''
-# Winner 
-echo "--------- Winner Test ----------"
+# Close Auctions
+echo "---------- Close Auctions ----------"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 13.0 --signer client #E
+flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
 
-sleep 130
-
-# Winner Collect
-
-# Withdraw
-
-sleep 20
+# Verify Collection
+echo "----- verify collections -----"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-# Look at participents collections
 echo Creator
 flow scripts execute ./scripts/collecion.cdc $CREATOR
 echo Client
 flow scripts execute ./scripts/collecion.cdc $CLIENT
 echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
-
-# Check Auction Wallets
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-flow scripts execute ./scripts/auction/get_auctions.cdc $CLIENT
-flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
-
-flow transactions send ./transactions/auction/create_auction.cdc 2 $START \
-100.0 false 0.0 false 0.04 15.00 \
-101.0 70.0 true --signer nobody #B
-'''
