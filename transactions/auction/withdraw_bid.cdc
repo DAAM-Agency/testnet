@@ -1,7 +1,5 @@
-
 // make_bid.cdc
 
-import FungibleToken from 0xee82856bf20e2aa6
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282
 import AuctionHouse  from 0x045a1763c93006ca

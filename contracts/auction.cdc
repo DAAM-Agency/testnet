@@ -23,7 +23,7 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen : {UInt64 : Capability<&DAAM.MetadataGenerator>} // {MID  :Capability<&DAAM.MetadataGenerator>}
+    access(contract) var metadataGen : {UInt64 : Capability<&DAAM.MetadataGenerator>} // { MID : Capability<&DAAM.MetadataGenerator> }
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -49,11 +49,12 @@ pub contract AuctionHouse {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
                 metadataGenerator != nil : "There is no Metadata."
-                }
+            }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
-            let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!   
-            let metadata <- metadataRef.generateMetadata(mid: mid)!      // Create MetadataHolder
+            //let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!   
+            let metadataRef = metadataGenerator.borrow()!
+            let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
 
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,

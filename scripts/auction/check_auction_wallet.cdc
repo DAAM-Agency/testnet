@@ -1,4 +1,4 @@
-// verify_auction_wallet.cdc
+// check_auction_wallet.cdc
 
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import AuctionHouse     from 0x045a1763c93006ca

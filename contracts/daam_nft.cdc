@@ -75,13 +75,13 @@ pub resource Request {
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(metadata: &Metadata) {
-        self.mid       = metadata.mid   // get Metadata ID
-        self.royality  = {}             
-        self.agreement = [false, false] // [Admin, Creator] are both set to disagree by default
+        self.mid       = metadata.mid    // Get Metadata ID
+        DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
+        self.royality  = {}              // royality is initialized
+        self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
-
     
     // Accept Default royality. Skip Neogations.
     access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
@@ -180,7 +180,10 @@ pub resource MetadataGenerator
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
-            DAAM.copyright.remove(key:mid) // default copyright setting
+            DAAM.copyright.remove(key:mid) // remove metadata copyright
+            
+            let old <- DAAM.request.remove(key: mid) // get request
+            destroy old // delete request
             
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
@@ -475,12 +478,13 @@ pub resource interface CollectionPublic {
 
             // Update Request, if last remove.
             if isLast {
-                destroy request
-            } else {
+                destroy request  // if last destroy request, not needed.
+            } else {             // reinsert request
                 let old_request <- DAAM.request.insert(key: mid, <- request)
                 destroy old_request
-            }            
-            self.newNFT(id: nft.id)
+            }
+
+            self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
             emit MintedNFT(id: nft.id)
