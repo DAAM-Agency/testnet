@@ -292,7 +292,7 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 20.0 --
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Not Enough."
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 28.0 --signer client #B
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 2.0 --signer client #B
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Too much."
@@ -303,7 +303,7 @@ echo "========= Buy It Now: Client ID: 2 ========="
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.0 --signer client #B
 
 # C & # D non-existenct
-
+'''
 # E : ID 5 
 # reserve price will be met
 echo "========= Bid: Nobody ID: 5 11.0 ========="
@@ -360,19 +360,19 @@ flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
 # reserve price will be met and Collected
 # test Withdraw
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Nobody ID:1 11.0 ----------"
+echo "---------- Bid: Nobody ID: 6 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Client ID:1 23.0 ----------"
+echo "---------- Bid: Client ID:6 23.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 23.0 --signer client #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Nobody ID:1 11.0 ----------"
+echo "---------- Bid: Nobody ID:6 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E // total 40
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Nobody ID:1 11.0 ----------"
+echo "---------- BuyItNow: ID 6, Client: 30.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 30.0 --signer client #E // total 50
 
 # Withdraw
@@ -389,10 +389,10 @@ echo "FAIL TEST: Nobody can not withdraw bid a 2nd time."
 flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer nobody #E
 
 # NFT will be 'Collected' by Winner.
-
+'''
 # End of Auctions
 sleep 160
-
+'''
 # Winner Colection
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -404,7 +404,7 @@ flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --si
 
 echo "----------- Script: buy_it_now_status.cdc = false ----------"
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
-
+'''
 # Verify Collection
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="

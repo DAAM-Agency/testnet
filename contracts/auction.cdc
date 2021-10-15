@@ -122,7 +122,7 @@ log("HERE ----------------------------------")
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub var tokenID     : UInt64
         pub let mid         : UInt64
-        pub let creator     : Address
+        //pub let creator     : Address
         pub var start       : UFix64  // timestamp
         pub let origLength  : UFix64  
         pub var length      : UFix64  // post{!isExtended && length == before(length)}
@@ -158,7 +158,7 @@ log("HERE ----------------------------------")
             self.status = nil
             self.tokenID = nft.id
             self.mid = nft.metadata.mid
-            self.creator = nft.metadata.creator
+            //self.creator = nft.metadata.creator
             self.start = start
             self.length = length
             self.origLength = length
@@ -286,7 +286,7 @@ log("HERE ----------------------------------")
         pub fun winnerCollect(bidder: AuthAccount) {
             pre{
                 self.minBid != nil
-                self.leader! == bidder.address : "You do not have access to the selected Auction"
+                self.leader == bidder.address : "You do not have access to the selected Auction"
             }
             self.verifyReservePrice() // ... Reserve Price verification is the next step.
         }
@@ -295,20 +295,22 @@ log("HERE ----------------------------------")
             pre  { self.updateStatus() == false   : "Auction still in progress" }
             post { self.verifyAuctionLog() }
 
-            var target = self.leader // init as Address?
-            //let metadataRef = &self.auctionNFT?.metadata! as &DAAM.Metadata
-            var pass = false
-            if target != nil {
+            var receiver = self.leader
+            var pass   = false
+
+            log("Auction Log: ".concat(self.auctionLog.length.toString()) )
+
+            if receiver != nil {
                 // Does the leader meet the reserve price?
                 if self.auctionLog[self.leader!]! >= self.reserve {
-                    pass = true                    
+                    pass = true
                 }
-            } 
+            }
 
             if pass {
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
-                self.returnFunds()!
+                self.returnFunds()
                 self.royality()
                 log("Item: Won")
                 emit AuctionCollected(winner: self.leader!, tokenID: self.tokenID) // Auction Ended, but Item not delivered yet.
@@ -316,23 +318,28 @@ log("HERE ----------------------------------")
                 self.resetAuction()
                 self.seriesMinter()
             } else {                
-                target = self.creator      
-                self.returnFunds()!
+                //receiver = self.creator      
+                receiver = self.owner?.address
+                self.returnFunds()
                 log("Item: Returned")
                 emit AuctionReturned(tokenID: self.tokenID)    
             }
 
-            let collectionRef = getAccount(target!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
+            let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // nft deposot Must be LAST !!! 
             let nft <- self.auctionNFT <- nil            
             collectionRef.deposit(token: <- nft!)
         }
 
         priv fun verifyAmount(bidder: Address, amount: UFix64): Bool {
+            log("self.buyNow: ".concat(self.buyNow.toString()) )
+            
             var total = amount
+            log("total: ".concat(total.toString()) )
             if self.auctionLog[bidder] != nil {
                 total = total + self.auctionLog[bidder]! as UFix64
             }
+            log("total: ".concat(total.toString()) )
             return self.buyNow == total
         }
 
@@ -349,7 +356,9 @@ log("HERE ----------------------------------")
             self.status = false  // ends the auction
             self.length = 0.0 as UFix64  // set length to 0; double end auction
             self.leader = bidder.address                // set new leader
+            
             self.auctionLog.insert(key: self.leader!, amount.balance)
+            log("Auction Log: ".concat(self.auctionLog.length.toString()) )
             self.auctionVault.deposit(from: <- amount)  // depsoit
 
             //self.auctionLog.remove(key: bidder.address) // remove from auction log
