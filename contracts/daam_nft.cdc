@@ -172,18 +172,29 @@ pub resource MetadataGenerator
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
             emit MetadataGeneratated()
         }
-        // Used to remove Metadata from the Creators metadata dictionary list.
+
+        // RemoveMetadata uses deleteMetadata to delete the Metadata.
+        // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
+            self.deleteMetadata(mid: mid)  // Delete Metadata
+            let old_request <- DAAM.request.remove(key: mid)  // Get Request
+            destroy old_request // Delete Request
+        }
+
+        // Used to remove Metadata from the Creators metadata dictionary list.
+        priv fun deleteMetadata(mid: UInt64) {
+            pre {
+                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
+                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
+                self.metadata[mid] != nil : "No Metadata entered"
+            }
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
-            DAAM.copyright.remove(key:mid) // remove metadata copyright
-            
-            let old <- DAAM.request.remove(key: mid) // get request
-            destroy old // delete request
+            DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
@@ -203,7 +214,7 @@ pub resource MetadataGenerator
             let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create Current Metadata
             // Verify Current Metadata print (counter) do not exceed series limit; if last ...
             if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
-                self.removeMetadata(mid: mid) // ... remove metadata template
+                self.deleteMetadata(mid: mid) // ... remove metadata template
             } else {
                 let counter = self.metadata[mid]!.counter + 1 as UInt64
                 let new_metadata = Metadata(
@@ -472,16 +483,16 @@ pub resource interface CollectionPublic {
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series
             let mid = metadata.metadata.mid
-            let request <- DAAM.request.remove(key: mid)!
+            let request <- DAAM.request.remove(key: mid)! // get request
             let requestRef = &request as & Request
             let nft <- create NFT(metadata: <- metadata, request: requestRef)
 
             // Update Request, if last remove.
             if isLast {
                 destroy request  // if last destroy request, not needed.
-            } else {             // reinsert request
-                let old_request <- DAAM.request.insert(key: mid, <- request)
-                destroy old_request
+            } else {             
+                let empty_request <- DAAM.request.insert(key: mid, <- request) // reinsert request
+                destroy empty_request
             }
 
             self.newNFT(id: nft.id) // Mark NFT as new

@@ -266,7 +266,7 @@ sleep 20
 # The reserve price will NOT be met.
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: BID: Client :ID 1 : 11.0 too low"
+echo "FAIL TEST: BID: Client :ID 1 : 10.99 too low"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -274,20 +274,16 @@ echo "---------- BID: Client :ID 1 : 11.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.0 --signer client #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Client bids twice. Already leader."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.01 --signer client #A
+echo "---------- BID: Nobody :ID 1 : 30.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 30.0 --signer nobody #A
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "FAIL TEST: Nobody bids twice. Already leader."
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.01 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Verify Buy It Now option is false."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 20.0 --signer nobody #A
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Client bids twice. Already leader."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 30.01 --signer client #A
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Verify Buy It Now option is false."
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 1 30.0 --signer nobody #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 20.0 --signer client #A
 
 # NFT will be sent back to Creator at closr of auction.
 
@@ -310,25 +306,25 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.0 --s
 
 # E : ID 5 
 # reserve price will be met
-echo "========= Bid: Nobody ID:1 11.0 ========="
+echo "========= Bid: Nobody ID: 5 11.0 ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Nobody :ID 5 : 13.0 ----------"
+echo "---------- BID: Nobody ID: 5 : 13.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 13.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Client :ID 5 : 23.0 ----------"
+echo "---------- BID: Client :ID: 5 : 23.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 23.0 --signer client #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Nobody :ID 5 : 17.0 more ----------"
+echo "---------- BID: Nobody ID: 5 : 17.0 more ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 17.0 --signer nobody #E // total 30
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Client :ID 5 : 12.0 more----------"
+echo "---------- BID: Client ID: 5 : 12.0 more----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 12.0 --signer client #E // total 35
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc  // total 35
-echo "----------- Nobody makes the same bid too late -----"
+echo "FAIL TEST: Nobody makes the same bid too late."
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 5.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -395,7 +391,7 @@ flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --sign
 # NFT will be 'Collected' by Winner.
 
 # End of Auctions
-sleep 120
+sleep 160
 
 # Winner Colection
 echo "========= Winner Tests ========="
