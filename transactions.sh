@@ -296,14 +296,14 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 2.0 --si
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Too much."
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 33.0 --signer client #B
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 43.0 --signer client #B
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Buy It Now: Client ID: 2 ========="
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.0 --signer client #B
 
 # C & # D non-existenct
-'''
+
 # E : ID 5 
 # reserve price will be met
 echo "========= Bid: Nobody ID: 5 11.0 ========="
@@ -404,7 +404,7 @@ flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --si
 
 echo "----------- Script: buy_it_now_status.cdc = false ----------"
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
-'''
+
 # Verify Collection
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="

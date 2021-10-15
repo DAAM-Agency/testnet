@@ -437,7 +437,6 @@ pub resource interface CollectionPublic {
             self.remove.append(admin)
             if self.remove.length >= 2 {
                 self.status = false
-                // TODO make Admin self destruct
                 DAAM.admins.remove(key: admin)
                 log("Removed Admin")
                 emit AdminRemoved(admin: admin)

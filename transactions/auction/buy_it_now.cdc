@@ -27,12 +27,6 @@ transaction(auction: Address, tokenID: UInt64, bid: UFix64)
 
     execute {
         let amount <- self.vaultRef.withdraw(amount: bid)!
-        //let nft <- self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!
         self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!
-        //self.collection.deposit(token: <- nft)
-    }
-
-    post {
-        self.collection.getIDs().contains(tokenID)
     }
 }

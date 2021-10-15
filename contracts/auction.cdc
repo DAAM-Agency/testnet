@@ -90,9 +90,6 @@ pub contract AuctionHouse {
             }
 
             for act in self.currentAuctions.keys {
-
-log("HERE ----------------------------------")
-
                 self.currentAuctions[act]?.updateStatus()
                 let current_status = self.currentAuctions[act]?.status // status value may be changed with verifyReservePrive by seriesMinter
                 if current_status == false {
@@ -122,7 +119,6 @@ log("HERE ----------------------------------")
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub var tokenID     : UInt64
         pub let mid         : UInt64
-        //pub let creator     : Address
         pub var start       : UFix64  // timestamp
         pub let origLength  : UFix64  
         pub var length      : UFix64  // post{!isExtended && length == before(length)}
@@ -158,7 +154,6 @@ log("HERE ----------------------------------")
             self.status = nil
             self.tokenID = nft.id
             self.mid = nft.metadata.mid
-            //self.creator = nft.metadata.creator
             self.start = start
             self.length = length
             self.origLength = length
@@ -358,19 +353,10 @@ log("HERE ----------------------------------")
             self.leader = bidder.address                // set new leader
             
             self.auctionLog.insert(key: self.leader!, amount.balance)
-            log("Auction Log: ".concat(self.auctionLog.length.toString()) )
             self.auctionVault.deposit(from: <- amount)  // depsoit
-
-            //self.auctionLog.remove(key: bidder.address) // remove from auction log
-            //self.returnFunds()!                         // return reameaning bids
-            //self.royality()
-
-            //let mid  = self.auctionNFT?.metadata?.mid!      
 
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)                         // pay royalities
-
-            self.winnerCollect(bidder: bidder)
         }    
 
         // returns BuyItNowStaus, true = active, false = inactive
