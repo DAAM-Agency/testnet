@@ -152,7 +152,8 @@ pub resource RequestGenerator
 pub resource MetadataGenerator
 { // Verifies each Metadata get a Metadata ID, and stores the Creators' Metadatas'.
 
-        access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}        
+        access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
+
         init() { self.metadata = {} }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
@@ -362,6 +363,9 @@ pub resource interface CollectionPublic {
         pub fun removeAdminInvite()
 
         pub fun newRequestGenerator(): @RequestGenerator
+
+        // TODO ViewAllMetadata
+        // TODO ViewCreatorMetadata
     }
 /************************************************************************/
 	pub resource Admin: Founder
