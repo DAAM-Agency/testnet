@@ -192,7 +192,7 @@ pub contract AuctionHouse {
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
             self.leader = bidder.address
-            self.updateAuctionLog(amount)     
+            self.updateAuctionLog(amount.balance)     
             self.incrementminBid() // increment accordingly
             self.auctionVault.deposit(from: <- amount)
             self.extendAuction() // If extendend auction... extend
@@ -357,7 +357,7 @@ pub contract AuctionHouse {
             self.length = 0.0 as UFix64  // set length to 0; double end auction
             self.leader = bidder.address                // set new leader
 
-            self.updateAuctionLog(amount)
+            self.updateAuctionLog(amount.balance)
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
             log("Buy It Now")
