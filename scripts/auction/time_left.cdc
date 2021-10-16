@@ -1,6 +1,6 @@
 // time_left.cdc
 
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse from 0x045a1763c93006ca
 
 pub fun main(auction: Address, tokenID: UInt64): UFix64? {    
     let auctionHouse = getAccount(auction)
