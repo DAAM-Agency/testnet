@@ -244,6 +244,10 @@ flow transactions send ./transactions/admin/change_copyright.cdc 5 3 --signer ad
 
 echo "========= Create Original Auctions II ========="
 # Auction MID 5, ID: 5 after copyright adjustment. (set to Verfied)
+CURRENT_TIME=$(date +%s)
+OFFSET=10.0
+START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+
 echo "---------- E ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 13.00 \
@@ -389,10 +393,10 @@ echo "FAIL TEST: Nobody can not withdraw bid a 2nd time."
 flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer nobody #E
 
 # NFT will be 'Collected' by Winner.
-'''
+
 # End of Auctions
 sleep 160
-'''
+
 # Winner Colection
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -418,7 +422,7 @@ flow scripts execute ./scripts/collecion.cdc $NOBODY
 # Close Auctions
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Close Auctions ========="
-flow transactions send ./transactions/auction/close_auctions.cdc --signer creator
+flow transactions send ./transactions/auction/close_auctions.cdc --gas-limit 9999 --signer creator
 
 # Verify Collection
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
