@@ -192,12 +192,7 @@ pub contract AuctionHouse {
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
             self.leader = bidder.address
-            if !self.auctionLog.containsKey(self.leader!) { // First bid by user
-                self.auctionLog.insert(key: self.leader!, amount.balance)
-            } else {
-                let total = self.auctionLog[self.leader!]! + amount.balance
-                self.auctionLog[self.leader!] = total
-            }            
+            self.updateAuctionLog(amount)     
             self.incrementminBid() // increment accordingly
             self.auctionVault.deposit(from: <- amount)
             self.extendAuction() // If extendend auction... extend
@@ -269,6 +264,7 @@ pub contract AuctionHouse {
                 self.verifyAuctionLog() : "Internal Error!!"
             }
             post { self.verifyAuctionLog() }
+
             let balance = self.auctionLog[bidder.address]!
             self.auctionLog.remove(key: bidder.address)!
             let amount <- self.auctionVault.withdraw(amount: balance)!
@@ -338,6 +334,15 @@ pub contract AuctionHouse {
             return self.buyNow == total
         }
 
+        priv fun updateAuctionLog(_ amount: UFix64) {
+            if !self.auctionLog.containsKey(self.leader!) { // First bid by user
+                self.auctionLog.insert(key: self.leader!, amount)
+            } else {
+                let total = self.auctionLog[self.leader!]! + amount
+                self.auctionLog[self.leader!] = total
+            }
+        }          
+
         pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
@@ -347,13 +352,13 @@ pub contract AuctionHouse {
                 self.buyItNowStatus() : "Buy It Now option has expired."
             }
             post { self.verifyAuctionLog() }
-            
+
             self.status = false  // ends the auction
             self.length = 0.0 as UFix64  // set length to 0; double end auction
             self.leader = bidder.address                // set new leader
-            
-            self.auctionLog.insert(key: self.leader!, amount.balance)
-            self.auctionVault.deposit(from: <- amount)  // depsoit
+
+            self.updateAuctionLog(amount)
+            self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, token: self.tokenID, amount: self.buyNow)                         // pay royalities

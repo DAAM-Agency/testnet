@@ -379,41 +379,44 @@ flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
 # H : ID 6
 # reserve price will be met and Collected
 # test Withdraw
+echo "========== # H, ID 6 =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Nobody ID: 6 20.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #H
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Client ID:6 23.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 23.0 --signer client #E
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 23.0 --signer client #H
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Nobody ID:6 20.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E // total 40
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #H // total 40
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BuyItNow: ID 6, Client: 30.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 30.0 --signer client #E // total 50
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 30.0 --signer client #H // total 50
 
 # I ID: 7
 # Testing Buy It Now with Bids.
+echo "========== # I, ID 7 =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Nobody ID: 6 20.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #E
+echo "---------- Bid: Nobody ID: 7 20.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 7 20.0 --signer nobody #I
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Client ID:6 23.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 23.0 --signer client #E
+echo "---------- Bid: Client ID:7 23.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 7 23.0 --signer client #I
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Nobody ID:6 9.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 9.0 --signer nobody #E // total 29
+echo "---------- Bid: Nobody ID:7 9.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 7 9.0 --signer nobody #E // total 29
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Buy It Now: Client ID: 2 ========="
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 7 7.0 --signer client #I
 
 # Withdraw
+echo "========== Withdraw =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Client can not withdraw bid, is leader."
 flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --signer client #E
