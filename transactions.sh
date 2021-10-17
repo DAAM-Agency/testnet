@@ -1,4 +1,5 @@
-# verify transactions
+echo "Testing Section A ===================="
+echo "Setup Accounts & Wallets"
 
 # Setup Profiles
 echo "========= Setup Profiles ========="
@@ -88,6 +89,9 @@ flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN2 --signer ad
 echo "Accept Invite: Admin"
 flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin2
 
+echo "Testing Section B ===================="
+echo "Setup NFTs"
+
 # Submit Metadatas: [Series Max Prints*, About/Misc Data, Thumbnail data, File Data] *0=Unlimited
 # Tests: #A 1-Shot, #B Series(of 7), #C to be deleted by Creator. #D Disapproved by Admin, #E False Copyright,
 #F Unlimited Print, #G 10 series
@@ -96,7 +100,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 1 "data A" "thumbna
 flow transactions send ./transactions/creator/submit_nft.cdc 7 "data B" "thumbnail B" "file B" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data C" "thumbnail C" "file C" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 0 "data D" "thumbnail D" "file D" --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc 0 "data E" "thumbnail E" "file E" --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc 5 "data E" "thumbnail E" "file E" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 0 "data F" "thumbnail F" "file F" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 10 "data G" "thumbnail G" "file G" --signer creator
 
@@ -187,6 +191,10 @@ flow scripts execute ./scripts/collecion.cdc $CLIENT
 echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
 
+
+echo "Testing Section C ===================="
+echo "Testing Auction: Except for Serial Minter, Extended Auction, Create Auction"
+
 # Create Original Auction Tests
 # tokenID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
@@ -227,12 +235,12 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 5 $STA
 echo "---------- F ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
 200.0 false 0.0 false 0.05 14.00 \
-27.0 30.0 true --signer creator #F, MID: 6, ID: 3
+27.0 30.0 false --signer creator #F, MID: 6, ID: 3
 
 echo "---------- G ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 200.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 true --signer creator #G, MID: 7, ID: 4
+28.0 0.0 false --signer creator #G, MID: 7, ID: 4
 
 # Verify Metadata
 echo "========= Veriy Metadata ========="
@@ -504,3 +512,28 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 flow scripts execute ./scripts/auction/get_auctions.cdc $CLIENT
 flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
+
+echo "Testing Section D ===================="
+echo "Testing Auction: Serial Minter"
+
+# Test Serial Minter
+echo "========== Testing Serial Minter =========="
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- buyItNow # 1 ----------"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "--------- Get Creator Auctions ---------"
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- buyItNow # 2 ----------"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 7 30.0 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "FAIL TEST: No more reprints"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 8 30.0 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "--------- Get Creator Auctions ---------"
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR

@@ -60,12 +60,12 @@ pub contract AuctionHouse {
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
 
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
-            incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+            incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow)
         }
 
         // Creates an auction for a NFT.
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-          extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
@@ -74,7 +74,7 @@ pub contract AuctionHouse {
 
             let id = nft.id
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
-              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: false)
                          
             let oldAuction <- self.currentAuctions[id] <- auction
             destroy oldAuction
