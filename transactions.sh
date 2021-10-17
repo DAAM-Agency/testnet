@@ -100,7 +100,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 1 "data A" "thumbna
 flow transactions send ./transactions/creator/submit_nft.cdc 7 "data B" "thumbnail B" "file B" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data C" "thumbnail C" "file C" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 0 "data D" "thumbnail D" "file D" --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc 5 "data E" "thumbnail E" "file E" --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc 3 "data E" "thumbnail E" "file E" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 0 "data F" "thumbnail F" "file F" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 10 "data G" "thumbnail G" "file G" --signer creator
 
@@ -220,12 +220,12 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 2 $STA
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
 100.0 false 0.0 false 0.04 10.00 \
-26.0 30.0 true --signer creator #C
+26.0 30.0 false --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
 100.0 false 0.0 false 0.04 10.00 \
-26.0 30.0 true --signer creator #D
+26.0 30.0 false --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
