@@ -500,7 +500,6 @@ pub contract AuctionHouse {
             if creator != self.owner?.address! { return }  // verify owner is creator
             let metadata <- metadataGen.generateMetadata(mid: self.mid)
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata)
-            self.auctionID = self.auctionNFT?.id! // get new Token ID
             destroy old
             self.resetAuction()
         } 
