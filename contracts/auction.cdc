@@ -50,16 +50,15 @@ pub contract AuctionHouse {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
                 metadataGenerator != nil : "There is no Metadata."
-                DAAM.copyright[mid] != DAAM.CopyrightStatus.FRAUD
-                DAAM.copyright[mid] != DAAM.CopyrightStatus.CLAIM
+                DAAM.copyright[mid] != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
+                DAAM.copyright[mid] != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
-            //let metadataRef = AuctionHouse.metadataGen[mid]!.borrow()!   
             let metadataRef = metadataGenerator.borrow()!
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
-
+            // Create Auctions
             self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
                 incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
         }
@@ -74,7 +73,6 @@ pub contract AuctionHouse {
                 !reprintSeries || (reprintSeries && nft.metadata.creator == self.owner?.address) : "You are not the Creator of this NFT"
             }
 
-            //let id = nft.id
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
 
