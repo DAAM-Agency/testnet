@@ -210,32 +210,32 @@ echo "========== Create Original Auctions I =========="
 echo "---------- A ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 11.00 \
-20.0 30.0 false --signer creator #A MID: 1, ID: 1
+20.0 30.1 false --signer creator #A MID: 1, ID: 1
 
 echo "---------- B ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
 100.0 false 0.0 true 1.0 12.00 \
-25.0 30.0 false --signer creator #B MID: 2, ID: 2
+25.0 30.2 true --signer creator #B MID: 2, ID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
 100.0 false 0.0 false 0.04 10.00 \
-26.0 30.0 false --signer creator #C
+26.0 30.3 false --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
 100.0 false 0.0 false 0.04 10.00 \
-26.0 30.0 false --signer creator #D
+26.0 30.4 false --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 13.00 \
-26.0 30.0 true --signer creator #E
+26.0 30.5 false --signer creator #E
 
 echo "---------- F ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
 200.0 false 0.0 false 0.05 14.00 \
-27.0 30.0 false --signer creator #F, MID: 6, ID: 3
+27.0 30.6 false --signer creator #F, MID: 6, ID: 3
 
 echo "---------- G ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
@@ -259,19 +259,19 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "---------- E ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 13.00 \
-26.0 30.0 true --signer creator #E ID: 5
+26.0 30.5 false --signer creator #E ID: 5
 
 # Auction ID: 6, Winner and Collect
 echo "---------- H ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 200.0 false 0.0 false 0.025 15.00 \
-28.0 30.0 true --signer creator #H, ID: 6
+28.0 30.0 false --signer creator #H, ID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "---------- I ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 200.0 false 0.0 false 0.025 15.00 \
-28.0 30.0 true --signer creator #I, ID: 7
+28.0 30.7 false --signer creator #I, ID: 7
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
@@ -292,8 +292,8 @@ echo "---------- BID: Client :ID 1 : 11.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.0 --signer client #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Nobody :ID 1 : 30.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 30.0 --signer nobody #A
+echo "---------- BID: Nobody :ID 1 : 30.1 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 30.1 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Nobody bids twice. Already leader."
@@ -301,7 +301,12 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.01 -
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Verify Buy It Now option is false."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 20.0 --signer client #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 19.0 --signer client #A total: 30.0
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 1 (True) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
+# auction_status: nil=not started, true=ongoing, false=ended
 
 # NFT will be sent back to Creator at closr of auction.
 
@@ -311,24 +316,26 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 20.0 --
 echo "========== Script: timeLeft.cdc Auction #B, ID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 echo "========== # B, ID: 2 =========="
-sleep 5
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Not Enough."
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 2.0 --signer client #I
 
-sleep 5
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Too much."
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 43.0 --signer client #I
 
-sleep 5
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Buy It Now: Client ID: 2 ========="
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.0 --signer client #I
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer client #I
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #B, ID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 2 (False) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 
 # C & # D non-existenct
 
@@ -359,6 +366,10 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "FAIL TEST: Buy It Now: too late"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --signer nobody #E
 
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 5 (True) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
+
 # NFT will be sent to Winner.
 
 # F ID: 3
@@ -366,7 +377,7 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --s
 echo "========= Cancel Auction ID: 3 ========="
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Auction Status: ID: 3 =========="
+echo "========= Auction Status: ID: 3 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -377,20 +388,25 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "--------- Cancel Auction: ID: 3 ---------"
 flow transactions send ./transactions/auction/cancel_auction.cdc 3 --signer creator
 
-echo "========= Auction Status: ID: 3 =========="
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 3 (False) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3
 
 # G ID: 4
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction: 4 # G ========="
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 31.0 --signer client #G
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 20.0 --signer client #G
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Bid made. Too late to Cancel Auction: ID: 4"
 flow transactions send ./transactions/auction/cancel_auction.cdc 4 --signer creator
 
-echo "----------- Script: buy_it_now_status.cdc = true ----------"
-flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
+echo "FAIL TEST: No Buy It Now option for this auction."
+flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 4
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 4 (True) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 4
 
 # H : ID 6
 # reserve price will be met and Collected
@@ -409,8 +425,12 @@ echo "---------- Bid: Nobody ID:6 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #H // total 40
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BuyItNow: ID 6, Client: 30.0 ----------"
+echo "---------- Bid: ID 6, Client: 30.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 30.0 --signer client #H // total 50
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 6 (True) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 6
 
 # I ID: 7
 # Testing Buy It Now with Bids.
@@ -428,8 +448,12 @@ echo "---------- Bid: Nobody ID:7 9.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 7 9.0 --signer nobody #E // total 29
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Buy It Now: Client ID: 2 ========="
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 7 7.0 --signer client #I
+echo "========= Buy It Now: Client ID: 7 ========="
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 7 7.7 --signer client #I 30.7
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: ID: 7 (False) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 7
 
 # Withdraw
 echo "========== Withdraw =========="
@@ -459,7 +483,7 @@ flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --si
 echo "---------- Winner Collect: Client, #G ID: 6 ----------"
 flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer client
 
-echo "----------- Script: buy_it_now_status.cdc = false ----------"
+echo "FAIL TEST: BuyItNowStatus: (false) Auction is over."
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
 
 # Verify Collection
@@ -482,7 +506,7 @@ echo "========= Close Auctions ========="
 flow transactions send ./transactions/auction/close_auctions.cdc --gas-limit 9999 --signer creator
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "Script: timeLeft.cdc Auction #B, ID: 2"
+echo "FAIL TESTL Script: timeLeft.cdc Auction #B, ID: 2 already closed."
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
 # Verify Collection
@@ -520,7 +544,7 @@ echo "Testing Auction: Serial Minter"
 echo "========== Testing Serial Minter =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- buyItNow # 1 ----------"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --signer nobody #E
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 8 30.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "--------- Get Creator Auctions ---------"
@@ -528,12 +552,22 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- buyItNow # 2 ----------"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 7 30.0 --signer nobody #E
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 9 30.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: No more reprints"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 8 30.0 --signer nobody #E
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 10 30.0 --signer nobody #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
+
+# Verify Collection
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Verify Collections ========="
+echo Creator
+flow scripts execute ./scripts/collecion.cdc $CREATOR
+echo Client
+flow scripts execute ./scripts/collecion.cdc $CLIENT
+echo Nobody
+flow scripts execute ./scripts/collecion.cdc $NOBODY
