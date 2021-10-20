@@ -146,12 +146,12 @@ pub contract AuctionHouse {
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
-                length > 1.0 as UFix64              : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
-                startingBid > 0.0                   : "You can not have a Starting Bid of zero."
+                length > 1.0 as UFix64               : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
+                startingBid > 0.0                    : "You can not have a Starting Bid of zero."
                 reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
-                buyNow > reserve || buyNow == 0.0   : "The BuyNow option must be greater then the Reserve."
-                isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0: "Extended Time setting are incorrect. The minimim is 1 min."
-                reprintSeries == true && nft.metadata.series != 1 || !reprintSeries : "This can be reprinted."
+                buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
+                isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 1 min."
+                reprintSeries == true && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
             }
 
             if incrementByPrice == false && incrementAmount < 0.025 { panic("The minimum increment is 2.5%.")   }
