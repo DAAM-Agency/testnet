@@ -334,7 +334,7 @@ echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Auction Status: AID: 2 (False) =========="
+echo "========= Auction Status: AID: 2 (True due to reprint Series = true) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 
 # C & # D non-existenct
@@ -471,6 +471,52 @@ flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --sign
 
 # NFT will be 'Collected' by Winner.
 
+echo "Testing Section D ===================="
+
+echo "Testing Auction: Serial Minter"
+# Verify time left for auction #2
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
+# Verify Auction status #2
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: AID: 2 (True due to reprint Series = true) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
+
+# Test Serial Minter
+echo "========== Testing Serial Minter =========="
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- buyItNow # 1 AID: 2----------"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "--------- Get Creator Auctions ---------"
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- buyItNow # 2 AID: 2----------"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "FAIL TEST: No more reprints"
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 12 30.2 --signer nobody #E
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "--------- Get Creator Auctions ---------"
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
+
+# Verify Collection
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Verify Collections ========="
+echo Creator
+flow scripts execute ./scripts/collecion.cdc $CREATOR
+echo Client
+flow scripts execute ./scripts/collecion.cdc $CLIENT
+echo Nobody
+flow scripts execute ./scripts/collecion.cdc $NOBODY
+
+echo "Testing Section E ===================="
+
 # End of Auctions
 sleep 160
 
@@ -537,37 +583,3 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 flow scripts execute ./scripts/auction/get_auctions.cdc $CLIENT
 flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
 
-echo "Testing Section D ===================="
-echo "Testing Auction: Serial Minter"
-
-# Test Serial Minter
-echo "========== Testing Serial Minter =========="
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- buyItNow # 1 AID: 2----------"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer nobody #E
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "--------- Get Creator Auctions ---------"
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- buyItNow # 2 AID: 2----------"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer nobody #E
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: No more reprints"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 12 30.2 --signer nobody #E
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "--------- Get Creator Auctions ---------"
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-
-# Verify Collection
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Verify Collections ========="
-echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
-echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
-echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY

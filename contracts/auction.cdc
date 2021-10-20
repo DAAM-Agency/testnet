@@ -69,7 +69,7 @@ pub contract AuctionHouse {
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
-                !self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
+                //!self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
                 !reprintSeries || (reprintSeries && nft.metadata.creator == self.owner?.address) : "You are not the Creator of this NFT"
             }
 
@@ -77,7 +77,7 @@ pub contract AuctionHouse {
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
 
             let aid = auction.auctionID             
-            let oldAuction <- self.currentAuctions[aid] <- auction
+            let oldAuction <- self.currentAuctions.insert(key: aid, <- auction)
             destroy oldAuction
             
             log("Auction Created. Start: ".concat(start.toString()) )
@@ -300,7 +300,7 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() }
 
             var receiver = self.leader
-            var pass   = false
+            var pass     = false
 
             log("Auction Log: ".concat(self.auctionLog.length.toString()) )
 
@@ -318,8 +318,6 @@ pub contract AuctionHouse {
                 self.royality()
                 log("Item: Won")
                 emit AuctionCollected(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
-                // possible re-auction Series Minter
-                self.seriesMinter()
             } else {                
                 //receiver = self.creator      
                 receiver = self.owner?.address
@@ -329,9 +327,14 @@ pub contract AuctionHouse {
             }
 
             let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
-            // nft deposot Must be LAST !!! 
+            // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil            
             collectionRef.deposit(token: <- nft!)
+
+            if pass { 
+                // possible re-auction Series Minter
+                self.seriesMinter() // Note must be last after transer of NFT
+            }
         }
 
         priv fun verifyAmount(bidder: Address, amount: UFix64): Bool {
@@ -491,21 +494,10 @@ pub contract AuctionHouse {
             let royality = self.auctionNFT?.royality!
             return royality 
         }
-
-        priv fun seriesMinter() {
-            if !self.reprintSeries { return } // if reprint is set to off (false) return
-            let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!
-            let metadataRef = metadataGen.getMetadataRef(mid: self.mid)
-            let creator = metadataRef.creator
-            if creator != self.owner?.address! { return }  // verify owner is creator
-            let metadata <- metadataGen.generateMetadata(mid: self.mid)
-            let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata)
-            destroy old
-            self.resetAuction()
-        } 
-
+        
         // resets all variables that need to be reset
         priv fun resetAuction() {
+            //pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }
             log("Reset Auction")
             log(self.reprintSeries)
             if !self.reprintSeries { return } // if reprint is set to off (false) return   
@@ -517,6 +509,21 @@ pub contract AuctionHouse {
             self.status = true       
             log("Reset: Variables")
         }
+
+        priv fun seriesMinter() {
+            pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }
+            if !self.reprintSeries { return } // if reprint is set to off (false) return
+            let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!
+            let metadataRef = metadataGen.getMetadataRef(mid: self.mid)
+            let creator = metadataRef.creator
+            if creator != self.owner?.address! { return }  // verify owner is creator
+            let metadata <- metadataGen.generateMetadata(mid: self.mid)
+            let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata)
+            destroy old
+            self.resetAuction()
+        } 
+
+        
 
         destroy() { // Verify no Funds/NFT are in storage
             pre{
