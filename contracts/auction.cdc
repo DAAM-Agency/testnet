@@ -112,10 +112,18 @@ pub contract AuctionHouse {
             }
         }
 
-        pub fun item(_ id: UInt64): &Auction { // item(Token ID) return a reference of the auctionID Auction
-            pre { self.currentAuctions.containsKey(id) }
-            return &self.currentAuctions[id] as &Auction
-        }        
+        pub fun item(_ aid: UInt64): &Auction { // item(Token ID) return a reference of the auctionID Auction
+            pre { self.currentAuctions.containsKey(aid) }
+            return &self.currentAuctions[aid] as &Auction
+        }
+
+        access(contract) fun endReprints(auctionID: UInt64) {
+            pre {
+                self.currentAuctions.containsKey(auctionID)     : "AuctionID does not exist"
+                self.currentAuctions[auctionID]?.reprintSeries! : "Reprint is already set to Off."
+            }
+            self.currentAuctions[auctionID]?.endReprints()
+        }
 
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // return all auctions by User
 
@@ -137,7 +145,7 @@ pub contract AuctionHouse {
         pub let startingBid : UFix64  // starting bid
         pub let reserve     : UFix64  // the reserve. must be sold at min price.
         pub let buyNow      : UFix64  // buy now price
-        pub let reprintSeries: Bool   // Active Series Minter (if series)
+        pub var reprintSeries: Bool   // Active Series Minter (if series)
         pub var auctionLog   : {Address: UFix64} // {Bidders, Amount} // Log of the Auction
         pub var auctionNFT  : @DAAM.NFT? // Store NFT for auction
         priv var auctionVault: @FungibleToken.Vault // Vault, All funds are stored.
@@ -523,7 +531,14 @@ pub contract AuctionHouse {
             self.resetAuction()
         } 
 
-        
+        pub fun endReprints() {
+           pre {
+                self.reprintSeries : "Reprints is already off."
+                self.auctionNFT?.metadata!.creator == self.owner?.address! : "You are not the Creator of this NFT"
+                //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
+           }
+           self.reprintSeries = false
+        } 
 
         destroy() { // Verify no Funds/NFT are in storage
             pre{

@@ -103,7 +103,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 0 "data D" "thumbna
 flow transactions send ./transactions/creator/submit_nft.cdc 3 "data E" "thumbnail E" "file E" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 4 "data F" "thumbnail F" "file F" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data G" "thumbnail G" "file G" --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc 3 "data H" "thumbnail H" "file H" --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc 4 "data H" "thumbnail H" "file H" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbnail I" "file I" --signer creator
 
 echo "========= Veriy Metadata ========="
@@ -566,7 +566,11 @@ echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: No more reprints"
+echo "========== Testing: endReprint =========="
+flow scripts execute ./transactions/auction/end_reprints.cdc $CREATOR
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "FAIL TEST: No more reprints due to endReprint (previous)"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 6 30.6 --signer nobody #H
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -584,7 +588,7 @@ echo "========= Close Auctions ========="
 flow transactions send ./transactions/auction/close_auctions.cdc --gas-limit 9999 --signer creator
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TESTL Script: timeLeft.cdc Auction #B, AID: 2 already closed."
+echo "FAIL TEST Script: timeLeft.cdc Auction #B, AID: 2 already closed."
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
 # Verify Collection
