@@ -117,7 +117,7 @@ pub contract AuctionHouse {
             return &self.currentAuctions[aid] as &Auction
         }
 
-        access(contract) fun endReprints(auctionID: UInt64) {
+        pub fun endReprints(auctionID: UInt64) {
             pre {
                 self.currentAuctions.containsKey(auctionID)     : "AuctionID does not exist"
                 self.currentAuctions[auctionID]?.reprintSeries! : "Reprint is already set to Off."
@@ -445,11 +445,11 @@ pub contract AuctionHouse {
 
             let timeNow = getCurrentBlock().timestamp
             log("TimeNow: ".concat(timeNow.toString()) )
+            if timeNow < self.start { return nil }
 
             let end = self.start + self.length
             log("End: ".concat(end.toString()) )
 
-            if timeNow < self.start { return nil }
             
             if timeNow >= self.start && timeNow < end {
                 let timeleft = end - timeNow
@@ -531,7 +531,7 @@ pub contract AuctionHouse {
             self.resetAuction()
         } 
 
-        pub fun endReprints() {
+        access(contract) fun endReprints() {
            pre {
                 self.reprintSeries : "Reprints is already off."
                 self.auctionNFT?.metadata!.creator == self.owner?.address! : "You are not the Creator of this NFT"
