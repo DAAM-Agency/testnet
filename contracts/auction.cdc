@@ -45,7 +45,7 @@ pub contract AuctionHouse {
         // Creates a 'new' auction. It is Minted here, and auctioned. Creates an auction for 'Submitted NFT'
         // new is defines as "never sold", age is not a consideration.
         pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
-        isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+        isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
@@ -65,7 +65,7 @@ pub contract AuctionHouse {
 
         // Creates an auction for a NFT.
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
@@ -75,7 +75,7 @@ pub contract AuctionHouse {
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
-
+            // Add Auction
             let aid = auction.auctionID             
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction)
             destroy oldAuction
@@ -142,7 +142,7 @@ pub contract AuctionHouse {
         pub var leader      : Address? // leading bidder
         pub var minBid      : UFix64? // minimum bid
         pub let increment   : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
-        pub let startingBid : UFix64  // starting bid
+        pub let startingBid : UFix64? // starting bid
         pub let reserve     : UFix64  // the reserve. must be sold at min price.
         pub let buyNow      : UFix64  // buy now price
         pub var reprintSeries: Bool   // Active Series Minter (if series)
@@ -151,31 +151,37 @@ pub contract AuctionHouse {
         priv var auctionVault: @FungibleToken.Vault // Vault, All funds are stored.
     
         init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
-          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
+          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
                 length > 1.0 as UFix64               : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
-                startingBid > 0.0                    : "You can not have a Starting Bid of zero."
-                reserve > startingBid || reserve == 0.0 : "The Reserve must be greater then ypur Starting Bid"
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 1 min."
                 reprintSeries == true && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
+                startingBid != 0.0 : "You can not have a Starting Bid of zero."
             }
-
+            
+            // Manage minBid
+            if startingBid == nil { // When starting Bid, Direct Purchase
+                if buyNow == 0.0 { panic("Direct Purchase, BuyItNow requires value") } // is Direct Purchase, BuyItNow requires value
+                if isExtended    { panic("Direct Purchase, can not be an Extended Auction.") }
+            } else if reserve < startingBid! { panic("The Reserve must be greater then your Starting Bid") }
+            
+            // Manage incrementByPrice
             if incrementByPrice == false && incrementAmount < 0.025 { panic("The minimum increment is 2.5%.")   }
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
 
             AuctionHouse.auctionCounter = AuctionHouse.auctionCounter + 1 // increment Auction Counter
-            self.status = nil
-            self.auctionID = AuctionHouse.auctionCounter
+            self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
+            self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
             self.mid = nft.metadata.mid
-            self.start = start
-            self.length = length
-            self.origLength = length
-            self.leader = nil
-            self.minBid = startingBid
-            self.isExtended = isExtended
+            self.start = start        // When auction start
+            self.length = length      // Length of auction
+            self.origLength = length  // If length is reset (extneded auction), a new reprint can reset the original length
+            self.leader = nil         // Current leader, when nil = no leader
+            self.minBid = startingBid // when nil= Direct Purchase, buyNow Must have a value
+            self.isExtended = isExtended // isExtended status
             self.extendedTime = (isExtended) ? extendedTime : 0.0 as UFix64
             self.increment = {incrementByPrice : incrementAmount}
             
@@ -185,10 +191,10 @@ pub contract AuctionHouse {
             // if last in series don't reprint.
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
-            self.auctionLog = {}
-            self.auctionVault <- FUSD.createEmptyVault()
+            self.auctionLog = {} // Maintain record of FUSD // {Address : FUSD}
+            self.auctionVault <- FUSD.createEmptyVault() // ALL FUSD is stored
 
-            self.auctionNFT <- nft
+            self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
             emit AuctionCreated(auctionID: self.auctionID)
@@ -197,7 +203,7 @@ pub contract AuctionHouse {
         // Makes Bid, Bids are deposited into vault
         pub fun depositToBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {         
-                self.minBid != nil                    : "No Bidding. Buy It Now."     
+                self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder.address         : "You are already lead bidder."
@@ -207,11 +213,11 @@ pub contract AuctionHouse {
 
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
-            self.leader = bidder.address
+            self.leader = bidder.address      // set new leader
             self.updateAuctionLog(amount.balance)     
-            self.incrementminBid() // increment accordingly
-            self.auctionVault.deposit(from: <- amount)
-            self.extendAuction() // If extendend auction... extend
+            self.incrementminBid()            // increment accordingly
+            self.auctionVault.deposit(from: <- amount)  // put FUSD into Vault
+            self.extendAuction()  // If extendend auction... extend
 
             log("Balance: ".concat(self.auctionLog[self.leader!]!.toString()) )
             log("Min Bid: ".concat(self.minBid!.toString()) )
@@ -222,9 +228,6 @@ pub contract AuctionHouse {
 
         priv fun validateBid(bidder: Address, balance: UFix64): Bool {
             // Bidders' first bid (New Bidder)
-            log("bidder: ".concat(bidder.toString()) )
-            log("balance: ".concat(balance.toString()) )
-            log("self.minBid: ".concat(self.minBid!.toString()) )
             if !self.auctionLog.containsKey(bidder) {
                 if balance >= self.minBid! {
                     return true
@@ -297,7 +300,8 @@ pub contract AuctionHouse {
         // Winner can make a 'claim' to item...
         pub fun winnerCollect(bidder: AuthAccount) {
             pre{
-                self.minBid != nil
+                self.updateStatus() == false  : "Auction has not Ended."
+                //self.minBid != nil
                 self.leader == bidder.address : "You do not have access to the selected Auction"
             }
             self.verifyReservePrice() // ... Reserve Price verification is the next step.
@@ -430,8 +434,10 @@ pub contract AuctionHouse {
         }
 
         priv fun extendAuction() { // extends auction by extendedTime
-            if !self.isExtended { return }
-            self.length = self.length + self.extendedTime
+            if !self.isExtended { return } // not Extended Auction
+            let end = self.start + self.length // Get end time by adding Start time + Length of Auction
+            let new_length = (end - getCurrentBlock().timestamp) + self.extendedTime // (Time Left) + extendend Time
+            if new_length > end { self.length = new_length } // if new_length is greater then the original end, update
         }
 
         pub fun getStatus(): Bool? { // gets Auction status: nil=not started, true=ongoing, false=ended
