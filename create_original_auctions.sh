@@ -1,24 +1,10 @@
-echo "Testing Section G ===================="
-echo "Testing: Create Auction, excpet for Extended Auctions."
+echo "Testing Section C ===================="
+echo "Testing Auction: Except for Extended Auction, Create Auction"
 
-# Verify Collection
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Verify Collections ========="
-echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
-echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
-echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
-# "Creator: [10, 3, 4]"
-# "Client : [2, 7, 6, 5]"
-# "Nobody : [8, 9, 11, 12, 1]"
-
-
-# Create Auction Tests
-# TokenID: UInt64, start: UFix64
-# length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64,
-# startingBid: UFix64, reserve: UFix64, buyNow: UFix64
+# Create Original Auction Tests
+# MID: UInt64, start: UFix64
+# length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
+# reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
 # Start Bidding
 # starts in 30 seconds
@@ -26,36 +12,76 @@ CURRENT_TIME=$(date +%s)
 OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
-echo "========== Create Auctions I =========="
-echo "---------- Client Sells All -----------"
+echo "========== Create Original Auctions I =========="
+echo "---------- A ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
+100.0 false 0.0 false 0.05 11.00 \
+20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
 
-echo "---------- TokenID: 2 ---------- "
-flow transactions send ./transactions/auction/create_auction.cdc 2 $START \
-100.0 false 0.0 false 0.05 \
-11.00 20.0 30.1 --signer client #AID:   // Auction ID
+echo "---------- B ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
+100.0 false 0.0 true 1.0 12.00 \
+25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
-echo "---------- TokenID: 7 ---------- "
-flow transactions send ./transactions/auction/create_auction.cdc 7 $START \
-100.0 false 0.0 true 1.0 \
-12.00 25.0 30.2 --signer client #AID:   // Auction ID
+echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
+flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
+100.0 false 0.0 false 0.04 10.00 \
+26.0 30.3 false --signer creator #C
 
-echo "---------- TokenID: 6 ---------- "
-flow transactions send ./transactions/auction/create_auction.cdc 6 $START \
-100.0 false 0.0 false 0.04 \
-10.00 26.0 30.3 --signer client #AID:   // Auction ID
+echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
+flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
+100.0 false 0.0 false 0.04 10.00 \
+26.0 30.4 false --signer creator #D
 
-echo "---------- TokenID: 5 ---------- "
-flow transactions send ./transactions/auction/create_auction.cdc 5 $START \
-100.0 false 0.0 false 0.04 \
-10.00 26.0 30.4 --signer client #AID:   // Auction ID
+echo "FAIL TEST: #E Rejected by Copyright Claim"
+flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
+100.0 false 0.0 false 0.04 13.00 \
+26.0 30.5 false --signer creator #E
+
+echo "---------- F ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
+200.0 false 0.0 false 0.05 14.00 \
+27.0 30.3 true --signer creator #F, MID: 6, AID: 3
+
+echo "---------- G ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
+200.0 false 0.0 false 0.025 15.00 \
+28.0 0.0 false --signer creator #G, MID: 7, AID: 4
+
+# Verify Metadata
+echo "========= Veriy Metadata ========="
+flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
+
+# Reset Copyright
+echo "========= Reset Copyright ========="
+flow transactions send ./transactions/admin/change_copyright.cdc 5 3 --signer admin #E Verfied
+
+echo "========= Create Original Auctions II ========="
+# Auction MID 5, AID: 5 after copyright adjustment. (set to Verfied)
+CURRENT_TIME=$(date +%s)
+OFFSET=10.0
+START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+
+echo "---------- E ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
+100.0 false 0.0 false 0.04 13.00 \
+26.0 30.5 false --signer creator #E AID: 5
+
+# Auction ID: 6, Winner and Collect
+echo "---------- H ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
+200.0 false 0.0 false 0.025 15.00 \
+28.0 30.6 true --signer creator #H, AID: 6
+
+# Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
+echo "---------- I ---------- "
+flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
+200.0 false 0.0 false 0.025 15.00 \
+28.0 30.7 false --signer creator #I, AID: 7
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
-flow scripts execute ./scripts/auction/get_auctions.cdc $CLIENT
-
-
-
-'''
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 # ---------------------- BIDS ------------------------------
 echo "========= BIDS ========="
@@ -65,30 +91,30 @@ sleep 20
 echo "========== # A, AID: 1 =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: BID: Client, AID 1 : 10.99 too low"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 1 10.99 --signer nobody #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Client :AID 1 : 11.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 1 11.0 --signer client #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.0 --signer client #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Nobody :AID 1 : 30.1 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 1 30.1 --signer nobody #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 30.1 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Nobody bids twice. Already leader."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 1 11.01 --signer nobody #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 11.01 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Verify Buy It Now option is false."
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 1 19.0 --signer client #A total: 30.0
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 19.0 --signer client #A total: 30.0
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 1 (True) =========="
-flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 1
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 # auction_status: nil=not started, true=ongoing, false=ended
 
-# NFT will be sent back to CLIENT at closr of auction.
+# NFT will be sent back to Creator at closr of auction.
 
 # B ID: 2
 # Testing Buy It Now
@@ -394,4 +420,3 @@ echo Client
 flow scripts execute ./scripts/collecion.cdc $CLIENT
 echo Nobody
 flow scripts execute ./scripts/collecion.cdc $NOBODY
-'''
