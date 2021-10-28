@@ -107,7 +107,7 @@ echo "========= Buy It Now: CTO AID: 9 ========="
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 30.2 --signer cto #I
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
+echo "========== Script: timeLeft.cdc AID: 9 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc

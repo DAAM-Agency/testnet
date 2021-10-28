@@ -368,7 +368,7 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Testing: endReprint =========="
-flow transactions send ./transactions/auction/end_reprints.cdc 6
+flow transactions send ./transactions/auction/end_reprints.cdc 6 --signer creator
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: No more reprints due to endReprint (previous)"
@@ -392,10 +392,6 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "FAIL TEST Script: timeLeft.cdc Auction #B, AID: 2 already closed."
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
-# Verify Collection
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "Script: timeLeft.cdc Auction #B, AID: 2"
-flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 # Script: check_auction_wallet
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Script: Check Auction Wallet ========="

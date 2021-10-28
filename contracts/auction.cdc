@@ -338,13 +338,13 @@ pub contract AuctionHouse {
                 log("Item: Won")
                 emit AuctionCollected(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
-                //receiver = self.creator      
+                //receiver = self.creator
                 receiver = self.owner?.address
                 self.returnFunds()
                 log("Item: Returned")
                 emit AuctionReturned(auctionID: self.auctionID)    
             }
-
+            log("receiver: ".concat(receiver?.toString()!) )   
             let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil            
@@ -482,18 +482,27 @@ pub contract AuctionHouse {
             let metadataRef = &self.auctionNFT?.metadata! as &DAAM.Metadata // get NFT Metadata Reference
             let tokenID = self.auctionNFT?.id!
             let royality = self.getRoyality()       // get all royalities percentages
-
+            
             let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
             let creatorPercentage = royality[metadataRef.creator]!  // extract creators percentage using Metadata Reference
-
+            
             let agencyRoyality  = DAAM.newNFTs.contains(tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
             let creatorRoyality = DAAM.newNFTs.contains(tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
-            // If 1st sale is 'new' remove from 'new list'
-            if DAAM.newNFTs.contains(tokenID) { AuctionHouse.notNew(tokenID: tokenID) } // no longer "new"
-
+            
             let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
             let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
             // get FUSD Receivers for Agency & Creator
+
+            // If 1st sale is 'new' remove from 'new list'
+            if DAAM.newNFTs.contains(tokenID) {
+                AuctionHouse.notNew(tokenID: tokenID)
+            } else { // else no longer "new", Seller is onjly need on reSales.
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()!
+                let sellerPercentage = 1.0 as UFix64 - (agencyPercentage + creatorPercentage)
+                let sellerCut <-! self.auctionVault.withdraw(amount: price * sellerPercentage)
+                seller.deposit(from: <-sellerCut ) // Agency & Creator have already taken their cut
+            }
+            
             let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             
