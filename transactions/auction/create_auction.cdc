@@ -4,7 +4,7 @@ import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(tokenID: Uint64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
+transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet

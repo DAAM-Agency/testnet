@@ -52,29 +52,36 @@ pub contract AuctionHouse {
                 metadataGenerator != nil : "There is no Metadata."
                 DAAM.copyright[mid] != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.copyright[mid] != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                //!reprintSeries || (reprintSeries && nft.metadata.creator == self.owner?.address) : "You are not the Creator of this NFT"
+                // Not neccessary, by default is the Creator tp access this very function.
             }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()!
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
+
             // Create Auctions
-            self.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, incrementByPrice: incrementByPrice,
-                incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+            // Add Auction
+            let aid = auction.auctionID             
+            let oldAuction <- self.currentAuctions.insert(key: aid, <- auction)
+            destroy oldAuction
         }
 
         // Creates an auction for a NFT.
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
-                //!self.currentAuctions.containsKey(nft.id): "Already created an Auction for this TokenID."
-                !reprintSeries || (reprintSeries && nft.metadata.creator == self.owner?.address) : "You are not the Creator of this NFT"
+                DAAM.copyright[nft.metadata.mid] != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
+                DAAM.copyright[nft.metadata.mid] != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
-              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: false)
             // Add Auction
             let aid = auction.auctionID             
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction)
@@ -156,9 +163,9 @@ pub contract AuctionHouse {
                 start >= getCurrentBlock().timestamp : "Time has already past."
                 length > 1.0 as UFix64               : "Minimum is 1 hour"  // 1 hour = 3600  // TODO rest 1.0 to 3599.99
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
-                isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 1 min."
-                reprintSeries == true && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
+                isExtended && extendedTime >= 60.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 1 min."
+                reprintSeries && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
             }
             
             // Manage minBid
@@ -207,7 +214,7 @@ pub contract AuctionHouse {
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder.address         : "You are already lead bidder."
-                self.owner?.address != bidder.address : "Yo can not bid in your own auction."
+                self.owner?.address != bidder.address : "You can not bid in your own auction."
             }
             post { self.verifyAuctionLog() }
 
@@ -256,22 +263,22 @@ pub contract AuctionHouse {
         // nil = auction not started or no bid, true = started (with bid), false = auction ended
         access(contract) fun updateStatus(): Bool? {
             if self.status == false {  // false = Auction has Ended
-                log("Status: Auction Previously Ended")
+                log("Auction Status: Finished")
                 return false
             }
 
             let auction_time = self.timeLeft()
-            if auction_time == 0.0 {
+            if auction_time == nil {
                 self.status = false
-                log("Status: Time Limit Reached & Auction Ended")
+                log("Auction Status: Finished, Time Limit Reached")
                 return false
             }
 
-            if auction_time == nil {
-                log("Status: Not Started")
+            if auction_time! < 0.0 as Fix64 {
+                log("Auction Status: Starts in approximately T".concat(auction_time?.toString()!).concat(" second(s).") )
                 self.status = nil
             } else {
-                log("Status: Auction Ongoing")
+                log("Auction Status: Active; ".concat(auction_time?.toString()!).concat(" second(s) remaining.") )
                 self.status = true
             }
 
@@ -444,30 +451,31 @@ pub contract AuctionHouse {
             return self.updateStatus()
         }
 
-        pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.
+        pub fun timeLeft(): Fix64? { // returns time left, nil = not started yet.
             if self.length == 0.0 {
-                return 0.0 as UFix64
+                return nil
             } // Extended Auction ended.
 
-            let timeNow = getCurrentBlock().timestamp
+            let timeNow = getCurrentBlock().timestamp // current time
+            let end = self.start + self.length // Auction end time
             log("TimeNow: ".concat(timeNow.toString()) )
-            if timeNow < self.start { return nil }
-
-            let end = self.start + self.length
             log("End: ".concat(end.toString()) )
 
-            
-            if timeNow >= self.start && timeNow < end {
-                let timeleft = end - timeNow
-                return timeleft
+            if timeNow > end { return nil } // Auction has already ended
+            // Pre Auction. Auction has not started yet
+            if timeNow < self.start {
+                let value = (timeNow - self.start) as? Fix64
+                return value // returns negative number, which signals seconds to start of auction.
             }
-            return 0.0 as UFix64
+            // Auction On Going. Returns n seconds left
+            let value = (end - timeNow) as? Fix64
+            return value // returns positive number, which signals seconds till auction ends.
         }
 
         // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
         priv fun royality()
         {
-            post { self.auctionVault.balance == 0.0 : "Royality Error" } // The Vault should always end empty
+            post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
@@ -479,8 +487,8 @@ pub contract AuctionHouse {
             let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
             let creatorPercentage = royality[metadataRef.creator]!  // extract creators percentage using Metadata Reference
 
-            let agencyRoyality  = DAAM.newNFTs.contains(tokenID) ? 0.15 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyality = DAAM.newNFTs.contains(tokenID) ? 0.85 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            let agencyRoyality  = DAAM.newNFTs.contains(tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyality = DAAM.newNFTs.contains(tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.newNFTs.contains(tokenID) { AuctionHouse.notNew(tokenID: tokenID) } // no longer "new"
 
