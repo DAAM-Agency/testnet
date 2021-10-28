@@ -263,22 +263,22 @@ pub contract AuctionHouse {
         // nil = auction not started or no bid, true = started (with bid), false = auction ended
         access(contract) fun updateStatus(): Bool? {
             if self.status == false {  // false = Auction has Ended
-                log("Auction Status: Finished")
+                log("Status: Auction Previously Ended")
                 return false
             }
 
             let auction_time = self.timeLeft()
-            if auction_time == nil {
+            if auction_time == 0.0 {
                 self.status = false
-                log("Auction Status: Finished, Time Limit Reached")
+                log("Status: Time Limit Reached & Auction Ended")
                 return false
             }
 
-            if auction_time! < 0.0 as Fix64 {
-                log("Auction Status: Starts in approximately T".concat(auction_time?.toString()!).concat(" second(s).") )
+            if auction_time == nil {
+                log("Status: Not Started")
                 self.status = nil
             } else {
-                log("Auction Status: Active; ".concat(auction_time?.toString()!).concat(" second(s) remaining.") )
+                log("Status: Auction Ongoing")
                 self.status = true
             }
 
@@ -451,25 +451,24 @@ pub contract AuctionHouse {
             return self.updateStatus()
         }
 
-        pub fun timeLeft(): Fix64? { // returns time left, nil = not started yet.
+        pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.
             if self.length == 0.0 {
-                return nil
+                return 0.0 as UFix64
             } // Extended Auction ended.
 
-            let timeNow = getCurrentBlock().timestamp // current time
-            let end = self.start + self.length // Auction end time
+            let timeNow = getCurrentBlock().timestamp
             log("TimeNow: ".concat(timeNow.toString()) )
+            if timeNow < self.start { return nil }
+
+            let end = self.start + self.length
             log("End: ".concat(end.toString()) )
 
-            if timeNow > end { return nil } // Auction has already ended
-            // Pre Auction. Auction has not started yet
-            if timeNow < self.start {
-                let value = (timeNow - self.start) as? Fix64
-                return value // returns negative number, which signals seconds to start of auction.
+            
+            if timeNow >= self.start && timeNow < end {
+                let timeleft = end - timeNow
+                return timeleft
             }
-            // Auction On Going. Returns n seconds left
-            let value = (end - timeNow) as? Fix64
-            return value // returns positive number, which signals seconds till auction ends.
+            return 0.0 as UFix64
         }
 
         // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 

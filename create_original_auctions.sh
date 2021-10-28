@@ -89,6 +89,9 @@ sleep 20
 # A ID: 1
 # The reserve price will NOT be met.
 echo "========== # A, AID: 1 =========="
+echo "Script: timeLeft.cdc Auction #A, AID: 1 =========="
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 1
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: BID: Client, AID 1 : 10.99 too low"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 --signer nobody #A
@@ -119,9 +122,9 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 # B ID: 2
 # Testing Buy It Now
 # Testing Time Left
+echo "========== # B, AID: 2 =========="
 echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
-echo "========== # B, AID: 2 =========="
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Not Enough."
