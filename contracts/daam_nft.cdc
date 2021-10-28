@@ -63,7 +63,7 @@ pub enum CopyrightStatus: UInt8 {
             pub case CLAIM
             pub case UNVERIFIED
             pub case VERIFIED
-            //pub case INCLUDED // V2
+            pub case INCLUDED
 }
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
