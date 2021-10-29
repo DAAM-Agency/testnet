@@ -1,6 +1,17 @@
 echo "Testing Section C ===================="
 echo "Testing Auction: Except for Extended Auction, Create Auction"
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+
 # Create Original Auction Tests
 # MID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
@@ -92,6 +103,17 @@ echo "========== # A, AID: 1 =========="
 echo "Script: timeLeft.cdc Auction #A, AID: 1 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 1
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: BID: Client, AID 1 : 10.99 too low"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 --signer nobody #A
@@ -123,6 +145,17 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 # Testing Buy It Now
 # Testing Time Left
 echo "========== # B, AID: 2 =========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
@@ -151,6 +184,17 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 # E : MID 5, AID: 5
 # reserve price will be met
 echo "========= Bid: Nobody AID: 5 11.0 ========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Nobody AID: 5 : 13.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 5 13.0 --signer nobody #E
@@ -185,6 +229,16 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
 # Also Testing Auction Status
 echo "========= Cancel Auction AID: 3 ========="
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 3 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3
@@ -202,8 +256,19 @@ echo "========= Auction Status: AID: 3 (False) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3
 
 # G AID: 4
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction: # G, AID: 4  ========="
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "---------- Bid: Client AID:4, 20.0"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 4 20.0 --signer client #G
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -221,6 +286,17 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 4
 # reserve price will be met and Collected
 # test Withdraw
 echo "========== # H, AID: 6 =========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Nobody AID: 6 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 20.0 --signer nobody #H
@@ -244,6 +320,17 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 6
 # I AID: 7
 # Testing Buy It Now with Bids.
 echo "========== # I, AID: 7 =========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Nobody AID: 7 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 7 20.0 --signer nobody #I
@@ -282,6 +369,17 @@ flow transactions send ./transactions/auction/withdraw_bid.cdc $CREATOR 6 --sign
 
 echo "Testing Section D ===================="
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+
 echo "Testing Auction: Serial Minter"
 # Verify time left for auction #2
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -294,6 +392,17 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 
 # Test Serial Minter
 echo "========== Testing Serial Minter AID: 2 =========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- buyItNow # 1 AID: 2----------"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer nobody #E
@@ -328,6 +437,17 @@ flow scripts execute ./scripts/collecion.cdc $NOBODY
 echo "========== Testing Section E =========="
 sleep 160
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+
 # Winner Colection
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -339,6 +459,17 @@ flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --si
 
 echo "FAIL TEST: BuyItNowStatus: (false) Auction is over."
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 
 # Verify Collection
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -358,6 +489,17 @@ sleep 50
 
 # Test Serial Minter
 echo "========== Testing Serial Minter AID: 6 =========="
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- buyItNow # 1 AID: 6 ----------"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 6 30.6 --signer nobody #H
@@ -378,6 +520,15 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
 # Close Auctions
 # Also Testing Time Left
@@ -391,6 +542,16 @@ flow transactions send ./transactions/auction/close_auctions.cdc --gas-limit 999
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST Script: timeLeft.cdc Auction #B, AID: 2 already closed."
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
+
+echo "---------- FUSD ----------"
+echo "CREATOR FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+echo "CLIENT FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "NOBODY FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+echo "CTO FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
 # Script: check_auction_wallet
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc

@@ -580,9 +580,9 @@ pub resource interface CollectionPublic {
         return self.request[mid]?.isValid() == true ? true : false
     }
 
-    pub fun getRequestMIDs(): [UInt64] {
+    /*pub fun getRequestMIDs(): [UInt64] {
         return DAAM.request.keys
-    }
+    }*/
 
     pub fun isCreator(_ creator: Address): Bool? {
         return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
