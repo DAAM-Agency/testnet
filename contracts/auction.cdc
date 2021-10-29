@@ -321,7 +321,7 @@ pub contract AuctionHouse {
             var receiver = self.leader
             var pass     = false
 
-            log("Auction Log: ".concat(self.auctionLog.length.toString()) )
+            log("Auction Log Length: ".concat(self.auctionLog.length.toString()) )
 
             if receiver != nil {
                 // Does the leader meet the reserve price?
