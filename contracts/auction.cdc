@@ -407,7 +407,7 @@ pub contract AuctionHouse {
                 self.updateStatus() != false : "Auction is over or invalid."
             }
             if self.leader != nil {
-                return self.buyNow > self.auctionLog[self.leader!]!
+                return self.buyNow > self.auctionLog[self.leader!]! // return 'Buy it Now' price to the current bid
             }
             return true
         }
@@ -449,6 +449,10 @@ pub contract AuctionHouse {
 
         pub fun getStatus(): Bool? { // gets Auction status: nil=not started, true=ongoing, false=ended
             return self.updateStatus()
+        }
+
+        pub fun itemInfo(): DAAM.Metadata? { // returns the metadata of the item NFT.
+            return self.auctionNFT?.metadata
         }
 
         pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.

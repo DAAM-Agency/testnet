@@ -104,7 +104,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 7 "data B" "thumbna
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data C" "thumbnail C" "file C" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 0 "data D" "thumbnail D" "file D" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 3 "data E" "thumbnail E" "file E" --signer creator
-flow transactions send ./transactions/creator/submit_nft.cdc 4 "data F" "thumbnail F" "file F" --signer creator
+flow transactions send ./transactions/creator/submit_nft.cdc 2 "data F" "thumbnail F" "file F" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data G" "thumbnail G" "file G" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 4 "data H" "thumbnail H" "file H" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbnail I" "file I" --signer creator
@@ -160,8 +160,8 @@ flow transactions send ./transactions/request/accept_default.cdc 4 0.18 --signer
 flow transactions send ./transactions/request/accept_default.cdc 5 0.20 --signer creator #E
 flow transactions send ./transactions/request/accept_default.cdc 6 0.25 --signer creator #F
 flow transactions send ./transactions/request/accept_default.cdc 7 0.30 --signer creator #G
-flow transactions send ./transactions/request/accept_default.cdc 8 0.15 --signer creator #G
-flow transactions send ./transactions/request/accept_default.cdc 9 0.16 --signer creator #G
+flow transactions send ./transactions/request/accept_default.cdc 8 0.15 --signer creator #H
+flow transactions send ./transactions/request/accept_default.cdc 9 0.16 --signer creator #I
 
 # Change Copyright [MID, Status*] *0=Fraud, 1=Claim, 2=Unverified, 3=Verfied
 echo "========== Change Copyright Status =========="

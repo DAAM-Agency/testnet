@@ -101,6 +101,9 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
+echo "---------- Auction Item, AID: 8 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 8
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: BID: Client, AID 8 : 10.99 too low"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 8 10.99 --signer nobody #A
@@ -120,11 +123,11 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Nobody bids twice. Already leader."
+echo "FAIL TEST: Nobody bids twice. Already leader. AID: 8"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 8 11.01 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Verify Buy It Now option is false."
+echo "FAIL TEST: Verify Buy It Now option is false. AID: 8"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 8 19.0 --signer cto #A total: 30.0
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -152,12 +155,15 @@ echo "========== Script: timeLeft.cdc AID: 9 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
 echo "========== AID: 9 =========="
 
+echo "---------- Auction Item, AID: 9 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 9
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Did not meet Buy It Now: Not Enough."
+echo "FAIL TEST: Did not meet Buy It Now: Not Enough. AID: 9"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 2.0 --signer cto
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Did not meet Buy It Now: Too much."
+echo "FAIL TEST: Did not meet Buy It Now: Too much. AID: 9"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 43.0 --signer cto
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -187,6 +193,9 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+echo "---------- Auction Item, AID: 10 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 10
 
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -218,11 +227,11 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Nobody makes the same bid too late."
+echo "FAIL TEST: Nobody makes the same bid too late. AID: 10"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 5.0 --signer nobody
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Buy It Now: too late"
+echo "FAIL TEST: Buy It Now: too late.  AID: 10"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 10 30.0 --signer nobody
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -246,12 +255,15 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
+echo "---------- Auction Item, AID: 11 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 11
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 11 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 11
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST:  Nobody makes the same bid too low."
+echo "FAIL TEST:  Nobody makes the same bid too low. AID: 11"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 11 2.0 --signer nobody #F
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -276,6 +288,8 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
+echo "---------- Auction Item, AID: 12 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $NOBODY 12
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: CTO AID: 12, 20.0 ----------"
@@ -288,7 +302,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "FAIL TEST: Bid made. Too late to Cancel Auction: AID: 12"
 flow transactions send ./transactions/auction/cancel_auction.cdc 12 --signer nobody
 
-echo "FAIL TEST: No Buy It Now option for this auction."
+echo "----------- Script: BuyItNow Creator, AID: 12 (false) ----------"
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $NOBODY 12
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -309,6 +323,9 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+echo "---------- Auction Item, AID: 13 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $NOBODY 13
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Client AID: 13 20.0 ----------"
@@ -357,7 +374,7 @@ echo "---------- Withdraw ----------"
 flow transactions send ./transactions/auction/withdraw_bid.cdc $NOBODY 13 --signer client
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Nobody can not withdraw bid a 2nd time."
+echo "FAIL TEST: Nobody can not withdraw bid a 2nd time. AID: 13"
 flow transactions send ./transactions/auction/withdraw_bid.cdc $NOBODY 13 --signer client
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
@@ -377,6 +394,9 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+
+echo "---------- Auction Item, AID: 14 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $NOBODY 14
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Client AID: 14 20.0 ----------"
@@ -431,13 +451,13 @@ sleep 160
 # Winner Colection
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "FAIL TEST: Wrong Bidder attempting to collect NFT"
+echo "FAIL TEST: Wrong Bidder attempting to collect NFT. AID: 10"
 flow transactions send ./transactions/auction/winner_collect.cdc $CLIENT 10 --signer nobody
 
 echo "---------- Winner Collect: Cto, AID: 10 ----------"
 flow transactions send ./transactions/auction/winner_collect.cdc $CLIENT 10 --signer cto
 
-echo "FAIL TEST: BuyItNowStatus: (false) Auction is over."
+echo "FAIL TEST: Script: BuyItNow Creator, AID: 10"
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CLIENT 10
 
 echo "---------- FUSD ----------"
