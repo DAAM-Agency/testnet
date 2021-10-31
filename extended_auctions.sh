@@ -33,7 +33,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 1 $STA
 
 echo "---------- B ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
-30.0 true 60.0 true 5.0 12.0 \
+40.0 true 60.0 true 5.0 12.0 \
 25.0 0.0 false --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
@@ -277,8 +277,6 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 3 36.0 --
 
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-
-sleep 20
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
