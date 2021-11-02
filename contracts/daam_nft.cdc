@@ -8,56 +8,54 @@ pub contract DAAM: NonFungibleToken {
     pub var totalSupply: UInt64 // the total supply of NFTs, also used as counter for token ID
     // Events
     pub event ContractInitialized()
-    pub event Withdraw(id: UInt64, from: Address?)
-    pub event Deposit(id: UInt64,   to: Address?)
+    pub event Withdraw(id: UInt64, from: Address?) // Collection Wallet, used to withdraw NFT
+    pub event Deposit(id: UInt64,   to: Address?)  // Collection Wallet, used to deposit NFT
     // Events
-    pub event NewAdmin(admin  : Address)
-    pub event NewMinter(minter: Address)
-    pub event NewCreator(creator: Address)
-    pub event AdminInvited(admin  : Address)
-    pub event CreatorInvited(creator: Address)
-    pub event MinterSetup(minter: Address)   
-    pub event MetadataGeneratated()
-    pub event MintedNFT(id: UInt64)
-    pub event ChangedCopyright(metadataID: UInt64)
-    pub event RoyalityRequest(mid: UInt64)
-    pub event ChangeCreatorStatus(creator: Address, status: Bool)
-    pub event CreatorRemoved(creator: Address)
-    pub event AdminRemoved(admin: Address)
-    pub event RequestAnswered(mid: UInt64)
-    pub event RequestAccepted(mid: UInt64)
-    pub event RemovedMetadata(mid: UInt64)
-    pub event RemovedAdminInvite()
-    pub event AgreementReached(mid: UInt64)
+    pub event NewAdmin(admin  : Address)         // A new Admin has been added. Accepted Invite
+    pub event NewMinter(minter: Address)         // A new Minter has been added. Accepted Invite
+    pub event NewCreator(creator: Address)       // A new Creator has been addeed. Accepted Invite
+    pub event AdminInvited(admin  : Address)     // Admin has been invited
+    pub event CreatorInvited(creator: Address)   // Creator has been invited
+    pub event MinterSetup(minter: Address)       // Minter has been invited
+    pub event AddMetadata()                      // Metadata Added
+    pub event MintedNFT(id: UInt64)              // Minted NFT
+    pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
+    pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin
+    pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
+    pub event AdminRemoved(admin: Address)       // Admin has been removed
+    pub event RequestAccepted(mid: UInt64)       // Royality rate has been accepted 
+    pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
+    pub event RemovedAdminInvite()               // Admin invitation has been recinded
     // Paths
-    pub let collectionPublicPath  : PublicPath
-    pub let collectionStoragePath : StoragePath
-    pub let metadataPublicPath    : PublicPath
-    pub let metadataStoragePath   : StoragePath
-    pub let adminPrivatePath      : PrivatePath
-    pub let adminStoragePath      : StoragePath
-    pub let minterPrivatePath     : PrivatePath
-    pub let minterStoragePath     : StoragePath
-    pub let creatorPrivatePath    : PrivatePath
-    pub let creatorStoragePath    : StoragePath
-    pub let requestPrivatePath    : PrivatePath
-    pub let requestStoragePath    : StoragePath
+    pub let collectionPublicPath  : PublicPath   // Public path to Collection
+    pub let collectionStoragePath : StoragePath  // Storage path to Collection
+    pub let metadataPublicPath    : PublicPath   // Public path to Metadata Generator
+    pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
+    pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
+    pub let adminStoragePath      : StoragePath  // Storage path to Admin 
+    pub let minterPrivatePath     : PrivatePath  // Private path to Minter
+    pub let minterStoragePath     : StoragePath  // Storage path to Minter
+    pub let creatorPrivatePath    : PrivatePath  // Private path to Creator
+    pub let creatorStoragePath    : StoragePath  // Storage path to Creator
+    pub let requestPrivatePath    : PrivatePath  // Private path to Request
+    pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
     access(contract) var adminPending : Address?       // Only 1 admin can be invited at a time
     access(contract) var minterPending: Address?       // Only 1 Minter can be invited at a time & there should only be one.
-    access(contract) var admins  : {Address: Bool}     // {Admin Address : status}
-    access(contract) var creators: {Address: Bool}     // {Creator Address : status}
-    access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin }
-    access(contract) var request : @{UInt64: Request}  // {MID : @Request }
+    access(contract) var admins  : {Address: Bool}     // {Admin Address : status}   Admin address are stored here
+    access(contract) var agents  : {Address: Bool}     // {Agents Address : status}   Agents address are stored here // preparation for V2
+    access(contract) var creators: {Address: Bool}     // {Creator Address : status} Creator address are stored here
+    access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
 
-    pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus}
+    pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     
-    access(contract) var collectionCounterID: UInt64   // Gives Collection an ID number // V2 Preperation
     access(contract) var metadataCounterID  : UInt64   // The Metadta ID counter for MetadataID.
     
-    pub var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold' not age of NFT.
+    pub var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency: Address      // DAAM Ageny Address
 /***********************************************************************/
+// Copyright enumeration status
 pub enum CopyrightStatus: UInt8 {
             pub case FRAUD
             pub case CLAIM
@@ -68,7 +66,9 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
 // When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
-// Neogoation may not continue.
+// Neogoation may not continue. V2 Featur TODO
+// Request manage the royality rate
+// Accept Default are auto agreements
 pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
     access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
@@ -85,18 +85,19 @@ pub resource Request {
     
     // Accept Default royality. Skip Neogations.
     access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
-        self.royality = royality
-        self.agreement = [true, true]
+        self.royality = royality        // get royality
+        self.agreement = [true, true]   // set agreement status to Both parties Agreed
     }
     // If both parties agree (Creator & Admin) return true
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
 }    
 /***********************************************************************/
-pub resource RequestGenerator
-{ // Used to create 'Request's. Metadata ID is passed into Request.467ggvvvv
+// Used to create Request Resources. Metadata ID is passed into Request.
+// Request handle Royalities, and Negoatons.
+pub resource RequestGenerator {
     init() {}
-
     // Accept the default Request. No Neogoation is required.
+    // Percentages are between 10% - 30%
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
         pre { percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%." }
 
@@ -104,11 +105,11 @@ pub resource RequestGenerator
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
         royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // get Creator percentage
 
-        let request <-! create Request(metadata: metadata)
-        request.acceptDefault(royality: royality) 
+        let request <-! create Request(metadata: metadata) // get request
+        request.acceptDefault(royality: royality)          // append royality rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
-        destroy old
+        destroy old // destroy place holder
         
         log("Request Accepted, MID: ".concat(mid.toString()) )
         emit RequestAccepted(mid: mid)
@@ -116,31 +117,32 @@ pub resource RequestGenerator
     // Get the Request resource, exclusive for Minting
     pub fun getRequest(metadata: &MetadataHolder): @Request {
         pre {
-            metadata != nil
-            DAAM.request.containsKey(metadata.getMID() )
-            DAAM.getRequestValidity(mid: metadata.getMID() )
+            metadata != nil                                  : "Metadata Holder is Empty."
+            DAAM.request.containsKey(metadata.getMID() )     : "No Request made."
+            DAAM.getRequestValidity(mid: metadata.getMID() ) : "This request has not been approved."
         }
-        let request <- DAAM.request.remove(key: metadata.metadata.mid)!
-        return <- request
+        let request <- DAAM.request.remove(key: metadata.metadata.mid)! // Remove Request
+        return <- request // Return requested Request
     }
 }
 /************************************************************************/
     pub struct Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
-        pub let mid       : UInt64
+        pub let mid       : UInt64   // Metadata ID number
         pub let creator   : Address  // Creator
         pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let data      : String   // JSON see metadata.json
-        pub let thumbnail : String   // JSON see metadata.json
-        pub let file      : String   // JSON see metadata.json
+        pub let data      : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
+        pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
             pre {
-                counter != 0 as UInt64 : "Illegal operation."
+                counter != 0 as UInt64 : "Illegal operation. Internal Error: Metadata" // Unreachabe
                 (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
-            self.mid       = DAAM.metadataCounterID
-            self.creator   = creator
+            // init all NFT setting
+            self.mid       = DAAM.metadataCounterID 
+            self.creator   = creator 
             self.series    = series
             self.counter   = counter
             self.data      = data
@@ -150,11 +152,10 @@ pub resource RequestGenerator
     }
 /************************************************************************/
 pub resource MetadataGenerator
-{ // Verifies each Metadata get a Metadata ID, and stores the Creators' Metadatas'.
-
+{ // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
 
-        init() { self.metadata = {} }
+        init() { self.metadata = {} } // init metadata
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
@@ -162,16 +163,16 @@ pub resource MetadataGenerator
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
             }
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first/
-            let creator = self.owner?.address!
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first, increment Metadata Countert
+            let creator = self.owner?.address!               // get Creator
             let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail,
-                file: file, counter: 1 as UInt64)
-            self.metadata.insert(key:metadata.mid, metadata) // save Metadata
-            DAAM.metadata.insert(key: metadata.mid, false)   // accounce metadata as unapproved
+                file: file, counter: 1 as UInt64)            // Create Metadata
+            self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
+            DAAM.metadata.insert(key: metadata.mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
             log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
-            emit MetadataGeneratated()
+            emit AddMetadata()
         }
 
         // RemoveMetadata uses deleteMetadata to delete the Metadata.
@@ -211,18 +212,17 @@ pub resource MetadataGenerator
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
             }            
                         
-            let ref = &self as &MetadataGenerator
             let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create Current Metadata
-            // Verify Current Metadata print (counter) do not exceed series limit; if last ...
+            // Verify Metadata Counter (print) is last, if so delete Metadata
             if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
-                self.deleteMetadata(mid: mid) // ... remove metadata template
-            } else {
-                let counter = self.metadata[mid]!.counter + 1 as UInt64
-                let new_metadata = Metadata(
+                self.deleteMetadata(mid: mid) // remove metadata template
+            } else { // if not last print
+                let counter = self.metadata[mid]!.counter + 1 as UInt64 // increment counter
+                let new_metadata = Metadata(                            // prep Next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: self.metadata[mid]!.counter
-                ) // prep Next Vetadata
-                self.metadata[mid] = new_metadata
+                ) 
+                self.metadata[mid] = new_metadata // update to new incremented (counter) Metadata
             }
             return <- mh // return Current Metadata  
         }
@@ -237,35 +237,55 @@ pub resource MetadataGenerator
         }
 }
 /************************************************************************/
-// Resource used to transport Metadata. Verifies MID is valid
+// MetadataHolder is a container for Metadata. It is where Metadata is stored to become
+// an argument for NFT
     pub resource MetadataHolder {        
         access(contract) var metadata: Metadata
         init (metadata: Metadata) {
-            pre { metadata != nil }              
-            self.metadata = metadata
+            pre { metadata != nil : "Metadata can not be Empty." }              
+            self.metadata = metadata // Store Metadata
         }
-        pub fun getMID(): UInt64 { return self.metadata.mid }
+        pub fun getMID(): UInt64 { return self.metadata.mid } // get MID
     }
 /************************************************************************/
-    pub resource NFT: NonFungibleToken.INFT {
-        pub let id       : UInt64
-        pub let metadata : Metadata
-        pub let royality : {Address : UFix64}
-
-        init(metadata: @MetadataHolder, request: &Request) {
-            pre { metadata.metadata.mid == request.mid }
-            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64
-            self.id = DAAM.totalSupply
-            self.royality = request.royality            
-            self.metadata = metadata.metadata
-            destroy metadata
-        }
-
-        pub fun getCopyright(): CopyrightStatus {
-            return DAAM.copyright[self.id]!
-        }
+    pub resource interface INFT {
+        pub let id       : UInt64   // Token ID, A unique serialized number
+        pub let type     : String
+        pub let metadata : Metadata // Metadata of NFT
+        pub let royality : {Address : UFix64} // Where all royalities
+        pub let interact : @{Interaction}?    // Interaction interface // V2 preparation TODO
     }
 /************************************************************************/
+    pub resource interface Interaction {
+        pub let type : String   // What type of NFT
+    }
+/************************************************************************/
+    pub resource NFT: NonFungibleToken.INFT, INFT {
+        pub let id       : UInt64   // Token ID, A unique serialized number
+        pub let type     : String   // What type of NFT
+        pub let metadata : Metadata // Metadata of NFT
+        pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let interact : @{Interaction}?    // Interaction interface // V2 preparation TODO
+
+        init(metadata: @MetadataHolder, request: &Request, interaction: @{Interaction}? ) {
+            pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64 // Increment total supply
+            self.id = DAAM.totalSupply                        // Set Token ID with total supply
+            self.type = interaction == nil ? "STD" : interaction?.type! //standard
+            self.royality = request.royality                  // Save Request which are the royalities.  
+            self.metadata = metadata.metadata                 // Save Metadata from Metadata Holder
+            self.interact <- interaction
+            destroy metadata                                  // Destroy no loner needed container Metadata Holder
+        }
+
+        pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
+            return DAAM.copyright[self.id]! // return copyright status
+        }
+
+        destroy() { destroy self.interact } // destructor
+    }
+/************************************************************************/
+// Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun deposit(token: @NonFungibleToken.NFT)
     pub fun getIDs(): [UInt64]
@@ -276,13 +296,8 @@ pub resource interface CollectionPublic {
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
-        pub let id: UInt64
                         
-        init() {
-            self.ownedNFTs <- {}
-            DAAM.collectionCounterID = DAAM.collectionCounterID + 1 as UInt64
-            self.id = DAAM.collectionCounterID
-        }
+        init() { self.ownedNFTs <- {} } // List of owned NFTs
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -457,6 +472,9 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
     pub resource Creator {
+        pub var agent: {UInt64: Address} // preparation for V2
+
+        init() { self.agent = {} }
 
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
@@ -477,7 +495,7 @@ pub resource interface CollectionPublic {
 /************************************************************************/
     pub resource Minter {
         // mintNFT mints a new NFT with a new ID and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder, interaction: @{Interaction}? ): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
@@ -488,7 +506,7 @@ pub resource interface CollectionPublic {
             let mid = metadata.metadata.mid
             let request <- DAAM.request.remove(key: mid)! // get request
             let requestRef = &request as & Request
-            let nft <- create NFT(metadata: <- metadata, request: requestRef)
+            let nft <- create NFT(metadata: <- metadata, request: requestRef, interaction: <-interaction )
 
             // Update Request, if last remove.
             if isLast {
@@ -580,10 +598,6 @@ pub resource interface CollectionPublic {
         return self.request[mid]?.isValid() == true ? true : false
     }
 
-    /*pub fun getRequestMIDs(): [UInt64] {
-        return DAAM.request.keys
-    }*/
-
     pub fun isCreator(_ creator: Address): Bool? {
         return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
     }
@@ -624,12 +638,12 @@ pub resource interface CollectionPublic {
         self.request  <- {}
         self.copyright = {}
         self.admins    = {}
+        self.agents    = {} // preperation for V2 TODO
         self.creators  = {}
         self.metadata  = {}
         self.newNFTs   = []
        
         self.totalSupply         = 0  // Initialize the total supply of NFTs
-        self.collectionCounterID = 0  // Incremental Serial Number for the Collections
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
         emit ContractInitialized()

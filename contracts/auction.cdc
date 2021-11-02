@@ -172,7 +172,7 @@ pub contract AuctionHouse {
         pub let buyNow        : UFix64   // buy now price
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
-        priv var auctionNFT   : @DAAM.NFT?           // Store NFT for auction
+        access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
         priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
     
         // Auction: A resource containg the auction itself.
@@ -192,7 +192,7 @@ pub contract AuctionHouse {
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
-                length > 1.0 as UFix64               : "Minimum is 1 hour"  // 1 hour = 3600  // TODO reset 1.0 to 3599.99
+                length > 1.0 as UFix64               : "Minimum is 1 min" // TODO Replace 1 with 60
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
                 isExtended && extendedTime >= 20.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 20 seconds."
@@ -203,8 +203,8 @@ pub contract AuctionHouse {
                 if reserve < startingBid! { panic("The Reserve must be greater then your Starting Bid") }
             }            
             // Manage incrementByPrice
-            if incrementByPrice == false && incrementAmount < 0.025 { panic("The minimum increment is 2.5%.")   }
-            if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5%.")     }
+            if incrementByPrice == false && incrementAmount < 0.01  { panic("The minimum increment is 1.0%.")   }
+            if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
 
             AuctionHouse.auctionCounter = AuctionHouse.auctionCounter + 1 // increment Auction Counter
@@ -640,7 +640,7 @@ pub contract AuctionHouse {
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
-        let nft <- minter.mintNFT(metadata: <-metadata)! // Mint NFT
+        let nft <- minter.mintNFT(metadata: <-metadata, interaction: nil)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 
