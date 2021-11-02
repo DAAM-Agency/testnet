@@ -12,9 +12,11 @@ pub contract DAAM: NonFungibleToken {
     pub event Deposit(id: UInt64,   to: Address?)  // Collection Wallet, used to deposit NFT
     // Events
     pub event NewAdmin(admin  : Address)         // A new Admin has been added. Accepted Invite
+    pub event NewAgent(agent  : Address)         // A new Agent has been added. Accepted Invite
     pub event NewMinter(minter: Address)         // A new Minter has been added. Accepted Invite
     pub event NewCreator(creator: Address)       // A new Creator has been addeed. Accepted Invite
     pub event AdminInvited(admin  : Address)     // Admin has been invited
+    pub event AgentInvited(agent  : Address)     // Agent has been invited
     pub event CreatorInvited(creator: Address)   // Creator has been invited
     pub event MinterSetup(minter: Address)       // Minter has been invited
     pub event AddMetadata()                      // Metadata Added
@@ -271,7 +273,7 @@ pub resource MetadataGenerator
             pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64 // Increment total supply
             self.id = DAAM.totalSupply                        // Set Token ID with total supply
-            self.type = interaction == nil ? "STD" : interaction?.type! //standard
+            self.type = interaction == nil ? "STD" : interaction?.type! // Standard NFT or NFT with Interaction
             self.royality = request.royality                  // Save Request which are the royalities.  
             self.metadata = metadata.metadata                 // Save Metadata from Metadata Holder
             self.interact <- interaction
@@ -339,6 +341,8 @@ pub resource interface CollectionPublic {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
+                DAAM.creators[newAdmin] == nil : "An Admin can not use the same address as a Creator."
+                DAAM.agents[newAdmin] == nil   : "An Admin can not use the same address as an Agent."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
             post { DAAM.adminPending != nil : "Internal Error: Invite Admin" } // Unreachable
@@ -346,12 +350,23 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
             pre {
+                DAAM.admins[creator] == nil   : "A Creator can not use the same address as an Admin."
+                DAAM.agents[creator] == nil   : "A Creator can not use the same address as an Agent."
                 DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
         }
 
-        pub fun inviteMinter(_ minter: Address) 
+        pub fun inviteMinter(_ minter: Address)
+
+        pub fun inviteAgent(_ agent: Address) {
+            pre {
+                DAAM.creators[agent] == nil : "An Agent can not use the same address as a Creator."
+                DAAM.admins[agent] == nil   : "An Agent can not use the same address as a Admin."
+                DAAM.agents.containsKey(agent) == false : "They're already a DAAM Agent!!!"
+                Profile.check(agent) : "You can't be a DAAM Agent without a Profile! Go make one Fool!!"
+            }
+        }
         
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
@@ -385,8 +400,48 @@ pub resource interface CollectionPublic {
         // TODO ViewCreatorMetadata
     }
 /************************************************************************/
-	pub resource Admin: Founder
+// Agent interface. List of all powers belonging to the Agent
+    pub resource interface Agent 
     {
+        pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
+            pre {
+                DAAM.admins[creator] == nil   : "A Creator can not use the same address as an Admin."
+                DAAM.agents[creator] == nil   : "A Creator can not use the same address as an Agent."
+                DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
+                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
+            }
+        }
+
+        pub fun changeCreatorStatus(creator: Address, status: Bool) {
+            pre {
+                DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!"
+                DAAM.creators[creator] != status   : "Creator already has this status."
+            }
+            post { DAAM.creators[creator] == status}
+        }
+
+        pub fun removeCreator(creator: Address) {
+            pre  { DAAM.creators.containsKey(creator) : "They're no DAAM Creator!!!" }
+            post { !DAAM.creators.containsKey(creator) }
+        }
+
+        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
+            pre  { DAAM.copyright.containsKey(mid): "This is an Invalid MID" }
+            post { DAAM.copyright[mid] == copyright }
+        }
+
+        pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
+            pre  { DAAM.copyright.containsKey(mid): "This is an Invalid MID" }
+        }
+
+        pub fun newRequestGenerator(): @RequestGenerator
+
+        // TODO ViewAllMetadata
+        // TODO ViewCreatorMetadata
+    }
+/************************************************************************/
+pub resource Admin: Founder, Agent
+{
         priv var status: Bool
         priv var remove: [Address]
 
@@ -402,13 +457,17 @@ pub resource interface CollectionPublic {
         }
 
         pub fun inviteAdmin(newAdmin: Address) {
-            pre{
-                self.status : "You're no longer a DAAM Admin!!"
-                DAAM.creators[newAdmin] == nil: "An Admin can not use the same address as a Creator."
-            }
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
             DAAM.adminPending = newAdmin
             log("Sent Admin Invation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
+        }
+
+        pub fun inviteAgent(_ agent: Address) {  // Admin add a new creator
+            pre{ self.status : "You're no longer a DAAM Admin!!" }
+            DAAM.agents.insert(key: agent, false )
+            log("Sent Agent Invation: ".concat(agent.toString()) )
+            emit AgentInvited(agent: agent)         
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
@@ -474,7 +533,7 @@ pub resource interface CollectionPublic {
 	}
 /************************************************************************/
     pub resource Creator {
-        pub var agent: {UInt64: Address} // preparation for V2
+        pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
 
         init() { self.agent = {} }
 
@@ -552,9 +611,10 @@ pub resource interface CollectionPublic {
     // public DAAM functions that anyone can call 
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder}? {
         pre {
-            DAAM.creators[newAdmin.address] == nil: "An Admin can not use the same address as a Creator."
-            DAAM.adminPending == newAdmin.address : "You got no DAAM Admin invite."
-            Profile.check(newAdmin.address)       : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            DAAM.creators[newAdmin.address] == nil : "An admin can not use the same address as an Creator."
+            DAAM.agents[newAdmin.address] == nil   : "An admin can not use the same address as an Agent."
+            DAAM.adminPending == newAdmin.address  : "You got no DAAM Admin invite."
+            Profile.check(newAdmin.address)        : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil
         if !submit { return nil }  
@@ -563,9 +623,29 @@ pub resource interface CollectionPublic {
         return <- create Admin(newAdmin)!   
     }
 
+    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}? {
+        pre {
+            !DAAM.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
+            !DAAM.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
+            DAAM.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
+            Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
+        }
+
+        if !submit {
+            DAAM.agents.remove(key: newAgent.address)
+            return nil
+        }
+        
+        DAAM.agents[newAgent.address] = submit        
+        log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
+        emit NewAgent(agent: newAgent.address)
+        return <- create Admin(newAgent)!
+    }
+
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
             !DAAM.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
+            !DAAM.agents.containsKey(newCreator.address)    : "A Creator can not use the same address as an Agent."
             DAAM.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
             Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
@@ -640,7 +720,7 @@ pub resource interface CollectionPublic {
         self.request  <- {}
         self.copyright = {}
         self.admins    = {}
-        self.agents    = {} // preperation for V2 TODO
+        self.agents    = {} 
         self.creators  = {}
         self.metadata  = {}
         self.newNFTs   = []
