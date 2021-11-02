@@ -287,59 +287,61 @@ pub resource MetadataGenerator
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun deposit(token: @NonFungibleToken.NFT)
-    pub fun getIDs(): [UInt64]
-    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT
+    pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
+    pub fun getIDs(): [UInt64]                    // get NFT Token IDs
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
 }     
 /************************************************************************/
+// Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
                         
         init() { self.ownedNFTs <- {} } // List of owned NFTs
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
 
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM.NFT
-            let id: UInt64 = token.id
+            let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
+            let id: UInt64 = token.id        // Save Token ID
             // add the new token to the dictionary which removes the old one
-            let oldToken <- self.ownedNFTs[id] <- token
-            emit Deposit(id: id, to: self.owner?.address)
-            destroy oldToken
+            let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
+            emit Deposit(id: id, to: self.owner?.address) 
+            destroy oldToken                              // destroy place holder
         }
 
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
 
-        // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection so that the caller can read its metadata and call its methods
+        // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
-        // borrowDAAM gets a reference to an DAAM.NFT in the collection so that the caller can read its metadata and call its methods
+        // borrowDAAM gets a reference to an DAAM.NFT in the collection.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
-            pre { self.ownedNFTs[id] != nil }
-            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-            return ref as! &DAAM.NFT
+            pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
+            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
+            return ref as! &DAAM.NFT                                    // return NFT Reference
         }        
 
-        destroy() { destroy self.ownedNFTs }
+        destroy() { destroy self.ownedNFTs } // Destructor
     }
 /************************************************************************/
+// Fouder interface. List of all powers belonging to the Founder
     pub resource interface Founder {
         pub fun inviteAdmin(newAdmin: Address) {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
-            post { DAAM.adminPending != nil : "We're being hacked or something" }
+            post { DAAM.adminPending != nil : "Internal Error: Invite Admin" } // Unreachable
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin add a new creator
