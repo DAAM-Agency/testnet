@@ -1,32 +1,6 @@
 echo "Testing Section A ===================="
 echo "Setup Accounts & Wallets"
 
-# Setup Profiles
-echo "========= Setup Profiles ========="
-flow transactions send ./transactions/create_profile.cdc --signer admin2
-flow transactions send ./transactions/create_profile.cdc --signer creator
-flow transactions send ./transactions/create_profile.cdc --signer client
-flow transactions send ./transactions/create_profile.cdc --signer nobody
-flow transactions send ./transactions/create_profile.cdc --signer cto
-
-# Setup DAAM Accounts
-echo "========= Setup DAAM Accounts ========="
-flow transactions send ./transactions/setup_daam_account.cdc --signer nobody
-flow transactions send ./transactions/setup_daam_account.cdc --signer creator
-flow transactions send ./transactions/setup_daam_account.cdc --signer client
-flow transactions send ./transactions/setup_daam_account.cdc --signer admin2
-flow transactions send ./transactions/setup_daam_account.cdc --signer cto
-
-# Setup Auction Wallets
-echo "========= Setup Auction Wallets ========="
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer nobody
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer creator
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer client
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer admin2
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer cto
-
-# ACCOUNTS SETUP END --------------------------- 
-
 # Invite Creator & Accept
 echo "========= Invite Creator ========="
 # accept

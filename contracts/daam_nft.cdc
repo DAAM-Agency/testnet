@@ -261,7 +261,7 @@ pub resource MetadataGenerator {
 
             post { DAAM.creatorCap[self.owner?.address!] != nil : "Capability is Empty. (nil)" }
 
-            DAAM.creatorCap.insert(key: self.owner?.address!, metadataGenerator)! // Store Creator Capability
+            DAAM.creatorCap.insert(key: self.owner?.address!, metadataGenerator) // Store Creator Capability
             self.active = true // Activate
         }
 }
@@ -397,10 +397,10 @@ pub resource interface CollectionPublic {
             pre {
                 DAAM.creators[agent] == nil : "An Agent can not use the same address as a Creator."
                 DAAM.admins[agent]   == nil : "An Agent can not use the same address as a Admin."
-                DAAM.agents.[agent]  == nil : "They're already a DAAM Agent!!!"
+                DAAM.agents[agent]  == nil : "They're already a DAAM Agent!!!"
                 Profile.check(agent) : "You can't be a DAAM Agent without a Profile! Go make one Fool!!"
             }
-            post { DAAM.agents.[agent] == false : "Illegal Operaion: inviteAgent" }
+            post { DAAM.agents[agent] == false : "Illegal Operaion: inviteAgent" }
         }
         
         // Admin or Agent change Creator status
