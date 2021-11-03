@@ -4,13 +4,14 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {
     let signer: AuthAccount
+    let metadataCap: Capability<&DAAM.MetadataGenerator>
 
     prepare(signer: AuthAccount) {
         self.signer = signer
     }
 
     execute {
-        let creator  <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: submit)
+        creator  <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: submit)
 
         if creator != nil && submit {
             self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)!
@@ -22,8 +23,10 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
             
             let metadataGen <- creatorRef.newMetadataGenerator()!
+            self.signer.link<&DAAM.MetadataGenerator>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+            self.metadataCap = self.signer.getCapability<&DAAM.MetadataGenerator>!
+            metadataGen.activate(metadataGenerator: self.metadataCap)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
-            self.signer.link<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
             
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }

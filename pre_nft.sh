@@ -33,8 +33,8 @@ echo "========= Invite Creator ========="
 flow transactions send ./transactions/admin/invite_creator.cdc $CREATOR --signer admin
 flow transactions send ./transactions/answer_creator_invite.cdc true --signer creator
 # decline
-flow transactions send ./transactions/admin/invite_creator.cdc $ADMIN2 --signer admin
-flow transactions send ./transactions/answer_creator_invite.cdc false --signer admin2
+flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN2 --signer admin
+flow transactions send ./transactions/answer_admin_invite.cdc false --signer admin2
 
 # Invite Admin #2
 echo "========= Invite Admin ========="
@@ -111,7 +111,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbna
 
 echo "========= Veriy Metadata ========="
 # verify metadata
-flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
+flow transactions send ./transactions/creator_metadata.cdc $CREATOR
 
 # Remove Metadata [MID]
 echo "========= Remove Metadata Submission ========="

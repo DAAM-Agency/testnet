@@ -5,7 +5,6 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import Profile          from 0x192440c99cb17282
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
-    pub var totalSupply: UInt64 // the total supply of NFTs, also used as counter for token ID
     // Events
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?) // Collection Wallet, used to withdraw NFT
@@ -32,7 +31,7 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
-    pub let metadataPublicPath    : PublicPath   // Public path to Metadata Generator
+    pub let metadataPrivatePath   : PrivatePath  // Private path to Metadata Generator
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
     pub let adminStoragePath      : StoragePath  // Storage path to Admin 
@@ -43,18 +42,18 @@ pub contract DAAM: NonFungibleToken {
     pub let requestPrivatePath    : PrivatePath  // Private path to Request
     pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
-    access(contract) var adminPending : Address?       // Only 1 admin can be invited at a time
-    access(contract) var minterPending: Address?       // Only 1 Minter can be invited at a time & there should only be one.
-    access(contract) var admins  : {Address: Bool}     // {Admin Address : status}   Admin address are stored here
-    access(contract) var agents  : {Address: Bool}     // {Agents Address : status}   Agents address are stored here // preparation for V2
-    access(contract) var creators: {Address: Bool}     // {Creator Address : status} Creator address are stored here
-    access(contract) var metadata: {UInt64: Bool}      // {MID : Approved by Admin } Metadata ID status is stored here
+    pub var totalSupply: UInt64                     // the total supply of NFTs, also used as counter for token ID
+    access(contract) var adminPending : Address?    // Only 1 admin can be invited at a time
+    access(contract) var minterPending: Address?    // Only 1 Minter can be invited at a time & there should only be one.
+    access(contract) var admins  : {Address: Bool}  // {Admin Address : status}   Admin address are stored here
+    access(contract) var agents  : {Address: Bool}  // {Agents Address : status}   Agents address are stored here // preparation for V2
+    access(contract) var creators: {Address: Bool}  // {Creator Address : status} Creator address are stored here
+    access(contract) var creatorCap: {Address: Capability<&DAAM.MetadataGenerator> } // {Address : Capability of Metadata}
+    access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
-
     pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
-    
+    // Variables 
     access(contract) var metadataCounterID  : UInt64   // The Metadta ID counter for MetadataID.
-    
     pub var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency: Address      // DAAM Ageny Address
 /***********************************************************************/
@@ -154,15 +153,21 @@ pub resource RequestGenerator {
         }
     }
 /************************************************************************/
-pub resource MetadataGenerator
-{ // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
+// Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
+pub resource MetadataGenerator { 
+        // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
+        access(contract) var active: Bool // Only becomes active after activate function
 
-        init() { self.metadata = {} } // init metadata
+        init() {
+            self.metadata = {}  // init metadata
+            self.active = false
+        } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
+                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
             }
@@ -182,6 +187,7 @@ pub resource MetadataGenerator
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
+                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -194,6 +200,7 @@ pub resource MetadataGenerator
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun deleteMetadata(mid: UInt64) {
             pre {
+                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -208,6 +215,7 @@ pub resource MetadataGenerator
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
+                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -231,12 +239,30 @@ pub resource MetadataGenerator
         }
 
         pub fun getMetadata(): &{UInt64:Metadata} {  // return all Creators' Metadata
+            pre { self.active : "You need to Activate the Metadata Generator first." }
             return &self.metadata as &{UInt64:Metadata}
         }
 
         pub fun getMetadataRef(mid: UInt64): &Metadata { // return specific Creators' Metadata
-            pre { self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection." }
+            pre { 
+                self.active : "You need to Activate the Metadata Generator first."
+                self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
+            }
             return &self.metadata[mid] as &Metadata      // return Metadata Reference
+        }
+
+        // Used to get Capability then activate.
+        pub fun activate(metadataGenerator: Capability<&DAAM.MetadataGenerator>) {
+            pre {
+                metadataGenerator != nil : "Metadata Capability is Empty. (nil)" 
+                !self.active             : "Already Active."
+                metadataGenerator.address == self.owner?.address : "You are not the owner of this Capability"
+            }
+
+            post { DAAM.creatorCap[self.owner?.address!] != nil : "Capability is Empty. (nil)" }
+
+            DAAM.creatorCap.insert(key: self.owner?.address!, metadataGenerator)! // Store Creator Capability
+            self.active = true // Activate
         }
 }
 /************************************************************************/
@@ -346,7 +372,7 @@ pub resource interface CollectionPublic {
             pre{
                 DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
                 DAAM.creators[newAdmin] == nil : "An Admin can not use the same address as a Creator."
-                DAAM.agents[newAdmin] == nil   : "An Admin can not use the same address as an Agent."
+                DAAM.agents[newAdmin]   == nil : "An Admin can not use the same address as an Agent."
                 Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
             }
             post { DAAM.adminPending != nil : "Internal Error: Invite Admin" } // Unreachable
@@ -354,22 +380,27 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address) {  // Admin invites a new creator
             pre {
-                DAAM.admins[creator] == nil   : "A Creator can not use the same address as an Admin."
-                DAAM.agents[creator] == nil   : "A Creator can not use the same address as an Agent."
-                DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
+                DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
+                DAAM.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
+                DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
+            post { DAAM.creators[creator] == false : "Illegal Operaion: inviteCreator" }
         }
 
-        pub fun inviteMinter(_ minter: Address)   // Admin invites Minter Key Access
+        pub fun inviteMinter(_ minter: Address) {  // Admin invites Minter Key Access
+            pre  { DAAM.minterPending == nil : "Minter already pending. Waiting on confirmation."}
+            post { DAAM.minterPending != nil : "Internal Error: inviteMinter" } // Unreachable
+        }
 
         pub fun inviteAgent(_ agent: Address) {   // Admin invites Agent
             pre {
                 DAAM.creators[agent] == nil : "An Agent can not use the same address as a Creator."
-                DAAM.admins[agent] == nil   : "An Agent can not use the same address as a Admin."
-                DAAM.agents.containsKey(agent) == false : "They're already a DAAM Agent!!!"
+                DAAM.admins[agent]   == nil : "An Agent can not use the same address as a Admin."
+                DAAM.agents.[agent]  == nil : "They're already a DAAM Agent!!!"
                 Profile.check(agent) : "You can't be a DAAM Agent without a Profile! Go make one Fool!!"
             }
+            post { DAAM.agents.[agent] == false : "Illegal Operaion: inviteAgent" }
         }
         
         // Admin or Agent change Creator status
@@ -423,7 +454,7 @@ pub resource interface CollectionPublic {
             pre {
                 DAAM.admins[creator] == nil   : "A Creator can not use the same address as an Admin."
                 DAAM.agents[creator] == nil   : "A Creator can not use the same address as an Agent."
-                DAAM.creators.containsKey(creator) == false : "They're already a DAAM Creator!!!"
+                DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
         }
@@ -495,7 +526,7 @@ pub resource Admin: Founder, Agent
             pre{ self.status : "You're no longer a have Access." }
             DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
             log("Sent Creator Invation: ".concat(creator.toString()) )
-            emit CreatorInvited(creator: creator)         
+            emit CreatorInvited(creator: creator)      
         }
 
         pub fun inviteMinter(_ minter: Address) {  // Admin invites a new Minter (Key)
@@ -637,7 +668,7 @@ pub resource Admin: Founder, Agent
                 } else {
                     counter = counter + 1          // increment counter
                 }
-            }
+            } // end for
         }
 
         // Add NFT to 'new' list
@@ -760,7 +791,7 @@ pub resource Admin: Founder, Agent
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPublicPath    = /public/DAAM_SubmitNFT
+        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
@@ -780,6 +811,7 @@ pub resource Admin: Founder, Agent
         self.admins    = {}
         self.agents    = {} 
         self.creators  = {}
+        self.creatorCap = {}
         self.metadata  = {}
         self.newNFTs   = []
         // Counter varibbles
