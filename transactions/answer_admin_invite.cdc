@@ -4,7 +4,6 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {
     let signer: AuthAccount
-    //let adminRef: &DAAM.Founder
 
     prepare(signer: AuthAccount) {
         self.signer = signer
@@ -14,7 +13,7 @@ transaction(submit: Bool) {
         let admin  <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: submit)
 
         if admin != nil && submit {
-            self.signer.save<@DAAM.Admin{DAAM.Founder}>(<- admin!, to: DAAM.adminStoragePath)!
+            self.signer.save<@{DAAM.Founder}>(<- admin!, to: DAAM.adminStoragePath)!
             self.signer.link<&{DAAM.Founder}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
             let adminRef = self.signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
 
