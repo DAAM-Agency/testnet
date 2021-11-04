@@ -31,7 +31,7 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
-    pub let metadataPrivatePath   : PrivatePath  // Private path to Metadata Generator
+    pub let metadataPublicPath    : PublicPath   // Public path to Metadata Generator
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
     pub let adminStoragePath      : StoragePath  // Storage path to Admin 
@@ -854,7 +854,7 @@ pub resource Admin: Founder, Agent
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
+        self.metadataPublicPath   = /private/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
