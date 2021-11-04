@@ -238,17 +238,26 @@ pub resource MetadataGenerator {
             return <- mh // return Current Metadata  
         }
 
-        pub fun getMetadata(): {UInt64:Metadata} {  // return all Creators' Metadata
+        pub fun getMetadatas(): &Metadata {  // return all Creators' Metadata
             pre { self.active : "You need to Activate the Metadata Generator first." }
-            return self.metadata
+            return &self.metadata
         }
 
-        pub fun getMetadataRef(mid: UInt64): &Metadata { // return specific Creators' Metadata
+        pub fun getMetadata(mid: UInt64): Metadata { // Return specific Metadata of Creator
             pre { 
                 self.active : "You need to Activate the Metadata Generator first."
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
-            return &self.metadata[mid] as &Metadata      // return Metadata Reference
+            return self.metadata[mid]!    // Return Metadata
+        }
+
+        pub fun getAlMetadatas(): {Address: [Metadata]} {  // Return Creators' Metadata collection
+            pre { self.active : "You need to Activate the Metadata Generator first." }
+            let clist = {Address: [Metadata]}
+            for c in self.creators.keys {
+                clist.append(self.creator[c])
+            }
+            return clist
         }
 
         // Used to get Capability then activate.
@@ -469,8 +478,8 @@ pub resource interface CollectionPublic {
         pub fun viewCreatorMetadata(creator: Address): {UInt64:Metadata} {
             pre {
                 self.status                          : "You're no longer a have Access."
-                //DAAM.creators.containsKey(creator)   : "This is not a Creator address"
-                //DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
+                DAAM.creators.containsKey(creator)   : "This is not a Creator address"
+                DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
             }
         }
         // TODO ViewAllMetadata or Front End
@@ -534,8 +543,8 @@ pub resource interface CollectionPublic {
         pub fun viewCreatorMetadata(creator: Address): {UInt64:Metadata} {
             pre {
                 self.status                          : "You're no longer a have Access."
-                //DAAM.creators.containsKey(creator)   : "This is not a Creator address"
-                //DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
+                DAAM.creators.containsKey(creator)   : "This is not a Creator address"
+                DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
             }
         }
         // TODO ViewAllMetadata or Front End
@@ -633,12 +642,21 @@ pub resource Admin: Founder, Agent
             DAAM.metadata[mid] = status // change to a new Metadata status
         }
 
-        pub fun viewCreatorMetadata(creator: Address): {UInt64:Metadata} {
-            log( DAAM.creators[creator] )
-            log( DAAM.creatorCap[creator] )
-            let cap = DAAM.creatorCap[creator]!.borrow()! as &MetadataGenerator//.borrow()
-            let metadataList = cap.getMetadata()
-            return metadataList
+        // View a Creators' Metadata collection
+        pub fun viewCreatorMetadata(creator: Address): [Metadata] {
+            let cap = DAAM.creatorCap[creator]!.borrow()! as &MetadataGenerator // Get Creators' Capability
+            let metadataList = cap.getMetadatas() // Get Metadatas
+            return metadataList                   // Return Metadatas
+        }
+
+        // View All Creators and each of their Metadata collection
+        pub fun viewAllCreatorsMetadatas(creator: Address): {Address:[Metadata]} {
+            var all_meta = [ Metadata ]
+            for c in DAAM.creators.keys {
+                let v = self.viewCreatorMetadata(creator: creator)
+                all_meta.append(v)
+            }
+            return [{}]
         }
 	}
 /************************************************************************/

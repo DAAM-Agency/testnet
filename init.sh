@@ -3,11 +3,6 @@
 #NOTE: . ./init.sh
 # Don't forget the first '.' to carry over to transactions.sh
 
-# "Argument list too long" Error in Shell (Linux)
-# If you receive the above error, your Kernal has maxed out. Uncomment the line below to increase your limit.
-# Otherwise ignore
-ulimit -d 
-
 export CREATOR_PUBKEY=0x$(tail -1 ./keys/creator_keys   | awk '{print $3}' | tr -d '\n')
 export ADMIN_PUBKEY=$(tail -1 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
 export CLIENT_PUBKEY=$(tail -1 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
