@@ -25,10 +25,6 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
 
-            let metadataCap = self.signer.getCapability<&DAAM.MetadataGenerator>(DAAM.metadataPublicPath)!
-            let metadataRef = self.signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-            metadataRef.activate(metadataGenerator: metadataCap)
-
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }
 

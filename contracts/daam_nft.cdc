@@ -157,17 +157,14 @@ pub resource RequestGenerator {
 pub resource MetadataGenerator { 
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
-        access(contract) var active: Bool // Only becomes active after activate function
 
         init() {
             self.metadata = {}  // init metadata
-            self.active = false
         } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
             }
@@ -187,7 +184,6 @@ pub resource MetadataGenerator {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -200,7 +196,6 @@ pub resource MetadataGenerator {
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun deleteMetadata(mid: UInt64) {
             pre {
-                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -215,7 +210,6 @@ pub resource MetadataGenerator {
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(mid: UInt64): @MetadataHolder {
             pre {
-                self.active                                     : "You need to Activate the Metadata Generator first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -238,40 +232,27 @@ pub resource MetadataGenerator {
             return <- mh // return Current Metadata  
         }
 
-        pub fun getMetadatas(): &Metadata {  // return all Creators' Metadata
-            pre { self.active : "You need to Activate the Metadata Generator first." }
-            return &self.metadata
+        // Script function
+        pub fun getMetadatas(): {UInt64:Metadata} {  // Return Creators' Metadata collection
+            return self.metadata
         }
 
-        pub fun getMetadata(mid: UInt64): Metadata { // Return specific Metadata of Creator
+        pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
             pre { 
-                self.active : "You need to Activate the Metadata Generator first."
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
-            return self.metadata[mid]!    // Return Metadata
+            return &self.metadata[mid]! as &Metadata   // Return Metadata
         }
 
-        pub fun getAlMetadatas(): {Address: [Metadata]} {  // Return Creators' Metadata collection
-            pre { self.active : "You need to Activate the Metadata Generator first." }
-            let clist = {Address: [Metadata]}
-            for c in self.creators.keys {
-                clist.append(self.creator[c])
+        // Script function
+        pub fun getAllMetadatas(): {Address: {UInt64: DAAM.Metadata}} {  // Return All Creators' Metadata collection
+            var clist: {Address: {UInt64: DAAM.Metadata} } = {}
+            for address in DAAM.creatorCap.keys {
+                let cap = DAAM.creatorCap[address]!.borrow()! as &MetadataGenerator
+                let mlist = cap!.getMetadatas()
+                clist.insert(key: address, mlist)
             }
             return clist
-        }
-
-        // Used to get Capability then activate.
-        pub fun activate(metadataGenerator: Capability<&DAAM.MetadataGenerator>) {
-            pre {
-                metadataGenerator != nil : "Metadata Capability is Empty. (nil)" 
-                !self.active             : "Already Active."
-                metadataGenerator.address == self.owner?.address : "You are not the owner of this Capability"
-            }
-
-            post { DAAM.creatorCap[self.owner?.address!] != nil : "Capability is Empty. (nil)" }
-
-            DAAM.creatorCap.insert(key: self.owner?.address!, metadataGenerator) // Store Creator Capability
-            self.active = true // Activate
         }
 }
 /************************************************************************/
@@ -474,15 +455,6 @@ pub resource interface CollectionPublic {
         pub fun newRequestGenerator(): @RequestGenerator { // Create Request Generator
             pre { self.status : "You're no longer a have Access." }
         }
-
-        pub fun viewCreatorMetadata(creator: Address): {UInt64:Metadata} {
-            pre {
-                self.status                          : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator)   : "This is not a Creator address"
-                DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
-            }
-        }
-        // TODO ViewAllMetadata or Front End
     }
 /************************************************************************/
 // Agent interface. List of all powers belonging to the Agent
@@ -539,15 +511,6 @@ pub resource interface CollectionPublic {
         pub fun newRequestGenerator(): @RequestGenerator { // Create Request Generator
             pre { self.status : "You're no longer a have Access." }
         }
-
-        pub fun viewCreatorMetadata(creator: Address): {UInt64:Metadata} {
-            pre {
-                self.status                          : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator)   : "This is not a Creator address"
-                DAAM.creatorCap.containsKey(creator) : "Internal Error: viewCreatorMetadata" // Unreachable
-            }
-        }
-        // TODO ViewAllMetadata or Front End
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -640,23 +603,6 @@ pub resource Admin: Founder, Agent
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             DAAM.metadata[mid] = status // change to a new Metadata status
-        }
-
-        // View a Creators' Metadata collection
-        pub fun viewCreatorMetadata(creator: Address): [Metadata] {
-            let cap = DAAM.creatorCap[creator]!.borrow()! as &MetadataGenerator // Get Creators' Capability
-            let metadataList = cap.getMetadatas() // Get Metadatas
-            return metadataList                   // Return Metadatas
-        }
-
-        // View All Creators and each of their Metadata collection
-        pub fun viewAllCreatorsMetadatas(creator: Address): {Address:[Metadata]} {
-            var all_meta = [ Metadata ]
-            for c in DAAM.creators.keys {
-                let v = self.viewCreatorMetadata(creator: creator)
-                all_meta.append(v)
-            }
-            return [{}]
         }
 	}
 /************************************************************************/
@@ -854,7 +800,7 @@ pub resource Admin: Founder, Agent
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPublicPath   = /private/DAAM_SubmitNFT
+        self.metadataPublicPath    = /public/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin

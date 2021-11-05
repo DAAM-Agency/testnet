@@ -85,7 +85,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbna
 
 echo "========= Veriy Metadata ========="
 # verify metadata
-flow transactions send ./transactions/creator_metadata.cdc $CREATOR
+flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR 
 
 # Remove Metadata [MID]
 echo "========= Remove Metadata Submission ========="
