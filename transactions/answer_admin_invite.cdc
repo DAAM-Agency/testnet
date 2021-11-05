@@ -13,9 +13,9 @@ transaction(submit: Bool) {
         let admin  <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: submit)
 
         if admin != nil && submit {
-            self.signer.save<@DAAM.Admin{DAAM.Founder}>(<- admin!, to: DAAM.adminStoragePath)!
-            self.signer.link<&DAAM.Admin{DAAM.Founder}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
-            let adminRef = self.signer.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+            self.signer.save<@DAAM.Admin>(<- admin!, to: DAAM.adminStoragePath)!
+            self.signer.link<&DAAM.Admin>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
+            let adminRef = self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
 
             let requestGen <- adminRef.newRequestGenerator()!
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!

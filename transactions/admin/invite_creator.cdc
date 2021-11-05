@@ -4,11 +4,11 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(creator: Address)
 {
-    let admin   : &{DAAM.Founder}
+    let admin   : &DAAM.Admin
     let creator : Address
 
     prepare(acct: AuthAccount) {
-        self.admin   = acct.borrow<&{DAAM.Founder}>(from: DAAM.adminStoragePath)!
+        self.admin   = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
         self.creator = creator
     }
 

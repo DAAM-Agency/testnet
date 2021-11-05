@@ -354,7 +354,7 @@ pub resource interface CollectionPublic {
     }
 /************************************************************************/
 // Fouder interface. List of all powers belonging to the Founder
-    pub resource interface Founder
+    /*pub resource interface Founder
     {
         pub var status: Bool // the current status of the Admin
 
@@ -455,7 +455,7 @@ pub resource interface CollectionPublic {
         pub fun newRequestGenerator(): @RequestGenerator { // Create Request Generator
             pre { self.status : "You're no longer a have Access." }
         }
-    }
+    }*/
 /************************************************************************/
 // Agent interface. List of all powers belonging to the Agent
     pub resource interface Agent 
@@ -514,7 +514,7 @@ pub resource interface CollectionPublic {
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
-pub resource Admin: Founder, Agent
+pub resource Admin: Agent
 {
         pub var status: Bool       // The current status of the Admin
         priv var remove: [Address] // Requires 2 Admins to remove an Admin, the Admins are stored here.
@@ -694,7 +694,7 @@ pub resource Admin: Founder, Agent
     // False: invitation is declined and invitation setting reset
 
     // The Admin potential can accept (True) or deny (False)
-    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin{Founder}? {
+    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
             DAAM.creators[newAdmin.address] == nil : "An admin can not use the same address as an Creator."
             DAAM.agents[newAdmin.address] == nil   : "An admin can not use the same address as an Agent."
