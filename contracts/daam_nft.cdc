@@ -658,6 +658,14 @@ pub resource Admin: Agent
         return clist
     }
 
+    pub fun getCopyright(mid: UInt64): CopyrightStatus? { // Return Copyright Status. nil = non-existent MID
+        return self.copyright[mid]
+    }
+
+    pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
+        return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
+    }
+
     pub fun isAdmin(_ admin: Address): Bool { // Returns Admin Status
         return self.admins.containsKey(admin)
     }
