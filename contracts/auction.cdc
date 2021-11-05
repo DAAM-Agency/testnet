@@ -7,7 +7,7 @@ import DAAM_V4          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FUSD             from 0xe223d8a629e49c68
 
-pub contract AuctionHouse_V1 {
+pub contract AuctionHouse_V2 {
     // Events
     //pub event AuctionInitialized() //
     pub event AuctionCreated(auctionID: UInt64) // Auction has been created. 
@@ -70,10 +70,10 @@ pub contract AuctionHouse_V1 {
                 // Not neccessary, by default is the Creator tp access this very function.
             }
 
-            AuctionHouse_V1.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
+            AuctionHouse_V2.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()!                // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
-            let nft <- AuctionHouse_V1.mintNFT(metadata: <-metadata)        // Create NFT
+            let nft <- AuctionHouse_V2.mintNFT(metadata: <-metadata)        // Create NFT
 
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
@@ -208,10 +208,10 @@ pub contract AuctionHouse_V1 {
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
 
-            AuctionHouse_V1.auctionCounter = AuctionHouse_V1.auctionCounter + 1 // increment Auction Counter
+            AuctionHouse_V2.auctionCounter = AuctionHouse_V2.auctionCounter + 1 // increment Auction Counter
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
-            self.auctionID = AuctionHouse_V1.auctionCounter // Auction uinque ID number
+            self.auctionID = AuctionHouse_V2.auctionCounter // Auction uinque ID number
             self.mid = nft.metadata.mid // Metadata ID
             self.start = start        // When auction start
             self.length = length      // Length of auction
@@ -543,7 +543,7 @@ pub contract AuctionHouse_V1 {
 
             // If 1st sale is 'new' remove from 'new list'
             if DAAM_V4.isNFTNew(id: tokenID) {
-                AuctionHouse_V1.notNew(tokenID: tokenID)
+                AuctionHouse_V2.notNew(tokenID: tokenID)
             } else { // else no longer "new", Seller is only need on re-sales.
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let sellerPercentage = 1.0 as UFix64 - (agencyPercentage + creatorPercentage)  // Calculate Percentage left over
@@ -593,12 +593,12 @@ pub contract AuctionHouse_V1 {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
             if !self.reprintSeries { return } // if reprint is set to false, return
 
-            let metadataGen = AuctionHouse_V1.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
+            let metadataGen = AuctionHouse_V2.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let metadataRef = metadataGen.getMetadataRef(mid: self.mid)       // get Metadata Referencee
             let creator = metadataRef.creator                                 // get Creator from Metadata
             if creator != self.owner?.address! { return }                     // Verify Owner is Creator
             let metadata <- metadataGen.generateMetadata(mid: self.mid)       // get Metadata from Metadata Generator
-            let old <- self.auctionNFT <- AuctionHouse_V1.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
+            let old <- self.auctionNFT <- AuctionHouse_V2.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
 
             self.resetAuction() // reset variables for next auction
