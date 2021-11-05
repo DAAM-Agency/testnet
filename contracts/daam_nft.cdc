@@ -51,10 +51,10 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var creatorCap: {Address: Capability<&DAAM.MetadataGenerator> } // {Address : Capability of Metadata}
     access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
-    pub var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
+    access(contract) var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
-    pub var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
+    access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency : Address     // DAAM Ageny Address
 /***********************************************************************/
 // Copyright enumeration status
@@ -156,7 +156,6 @@ pub resource RequestGenerator {
 pub resource interface MetadataGeneratorPublic {
     pub fun getMetadatas()     : {UInt64:Metadata}                  // Return Creators' Metadata collection
     pub fun getMetadataRef(mid : UInt64): &Metadata                 // Return specific Metadata of Creator
-    pub fun getAllMetadatas()  : {Address: {UInt64: DAAM.Metadata}} // Return All Creators' Metadata collection
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -248,17 +247,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic {
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
             return &self.metadata[mid]! as &Metadata   // Return Metadata
-        }
-
-        // Script function
-        pub fun getAllMetadatas(): {Address: {UInt64: DAAM.Metadata}} {  // Return All Creators' Metadata collection
-            var clist: {Address: {UInt64: DAAM.Metadata} } = {}
-            for address in DAAM.creatorCap.keys {
-                let cap = DAAM.creatorCap[address]!.borrow()! as &MetadataGenerator
-                let mlist = cap!.getMetadatas()
-                clist.insert(key: address, mlist)
-            }
-            return clist
         }
 }
 /************************************************************************/
@@ -660,6 +648,14 @@ pub resource Admin: Agent
     pub fun getRequestValidity(mid: UInt64): Bool {
         pre { self.request.containsKey(mid) : "The is not a valid MID." }
         return self.request[mid]?.isValid() == true ? true : false // Return validity of Request
+    }
+
+    pub fun getCreators(): [Address] {
+        var clist: [Address] = []
+        for creator in self.creators.keys {
+            clist.append(creator)
+        }
+        return clist
     }
 
     pub fun isAdmin(_ admin: Address): Bool { // Returns Admin Status
