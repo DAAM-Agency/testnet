@@ -1,6 +1,7 @@
 // get_metadata.cdc
+// Used to get a specific Metadata using the Creator and MID
 
-import DAAM_V3 from 0xfd43f9148d4b725d
+import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(creator: Address, mid: UInt64): &DAAM_V3.Metadata
 {

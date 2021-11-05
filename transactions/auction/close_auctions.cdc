@@ -1,4 +1,3 @@
-
 // close_auctions.cdc
 
 import AuctionHouse_V1 from 0x045a1763c93006ca

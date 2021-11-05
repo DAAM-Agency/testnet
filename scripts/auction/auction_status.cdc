@@ -9,3 +9,4 @@ pub fun main(auction: Address, tokenID: UInt64): Bool? {
         
     return auctionHouse.item(tokenID)!.getStatus()
 }
+// gets Auction status: nil=not started, true=ongoing, false=ended

@@ -4,7 +4,9 @@
 import AuctionHouse_V1 from 0x045a1763c93006ca
 
 transaction()
-{
+{ // TODO Update
+    //let signer: AuthAccount
+
     prepare(signer: AuthAccount) {
         if signer.borrow<&AuctionHouse_V1.AuctionWallet>(from: AuctionHouse_V1.auctionStoragePath) == nil {
             let auctionWallet <- AuctionHouse_V1.createAuctionWallet(auctioneer: signer)
@@ -15,4 +17,6 @@ transaction()
         }
         log("You already have an Auction House.")
     }
+    
+    //pre { self.signer.borrow<&FUSD.Vault>(from: /storage/fusdVault) }
 }
