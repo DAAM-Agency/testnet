@@ -131,7 +131,6 @@ flow transactions send ./transactions/answer_admin_invite.cdc true --signer admi
 flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer admin
 flow transactions send ./transactions/answer_minter_invite.cdc true --signer marketplace
 
-
 # ACCOUNTS SETUP ------------------------- 
 
 # Setup Profiles

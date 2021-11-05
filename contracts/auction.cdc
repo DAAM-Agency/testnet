@@ -640,7 +640,7 @@ pub contract AuctionHouse {
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
-        let nft <- minter.mintNFT(metadata: <-metadata, interaction: nil)! // Mint NFT
+        let nft <- minter.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 

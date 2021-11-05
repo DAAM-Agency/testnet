@@ -142,24 +142,30 @@ pub resource RequestGenerator {
                 counter != 0 as UInt64 : "Illegal operation. Internal Error: Metadata" // Unreachabe
                 (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
-            // init all NFT setting
-            self.mid       = DAAM.metadataCounterID // init MID
+            // Init all NFT setting
+            self.mid       = DAAM.metadataCounterID // init MID with counter
             self.creator   = creator   // creator of NFT
             self.series    = series    // total prints
-            self.counter   = counter   // current print
-            self.data      = data      // about page
+            self.counter   = counter   // current print of total prints
+            self.data      = data      // data,about,misc page
             self.thumbnail = thumbnail // thumbnail are stored here
             self.file      = file      // NFT data is stored here
         }
     }
 /************************************************************************/
+pub resource interface MetadataGeneratorPublic {
+    pub fun getMetadatas()     : {UInt64:Metadata}                  // Return Creators' Metadata collection
+    pub fun getMetadataRef(mid : UInt64): &Metadata                 // Return specific Metadata of Creator
+    pub fun getAllMetadatas()  : {Address: {UInt64: DAAM.Metadata}} // Return All Creators' Metadata collection
+}
+/************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
-pub resource MetadataGenerator { 
+pub resource MetadataGenerator: MetadataGeneratorPublic { 
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
 
         init() {
-            self.metadata = {}  // init metadata
+            self.metadata = {}  // Init metadata
         } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
@@ -269,39 +275,27 @@ pub resource MetadataGenerator {
 /************************************************************************/
     pub resource interface INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let type     : String
         pub let metadata : Metadata // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities
-        pub let interact : @{Interaction}?    // Interaction interface // V2 preparation
-    }
-/************************************************************************/
-    pub resource interface Interaction {
-        pub let type : String   // What type of NFT
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let type     : String   // What type of NFT
         pub let metadata : Metadata // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
-        pub let interact : @{Interaction}?    // Interaction interface // V2 preparation
 
-        init(metadata: @MetadataHolder, request: &Request, interaction: @{Interaction}? ) {
+        init(metadata: @MetadataHolder, request: &Request) {
             pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64 // Increment total supply
             self.id = DAAM.totalSupply                        // Set Token ID with total supply
-            self.type = interaction == nil ? "STD" : interaction?.type! // Standard NFT or NFT with Interaction
             self.royality = request.royality                  // Save Request which are the royalities.  
             self.metadata = metadata.metadata                 // Save Metadata from Metadata Holder
-            self.interact <- interaction
             destroy metadata                                  // Destroy no loner needed container Metadata Holder
         }
 
         pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
             return DAAM.copyright[self.id]! // return copyright status
         }
-
-        destroy() { destroy self.interact } // destructor
     }
 /************************************************************************/
 // Wallet Public standards. For Public access only
@@ -352,110 +346,6 @@ pub resource interface CollectionPublic {
 
         destroy() { destroy self.ownedNFTs } // Destructor
     }
-/************************************************************************/
-// Fouder interface. List of all powers belonging to the Founder
-    /*pub resource interface Founder
-    {
-        pub var status: Bool // the current status of the Admin
-
-        pub fun inviteAdmin(newAdmin: Address) {   // Invite other admins
-            pre{
-                self.status              : "You're no longer a have Access."
-                DAAM.adminPending == nil : "Admin already pending. Waiting on confirmation."
-                DAAM.creators[newAdmin] == nil : "An Admin can not use the same address as a Creator."
-                DAAM.agents[newAdmin]   == nil : "An Admin can not use the same address as an Agent."
-                Profile.check(newAdmin)  : "You can't add DAAM Admin without a Profile! Tell'em to make one first!!"
-            }
-            post { DAAM.adminPending != nil : "Internal Error: Invite Admin" } // Unreachable
-        }
-
-        pub fun inviteCreator(_ creator: Address) {  // Admin invites a new creator
-            pre {
-                self.status                   : "You're no longer a have Access."
-                DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
-                DAAM.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
-                DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
-                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
-            }
-            post { DAAM.creators[creator] == false : "Illegal Operaion: inviteCreator" }
-        }
-
-        pub fun inviteMinter(_ minter: Address) {  // Admin invites Minter Key Access
-            pre {
-                self.status                 : "You're no longer a have Access."
-                DAAM.minterPending == nil    : "Minter already pending. Waiting on confirmation."}
-            post { DAAM.minterPending != nil : "Internal Error: inviteMinter" } // Unreachable
-        }
-
-        pub fun inviteAgent(_ agent: Address) {   // Admin invites Agent
-            pre {
-                self.status                 : "You're no longer a have Access."
-                DAAM.creators[agent] == nil : "An Agent can not use the same address as a Creator."
-                DAAM.admins[agent]   == nil : "An Agent can not use the same address as a Admin."
-                DAAM.agents[agent]  == nil  : "They're already a DAAM Agent!!!"
-                Profile.check(agent) : "You can't be a DAAM Agent without a Profile! Go make one Fool!!"
-            }
-            post { DAAM.agents[agent] == false : "Illegal Operaion: inviteAgent" }
-        }
-        
-        // Admin or Agent change Creator status
-        pub fun changeCreatorStatus(creator: Address, status: Bool) {
-            pre {
-                self.status                         : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
-                DAAM.creators[creator] != status    : "Creator already has this Status."
-            }
-            post { DAAM.creators[creator] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
-        }
-        
-        pub fun removeAdmin(admin: Address) {    // Remove Admin
-            pre {
-                self.status                    : "You're no longer a have Access."
-                DAAM.admins.containsKey(admin) : "This is not an Admin address."
-            }
-        }
-
-        pub fun removeAgent(agent: Address) {      // Admin or Agent can remove Creator
-            pre  {
-                self.status                 : "You're no longer a have Access."
-                DAAM.agents.containsKey(agent)  : "Wrong Address. This is not a Agent."
-            }
-            post { !DAAM.agents.containsKey(agent) : "Illegal operation: removeAgent" } // Unreachabel
-        }     
-
-        pub fun removeCreator(creator: Address) {      // Admin or Agent can remove Creator
-            pre  {
-                self.status                        : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator) : "This is not a Creator address."
-            }
-            post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachabel
-        }        
-
-        // Admin or Agent can change Copyright Status of MID
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
-            pre  {
-                self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid)  : "This is an Invalid MID"
-            }
-            post { DAAM.copyright[mid] == copyright : "Illegal Operation: changeCopyright" } // Unreachable
-        }
-
-        // Admin or Agent can change Metadata Status
-        pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
-            pre  {
-                self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid): "This is an Invalid MID"
-            }
-        }
-
-        pub fun removeAdminInvite() { // Admin can remove Admin Invitation.
-            pre { self.status : "You're no longer a have Access." }
-        }
-
-        pub fun newRequestGenerator(): @RequestGenerator { // Create Request Generator
-            pre { self.status : "You're no longer a have Access." }
-        }
-    }*/
 /************************************************************************/
 // Agent interface. List of all powers belonging to the Agent
     pub resource interface Agent 
@@ -635,7 +525,7 @@ pub resource Admin: Agent
     pub resource Minter {
         // mintNFT mints a new NFT and returns it.
         // Note: new is defined by newly Minted. Age is not a consideration.
-        pub fun mintNFT(metadata: @MetadataHolder, interaction: @{Interaction}? ): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
@@ -646,7 +536,7 @@ pub resource Admin: Agent
             let mid = metadata.metadata.mid               // Get MID
             let request <- DAAM.request.remove(key: mid)! // Get Request using MID
             let requestRef = &request as & Request        // Reference the Request
-            let nft <- create NFT(metadata: <- metadata, request: requestRef, interaction: <-interaction ) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: requestRef) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
