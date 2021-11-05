@@ -1,7 +1,7 @@
 // get_all_metadpata.cdc
 // Used to get a all Metadatas by all Creators
 
-import DAAM_V3from 0xa4ad5ea5c0bd2fba
+import DAAM_V4from 0xa4ad5ea5c0bd2fba
 
 pub fun main(): {Address: {UInt64: DAAM.Metadata} }
 {

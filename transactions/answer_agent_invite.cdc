@@ -1,7 +1,7 @@
 
 // answer_agent_invite.cdc
 
-import DAAM_V3from 0xa4ad5ea5c0bd2fba
+import DAAM_V4from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount

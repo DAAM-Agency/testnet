@@ -1,6 +1,6 @@
 // is_agent.cdc
 
-import DAAM_V3from 0xa4ad5ea5c0bd2fba
+import DAAM_V4from 0xa4ad5ea5c0bd2fba
 
 pub fun main(agent: Address): Bool? {
     return DAAM.isAgent(agent)

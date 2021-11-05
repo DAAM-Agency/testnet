@@ -1,6 +1,6 @@
 // answer_creator_invite.cdc
 
-import DAAM_V3 from 0xa4ad5ea5c0bd2fba
+import DAAM_V4 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -10,20 +10,20 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let creator  <- DAAM_V3.answerCreatorInvite(newCreator: self.signer, submit: submit)
+        let creator  <- DAAM_V4.answerCreatorInvite(newCreator: self.signer, submit: submit)
 
         if creator != nil && submit {
-            self.signer.save<@DAAM_V3.Creator>(<- creator!, to: DAAM_V3.creatorStoragePath)!
-            self.signer.link<&DAAM_V3.Creator>(DAAM_V3.creatorPrivatePath, target: DAAM_V3.creatorStoragePath)!
-            let creatorRef = self.signer.borrow<&DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath)!
+            self.signer.save<@DAAM_V4.Creator>(<- creator!, to: DAAM_V4.creatorStoragePath)!
+            self.signer.link<&DAAM_V4.Creator>(DAAM_V4.creatorPrivatePath, target: DAAM_V4.creatorStoragePath)!
+            let creatorRef = self.signer.borrow<&DAAM_V4.Creator>(from: DAAM_V4.creatorStoragePath)!
             
             let requestGen <- creatorRef.newRequestGenerator()!
-            self.signer.save<@DAAM_V3.RequestGenerator>(<- requestGen, to: DAAM_V3.requestStoragePath)!
-            self.signer.link<&DAAM_V3.RequestGenerator>(DAAM_V3.requestPrivatePath, target: DAAM_V3.requestStoragePath)!
+            self.signer.save<@DAAM_V4.RequestGenerator>(<- requestGen, to: DAAM_V4.requestStoragePath)!
+            self.signer.link<&DAAM_V4.RequestGenerator>(DAAM_V4.requestPrivatePath, target: DAAM_V4.requestStoragePath)!
             
             let metadataGen <- creatorRef.newMetadataGenerator()!
-            self.signer.save<@DAAM_V3.MetadataGenerator>(<- metadataGen, to: DAAM_V3.metadataStoragePath)
-            self.signer.link<&{DAAM_V3.MetadataGeneratorPublic}>(DAAM_V3.metadataPublicPath, target: DAAM_V3.metadataStoragePath)
+            self.signer.save<@DAAM_V4.MetadataGenerator>(<- metadataGen, to: DAAM_V4.metadataStoragePath)
+            self.signer.link<&{DAAM_V4.MetadataGeneratorPublic}>(DAAM_V4.metadataPublicPath, target: DAAM_V4.metadataStoragePath)
             
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }
