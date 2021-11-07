@@ -1,7 +1,7 @@
 
 // answer_agent_invite.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -15,7 +15,7 @@ transaction(submit: Bool) {
 
         if agent != nil && submit {
             self.signer.save<@DAAM.Admin{DAAM.Agent}>(<- agent!, to: DAAM.adminStoragePath)!
-            self.signer.link<&DAAM.Admin{DAAM.Agent}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
+            self.signer.link<&{DAAM.Agent}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
             let agentRef = self.signer.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
 
             let requestGen <- agentRef.newRequestGenerator()!

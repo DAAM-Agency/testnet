@@ -153,13 +153,19 @@ pub resource RequestGenerator {
         }
     }
 /************************************************************************/
+pub resource interface MetadataGeneratorMint {
+    pub fun getMetadatas()                : {UInt64:Metadata} // Return Creators' Metadata collection
+    pub fun getMetadataRef(mid : UInt64)  : &Metadata         // Return specific Metadata of Creator
+    pub fun generateMetadata(mid : UInt64): @MetadataHolder   // Return MetadataHolder ( containing Metadata )
+}
+/************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatas()     : {UInt64:Metadata}                  // Return Creators' Metadata collection
-    pub fun getMetadataRef(mid : UInt64): &Metadata                 // Return specific Metadata of Creator
+    pub fun getMetadatas()     : {UInt64:Metadata}   // Return Creators' Metadata collection
+    pub fun getMetadataRef(mid : UInt64): &Metadata  // Return specific Metadata of Creator
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
-pub resource MetadataGenerator: MetadataGeneratorPublic { 
+pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint { 
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
 

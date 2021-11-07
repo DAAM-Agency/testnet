@@ -23,7 +23,7 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen : {UInt64 : Capability<&DAAM.MetadataGenerator>} // { MID : Capability<&DAAM.MetadataGenerator> }
+    access(contract) var metadataGen : { UInt64 : Capability<&{DAAM.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
     access(contract) var auctionCounter : UInt64 // Incremental counter used for AID (Auction ID)
 
 /************************************************************************/
@@ -57,7 +57,7 @@ pub contract AuctionHouse {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
+        pub fun createOriginalAuction(metadataGenerator: Capability<&{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
