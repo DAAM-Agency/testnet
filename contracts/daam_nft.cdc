@@ -156,13 +156,19 @@ pub resource RequestGenerator {
 pub resource interface MetadataGeneratorPublic {
     pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
     pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
-    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
     pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
-    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
+    pub fun generateMetadata(/*minter:AuthAccount*/mid: UInt64) : @MetadataHolder
+    // { pre {DAAM.isMinter(minter.address)} }
+    pub fun grantAccess(creator: AuthAccount): Capability<&MetadataGenerator{MetadataGeneratorMint}> {
+        pre{
+            DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
+            DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
+        }
+    }
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -175,14 +181,13 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
-        pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
+        pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
+                DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
             }
             DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first, increment Metadata Countert
-            let creator = self.owner?.address!               // get Creator
-            let metadata = Metadata(creator: creator, series: series, data: data, thumbnail: thumbnail,
+            let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
                 file: file, counter: 1 as UInt64)            // Create Metadata
             self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
             DAAM.metadata.insert(key: metadata.mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
@@ -194,10 +199,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // RemoveMetadata uses deleteMetadata to delete the Metadata.
         // But when deleting a submission the request must also be deleted.
-        pub fun removeMetadata(mid: UInt64) {
+        pub fun removeMetadata(creator: AuthAccount, mid: UInt64) {
             pre {
-                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
+                DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.deleteMetadata(mid: mid)  // Delete Metadata
@@ -207,11 +212,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun deleteMetadata(mid: UInt64) {
-            pre {
-                DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-                DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
-                self.metadata[mid] != nil : "No Metadata entered"
-            }
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
             DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
@@ -254,6 +254,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
             return &self.metadata[mid]! as &Metadata   // Return Metadata
+        }
+
+        pub fun grantAccess(creator: AuthAccount): Capability<&MetadataGenerator{MetadataGeneratorMint}> {
+            return self.owner!.getCapability<&MetadataGenerator{MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
         }
 }
 /************************************************************************/

@@ -5,16 +5,17 @@ import DAAM             from 0xfd43f9148d4b725d
 
 transaction(series: UInt64, data: String, thumbnail: String, file: String)
 {    
-    let creator     : &DAAM.Creator
+    let creator     : AuthAccount
     let metadataGen : &DAAM.MetadataGenerator
 
     prepare(creator: AuthAccount) {
-        self.creator = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+        //self.creator = creator.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+        self.creator = creator
         self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
     execute {
-        self.metadataGen.addMetadata(series: series, data: data, thumbnail: thumbnail, file: file)!        
+        self.metadataGen.addMetadata(creator: self.creator, series: series, data: data, thumbnail: thumbnail, file: file)!        
         log("Metadata Submitted")
     }
 }

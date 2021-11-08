@@ -62,7 +62,7 @@ pub contract AuctionHouse {
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
-                metadataGenerator != nil : "There is no Metadata."
+                metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
