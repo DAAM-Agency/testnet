@@ -76,19 +76,19 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "---------- E ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 13.00 \
-40.0 30.5 false --signer creator #E AID: 5
+20.0 30.5 false --signer creator #E AID: 5
 
 # Auction ID: 6, Winner and Collect
 echo "---------- H ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
 200.0 false 0.0 false 0.025 15.00 \
-40.0 30.6 true --signer creator #H, AID: 6
+20.0 30.6 true --signer creator #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "---------- I ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
 200.0 false 0.0 false 0.025 15.00 \
-40.0 30.7 false --signer creator #I, AID: 7
+20.0 30.7 false --signer creator #I, AID: 7
 
 # Auction Scripts
 echo "========= Verify Auctions ========="

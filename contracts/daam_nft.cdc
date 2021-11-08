@@ -21,10 +21,13 @@ pub contract DAAM: NonFungibleToken {
     pub event AddMetadata()                      // Metadata Added
     pub event MintedNFT(id: UInt64)              // Minted NFT
     pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
-    pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin
+    pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
+    pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin/Agemnt
+    pub event ChangeMinterStatus(minter: Address, status: Bool)    // Minterr Status has been changed by Admin
     pub event AdminRemoved(admin: Address)       // Admin has been removed
     pub event AgentRemoved(agent: Address)       // Agent has been removed by Admin
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
+    pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
     pub event RequestAccepted(mid: UInt64)       // Royality rate has been accepted 
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite()               // Admin invitation has been recinded
@@ -162,9 +165,7 @@ pub resource interface MetadataGeneratorPublic {
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
     pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
-    pub fun generateMetadata(minter: AuthAccount, mid: UInt64) : @MetadataHolder {
-        pre { DAAM.isMinter()}
-    }
+    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -216,7 +217,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         // Remove Metadata as Resource MetadataHolder. MetadataHolder + Request = NFT.
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(mid: UInt64): @MetadataHolder {
+        pub fun generateMetadata(mid: UInt64) : @MetadataHolder {
             pre {
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
