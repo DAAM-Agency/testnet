@@ -9,16 +9,10 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
   let metadataCap  : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-  let metadataGen  : &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}
 
   prepare(auctioneer: AuthAccount) {
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-      self.metadataGen  = auctioneer.borrow<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(from: DAAM.metadataStoragePath)!
-      //let metadataCap2 = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
-      self.metadataCap = self.metadataGen.grantAccess(creator: auctioneer)
-      log (self.metadataGen != nil)
-      log (self.auctionHouse != nil)
-      log (self.metadataCap.borrow() != nil)
+      self.metadataCap  = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
   }
 
   execute {

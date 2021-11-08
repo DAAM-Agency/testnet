@@ -45,8 +45,9 @@ pub contract DAAM: NonFungibleToken {
     pub var totalSupply: UInt64                     // the total supply of NFTs, also used as counter for token ID
     access(contract) var adminPending : Address?    // Only 1 admin can be invited at a time
     access(contract) var minterPending: Address?    // Only 1 Minter can be invited at a time & there should only be one.
-    access(contract) var admins  : {Address: Bool}  // {Admin Address : status}   Admin address are stored here
-    access(contract) var agents  : {Address: Bool}  // {Agents Address : status}   Agents address are stored here // preparation for V2
+    access(contract) var admins  : {Address: Bool}  // {Admin Address : status}  Admin address are stored here
+    access(contract) var agents  : {Address: Bool}  // {Agents Address : status} Agents address are stored here // preparation for V2
+    access(contract) var minters : {Address: Bool}  // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}  // {Creator Address : status} Creator address are stored here
     access(contract) var creatorCap: {Address: Capability<&DAAM.MetadataGenerator> } // {Address : Capability of Metadata}
     access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
@@ -161,13 +162,8 @@ pub resource interface MetadataGeneratorPublic {
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
     pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
-    pub fun generateMetadata(/*minter:AuthAccount*/mid: UInt64) : @MetadataHolder
-    // { pre {DAAM.isMinter(minter.address)} }
-    pub fun grantAccess(creator: AuthAccount): Capability<&MetadataGenerator{MetadataGeneratorMint}> {
-        pre{
-            DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
-            DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
-        }
+    pub fun generateMetadata(minter: AuthAccount, mid: UInt64) : @MetadataHolder {
+        pre { DAAM.isMinter()}
     }
 }
 /************************************************************************/
@@ -254,10 +250,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
             return &self.metadata[mid]! as &Metadata   // Return Metadata
-        }
-
-        pub fun grantAccess(creator: AuthAccount): Capability<&MetadataGenerator{MetadataGeneratorMint}> {
-            return self.owner!.getCapability<&MetadataGenerator{MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
         }
 }
 /************************************************************************/
@@ -449,13 +441,6 @@ pub resource Admin: Agent
             emit RemovedAdminInvite()                      
         }
 
-        // Admin or Agent van Change Creator status 
-        pub fun changeCreatorStatus(creator: Address, status: Bool) {
-            DAAM.creators[creator] = status // status changed
-            log("Creator Status Changed")
-            emit ChangeCreatorStatus(creator: creator, status: status)
-        }        
-
         pub fun removeAdmin(admin: Address) { // Two Admin to Remove Admin
             pre{
                 !self.remove.contains(admin) : "You already requested a removal."
@@ -481,6 +466,33 @@ pub resource Admin: Agent
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
+
+        pub fun removeMinter(minter: Address) { // Admin removes selected Agent by Address
+            DAAM.minters.remove(key: minter)    // Remove Agent from list
+            log("Removed Minter")
+            emit MinterRemoved(minter: minter)
+        }
+
+        // Admin can Change Agent status 
+        pub fun changeAgentStatus(agent: Address, status: Bool) {
+            DAAM.agents[agent] = status // status changed
+            log("Agent Status Changed")
+            emit ChangeAgentStatus(agent: agent, status: status)
+        }        
+
+        // Admin or Agent can Change Creator status 
+        pub fun changeCreatorStatus(creator: Address, status: Bool) {
+            DAAM.creators[creator] = status // status changed
+            log("Creator Status Changed")
+            emit ChangeCreatorStatus(creator: creator, status: status)
+        }
+
+        // Admin can Change Minter status 
+        pub fun changeMinterStatus(minter: Address, status: Bool) {
+            DAAM.minters[minter] = status // status changed
+            log("Minter Status Changed")
+            emit ChangeMinterStatus(minter: minter, status: status)
+        }         
 
         // Admin or Agent can change a MIDs copyright status.
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
@@ -521,9 +533,14 @@ pub resource Admin: Agent
         } 
     }
 /************************************************************************/
-    pub resource Minter {
-        // mintNFT mints a new NFT and returns it.
-        // Note: new is defined by newly Minted. Age is not a consideration.
+// mintNFT mints a new NFT and returns it.
+// Note: new is defined by newly Minted. Age is not a consideration.
+    pub resource Minter
+    {
+        init(_ minter: AuthAccount) {
+            DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
+        }
+
         pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
             pre{
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
@@ -646,7 +663,7 @@ pub resource Admin: Agent
         // Invitation accepted at this point
         log("Minter: ".concat(minter.address.toString()) )
         emit NewMinter(minter: minter.address)
-        return <- create Minter()!                 // Return Minter (Key) Resource
+        return <- create Minter(minter)!                 // Return Minter (Key) Resource
     }
     
     // Create an new Collection to store NFTs
@@ -683,6 +700,10 @@ pub resource Admin: Agent
 
     pub fun isAgent(_ agent: Address): Bool? { // Returns Agent status
         return self.agents[agent] // nil = not an agent, false = invited to be am agent, true = is an agent
+    }
+
+    pub fun isMinter(_ minter: Address): Bool? { // Returns Agent status
+        return self.minters[minter] // nil = not an agent, false = invited to be am agent, true = is an agent
     }
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
@@ -725,6 +746,7 @@ pub resource Admin: Agent
         self.admins    = {}
         self.agents    = {} 
         self.creators  = {}
+        self.minters  = {}
         self.creatorCap = {}
         self.metadata  = {}
         self.newNFTs   = []
