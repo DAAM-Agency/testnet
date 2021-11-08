@@ -153,15 +153,16 @@ pub resource RequestGenerator {
         }
     }
 /************************************************************************/
-pub resource interface MetadataGeneratorMint {
-    pub fun getMetadatas()                : {UInt64:Metadata}  // Return Creators' Metadata collection
-    pub fun getMetadataRef(mid : UInt64)  : &Metadata          // Return specific Metadata of Creator
-    pub fun generateMetadata(mid : UInt64): @MetadataHolder    // Return MetadataHolder ( containing Metadata )
+pub resource interface MetadataGeneratorPublic {
+    pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
+    pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
+    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
 /************************************************************************/
-pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatas()     : {UInt64:Metadata}   // Return Creators' Metadata collection
-    pub fun getMetadataRef(mid : UInt64): &Metadata  // Return specific Metadata of Creator
+pub resource interface MetadataGeneratorMint {
+    pub fun getMetadatas()     : {UInt64  :Metadata}                  // Return Creators' Metadata collection
+    pub fun getMetadataRef(mid : UInt64)  : &Metadata                 // Return specific Metadata of Creator
+    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -169,7 +170,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
 
-        init() { self.metadata = {} } // Init metadata
+        init() {
+            self.metadata = {}  // Init metadata
+        } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
         pub fun addMetadata(series: UInt64, data: String, thumbnail: String, file: String) {
