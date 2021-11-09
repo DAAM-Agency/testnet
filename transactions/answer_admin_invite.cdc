@@ -13,15 +13,15 @@ transaction(submit: Bool) {
         let admin  <- DAAM_V5.answerAdminInvite(newAdmin: self.signer, submit: submit)
 
         if admin != nil && submit {
-            self.signer.save<@DAAM_V5.Admin{DAAM_V5.Founder}>(<- admin!, to: DAAM_V5.adminStoragePath)!
-            self.signer.link<&{DAAM_V5.Founder}>(DAAM_V5.adminPrivatePath, target: DAAM_V5.adminStoragePath)!
-            let adminRef = self.signer.borrow<&{DAAM_V5.Founder}>(from: DAAM_V5.adminStoragePath)!
+            self.signer.save<@DAAM_V5.Admin>(<- admin!, to: DAAM_V5.adminStoragePath)!
+            self.signer.link<&DAAM_V5.Admin>(DAAM_V5.adminPrivatePath, target: DAAM_V5.adminStoragePath)!
+            let adminRef = self.signer.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
 
             let requestGen <- adminRef.newRequestGenerator()!
             self.signer.save<@DAAM_V5.RequestGenerator>(<- requestGen, to: DAAM_V5.requestStoragePath)!
             self.signer.link<&DAAM_V5.RequestGenerator>(DAAM_V5.requestPrivatePath, target: DAAM_V5.requestStoragePath)!
             
-            log("You are now a DAAM_V5.Admin: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }
