@@ -1,7 +1,7 @@
 // remove_submission.cdc
 
 import NonFungibleToken from 0xf8d6e0586b0a20c7
-import DAAM_V4            from 0xa4ad5ea5c0bd2fba
+import DAAM_V5            from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64)
 {    

@@ -1,24 +1,24 @@
 // change_copyright.cdc
 
-import DAAM_V4 from 0xa4ad5ea5c0bd2fba
+import DAAM_V5 from 0xa4ad5ea5c0bd2fba
     
 transaction(mid: UInt64, copyright: Int)
 {
     prepare(acct: AuthAccount) {
-        var cr = DAAM_V4.CopyrightStatus.FRAUD
+        var cr = DAAM_V5.CopyrightStatus.FRAUD
         switch(copyright) {
             case 0:
-                cr = DAAM_V4.CopyrightStatus.FRAUD
+                cr = DAAM_V5.CopyrightStatus.FRAUD
             case 1:
-                cr = DAAM_V4.CopyrightStatus.CLAIM
+                cr = DAAM_V5.CopyrightStatus.CLAIM
             case 2:
-                cr = DAAM_V4.CopyrightStatus.UNVERIFIED
+                cr = DAAM_V5.CopyrightStatus.UNVERIFIED
             case 3:
-                cr = DAAM_V4.CopyrightStatus.VERIFIED
+                cr = DAAM_V5.CopyrightStatus.VERIFIED
             default: return
         }
 <<<<<<< HEAD
-        let admin = acct.borrow<&DAAM_V4.Admin>(from: DAAM_V4.adminStoragePath)!
+        let admin = acct.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
 =======
         let admin = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
 >>>>>>> dev-emulator
