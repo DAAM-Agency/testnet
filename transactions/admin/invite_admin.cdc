@@ -7,10 +7,12 @@ transaction(newAdmin: Address)
     let admin    : &DAAM.Admin
     let newAdmin : Address 
 
-    prepare(acct: AuthAccount) {
-        self.admin    = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+    prepare(admin: AuthAccount) {
+        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
         self.newAdmin = newAdmin
     }
+
+    pre { DAAM.isAdmin(agent.address) } // Verify Access
 
     execute {
         self.admin.inviteAdmin(newAdmin: self.newAdmin)
