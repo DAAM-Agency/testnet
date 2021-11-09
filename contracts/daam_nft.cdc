@@ -414,19 +414,19 @@ pub resource Admin: Agent
 
         pub fun inviteAdmin(newAdmin: Address) { // Admin invite a new Admin
             DAAM.adminPending = newAdmin  // Admin is now pending for approval
-            log("Sent Admin Invation: ".concat(newAdmin.toString()) )
+            log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
         pub fun inviteAgent(_ agent: Address) {  // Admin ivites new Agent
             DAAM.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
-            log("Sent Agent Invation: ".concat(agent.toString()) )
+            log("Sent Agent Invitation: ".concat(agent.toString()) )
             emit AgentInvited(agent: agent)         
         }
 
         pub fun inviteCreator(_ creator: Address) {  // Admin or Agent invite a new creator
             DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
-            log("Sent Creator Invation: ".concat(creator.toString()) )
+            log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
 
@@ -438,7 +438,7 @@ pub resource Admin: Agent
 
         pub fun removeAdminInvite() { // Remove Admin invitation
             DAAM.adminPending = nil  // Clear Admin for pending
-            log("Admin Invation Removed")
+            log("Admin Invitation Removed")
             emit RemovedAdminInvite()                      
         }
 
@@ -609,7 +609,7 @@ pub resource Admin: Agent
             Profile.check(newAdmin.address)        : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
         DAAM.adminPending = nil    // Release Admin pending (nil)
-        if !submit { return nil }  // Refused invation. Return and end function
+        if !submit { return nil }  // Refused invitation. Return and end function
         // Invitation accepted at this point
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
@@ -626,7 +626,7 @@ pub resource Admin: Agent
             Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
-        if !submit {                                  // Refused invation. 
+        if !submit {                                  // Refused invitation. 
             DAAM.agents.remove(key: newAgent.address) // Remove potential from Agent list
             return nil                                // Return and end function
         }
@@ -646,7 +646,7 @@ pub resource Admin: Agent
             Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
-        if !submit {                                       // Refused invation.
+        if !submit {                                       // Refused invitation.
             DAAM.creators.remove(key: newCreator.address)  // Remove potential from Agent list
             return nil                                     // Return and end function
         }
@@ -660,7 +660,7 @@ pub resource Admin: Agent
     pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
         pre { DAAM.minterPending == minter.address : "You do not have a Minter Invitation" }
         DAAM.minterPending = nil
-        if !submit { return nil }                  // Refused invation. Return and end function
+        if !submit { return nil }                  // Refused invitation. Return and end function
         // Invitation accepted at this point
         log("Minter: ".concat(minter.address.toString()) )
         emit NewMinter(minter: minter.address)
