@@ -1,4 +1,5 @@
 // change_metadata_status.cdc
+// Used for Admin / Agents to Approve/Disapprove Metadata via MID. True = Approved, False = Disapproved
 
 import DAAM from 0xfd43f9148d4b725d
 

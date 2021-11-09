@@ -1,5 +1,5 @@
-// reset_admin.cdc
-
+// delete_admin.cdc
+// Debugging Tool
 import DAAM from 0xfd43f9148d4b725d
 
 transaction() {

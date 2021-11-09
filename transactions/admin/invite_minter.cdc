@@ -1,4 +1,5 @@
 // invite_minter.cdc
+// Used for Admin to give Minter access.
 
 import DAAM from 0xfd43f9148d4b725d
 
@@ -11,7 +12,7 @@ transaction(newMinter: Address) {
         self.newMinter = newMinter
     }
 
-    pre { DAAM.isAdmin(agent.address) } // Verify Access
+    pre { DAAM.isAdmin(admin.address) } // Verify Access
 
     execute {
         self.admin.inviteMinter(self.newMinter)

@@ -1,4 +1,5 @@
 // remove_creator.cdc
+// Used for Admin / Agents to remove Creator
 
 import DAAM from 0xfd43f9148d4b725d
 

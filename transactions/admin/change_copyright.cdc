@@ -1,4 +1,5 @@
 // change_copyright.cdc
+// Used for Admin / Agents to change Copyright status of MID
 
 import DAAM from 0xfd43f9148d4b725d
     

@@ -1,23 +1,23 @@
-// invite_admin.cdc
-// Used for Admin to invite another Admin.
+// invite_agent.cdc
+// Used for Admin to invite another Agent.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(newAdmin: Address)
+transaction(newAgent: Address)
 {
     let admin    : &DAAM.Admin
-    let newAdmin : Address 
+    let newAgent : Address 
 
     prepare(admin: AuthAccount) {
         self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
-        self.newAdmin = newAdmin
+        self.newAgent = newAgent
     }
 
-    pre { DAAM.isAdmin(agent.address) } // Verify Access
+    pre { DAAM.isAdmin(admin.address) } // Verify Access
 
     execute {
-        self.admin.inviteAdmin(newAdmin: self.newAdmin)
+        self.admin.inviteAgent(newAgent: self.newAgent)
         log("Admin Invited")
     }
 }
