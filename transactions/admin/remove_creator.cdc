@@ -13,12 +13,12 @@ transaction(creator: Address)
         self.creator = creator
     }
 
-    pre { DAAM.isCreator(creator) } // Verify is Creator
+    pre { DAAM.isCreator(creator) == true } // Verify is Creator
     
     execute {
         self.admin.removeCreator(creator: self.creator)
         log("Remove Creator")
     }
 
-    post { !DAAM.isCreator(self.creator) } // Verify is not a Creator
+    post { DAAM.isCreator(self.creator) == nil } // Verify is not a Creator
 }

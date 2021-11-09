@@ -32,7 +32,7 @@ echo "---------- Get 2 of 2 Admin Votes ----------"
 flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer admin2
 
 # creator
-echo "FAIL TEST: Removing Creator: Not Admin"
+echo "FAIL TEST: Attempting to Remove Creator by non-Admin"
 flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer client
 
 echo "---------- Remove Creator ----------"
