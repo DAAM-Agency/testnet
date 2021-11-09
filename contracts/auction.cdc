@@ -24,7 +24,7 @@ pub contract AuctionHouse_V2 {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen : {UInt64 : Capability<&DAAM_V4.MetadataGenerator>} // { MID : Capability<&DAAM_V4.MetadataGenerator> }
+    access(contract) var metadataGen : { UInt64 : Capability<&DAAM_V4.MetadataGenerator{DAAM_V4.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
     access(contract) var auctionCounter : UInt64 // Incremental counter used for AID (Auction ID)
 
 /************************************************************************/
@@ -58,20 +58,20 @@ pub contract AuctionHouse_V2 {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V4.MetadataGenerator>, mid: UInt64, start: UFix64, length: UFix64,
+        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V4.MetadataGenerator{DAAM_V4.MetadataGeneratorMint}>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
-                metadataGenerator != nil : "There is no Metadata."
+                metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM_V4.getCopyright(mid: mid) != DAAM_V4.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM_V4.getCopyright(mid: mid) != DAAM_V4.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
-                //!reprintSeries || (reprintSeries && nft.metadata.creator == self.owner?.address) : "You are not the Creator of this NFT"
-                // Not neccessary, by default is the Creator tp access this very function.
             }
+            log("metadataGenerator")
+            log(metadataGenerator)
 
-            AuctionHouse_V2.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
-            let metadataRef = metadataGenerator.borrow()!                // Get MetadataHolder
+            AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
+            let metadataRef = metadataGenerator.borrow()! as &DAAM_V4.MetadataGenerator{DAAM_V4.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
             let nft <- AuctionHouse_V2.mintNFT(metadata: <-metadata)        // Create NFT
 

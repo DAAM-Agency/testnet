@@ -10,7 +10,7 @@ pub fun main(): {Address: {UInt64: DAAM.Metadata} }
     
     for creator in creators {
         let metadataRef = getAccount(creator)
-            .getCapability<&{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
+            .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
             .borrow() ?? panic("Could not borrow capability from Metadata")
 
         let metadatas = metadataRef.getMetadatas()        

@@ -22,9 +22,9 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM_V4.RequestGenerator>(DAAM_V4.requestPrivatePath, target: DAAM_V4.requestStoragePath)!
             
             let metadataGen <- creatorRef.newMetadataGenerator()!
-            self.signer.save<@DAAM_V4.MetadataGenerator>(<- metadataGen, to: DAAM_V4.metadataStoragePath)
-            self.signer.link<&{DAAM_V4.MetadataGeneratorPublic}>(DAAM_V4.metadataPublicPath, target: DAAM_V4.metadataStoragePath)
-            
+            self.signer.save<@DAAM{DAAM_V4}.MetadataGenerator>(<- metadataGen, to: DAAM_V4.metadataStoragePath)
+            self.signer.link<&DAAM_V4.MetadataGenerator>(DAAM_V4.metadataPublicPath, target: DAAM_V4.metadataStoragePath)
+
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
         }
 

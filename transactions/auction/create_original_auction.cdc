@@ -7,12 +7,12 @@ import DAAM_V4             from 0xa4ad5ea5c0bd2fba
 transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
   incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
-  let auctionHouse : &AuctionHouse_V2.AuctionWallet
-  let metadataCap  : Capability<&DAAM_V4.MetadataGenerator>
+  let auctionHouse : &AuctionHouse.AuctionWallet
+  let metadataCap  : Capability<&DAAM_V4.MetadataGenerator{DAAM_V4.MetadataGeneratorMint}>
 
   prepare(auctioneer: AuthAccount) {
-      self.auctionHouse = auctioneer.borrow<&AuctionHouse_V2.AuctionWallet>(from: AuctionHouse_V2.auctionStoragePath)!
-      self.metadataCap  = auctioneer.getCapability<&DAAM_V4.MetadataGenerator>(DAAM_V4.metadataPublicPath)!
+      self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+      self.metadataCap  = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
   }
 
   execute {
