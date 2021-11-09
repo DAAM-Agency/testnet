@@ -9,13 +9,11 @@ transaction(mid: UInt64, status: Bool)
     let mid    : UInt64
     let status : Bool
 
-    prepare(acct: AuthAccount) {
-        self.admin  = acct.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+    prepare(agent: AuthAccount) {
+        self.admin  = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
         self.mid    = mid
         self.status = status
     }
-
-    pre { DAAM.isAdmin(agent.address) || DAAM.isAgent(agent.address) } // Verify Access
 
     execute {
         self.admin.changeMetadataStatus(mid: self.mid, status: self.status)

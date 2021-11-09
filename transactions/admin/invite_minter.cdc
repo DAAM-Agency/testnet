@@ -12,8 +12,6 @@ transaction(newMinter: Address) {
         self.newMinter = newMinter
     }
 
-    pre { DAAM.isAdmin(admin.address) } // Verify Access
-
     execute {
         self.admin.inviteMinter(self.newMinter)
         log("Minter Invited")

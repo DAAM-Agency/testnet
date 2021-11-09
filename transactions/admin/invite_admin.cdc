@@ -13,9 +13,7 @@ transaction(newAdmin: Address)
         self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
         self.newAdmin = newAdmin
     }
-
-    pre { DAAM.isAdmin(agent.address) } // Verify Access
-
+    
     execute {
         self.admin.inviteAdmin(newAdmin: self.newAdmin)
         log("Admin Invited")

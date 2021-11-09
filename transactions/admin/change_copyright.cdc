@@ -22,8 +22,6 @@ transaction(mid: UInt64, copyright: Int)
         self.mid = mid                                                         // init mid
     }
 
-    pre { DAAM.isAdmin(agent.address) || DAAM.isAgent(agent.address) } // Verify Access
-
     execute {
         self.admin.changeCopyright(mid: self.mid, copyright: self.cr)  // Change Copyright status
         log("Copyright Changed")

@@ -14,8 +14,6 @@ transaction(creator: Address)
         self.creator = creator
     }
     
-    pre { DAAM.isAdmin(agent.address) || DAAM.isAgent(agent.address) } // Verify Access
-
     execute {
         self.admin.inviteCreator(self.creator)
         log("Creator Invited")

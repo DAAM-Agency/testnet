@@ -13,10 +13,12 @@ transaction(creator: Address)
         self.creator = creator
     }
 
-    pre { DAAM.isAdmin(agent.address) || DAAM.isAgent(agent.address) } // Verify Access
+    pre { DAAM.isCreator(creator) } // Verify is Creator
     
     execute {
         self.admin.removeCreator(creator: self.creator)
         log("Remove Creator")
     }
+
+    post { !DAAM.isCreator(self.creator) } // Verify is not a Creator
 }

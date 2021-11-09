@@ -14,8 +14,6 @@ transaction(creator: Address, status: Bool) {
         self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
     }
 
-    pre { DAAM.isAdmin(agent.address) || DAAM.isAgent(agent.address) } // Verify Access
-
     execute {
         self.admin.changeCreatorStatus(creator: self.creator, status: self.status)
         log("Change Creator Status")   
