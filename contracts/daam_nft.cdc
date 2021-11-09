@@ -472,28 +472,28 @@ pub resource Admin: Agent
         }
 
         pub fun removeMinter(minter: Address) { // Admin removes selected Agent by Address
-            DAAM.minters.remove(key: minter)    // Remove Agent from list
+            DAAM_V4.minters.remove(key: minter)    // Remove Agent from list
             log("Removed Minter")
             emit MinterRemoved(minter: minter)
         }
 
         // Admin can Change Agent status 
         pub fun changeAgentStatus(agent: Address, status: Bool) {
-            DAAM.agents[agent] = status // status changed
+            DAAM_V4.agents[agent] = status // status changed
             log("Agent Status Changed")
             emit ChangeAgentStatus(agent: agent, status: status)
         }        
 
         // Admin or Agent can Change Creator status 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
-            DAAM.creators[creator] = status // status changed
+            DAAM_V4.creators[creator] = status // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
 
         // Admin can Change Minter status 
         pub fun changeMinterStatus(minter: Address, status: Bool) {
-            DAAM.minters[minter] = status // status changed
+            DAAM_V4.minters[minter] = status // status changed
             log("Minter Status Changed")
             emit ChangeMinterStatus(minter: minter, status: status)
         }         
