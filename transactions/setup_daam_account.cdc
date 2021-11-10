@@ -1,4 +1,5 @@
 // setup_daam_account.cdc
+// Create A DAAM Wallet to store DAAM NFTs
 
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d

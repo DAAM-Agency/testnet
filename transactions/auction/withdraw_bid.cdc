@@ -1,4 +1,5 @@
-// make_bid.cdc
+// withdraw_bid.cdc
+// Used to withdraw bid made on item. Must not be lead bidder
 
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282

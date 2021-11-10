@@ -1,5 +1,5 @@
-
 // answer_agent_invite.cdc
+// Answer the invitation to be an Agent.
 
 import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 

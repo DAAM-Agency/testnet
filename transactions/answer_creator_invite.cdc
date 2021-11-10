@@ -1,4 +1,5 @@
 // answer_creator_invite.cdc
+// Answer the invitation to be a Creator.
 
 import DAAM from 0xfd43f9148d4b725d
 

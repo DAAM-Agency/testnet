@@ -1,4 +1,5 @@
 // create_auction.cdc
+// Used to create an auction for a first-time sale.
 
 import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0xf8d6e0586b0a20c7

@@ -1,4 +1,5 @@
 // time_left.cdc
+// Return time left in auction
 
 import AuctionHouse from 0x045a1763c93006ca
 

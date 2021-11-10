@@ -1,4 +1,5 @@
 // accept_default.cdc
+// Creator selects Royality between 10% to 30%
 
 import DAAM from 0xfd43f9148d4b725d
 
@@ -12,6 +13,8 @@ transaction(mid: UInt64, percentage: UFix64) {
         self.requestGen = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
         self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
+
+    pre { percentage >= 0.1 || precentage <= 0.3 }
 
     execute {
         let metadata = self.metadataGen.getMetadataRef(mid: mid)

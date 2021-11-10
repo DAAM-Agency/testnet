@@ -1,4 +1,5 @@
 // buy_it_now_status.cdc
+// Return is there is a Buy It Now option. If there is not or it expired, this will return false.
 
 import AuctionHouse  from 0x045a1763c93006ca
 

@@ -1,4 +1,5 @@
 // but_it_now.cdc
+// Used for direct purchases
 
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282
@@ -23,10 +24,6 @@ transaction(auction: Address, tokenID: UInt64, bid: UFix64)
         self.auctionHouse = getAccount(auction)
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
-    }
-
-    pre {
-        getAccount(auction).borrow<&{AuctionHouse.AuctionPublic}>() != nil : "
     }
 
     execute {

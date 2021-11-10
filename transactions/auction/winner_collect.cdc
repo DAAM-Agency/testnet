@@ -1,4 +1,5 @@
 // winner_collect.cdc
+// Used to claim an item. Must meet reserve price.
 
 import AuctionHouse  from 0x045a1763c93006ca
 transaction(auction: Address, tokenID: UInt64)

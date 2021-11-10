@@ -14,7 +14,7 @@ transaction(creator: Address, status: Bool) {
         self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
     }
 
-    pre { DAAM.isCreator(creator) == true : creator.toString().concat(" is not a Creator.") }
+    pre { DAAM.isCreator(creator) != nil : creator.toString().concat(" is not a Creator.") }
 
     execute {
         self.admin.changeCreatorStatus(creator: self.creator, status: self.status)

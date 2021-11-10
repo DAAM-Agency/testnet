@@ -1,4 +1,5 @@
 // deposit_bid.cdc
+// Used to make bids on item. Is accumulative with each bid. 
 
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282

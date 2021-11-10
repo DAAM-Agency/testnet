@@ -14,7 +14,7 @@ transaction(creator: Address)
     }
 
     // Verify is Creator
-    pre { DAAM.isCreator(creator) == true : creator.toString().concat(" is not a Creator. Can not remove.") }
+    pre { DAAM.isCreator(creator) != nil : creator.toString().concat(" is not a Creator. Can not remove.") }
     
     execute {
         self.admin.removeCreator(creator: self.creator)
