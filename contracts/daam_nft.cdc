@@ -45,7 +45,7 @@ pub contract DAAM: NonFungibleToken {
     pub let requestPrivatePath    : PrivatePath  // Private path to Request
     pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
-    access(contract) var totalSupply: UInt64           // the total supply of NFTs, also used as counter for token ID
+    pub var totalSupply : UInt64 // the total supply of NFTs, also used as counter for token ID
     access(contract) var remove  : {Address: Address}  // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
     access(contract) var admins  : {Address: Bool}  // {Admin Address : status}  Admin address are stored here
     access(contract) var agents  : {Address: Bool}  // {Agents Address : status} Agents address are stored here // preparation for V2
