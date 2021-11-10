@@ -21,7 +21,7 @@ transaction(mid: UInt64, copyright: UInt8) {
         self.mid = mid                                                         // init mid
     }
 
-    pre { copyright < 5 } // Verify copyright is within DAAM.CopyrightStatus length
+    pre { copyright < 5 : "Copyright: Invalid Entry" } // Verify copyright is within DAAM.CopyrightStatus length
 
     execute {
         self.admin.changeCopyright(mid: self.mid, copyright: self.cr)  // Change Copyright status

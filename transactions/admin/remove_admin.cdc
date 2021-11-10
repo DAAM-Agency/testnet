@@ -13,7 +13,8 @@ transaction(exAdmin: Address)
 	    self.exAdmin = exAdmin
     }
 
-    pre { DAAM.isAdmin(exAdmin) } // Verify exAdmin is an Admin
+    // Verify exAdmin is an Admin
+    pre { DAAM.isAdmin(exAdmin) : exAdmin.toString().concat(" is not an Admin.") }
 
     execute {
         self.admin.removeAdmin(admin: self.exAdmin)

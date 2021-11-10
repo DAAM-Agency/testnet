@@ -25,6 +25,10 @@ transaction(auction: Address, tokenID: UInt64, bid: UFix64)
             .borrow()!
     }
 
+    pre {
+        getAccount(auction).borrow<&{AuctionHouse.AuctionPublic}>() != nil
+    }
+
     execute {
         let amount <- self.vaultRef.withdraw(amount: bid)!
         self.auctionHouse.item(tokenID)!.buyItNow(bidder: self.bidder, amount: <-amount)!

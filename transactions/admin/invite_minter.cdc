@@ -12,8 +12,12 @@ transaction(newMinter: Address) {
         self.newMinter = newMinter
     }
 
+    pre { DAAM.isMinter(newMinter) == nil : newMinter.toString().concat(" is already a Minter.") }
+
     execute {
         self.admin.inviteMinter(self.newMinter)
         log("Minter Invited")
     }
+
+    post { DAAM.isMinter(self.newMinter) != nil : self.newMinter.toString().concat(" invitation has not been sent.") }
 }

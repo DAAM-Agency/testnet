@@ -3,8 +3,7 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(exAgent: Address)
-{
+transaction(exAgent: Address) {
     let admin   : &DAAM.Agent
     let exAgent : Address
 
@@ -13,12 +12,15 @@ transaction(exAgent: Address)
 	    self.exAgent = exAgent
     }
 
-    pre { DAAM.isAgent(exAgent) } // Verify exAgent is an Agent
-
+    // Verify exAgent is an Agent
+    pre { DAAM.isAgent(exAgent) == true : exAgent.toString().concat(" is not an Agent.") }
+    
     execute {
         self.admin.removeAgent(agent: self.exAgent)
         log("Remove Agent Requested")
     }
 
-    post { !DAAM.isAgent(self.exAgent) } // Verify is not an Agent
+    // Verify is not an Agent
+    post { DAAM.isAgent(self.exAgent) == nil : self.exAgent.toString().concat(" is still an Agent.") }
+
 }

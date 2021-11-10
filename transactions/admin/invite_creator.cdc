@@ -13,9 +13,17 @@ transaction(creator: Address)
         self.admin   = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
         self.creator = creator
     }
+
+    pre {
+        DAAM.isAdmin(creator)   == nil : creator.toString().concat(" is already an Admin.")
+        DAAM.isAgent(creator)   == nil : creator.toString().concat(" is already an Agent.")
+        DAAM.isCreator(creator) == nil : creator.toString().concat(" is already an Creator.")
+    }
     
     execute {
         self.admin.inviteCreator(self.creator)
         log("Creator Invited")
     }
+
+    post { DAAM.isCreator(self.creator) != nil : self.creator.toString().concat(" invitation has not been sent.") }
 }
