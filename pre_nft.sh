@@ -19,9 +19,13 @@ flow transactions send ./transactions/answer_admin_invite.cdc false --signer adm
 flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN2 --signer admin
 flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin2
 
-# Remove Admin / Creator
+# Remove Admin & Creator
+# Admin
 echo "========= Remove Admin & Creator ========="
-# admin
+
+echo "========== Verify Admin Status: Admin2 (True) =========="
+flow scripts execute ./scripts/is_admin.cdc $ADMIN2
+
 echo "---------- Get 1 of 2 Admin Votes ----------"
 flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer admin
 
@@ -30,6 +34,9 @@ flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer cl
 
 echo "---------- Get 2 of 2 Admin Votes ----------"
 flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer admin2
+
+echo "========== Verify Admin Status: Admin2 (False) =========="
+flow scripts execute ./scripts/is_admin.cdc $ADMIN2
 
 # creator
 echo "FAIL TEST: Attempting to Remove Creator by non-Admin"

@@ -46,13 +46,11 @@ pub contract DAAM: NonFungibleToken {
     pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
     pub var totalSupply: UInt64                     // the total supply of NFTs, also used as counter for token ID
-    access(contract) var adminPending : Address?    // Only 1 admin can be invited at a time
-    access(contract) var minterPending: Address?    // Only 1 Minter can be invited at a time & there should only be one.
+    access(contract) var remove  : {Address: Address}  // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
     access(contract) var admins  : {Address: Bool}  // {Admin Address : status}  Admin address are stored here
     access(contract) var agents  : {Address: Bool}  // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}  // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}  // {Creator Address : status} Creator address are stored here
-    access(contract) var creatorCap: {Address: Capability<&DAAM.MetadataGenerator> } // {Address : Capability of Metadata}
     access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
@@ -399,11 +397,9 @@ pub resource interface CollectionPublic {
 pub resource Admin: Agent
 {
         pub var status: Bool       // The current status of the Admin
-        priv var remove: [Address] // Requires 2 Admins to remove an Admin, the Admins are stored here.
 
         init(_ admin: AuthAccount) {
             self.status = true      // Default Admin status: True
-            self.remove = []        // No removal requests.
             DAAM.admins.insert(key: admin.address, true) // Insert new Admin in admins list.
         }
 
@@ -412,47 +408,57 @@ pub resource Admin: Agent
             return <- create RequestGenerator() // return new Request
         }
 
-        pub fun inviteAdmin(newAdmin: Address) { // Admin invite a new Admin
-            DAAM.adminPending = newAdmin  // Admin is now pending for approval
+        pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
+            DAAM.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
             log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
-        pub fun inviteAgent(_ agent: Address) {  // Admin ivites new Agent
+        pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
             DAAM.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
             log("Sent Agent Invitation: ".concat(agent.toString()) )
             emit AgentInvited(agent: agent)         
         }
 
-        pub fun inviteCreator(_ creator: Address) {  // Admin or Agent invite a new creator
+        pub fun inviteCreator(_ creator: Address) {    // Admin or Agent invite a new creator
             DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
 
-        pub fun inviteMinter(_ minter: Address) {  // Admin invites a new Minter (Key)
-            DAAM.minterPending = minter // Minter Key is setup but not active untill accepted.
+        pub fun inviteMinter(_ minter: Address) {   // Admin invites a new Minter (Key)
+            DAAM.minters.insert(key: minter, false) // Minter Key is setup but not active untill accepted.
             log("Sent Minter Setup: ".concat(minter.toString()) )
             emit MinterSetup(minter: minter)      
         }
 
-        pub fun removeAdminInvite() { // Remove Admin invitation
-            DAAM.adminPending = nil  // Clear Admin for pending
-            log("Admin Invitation Removed")
-            emit RemovedAdminInvite()                      
-        }
-
         pub fun removeAdmin(admin: Address) { // Two Admin to Remove Admin
-            pre{
-                !self.remove.contains(admin) : "You already requested a removal."
-            }
-            self.remove.append(admin) // Append removal list
-            if self.remove.length >= 2 {
-                //self.status = false
-                DAAM.admins.remove(key: admin) // Remove selected Admin
-                log("Removed Admin")
-                emit AdminRemoved(admin: admin)
-            }
+            pre { DAAM.isAdmin(admin) == true : admin.toString().concat(" is not an Admin.") }
+            let vote = 2 as Int // TODO change to 3
+            DAAM.remove.insert(key: self.owner?.address!, admin) // Append removal list
+            if DAAM.remove.length >= vote {                      // If votes is 3 or greater
+                var counter: {Address: Int} = {} // {To Remove : Total Votes}
+                // Talley Votes
+                for a in DAAM.remove.keys {
+                    let remove = DAAM.remove[a]! // get To Remove
+                    // increment counter
+                    if counter[remove] == nil {
+                        counter.insert(key: remove, 1 as Int)
+                    } else {
+                        let value = counter[remove]! + 1 as Int
+                        counter.insert(key: remove, value)
+                    }
+                }
+                // Remove all with a vote of 3 or greater
+                for c in counter.keys {
+                    if counter[c]! >= vote {        // Does To Remove have enough votes to be removed
+                        DAAM.remove = {}           // Reset DAAM.Remove
+                        DAAM.admins.remove(key: c) // Remove selected Admin
+                        log("Removed Admin")
+                        emit AdminRemoved(admin: admin)
+                    }
+                }                
+            } // end if
         }
 
         pub fun removeAgent(agent: Address) { // Admin removes selected Agent by Address
@@ -463,7 +469,6 @@ pub resource Admin: Agent
 
         pub fun removeCreator(creator: Address) { // Admin removes selected Creator by Address
             DAAM.creators.remove(key: creator)    // Remove Creator from list
-            DAAM.creatorCap.remove(key: creator)  // Remove Creator Capability
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
@@ -603,13 +608,17 @@ pub resource Admin: Agent
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-            DAAM.creators[newAdmin.address] == nil : "An admin can not use the same address as an Creator."
-            DAAM.agents[newAdmin.address] == nil   : "An admin can not use the same address as an Agent."
-            DAAM.adminPending == newAdmin.address  : "You got no DAAM Admin invite."
-            Profile.check(newAdmin.address)        : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            DAAM.creators[newAdmin.address] == nil    : "An Admin can not use the same address as an Creator."
+            DAAM.agents[newAdmin.address] == nil      : "An Admin can not use the same address as an Agent."
+            DAAM.admins.containsKey(newAdmin.address) : "You got no DAAM Admin invite."
+            Profile.check(newAdmin.address)           : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
-        DAAM.adminPending = nil    // Release Admin pending (nil)
-        if !submit { return nil }  // Refused invitation. Return and end function
+
+        if !submit { 
+            DAAM.admins.remove(key: newAdmin.address) // Release Admin
+            return nil
+        }  // Refused invitation. Return and end function
+        
         // Invitation accepted at this point
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
@@ -658,9 +667,12 @@ pub resource Admin: Agent
     }
 
     pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
-        pre { DAAM.minterPending == minter.address : "You do not have a Minter Invitation" }
-        DAAM.minterPending = nil
-        if !submit { return nil }                  // Refused invitation. Return and end function
+        pre { DAAM.minters.containsKey(minter.address) : "You do not have a Minter Invitation" }
+
+        if !submit {                                 // Refused invitation. 
+            DAAM.minters.remove(key: minter.address) // Remove potential from Agent list
+            return nil                               // Return and end function
+        }
         // Invitation accepted at this point
         log("Minter: ".concat(minter.address.toString()) )
         emit NewMinter(minter: minter.address)
@@ -715,7 +727,7 @@ pub resource Admin: Agent
 	// TESTNET ONLY FUNCTIONS !!!! // TODO REMOVE
 
     pub fun resetAdmin(_ admin: Address) {
-        self.adminPending = admin
+        self.admins.insert(key: admin, false)
     }
 
     // END TESNET FUNCTIONS
@@ -738,22 +750,23 @@ pub resource Admin: Agent
         self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
         // Internal  variables
-        self.agency        = agency
-        self.adminPending  = founder
-        self.minterPending = nil
+        self.agency = agency
         // Initialize variables
+        self.admins    = {}
+        self.remove    = {}
         self.request  <- {}
         self.copyright = {}
         self.admins    = {}
         self.agents    = {} 
         self.creators  = {}
-        self.minters  = {}
-        self.creatorCap = {}
+        self.minters   = {}
         self.metadata  = {}
         self.newNFTs   = []
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
+
+        self.admins.insert(key: founder, false)
 
         emit ContractInitialized()
 	}

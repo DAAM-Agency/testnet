@@ -26,7 +26,7 @@ transaction(auction: Address, tokenID: UInt64, bid: UFix64)
     }
 
     pre {
-        getAccount(auction).borrow<&{AuctionHouse.AuctionPublic}>() != nil
+        getAccount(auction).borrow<&{AuctionHouse.AuctionPublic}>() != nil : "
     }
 
     execute {

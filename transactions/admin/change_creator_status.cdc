@@ -15,7 +15,6 @@ transaction(creator: Address, status: Bool) {
     }
 
     pre { DAAM.isCreator(creator) == true : creator.toString().concat(" is not a Creator.") }
-    }
 
     execute {
         self.admin.changeCreatorStatus(creator: self.creator, status: self.status)
