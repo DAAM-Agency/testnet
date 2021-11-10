@@ -695,8 +695,8 @@ pub resource Admin: Agent
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
     }
 
-    pub fun isAdmin(_ admin: Address): Bool { // Returns Admin Status
-        return self.admins.containsKey(admin)
+    pub fun isAdmin(_ admin: Address): Bool? { // Returns Admin Status
+        return self.admins[admin]
     }
 
     pub fun isAgent(_ agent: Address): Bool? { // Returns Agent status

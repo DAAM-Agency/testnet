@@ -25,5 +25,5 @@ transaction(newAgent: Address)
         log("Admin Invited")
     }
 
-    post { DAAM.isAgent(self.newAgent) != nil : self.newAgent.toString().concat(" invitation has bot been sent.") }
+    post { DAAM.isAgent(self.newAgent) != nil : self.newAgent.toString().concat(" invitation has not been sent.") }
 }
