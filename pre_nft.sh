@@ -125,8 +125,10 @@ flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
 # Request Royality [MID, Percentage*] * 10-30%
 # Fail: verify min/max
 echo "========== Select Royality Rate =========="
+
 echo "FAIL TEST: too low"
-flow transactions send ./transactions/request/accept_default.cdc 2 0.99  --signer creator #B
+flow transactions send ./transactions/request/accept_default.cdc 2 0.09  --signer creator #B
+
 echo "FAIL TEST: too high"
 flow transactions send ./transactions/request/accept_default.cdc 2 0.31 --signer creator #B
 

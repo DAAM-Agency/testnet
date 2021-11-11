@@ -14,7 +14,7 @@ transaction(mid: UInt64, percentage: UFix64) {
         self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
-    pre { percentage >= 0.1 || precentage <= 0.3 }
+    pre { percentage >= 0.1 || percentage <= 0.3 }
 
     execute {
         let metadata = self.metadataGen.getMetadataRef(mid: mid)

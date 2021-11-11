@@ -2,7 +2,7 @@
 // Used to claim an item. Must meet reserve price.
 
 import AuctionHouse  from 0x045a1763c93006ca
-transaction(auction: Address, tokenID: UInt64)
+transaction(auction: Address, auctionID: UInt64)
 {
     let bidder          : AuthAccount
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
@@ -13,6 +13,6 @@ transaction(auction: Address, tokenID: UInt64)
     }
 
     execute {
-        self.auctionHouse.item(tokenID)!.winnerCollect(bidder: self.bidder)!
+        self.auctionHouse.item(auctionID)!.winnerCollect(bidder: self.bidder)!
     }
 }

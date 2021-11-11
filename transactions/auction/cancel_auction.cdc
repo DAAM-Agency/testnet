@@ -4,7 +4,7 @@
 import AuctionHouse  from 0x045a1763c93006ca
 import DAAM          from 0xfd43f9148d4b725d
 
-transaction(tokenID: UInt64)
+transaction(auctionID: UInt64)
 {
     let auctioneer   : AuthAccount
     let auctionHouse : &AuctionHouse.AuctionWallet
@@ -15,6 +15,6 @@ transaction(tokenID: UInt64)
     }
 
     execute {
-        self.auctionHouse.item(tokenID)!.cancelAuction(auctioneer: self.auctioneer)!
+        self.auctionHouse.item(auctionID)!.cancelAuction(auctioneer: self.auctioneer)!
     }
 }

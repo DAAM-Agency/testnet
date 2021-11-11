@@ -26,27 +26,27 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "========== Create Original Auctions I =========="
 echo "---------- A ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
-150.0 false 0.0 false 0.05 11.00 \
+200.0 false 0.0 false 0.05 11.00 \
 20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
 
 echo "---------- B ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
-150.0 false 0.0 true 1.0 12.00 \
+200.0 false 0.0 true 1.0 12.00 \
 25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
-150.0 false 0.0 false 0.04 10.00 \
+200.0 false 0.0 false 0.04 10.00 \
 26.0 30.3 false --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
-150.0 false 0.0 false 0.04 10.00 \
+200.0 false 0.0 false 0.04 10.00 \
 26.0 30.4 false --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
-150.0 false 0.0 false 0.04 13.00 \
+200.0 false 0.0 false 0.04 13.00 \
 26.0 30.5 false --signer creator #E
 
 echo "---------- F ---------- "
@@ -81,7 +81,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 5 $STA
 # Auction ID: 6, Winner and Collect
 echo "---------- H ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
-250.0 false 0.0 false 0.025 15.00 \
+300.0 false 0.0 false 0.025 15.00 \
 20.0 30.6 true --signer creator #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
