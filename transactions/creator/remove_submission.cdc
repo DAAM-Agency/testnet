@@ -1,17 +1,18 @@
 // remove_submission.cdc
+// Creator can remove Metadata submission
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import DAAM_V5            from 0xa4ad5ea5c0bd2fba
+import NonFungibleToken from 0x631e88ae7f1d7c20
+import DAAM_V6          from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64)
 {    
     let creator     : AuthAccount
     let mid         : UInt64
-    let metadataGen : &DAAM.MetadataGenerator
+    let metadataGen : &DAAM_V6.MetadataGenerator
 
     prepare(creator: AuthAccount) {
         self.creator = creator
-        self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.metadataGen = self.creator.borrow<&DAAM_V6.MetadataGenerator>(from: DAAM_V6.metadataStoragePath)!
         self.mid = mid
     }
 

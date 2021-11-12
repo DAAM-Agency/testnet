@@ -1,6 +1,7 @@
 // answer_creator_invite.cdc
+// Answer the invitation to be a Creator.
 
-import DAAM_V5 from 0xa4ad5ea5c0bd2fba
+import DAAM_V6 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -10,22 +11,22 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let creator  <- DAAM_V5.answerCreatorInvite(newCreator: self.signer, submit: submit)
+        let creator  <- DAAM_V6.answerCreatorInvite(newCreator: self.signer, submit: submit)
 
         if creator != nil && submit {
-            self.signer.save<@DAAM_V5.Creator>(<- creator!, to: DAAM_V5.creatorStoragePath)!
-            self.signer.link<&DAAM_V5.Creator>(DAAM_V5.creatorPrivatePath, target: DAAM_V5.creatorStoragePath)!
-            let creatorRef = self.signer.borrow<&DAAM_V5.Creator>(from: DAAM_V5.creatorStoragePath)!
+            self.signer.save<@DAAM_V6.Creator>(<- creator!, to: DAAM_V6.creatorStoragePath)!
+            self.signer.link<&DAAM_V6.Creator>(DAAM_V6.creatorPrivatePath, target: DAAM_V6.creatorStoragePath)!
+            let creatorRef = self.signer.borrow<&DAAM_V6.Creator>(from: DAAM_V6.creatorStoragePath)!
             
             let requestGen <- creatorRef.newRequestGenerator()!
-            self.signer.save<@DAAM_V5.RequestGenerator>(<- requestGen, to: DAAM_V5.requestStoragePath)!
-            self.signer.link<&DAAM_V5.RequestGenerator>(DAAM_V5.requestPrivatePath, target: DAAM_V5.requestStoragePath)!
+            self.signer.save<@DAAM_V6.RequestGenerator>(<- requestGen, to: DAAM_V6.requestStoragePath)!
+            self.signer.link<&DAAM_V6.RequestGenerator>(DAAM_V6.requestPrivatePath, target: DAAM_V6.requestStoragePath)!
             
             let metadataGen <- creatorRef.newMetadataGenerator()!
-            self.signer.save<@DAAM{DAAM_V5}.MetadataGenerator>(<- metadataGen, to: DAAM_V5.metadataStoragePath)
-            self.signer.link<&DAAM_V5.MetadataGenerator>(DAAM_V5.metadataPublicPath, target: DAAM_V5.metadataStoragePath)
+            self.signer.save<@DAAM_V6.MetadataGenerator>(<- metadataGen, to: DAAM_V6.metadataStoragePath)
+            self.signer.link<&DAAM_V6.MetadataGenerator>(DAAM_V6.metadataPublicPath, target: DAAM_V6.metadataStoragePath)
 
-            log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V6 Creator: ".concat(self.signer.address.toString()) )
         }
 
         if !submit { log("Thank You for your consideration.") }

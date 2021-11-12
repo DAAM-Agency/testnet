@@ -1,28 +1,30 @@
 // change_copyright.cdc
+// Used for Admin / Agents to change Copyright status of MID
+/*
+0 as int 8 = DAAM.CopyrightStatus.FRAUD
+1 as int 8 = DAAM.CopyrightStatus.CLAIM
+2 as int 8 = DAAM.CopyrightStatus.UNVERIFIED
+3 as int 8 = DAAM.CopyrightStatus.VERIFIED
+4 as int 8 = DAAM.CopyrightStatus.INCLUDED
+*/
 
-import DAAM_V5 from 0xa4ad5ea5c0bd2fba
+import DAAM_V6 from 0xa4ad5ea5c0bd2fba
     
-transaction(mid: UInt64, copyright: Int)
-{
-    prepare(acct: AuthAccount) {
-        var cr = DAAM_V5.CopyrightStatus.FRAUD
-        switch(copyright) {
-            case 0:
-                cr = DAAM_V5.CopyrightStatus.FRAUD
-            case 1:
-                cr = DAAM_V5.CopyrightStatus.CLAIM
-            case 2:
-                cr = DAAM_V5.CopyrightStatus.UNVERIFIED
-            case 3:
-                cr = DAAM_V5.CopyrightStatus.VERIFIED
-            default: return
-        }
-<<<<<<< HEAD
-        let admin = acct.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
-=======
-        let admin = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
->>>>>>> dev-emulator
-        admin.changeCopyright(mid: mid, copyright: cr)
+transaction(mid: UInt64, copyright: UInt8) {
+    let cr    : DAAM.CopyrightStatus
+    let admin : &{DAAM.Agent}
+    let mid   : UInt64
+
+    prepare(agent: AuthAccount) {
+        self.cr = DAAM.CopyrightStatus(copyright)!                             // init copyright
+        self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)! // init admin
+        self.mid = mid                                                         // init mid
+    }
+
+    pre { copyright < 5 : "Copyright: Invalid Entry" } // Verify copyright is within DAAM.CopyrightStatus length
+
+    execute {
+        self.admin.changeCopyright(mid: self.mid, copyright: self.cr)  // Change Copyright status
         log("Copyright Changed")
     }
 }
