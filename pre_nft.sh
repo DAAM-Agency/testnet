@@ -115,8 +115,8 @@ flow transactions send ./transactions/admin/change_metadata_status.cdc 4 false -
 flow transactions send ./transactions/admin/change_metadata_status.cdc 5 true --signer admin2  # MID 5
 flow transactions send ./transactions/admin/change_metadata_status.cdc 6 true --signer admin2  # MID 6
 flow transactions send ./transactions/admin/change_metadata_status.cdc 7 true --signer admin2  # MID 7
-flow transactions send ./transactions/admin/change_metadata_status.cdc 8 true --signer admin2  # MID 7
-flow transactions send ./transactions/admin/change_metadata_status.cdc 9 true --signer admin2  # MID 7
+flow transactions send ./transactions/admin/change_metadata_status.cdc 8 true --signer admin2  # MID 8
+flow transactions send ./transactions/admin/change_metadata_status.cdc 9 true --signer admin2  # MID 9
 
 # Verify Metadata
 echo "========= Veriy Metadata ========="

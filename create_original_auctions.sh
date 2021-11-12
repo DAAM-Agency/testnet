@@ -22,6 +22,7 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 CURRENT_TIME=$(date +%s)
 OFFSET=20.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+echo "START: "$START
 
 echo "========== Create Original Auctions I =========="
 echo "---------- A ---------- "
@@ -72,6 +73,7 @@ echo "========= Create Original Auctions II ========="
 CURRENT_TIME=$(date +%s)
 OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+echo "START: "$START
 
 echo "---------- E ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
@@ -96,7 +98,7 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 # ---------------------- BIDS ------------------------------
 echo "========= BIDS ========="
-sleep 10
+sleep 5
 # A ID: 1
 # The reserve price will NOT be met.
 echo "========== # A, AID: 1 =========="
@@ -517,7 +519,6 @@ flow scripts execute ./scripts/collecion.cdc $NOBODY
 
 # End of Auctions
 echo "========== Testing Section E =========="
-sleep 160
 
 echo "---------- FUSD ----------"
 echo "CREATOR FUSD"
@@ -529,9 +530,13 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
-
+sleep 160
 # Winner Colection
 echo "========= Winner Tests ========="
+
+echo "Script: timeLeft.cdc Auction #H, AID: 6"
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 6
+
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Wrong Bidder attempting to collect NFT. AID: 6"
 flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer nobody
@@ -539,7 +544,7 @@ flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --si
 echo "---------- Winner Collect: Client, #G AID: 6 ----------"
 flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer client
 
-echo "----------- Script: BuyItNow Creator, AID: 6 (false) ----------"
+echo "----------- Script: BuyItNow Creator, AID: 6 (false) no more reprints ----------"
 flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR 6
 
 echo "---------- FUSD ----------"
@@ -594,7 +599,7 @@ echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- buyItNow 30.6, Nobody AID: 6 ----------"
+echo "---------- buyItNow (2) 30.6, Nobody AID: 6 ----------"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 6 30.6 --signer nobody #H
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
