@@ -5,21 +5,12 @@ import DAAM_V5 from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, status: Bool)
 {
-<<<<<<< HEAD
-    let admin : &DAAM_V5.Admin
-    let mid   : UInt64
-    let status: Bool
-
-    prepare(acct: AuthAccount) {
-        self.admin  = acct.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
-=======
-    let admin  : &DAAM_V5.Admin{DAAM_V5.Agent}
+    let admin  : &DAAM.Admin{DAAM.Agent}
     let mid    : UInt64
     let status : Bool
 
     prepare(agent: AuthAccount) {
-        self.admin  = agent.borrow<&DAAM_V5.Admin{DAAM_V5.Agent}>(from: DAAM_V5.adminStoragePath)!
->>>>>>> merge_dev
+        self.admin  = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
         self.mid    = mid
         self.status = status
     }
