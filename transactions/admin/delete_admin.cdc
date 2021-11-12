@@ -1,15 +1,15 @@
 // delete_admin.cdc
 // Debugging Tool
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V5 from 0xa4ad5ea5c0bd2fba
 
 transaction() {
     prepare(admin: AuthAccount) {
-        let adminRes <- admin.load<@DAAM.Admin>(from: DAAM.adminStoragePath)!
-        let requestRes <- admin.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
+        let adminRes <- admin.load<@DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
+        let requestRes <- admin.load<@DAAM_V5.RequestGenerator>(from: DAAM_V5.requestStoragePath)!
         destroy adminRes
         destroy requestRes
-        admin.unlink(DAAM.adminPrivatePath)
-        admin.unlink(DAAM.requestPrivatePath)
+        admin.unlink(DAAM_V5.adminPrivatePath)
+        admin.unlink(DAAM_V5.requestPrivatePath)
         log("Admin Removed")
     } 
 }

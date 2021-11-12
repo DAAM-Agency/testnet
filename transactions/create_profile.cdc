@@ -1,6 +1,6 @@
 // create_profile.cdc
 
-import Profile from 0x192440c99cb17282
+import Profile from 0xe223d8a629e49c68
 
 transaction {
   let address: Address

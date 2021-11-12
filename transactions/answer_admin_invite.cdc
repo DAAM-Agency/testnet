@@ -1,7 +1,7 @@
 // answer_admin_invite.cdc
 // Answer the invitation to be an Admin.
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V5 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -11,18 +11,18 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let admin  <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: submit)
+        let admin  <- DAAM_V5.answerAdminInvite(newAdmin: self.signer, submit: submit)
 
         if admin != nil && submit {
-            self.signer.save<@DAAM.Admin>(<- admin!, to: DAAM.adminStoragePath)!
-            self.signer.link<&DAAM.Admin>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
-            let adminRef = self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+            self.signer.save<@DAAM_V5.Admin>(<- admin!, to: DAAM_V5.adminStoragePath)!
+            self.signer.link<&DAAM_V5.Admin>(DAAM_V5.adminPrivatePath, target: DAAM_V5.adminStoragePath)!
+            let adminRef = self.signer.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
 
             let requestGen <- adminRef.newRequestGenerator()!
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
+            self.signer.save<@DAAM_V5.RequestGenerator>(<- requestGen, to: DAAM_V5.requestStoragePath)!
+            self.signer.link<&DAAM_V5.RequestGenerator>(DAAM_V5.requestPrivatePath, target: DAAM_V5.requestStoragePath)!
             
-            log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V5 Admin: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }
