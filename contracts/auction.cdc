@@ -2,16 +2,9 @@
 // by Ami Rajpal, 2021 // DAAM_V5 Agency
 
 import FungibleToken    from 0x9a0766d93b6608b7
-<<<<<<< HEAD
-import FlowToken        from 0x7e60df042a9c0868
+import FUSD             from 0xe223d8a629e49c68
 import DAAM_V5          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import FUSD             from 0xe223d8a629e49c68
-=======
-import FUSD             from 0xe223d8a629e49c68
-import DAAM_V5             from 0xa4ad5ea5c0bd2fba
-import NonFungibleToken from 0x631e88ae7f1d7c20
->>>>>>> merge_dev
 
 pub contract AuctionHouse {
     // Events
@@ -30,11 +23,7 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-<<<<<<< HEAD
-    access(contract) var metadataGen : { UInt64 : Capability<&DAAM_V5.MetadataGenerator{DAAM_V5.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
-=======
     access(contract) var metadataGen : { UInt64 : Capability<&DAAM_V5.MetadataGenerator{DAAM_V5.MetadataGeneratorMint}> } // { MID : Capability<&DAAM_V5.MetadataGenerator> }
->>>>>>> merge_dev
     access(contract) var auctionCounter : UInt64 // Incremental counter used for AID (Auction ID)
 
 /************************************************************************/

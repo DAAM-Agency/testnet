@@ -23,10 +23,4 @@ Cadence
 Installing the daam.cdc contract must be done as a flow transaction since the contract has arguments.
 Ex: 
 export HEX_ENCODE_CODE=$(cat ../dev/hex_nft_enum)
-<<<<<<< HEAD
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --arg String:"DAAM" --arg String:$HEX_ENCODE_CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
-=======
 flow transactions send ../testnet_keys/init_DAAM_V5_Agency.cdc --arg String:"DAAM_V5" --arg String:$HEX_ENCODE_CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
-
-
->>>>>>> merge_dev

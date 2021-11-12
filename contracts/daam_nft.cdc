@@ -53,10 +53,6 @@ pub contract DAAM_V5: NonFungibleToken
     access(contract) var agents  : {Address: Bool}  // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}  // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}  // {Creator Address : status} Creator address are stored here
-<<<<<<< HEAD
-    access(contract) var creatorCap: {Address: Capability<&DAAM_V5.MetadataGenerator> } // {Address : Capability of Metadata}
-=======
->>>>>>> merge_dev
     access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
@@ -118,11 +114,7 @@ pub resource RequestGenerator {
         let request <-! create Request(metadata: metadata) // get request
         request.acceptDefault(royality: royality)          // append royality rate
 
-<<<<<<< HEAD
-        let old <- DAAM_V5.request.insert(key: mid, <-request) // advice DAAM of request
-=======
         let old <- DAAM_V5.request.insert(key: mid, <-request) // advice DAAM_V5 of request
->>>>>>> merge_dev
         destroy old // destroy place holder
         
         log("Request Accepted, MID: ".concat(mid.toString()) )
@@ -294,20 +286,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
-            return DAAM_V5.copyright[self.id]! // return copyright status
+            return DAAM_V5.copyright[self.id]!    // Return copyright status
         }
     }
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
-    pub fun getIDs(): [UInt64]                    // get NFT Token IDs
-    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
-<<<<<<< HEAD
-    pub fun borrowDAAM(id: UInt64): &DAAM_V5.NFT            // get NFT as DAAM_V5.NFT
-=======
-    pub fun borrowDAAM_V5(id: UInt64): &DAAM_V5.NFT            // get NFT as DAAM_V5.NFT
->>>>>>> merge_dev
+    pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
+    pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
+    pub fun borrowDAAM_V5(id: UInt64): &DAAM_V5.NFT      // Get NFT as DAAM_V5.NFT
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -343,13 +331,8 @@ pub resource interface CollectionPublic {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
-<<<<<<< HEAD
-        // borrowDAAM gets a reference to an DAAM_V5.NFT in the collection.
-        pub fun borrowDAAM(id: UInt64): &DAAM_V5.NFT {
-=======
         // borrowDAAM_V5 gets a reference to an DAAM_V5.NFT in the collection.
         pub fun borrowDAAM_V5(id: UInt64): &DAAM_V5.NFT {
->>>>>>> merge_dev
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM_V5.NFT                                    // return NFT Reference
@@ -368,13 +351,8 @@ pub resource interface CollectionPublic {
                 self.status                   : "You're no longer a have Access."
                 DAAM_V5.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM_V5.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
-<<<<<<< HEAD
-                DAAM_V5.creators[creator] == nil : "They're already a DAAM Creator!!!"
-                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
-=======
                 DAAM_V5.creators[creator] == nil : "They're already a DAAM_V5 Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM_V5 Creator without a Profile! Go make one Fool!!"
->>>>>>> merge_dev
             }
             post { DAAM_V5.creators[creator] == false : "Illegal Operaion: inviteCreator" }
         }
@@ -426,10 +404,6 @@ pub resource Admin: Agent
 
         init(_ admin: AuthAccount) {
             self.status = true      // Default Admin status: True
-<<<<<<< HEAD
-            self.remove = []        // No removal requests.
-=======
->>>>>>> merge_dev
             DAAM_V5.admins.insert(key: admin.address, true) // Insert new Admin in admins list.
         }
 
@@ -438,67 +412,30 @@ pub resource Admin: Agent
             return <- create RequestGenerator() // return new Request
         }
 
-<<<<<<< HEAD
-        pub fun inviteAdmin(newAdmin: Address) { // Admin invite a new Admin
-            DAAM_V5.adminPending = newAdmin  // Admin is now pending for approval
-=======
         pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
             DAAM_V5.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
->>>>>>> merge_dev
             log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
-<<<<<<< HEAD
-        pub fun inviteAgent(_ agent: Address) {  // Admin ivites new Agent
-=======
         pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
->>>>>>> merge_dev
             DAAM_V5.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
             log("Sent Agent Invitation: ".concat(agent.toString()) )
             emit AgentInvited(agent: agent)         
         }
 
-<<<<<<< HEAD
-        pub fun inviteCreator(_ creator: Address) {  // Admin or Agent invite a new creator
-=======
         pub fun inviteCreator(_ creator: Address) {    // Admin or Agent invite a new creator
->>>>>>> merge_dev
             DAAM_V5.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
 
-<<<<<<< HEAD
-        pub fun inviteMinter(_ minter: Address) {  // Admin invites a new Minter (Key)
-            DAAM_V5.minterPending = minter // Minter Key is setup but not active untill accepted.
-=======
         pub fun inviteMinter(_ minter: Address) {   // Admin invites a new Minter (Key)
             DAAM_V5.minters.insert(key: minter, false) // Minter Key is setup but not active untill accepted.
->>>>>>> merge_dev
             log("Sent Minter Setup: ".concat(minter.toString()) )
             emit MinterSetup(minter: minter)      
         }
 
-<<<<<<< HEAD
-        pub fun removeAdminInvite() { // Remove Admin invitation
-            DAAM_V5.adminPending = nil  // Clear Admin for pending
-            log("Admin Invitation Removed")
-            emit RemovedAdminInvite()                      
-        }
-
-        pub fun removeAdmin(admin: Address) { // Two Admin to Remove Admin
-            pre{
-                !self.remove.contains(admin) : "You already requested a removal."
-            }
-            self.remove.append(admin) // Append removal list
-            if self.remove.length >= 2 {
-                //self.status = false
-                DAAM_V5.admins.remove(key: admin) // Remove selected Admin
-                log("Removed Admin")
-                emit AdminRemoved(admin: admin)
-            }
-=======
         pub fun removeAdmin(admin: Address) { // Two Admin to Remove Admin
             pre { DAAM_V5.isAdmin(admin) == true : admin.toString().concat(" is not an Admin.") }
             let vote = 2 as Int // TODO change to 3
@@ -526,7 +463,6 @@ pub resource Admin: Agent
                     }
                 }                
             } // end if
->>>>>>> merge_dev
         }
 
         pub fun removeAgent(agent: Address) { // Admin removes selected Agent by Address
@@ -537,10 +473,6 @@ pub resource Admin: Agent
 
         pub fun removeCreator(creator: Address) { // Admin removes selected Creator by Address
             DAAM_V5.creators.remove(key: creator)    // Remove Creator from list
-<<<<<<< HEAD
-            DAAM_V5.creatorCap.remove(key: creator)  // Remove Creator Capability
-=======
->>>>>>> merge_dev
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
@@ -680,15 +612,6 @@ pub resource Admin: Agent
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-<<<<<<< HEAD
-            DAAM_V5.creators[newAdmin.address] == nil : "An admin can not use the same address as an Creator."
-            DAAM_V5.agents[newAdmin.address] == nil   : "An admin can not use the same address as an Agent."
-            DAAM_V5.adminPending == newAdmin.address  : "You got no DAAM Admin invite."
-            Profile.check(newAdmin.address)        : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
-        }
-        DAAM_V5.adminPending = nil    // Release Admin pending (nil)
-        if !submit { return nil }  // Refused invitation. Return and end function
-=======
             DAAM_V5.creators[newAdmin.address] == nil    : "An Admin can not use the same address as an Creator."
             DAAM_V5.agents[newAdmin.address] == nil      : "An Admin can not use the same address as an Agent."
             DAAM_V5.admins.containsKey(newAdmin.address) : "You got no DAAM_V5 Admin invite."
@@ -700,7 +623,6 @@ pub resource Admin: Agent
             return nil
         }  // Refused invitation. Return and end function
         
->>>>>>> merge_dev
         // Invitation accepted at this point
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM_V5") )
         emit NewAdmin(admin: newAdmin.address)
@@ -713,13 +635,8 @@ pub resource Admin: Agent
         pre {
             !DAAM_V5.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
             !DAAM_V5.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
-<<<<<<< HEAD
-            DAAM_V5.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
-            Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
-=======
             DAAM_V5.agents.containsKey(newAgent.address)    : "You got no DAAM_V5 Agent invite."
             Profile.check(newAgent.address)  : "You can't be a DAAM_V5 Agent without a Profile first. Go make a Profile first."
->>>>>>> merge_dev
         }
 
         if !submit {                                  // Refused invitation. 
@@ -728,11 +645,7 @@ pub resource Admin: Agent
         }
         // Invitation accepted at this point
         DAAM_V5.agents[newAgent.address] = submit        // Add Agent & set Status (True)
-<<<<<<< HEAD
-        log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
-=======
         log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM_V5") )
->>>>>>> merge_dev
         emit NewAgent(agent: newAgent.address)
         return <- create Admin(newAgent)!             // Return Admin Resource as {Agent}
     }
@@ -742,13 +655,8 @@ pub resource Admin: Agent
         pre {
             !DAAM_V5.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
             !DAAM_V5.agents.containsKey(newCreator.address)    : "A Creator can not use the same address as an Agent."
-<<<<<<< HEAD
-            DAAM_V5.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
-            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
-=======
             DAAM_V5.creators.containsKey(newCreator.address) : "You got no DAAM_V5 Creator invite."
             Profile.check(newCreator.address)  : "You can't be a DAAM_V5 Creator without a Profile first. Go make a Profile first."
->>>>>>> merge_dev
         }
 
         if !submit {                                       // Refused invitation.
@@ -757,28 +665,18 @@ pub resource Admin: Agent
         }
         // Invitation accepted at this point
         DAAM_V5.creators[newCreator.address] = submit         // Add Creator & set Status (True) 
-<<<<<<< HEAD
-        log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
-=======
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM_V5") )
->>>>>>> merge_dev
         emit NewCreator(creator: newCreator.address)
         return <- create Creator()!                        // Return Creator Resource
     }
 
     pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
-<<<<<<< HEAD
-        pre { DAAM_V5.minterPending == minter.address : "You do not have a Minter Invitation" }
-        DAAM_V5.minterPending = nil
-        if !submit { return nil }                  // Refused invitation. Return and end function
-=======
         pre { DAAM_V5.minters.containsKey(minter.address) : "You do not have a Minter Invitation" }
 
         if !submit {                                 // Refused invitation. 
             DAAM_V5.minters.remove(key: minter.address) // Remove potential from Agent list
             return nil                               // Return and end function
         }
->>>>>>> merge_dev
         // Invitation accepted at this point
         log("Minter: ".concat(minter.address.toString()) )
         emit NewMinter(minter: minter.address)

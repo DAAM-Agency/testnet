@@ -26,13 +26,7 @@ transaction(auction: Address, auctionID: UInt64, bid: UFix64)
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
 
-<<<<<<< HEAD
-        self.collection = getAccount(bidder.address)
-            .getCapability<&{DAAM_V5.CollectionPublic}>(DAAM_V5.collectionPublicPath)
-            .borrow()!
-=======
         self.auctionID = auctionID
->>>>>>> merge_dev
     }
 
     execute {
