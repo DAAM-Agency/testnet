@@ -456,7 +456,6 @@ pub contract AuctionHouse {
         // Note: leader is typically removed from log before called.
         priv fun returnFunds() {
             //post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
-
             for bidder in self.auctionLog.keys {
                 // get FUSD Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
@@ -522,7 +521,7 @@ pub contract AuctionHouse {
         // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
         priv fun royality()
         {
-            //post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
+            post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
@@ -561,8 +560,8 @@ pub contract AuctionHouse {
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
         priv fun verifyAuctionLog(): Bool {
             var total = 0.0
-            for amount in self.auctionLog.keys {
-                total = total + self.auctionLog[amount]! // get total in logs
+            for bidder in self.auctionLog.keys {
+                total = total + self.auctionLog[bidder]! // get total in logs
             }
             log("Verify Auction Log: ")
             log(self.auctionLog)

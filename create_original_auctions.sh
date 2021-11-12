@@ -26,27 +26,27 @@ START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "========== Create Original Auctions I =========="
 echo "---------- A ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
-200.0 false 0.0 false 0.05 11.00 \
+250.0 false 0.0 false 0.05 11.00 \
 20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
 
 echo "---------- B ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
-200.0 false 0.0 true 1.0 12.00 \
+250.0 false 0.0 true 1.0 12.00 \
 25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
-200.0 false 0.0 false 0.04 10.00 \
+250.0 false 0.0 false 0.04 10.00 \
 26.0 30.3 false --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
-200.0 false 0.0 false 0.04 10.00 \
+250.0 false 0.0 false 0.04 10.00 \
 26.0 30.4 false --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
-200.0 false 0.0 false 0.04 13.00 \
+250.0 false 0.0 false 0.04 13.00 \
 26.0 30.5 false --signer creator #E
 
 echo "---------- F ---------- "
@@ -88,7 +88,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 8 $STA
 echo "---------- I ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
 300.0 false 0.0 false 0.025 15.00 \
-20.0 30.7 false --signer creator #I, AID: 7
+20.0 30.7 true --signer creator #I, AID: 7
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
@@ -594,12 +594,12 @@ echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========== Testing: endReprint =========="
-flow transactions send ./transactions/auction/end_reprints.cdc 6 --signer creator
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- buyItNow 30.6, Nobody AID: 6 ----------"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 6 30.6 --signer nobody #H
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========== Testing: endReprint =========="
+flow transactions send ./transactions/auction/end_reprints.cdc 6 --signer creator
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: No more reprints due to endReprint (previous) AID: 6"
