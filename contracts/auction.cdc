@@ -1,11 +1,17 @@
 // auction.cdc
-// by Ami Rajpal, 2021 // DAAM Agency
+// by Ami Rajpal, 2021 // DAAM_V5 Agency
 
 import FungibleToken    from 0x9a0766d93b6608b7
+<<<<<<< HEAD
 import FlowToken        from 0x7e60df042a9c0868
 import DAAM_V5          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FUSD             from 0xe223d8a629e49c68
+=======
+import FUSD             from 0xe223d8a629e49c68
+import DAAM_V5             from 0xa4ad5ea5c0bd2fba
+import NonFungibleToken from 0x631e88ae7f1d7c20
+>>>>>>> merge_dev
 
 pub contract AuctionHouse {
     // Events
@@ -24,7 +30,11 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
+<<<<<<< HEAD
     access(contract) var metadataGen : { UInt64 : Capability<&DAAM_V5.MetadataGenerator{DAAM_V5.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
+=======
+    access(contract) var metadataGen : { UInt64 : Capability<&DAAM_V5.MetadataGenerator{DAAM_V5.MetadataGeneratorMint}> } // { MID : Capability<&DAAM_V5.MetadataGenerator> }
+>>>>>>> merge_dev
     access(contract) var auctionCounter : UInt64 // Incremental counter used for AID (Auction ID)
 
 /************************************************************************/
@@ -45,7 +55,7 @@ pub contract AuctionHouse {
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
         // MetadataGenerator: Reference to Metadata
-        // mid: DAAM Metadata ID
+        // mid: DAAM_V5 Metadata ID
         // start: Enter UNIX Flow Blockchain Time
         // length: Length of auction
         // isExtended: if the auction lenght is to be an Extended Auction
@@ -437,6 +447,7 @@ pub contract AuctionHouse {
             log("Buy It Now")
             emit BuyItNow(winner: self.leader!, auction: self.auctionID, amount: self.buyNow)                         // pay royalities
 
+            log(self.auctionLog)
             self.winnerCollect(bidder: bidder) // Will receive NFT if reserve price is met
         }    
 
@@ -455,8 +466,7 @@ pub contract AuctionHouse {
         // Return all funds in auction log to bidder
         // Note: leader is typically removed from log before called.
         priv fun returnFunds() {
-            post { self.auctionLog.length == 0 } // Verify auction log is empty
-
+            //post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
             for bidder in self.auctionLog.keys {
                 // get FUSD Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
@@ -561,9 +571,12 @@ pub contract AuctionHouse {
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
         priv fun verifyAuctionLog(): Bool {
             var total = 0.0
-            for amount in self.auctionLog.keys {
-                total = total + self.auctionLog[amount]! // get total in logs
+            for bidder in self.auctionLog.keys {
+                total = total + self.auctionLog[bidder]! // get total in logs
             }
+            log("Verify Auction Log: ")
+            log(self.auctionLog)
+            log("AID: ".concat(self.auctionID.toString()) )
             return total == self.auctionVault.balance    // compare total to Vault
         }
 
@@ -652,7 +665,7 @@ pub contract AuctionHouse {
     init() {
         self.metadataGen = {}
         self.auctionCounter = 0
-        self.auctionStoragePath = /storage/DAAM_Auction
-        self.auctionPublicPath  = /public/DAAM_Auction
+        self.auctionStoragePath = /storage/DAAM_V5_Auction
+        self.auctionPublicPath  = /public/DAAM_V5_Auction
     }
 }

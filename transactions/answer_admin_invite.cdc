@@ -1,4 +1,5 @@
 // answer_admin_invite.cdc
+// Answer the invitation to be an Admin.
 
 import DAAM_V5 from 0xa4ad5ea5c0bd2fba
 
@@ -21,7 +22,7 @@ transaction(submit: Bool) {
             self.signer.save<@DAAM_V5.RequestGenerator>(<- requestGen, to: DAAM_V5.requestStoragePath)!
             self.signer.link<&DAAM_V5.RequestGenerator>(DAAM_V5.requestPrivatePath, target: DAAM_V5.requestStoragePath)!
             
-            log("You are now a DAAM Admin: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V5 Admin: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }

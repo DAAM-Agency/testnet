@@ -1,11 +1,11 @@
-// make_bid.cdc
+// withdraw_bid.cdc
+// Used to withdraw bid made on item. Must not be lead bidder
 
 import FungibleToken from 0x9a0766d93b6608b7
-import FlowToken     from 0x7e60df042a9c0868
 import FUSD          from 0xe223d8a629e49c68
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse  from 0x01837e15023c9249
 
-transaction(auction: Address, tokenID: UInt64)
+transaction(auction: Address, auctionID: UInt64)
 {
     let bidder          : AuthAccount
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
@@ -21,7 +21,7 @@ transaction(auction: Address, tokenID: UInt64)
 
     execute {
         let vaultRef = self.bidder.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: self.fusdStoragePath)!
-        let amount <- self.auctionHouse.item(tokenID)!.withdrawBid(bidder: self.bidder)!
+        let amount <- self.auctionHouse.item(auctionID)!.withdrawBid(bidder: self.bidder)!
         vaultRef.deposit(from: <- amount)
     }
 }

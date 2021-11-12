@@ -1,6 +1,10 @@
 // setup_fusd.cdc
 
+<<<<<<< HEAD
 import FungibleToken    from 0xee82856bf20e2aa6
+=======
+import FungibleToken    from 0x9a0766d93b6608b7
+>>>>>>> merge_dev
 import FUSD from 0xe223d8a629e49c68
 
 transaction(amount: UFix64, recipient: Address)

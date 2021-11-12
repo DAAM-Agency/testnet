@@ -1,0 +1,30 @@
+FungibleToken
+Emulator 0x9a0766d93b6608b7
+Testnet	 0x9a0766d93b6608b7 
+Mainnet	 0xf233dcee88fe0abe
+
+NonFungibleToken
+Testnet	0x631e88ae7f1d7c20
+Mainnet	0x1d7e57aa55817448
+
+Profile
+Emulator 0xe223d8a629e49c68
+Testnet  0x192440c99cb17282
+
+FlowToken
+Emulator 0x7e60df042a9c0868
+Testnet	 0x7e60df042a9c0868 
+Mainnet	 0x1654653399040a61
+
+FUSD
+Emulator 0xe223d8a629e49c68
+Testnet  0xe223d8a629e49c68
+
+AuctionHouse 
+Emulator 0x045a1763c93006ca
+Testnet  0x01837e15023c9249
+
+DAAM_V5
+Emulator 0xa4ad5ea5c0bd2fba
+Testnet  0xa4ad5ea5c0bd2fba
+

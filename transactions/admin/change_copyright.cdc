@@ -5,7 +5,7 @@ import DAAM_V5 from 0xa4ad5ea5c0bd2fba
 transaction(mid: UInt64, copyright: Int)
 {
     prepare(acct: AuthAccount) {
-        var cr = DAAM_V5.CopyrightStatus.FRAUD
+        var cr: DAAM_V5.CopyrightStatus = DAAM_V5.CopyrightStatus.FRAUD
         switch(copyright) {
             case 0:
                 cr = DAAM_V5.CopyrightStatus.FRAUD
@@ -17,11 +17,10 @@ transaction(mid: UInt64, copyright: Int)
                 cr = DAAM_V5.CopyrightStatus.VERIFIED
             default: return
         }
-<<<<<<< HEAD
+
+        pre { copyright < 5 } // 
+
         let admin = acct.borrow<&DAAM_V5.Admin>(from: DAAM_V5.adminStoragePath)!
-=======
-        let admin = acct.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
->>>>>>> dev-emulator
         admin.changeCopyright(mid: mid, copyright: cr)
         log("Copyright Changed")
     }

@@ -1,10 +1,9 @@
-
 // create_auction_wallet.cdc
+// Create an auction wallet. Used to store auctions.
 
-import AuctionHouse from 0x045a1763c93006ca
+import AuctionHouse from 0x01837e15023c9249
 
-transaction()
-{ // TODO Update
+transaction() {
     //let signer: AuthAccount
 
     prepare(signer: AuthAccount) {
@@ -16,7 +15,5 @@ transaction()
             return
         }
         log("You already have an Auction House.")
-    }
-    
-    //pre { self.signer.borrow<&FUSD.Vault>(from: /storage/fusdVault) }
+    }    
 }
