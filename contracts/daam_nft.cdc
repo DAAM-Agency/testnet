@@ -2,7 +2,7 @@
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
-import Profile          from 0x192440c99cb17282
+import Profile          from 0xba1132bc08f82fe2
 
 /************************************************************************/
 pub contract DAAM_V5: NonFungibleToken
