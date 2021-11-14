@@ -1,6 +1,13 @@
 echo "Testing Section A ===================="
 echo "Setup Accounts & Wallets"
 
+# Invite Admin & Accept
+echo "========= Invite Admin ========="
+echo "Invite an Admin"
+flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN --signer cto
+echo "Answer Admin Invite."
+flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin
+
 # Invite Creator & Accept
 echo "========= Invite Creator ========="
 # accept

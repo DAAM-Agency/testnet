@@ -59,13 +59,13 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency : Address     // DAAM Ageny Address
 /***********************************************************************/
-// Copyright enumeration status
+// Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
-            pub case FRAUD
-            pub case CLAIM
-            pub case UNVERIFIED
-            pub case VERIFIED
-            pub case INCLUDED
+            pub case FRAUD      // 0 as UInt8
+            pub case CLAIM      // 1 as UInt8
+            pub case UNVERIFIED // 2 as UInt8
+            pub case VERIFIED   // 3 as UInt8
+            pub case INCLUDED   // 4 as UInt8
 }
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.

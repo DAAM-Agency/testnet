@@ -3,6 +3,8 @@
 #NOTE: . ./init.sh
 # Don't forget the first '.' to carry over to transactions.sh
 
+echo "========== Basic Setup: Flow Accounts, Contracts, & Funds"
+
 export CREATOR_PUBKEY=0x$(tail -1 ./keys/creator_keys   | awk '{print $3}' | tr -d '\n')
 export ADMIN_PUBKEY=$(tail -1 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
 export CLIENT_PUBKEY=$(tail -1 ./keys/client_keys       | awk '{print $3}' | tr -d '\n')
@@ -110,6 +112,8 @@ flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $PROFILE -
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
+echo "========= Publish DAAM Contracts =========="
+
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
 flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE $AGENCY $CTO --signer daam_nft
@@ -118,41 +122,43 @@ flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 #Auction
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
 
-# Invite Admin/CTO
-flow transactions send ./transactions/create_profile.cdc --signer cto
-flow transactions send ./transactions/answer_admin_invite.cdc true --signer cto
+echo "----------- All Contracts Are Published and Flow Accounts Setup with FUSD Funds. -----------"
 
-# Invite Admin
-flow transactions send ./transactions/create_profile.cdc --signer admin
-flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN --signer cto
-flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin
-
-# Setup Marketplace
-flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer admin
-flow transactions send ./transactions/answer_minter_invite.cdc true --signer marketplace
-
-# ACCOUNTS SETUP ------------------------- 
+echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ==========" 
 
 # Setup Profiles
-echo "========= Setup Profiles ========="
+echo "========= Setup All Profiles ========="
+flow transactions send ./transactions/create_profile.cdc --signer cto
+flow transactions send ./transactions/create_profile.cdc --signer admin
 flow transactions send ./transactions/create_profile.cdc --signer admin2
 flow transactions send ./transactions/create_profile.cdc --signer creator
 flow transactions send ./transactions/create_profile.cdc --signer client
 flow transactions send ./transactions/create_profile.cdc --signer nobody
-flow transactions send ./transactions/create_profile.cdc --signer cto
+# CTO has already been done previously. see invite Admin/CTO
 
 # Setup DAAM Accounts
-echo "========= Setup DAAM Accounts ========="
+echo "========= Setup All DAAM Accounts ========="
 flow transactions send ./transactions/setup_daam_account.cdc --signer nobody
 flow transactions send ./transactions/setup_daam_account.cdc --signer creator
 flow transactions send ./transactions/setup_daam_account.cdc --signer client
+flow transactions send ./transactions/setup_daam_account.cdc --signer admin
 flow transactions send ./transactions/setup_daam_account.cdc --signer admin2
 flow transactions send ./transactions/setup_daam_account.cdc --signer cto
 
 # Setup Auction Wallets
-echo "========= Setup Auction Wallets ========="
+echo "========= Setup All Auction Wallets ========="
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer nobody
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer creator
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer client
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer admin2
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer cto
+
+# Answer Default Admin / CTO
+echo "Answer default Admin Invite created by contract creation."
+flow transactions send ./transactions/answer_admin_invite.cdc true --signer cto
+
+# Setup AuctionHouse Minter Key
+echo "Send AuctionHouse Minter Key."
+flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer admin
+echo "AuctionHouse Accepts Minter Key."
+flow transactions send ./transactions/answer_minter_invite.cdc true --signer marketplace
