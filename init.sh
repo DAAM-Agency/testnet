@@ -42,6 +42,7 @@ export CREATOR2_PRIVKEY=$(tail -2 ./keys/creator2_keys   | awk '{print $3}' | tr
 export CLIENT2_PRIVKEY=$(tail -2 ./keys/client2_keys     | awk '{print $3}' | tr -d '\n')
 
 # init accounts; Must be in order
+echo "------------ Saving Account information ----------"
 flow accounts create --key $ADMIN_PUBKEY --save admin
 flow accounts create --key $CREATOR_PUBKEY --save creator
 flow accounts create --key $CLIENT_PUBKEY --save client
@@ -91,6 +92,7 @@ echo Agency: $AGENCY
 export CTO=$(head -1 cto | awk '{print $2}')
 echo CTO: $CTO
 
+echo "---------- Sending Flow for basic transactions -----------"
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $NOBODY
@@ -192,7 +194,7 @@ flow transactions send ./transactions/setup_daam_account.cdc --signer cto
 
 flow transactions send ./transactions/setup_daam_account.cdc --signer agent
 flow transactions send ./transactions/setup_daam_account.cdc --signer agent2
-flow transactions send ./transactions/setup_daam_account.cdc --signer client
+flow transactions send ./transactions/setup_daam_account.cdc --signer client2
 flow transactions send ./transactions/setup_daam_account.cdc --signer creator2
 
 # Setup Auction Wallets
