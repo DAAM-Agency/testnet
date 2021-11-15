@@ -31,9 +31,29 @@
 			"keys": "603c87086c7a2ddea5050724f5a46c3827ae66efd10ea51a7937f6abc982ac01",
 			"chain": "flow-emulator"
 		},
+		"admin2": {
+			"address": "e03daebed8ca0615",
+			"keys": "82707875e9c232fbe4998a4f0744c36fe7d35250b2eaf8721a6ee5f92c4586e2",
+			"chain": "flow-emulator"
+		},
+		"agent": {
+			"address": "e2f72218abeec2b9",
+			"keys": "9bc7634b9fe7acaefbd22089746fd1a19cd50b0bff782f0dd49c018b6efc420f",
+			"chain": "flow-emulator"
+		},
+		"agent2": {
+			"address": "06909bc5ba14c266",
+			"keys": "03383c2de4a15e279a9256b4c84c4642b4f9965c047fbf036a54fd9e18868a56",
+			"chain": "flow-emulator"
+		},
 		"creator": {
 			"address": "179b6b1cb6755e31",
 			"keys": "6fc47b7427a2ef54af73e3b1c9da51ad3b3c18fe3cab8dfa4fc8023a57e2bb02",
+			"chain": "flow-emulator"
+		},
+		"creator2": {
+			"address": "10c4fef62310c807",
+			"keys": "551126572d68e310b827f6e89b1a694124e318af46b141171abe76ccbda1747d",
 			"chain": "flow-emulator"
 		},
 		"client": {
@@ -41,9 +61,9 @@
 			"keys": "5d9255fe314bc47cbd218ae9b80430408d0b8fc94a64a0bf3c89dab112e4dbb4",
 			"chain": "flow-emulator"
 		},
-		"admin2": {
-			"address": "e03daebed8ca0615",
-			"keys": "82707875e9c232fbe4998a4f0744c36fe7d35250b2eaf8721a6ee5f92c4586e2",
+		"client2": {
+			"address": "f4a3472b32eac8d8",
+			"keys": "17c2458b90ea1fb7498c5dfdfe64b8014ed4447cbc8e5f60f66ecb6a0e2cc08c",
 			"chain": "flow-emulator"
 		},
 		"marketplace": {
