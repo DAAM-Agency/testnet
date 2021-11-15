@@ -1,7 +1,15 @@
 #!/bin/bash
 
 #NOTE: . ./init.sh
-# Don't forget the first '.' to carry over to transactions.sh
+# Don't forget the first '.' to carry over to the next sh file.
+
+# This is the initialization setup. This setup all the emulator contracts such as NFT, FUSD, Profile.
+# Also DAAM contracts daam_nft, auction. All Accounts are generated and assigned the following:
+# DAAM Wallet to store NFTs
+# AuctionWallet to store Auctions
+# FUSD Wallet
+
+# The Minter is also tested in this setup file. Accept/Decline/Incorrect User are all tested.
 
 echo "========== Basic Setup: Flow Accounts, Contracts, & Funds =========="
 
@@ -217,7 +225,26 @@ flow transactions send ../transactions/answer_admin_invite.cdc true --signer cto
 # Setup AuctionHouse Minter Key
 echo "Send AuctionHouse Minter Key."
 flow transactions send ../transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
-echo "AuctionHouse Accepts Minter Key."
+
+echo -n "Verify Minter Status: "
+flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
+
+echo "AuctionHouse Declines Minter Key."
+flow transactions send ../transactions/answer_minter_invite.cdc false --signer marketplace
+
+echo -n "Verify Minter Status: "
+flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
+
+echo "Re-Send AuctionHouse Minter Key."
+flow transactions send ../transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
+
+echo "FAIL TEST: Wrong User"
+flow transactions send ../transactions/answer_minter_invite.cdc true --signer cto
+
+echo "AuctionHouse Acceptd Minter Key."
 flow transactions send ../transactions/answer_minter_invite.cdc true --signer marketplace
+
+echo -n "Verify Minter Status: "
+flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
 echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. -----------"
