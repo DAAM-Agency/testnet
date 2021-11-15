@@ -61,13 +61,13 @@ pub contract DAAM_V6: NonFungibleToken
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency : Address     // DAAM_V6 Ageny Address
 /***********************************************************************/
-// Copyright enumeration status
+// Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
-            pub case FRAUD
-            pub case CLAIM
-            pub case UNVERIFIED
-            pub case VERIFIED
-            pub case INCLUDED
+            pub case FRAUD      // 0 as UInt8
+            pub case CLAIM      // 1 as UInt8
+            pub case UNVERIFIED // 2 as UInt8
+            pub case VERIFIED   // 3 as UInt8
+            pub case INCLUDED   // 4 as UInt8
 }
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
@@ -705,6 +705,10 @@ pub resource Admin: Agent
 
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { // Return Copyright Status. nil = non-existent MID
         return self.copyright[mid]
+    }
+
+    pub fun getMetadataStatus(): {UInt64:Bool} {
+        return self.metadata
     }
 
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
