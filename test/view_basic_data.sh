@@ -1,4 +1,4 @@
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # Dummy action to update flow
+flow transactions send ../transactions/send_flow_em.cdc 1.0 $PROFILE  # Dummy action to update flow
 
 echo "---------- Testing Functions ----------"
 

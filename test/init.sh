@@ -93,64 +93,64 @@ export CTO=$(head -1 cto | awk '{print $2}')
 echo CTO: $CTO
 
 echo "---------- Sending Flow for basic transactions -----------"
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $NOBODY
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $NFT
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $DAAM_NFT
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $CREATOR
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $ADMIN
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $NOBODY
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $NFT
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $DAAM_NFT
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $MARKETPLACE
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN2
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $PROFILE
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $MARKETPLACE
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $CLIENT
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $ADMIN2
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $PROFILE
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CTO
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $CTO
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR2
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT2
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT2
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $CREATOR2
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $CLIENT2
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $AGENT
+flow transactions send ../transactions/send_flow_em.cdc 200.0 $AGENT2
 
 # Init Contracts
 
 # FUSD Enulator Contract
 echo "========== Publish Test FUSD Contract =========="
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
-flow transactions send ./transactions/setup_fusd.cdc 100000000.0 $CTO --signer profile
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer cto
+flow transactions send ../transactions/setup_fusd.cdc 100000000.0 $CTO --signer profile
 
 echo "========== Send 100K FUSD to All Accounts =========="
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer agency
 
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer creator
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer nobody
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer daam_nft
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer creator
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer admin
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer nobody
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer daam_nft
 
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer marketplace
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer client
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin2
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer profile
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer marketplace
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer client
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer admin2
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer profile
 
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agent
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agent2
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer creator2
-flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer client2
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer agent
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer agent2
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer creator2
+flow transactions send ../transactions/fusd/setup_fusd_vault.cdc --signer client2
 
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $NOBODY --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $DAAM_NFT --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $NOBODY --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $DAAM_NFT --signer cto
 
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $MARKETPLACE --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN2 --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $PROFILE --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $MARKETPLACE --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN2 --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $PROFILE --signer cto
 
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR2 --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT2 --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR2 --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT2 --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT --signer cto
+flow transactions send ../transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --signer cto
 
 # Emulator Contracts
 echo "========== Publish Supporting Contracts: NonFungibleToken & Profile"
@@ -171,53 +171,53 @@ echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ====
 
 # Setup Profiles
 echo "========= Setup All Profiles ========="
-flow transactions send ./transactions/create_profile.cdc --signer cto
-flow transactions send ./transactions/create_profile.cdc --signer admin
-flow transactions send ./transactions/create_profile.cdc --signer admin2
-flow transactions send ./transactions/create_profile.cdc --signer creator
-flow transactions send ./transactions/create_profile.cdc --signer client
-flow transactions send ./transactions/create_profile.cdc --signer nobody
+flow transactions send ../transactions/create_profile.cdc --signer cto
+flow transactions send ../transactions/create_profile.cdc --signer admin
+flow transactions send ../transactions/create_profile.cdc --signer admin2
+flow transactions send ../transactions/create_profile.cdc --signer creator
+flow transactions send ../transactions/create_profile.cdc --signer client
+flow transactions send ../transactions/create_profile.cdc --signer nobody
 
-flow transactions send ./transactions/create_profile.cdc --signer agent
-flow transactions send ./transactions/create_profile.cdc --signer agent2
-flow transactions send ./transactions/create_profile.cdc --signer creator2
-flow transactions send ./transactions/create_profile.cdc --signer client2
+flow transactions send ../transactions/create_profile.cdc --signer agent
+flow transactions send ../transactions/create_profile.cdc --signer agent2
+flow transactions send ../transactions/create_profile.cdc --signer creator2
+flow transactions send ../transactions/create_profile.cdc --signer client2
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
-flow transactions send ./transactions/setup_daam_account.cdc --signer nobody
-flow transactions send ./transactions/setup_daam_account.cdc --signer creator
-flow transactions send ./transactions/setup_daam_account.cdc --signer client
-flow transactions send ./transactions/setup_daam_account.cdc --signer admin
-flow transactions send ./transactions/setup_daam_account.cdc --signer admin2
-flow transactions send ./transactions/setup_daam_account.cdc --signer cto
+flow transactions send ../transactions/setup_daam_account.cdc --signer nobody
+flow transactions send ../transactions/setup_daam_account.cdc --signer creator
+flow transactions send ../transactions/setup_daam_account.cdc --signer client
+flow transactions send ../transactions/setup_daam_account.cdc --signer admin
+flow transactions send ../transactions/setup_daam_account.cdc --signer admin2
+flow transactions send ../transactions/setup_daam_account.cdc --signer cto
 
-flow transactions send ./transactions/setup_daam_account.cdc --signer agent
-flow transactions send ./transactions/setup_daam_account.cdc --signer agent2
-flow transactions send ./transactions/setup_daam_account.cdc --signer client2
-flow transactions send ./transactions/setup_daam_account.cdc --signer creator2
+flow transactions send ../transactions/setup_daam_account.cdc --signer agent
+flow transactions send ../transactions/setup_daam_account.cdc --signer agent2
+flow transactions send ../transactions/setup_daam_account.cdc --signer client2
+flow transactions send ../transactions/setup_daam_account.cdc --signer creator2
 
 # Setup Auction Wallets
 echo "========= Setup All Auction Wallets ========="
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer nobody
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer creator
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer client
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer admin2
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer cto
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer nobody
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer creator
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer client
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer admin2
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer cto
 
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer agent
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer agent2
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer creator2
-flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer client2
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer agent
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer agent2
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer creator2
+flow transactions send ../transactions/auction/create_auction_wallet.cdc --signer client2
 
 # Answer Default Admin / CTO
 echo "Answer default Admin Invite created by contract creation."
-flow transactions send ./transactions/answer_admin_invite.cdc true --signer cto
+flow transactions send ../transactions/answer_admin_invite.cdc true --signer cto
 
 # Setup AuctionHouse Minter Key
 echo "Send AuctionHouse Minter Key."
-flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
+flow transactions send ../transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
 echo "AuctionHouse Accepts Minter Key."
-flow transactions send ./transactions/answer_minter_invite.cdc true --signer marketplace
+flow transactions send ../transactions/answer_minter_invite.cdc true --signer marketplace
 
 echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. -----------"

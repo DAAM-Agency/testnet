@@ -1,16 +1,28 @@
-echo "Testing Section A ===================="
-echo "Setup Accounts & Wallets"
-
 # Invite Admin & Accept
-echo "========= Invite Admin ========="
-echo "Invite an Admin"
-flow transactions send ./transactions/admin/invite_admin.cdc $ADMIN --signer cto
-echo "Answer Admin Invite."
-flow transactions send ./transactions/answer_admin_invite.cdc true --signer admin
+echo "========= Invite Admins, Agents, & Creator ========="
 
-# Invite Creator & Accept
-echo "========= Invite Creator ========="
-# accept
+echo "---------- Inviting Admins ----------"
+for user in $ADMIN $ADMIN2
+do
+getAddressName $user
+flow transactions send ./transactions/admin/invite_admin.cdc $user --signer cto
+done
+
+echo "---------- Inviting Agents ----------"
+for user in $AGENT $AGENT2
+do
+getAddressName $user
+flow transactions send ./transactions/admin/invite_agent.cdc $user --signer admin
+done
+
+echo "---------- Inviting Creators ----------"
+for user in $CREATOR $CREATOR2
+do
+getAddressName $user
+flow transactions send ./transactions/admin/invite_creator.cdc $user --signer admin2
+done
+
+
 flow transactions send ./transactions/admin/invite_creator.cdc $CREATOR --signer admin
 flow transactions send ./transactions/answer_creator_invite.cdc true --signer creator
 # decline
