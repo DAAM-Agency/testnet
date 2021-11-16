@@ -30,7 +30,10 @@ echo "FAIL TEST: Attempting to Remove Creator by non-Admin"
 flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer client
 
 echo "---------- Remove Creator ----------"
-flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer admin
+flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer cto
+
+echo -n "Verify Creator Status: "
+flow scripts execute ./scripts/is_creator.cdc $1
 
 # Delete / Reset Addresses
 flow transactions send ./transactions/creator/delete_creator.cdc --signer creator
