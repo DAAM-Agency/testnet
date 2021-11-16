@@ -3,10 +3,11 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-pub fun main(): {Address: {UInt64: DAAM.Metadata} }
+pub fun main(): {Address: [[DAAM.Metadata]; 2] }
 {
     let creators = DAAM.getCreators()
-    var metalist: {Address: {UInt64: DAAM.Metadata} } = {}        
+    var mlist: [DAAM.Metadata] = []
+    var clist: { Address : [[DAAM.Metadata]; 2] } = {}
     
     for creator in creators {
         let metadataRef = getAccount(creator)
@@ -14,8 +15,11 @@ pub fun main(): {Address: {UInt64: DAAM.Metadata} }
             .borrow() ?? panic("Could not borrow capability from Metadata")
 
         let metadatas = metadataRef.getMetadatas()        
-        metalist.insert(key: creator, metadatas)    
+        for m in metadatas.keys {
+            mlist.append(metadatas[m]!)
+        }
+        let convert_metadata = DAAM.convertMetadata(metadata: mlist)
+        clist.insert(key: creator, convert_metadata)
     }
-
-    return metalist
+    return clist
 }

@@ -3,11 +3,16 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-pub fun main(creator: Address, mid: UInt64): &DAAM.Metadata
+pub fun main(creator: Address, mid: UInt64): [[DAAM.Metadata];2]
 {
-    let metadataRef = getAccount(creator)
+    let metadataGenRef = getAccount(creator)
         .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
-    return metadataRef.getMetadataRef(mid: mid)
+    let metadata = metadataGenRef.getMetadataRef(mid: mid)
+    let convert_metadata = DAAM.convertMetadata(metadata: [metadata])
+
+    return convert_metadata
 }
+
+
