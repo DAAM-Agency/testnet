@@ -1,5 +1,5 @@
 // get_all_metadpata.cdc
-// Used to get a all Metadatas by all Creators
+// Used to get all Metadatas by all Creators
 
 import DAAM from 0xfd43f9148d4b725d
 
