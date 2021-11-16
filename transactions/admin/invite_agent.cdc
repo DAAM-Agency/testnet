@@ -21,7 +21,7 @@ transaction(newAgent: Address)
     }
 
     execute {
-        self.admin.inviteAgent(newAgent: self.newAgent)
+        self.admin.inviteAgent(self.newAgent)
         log("Admin Invited")
     }
 

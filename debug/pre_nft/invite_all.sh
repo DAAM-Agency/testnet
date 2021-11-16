@@ -12,12 +12,12 @@ echo "---------- Inviting Agents ----------"
 for user in $AGENT $AGENT2
 do
 getAddressName $user
-flow transactions send ./transactions/admin/invite_agent.cdc $user --signer admin
+flow transactions send ./transactions/admin/invite_agent.cdc $user --signer cto
 done
 
 echo "---------- Inviting Creators ----------"
 for user in $CREATOR $CREATOR2
 do
 getAddressName $user
-flow transactions send ./transactions/admin/invite_creator.cdc $user --signer admin2
+flow transactions send ./transactions/admin/invite_creator.cdc $user --signer agent
 done
