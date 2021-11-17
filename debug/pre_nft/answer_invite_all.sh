@@ -1,4 +1,8 @@
 # Invite Admin & Accept
+# Argument #1: Admins Accept/Decline (Bool)
+# Argument #2: Agencts Accept/Decline (Bool)
+# Argument #3: Creators Accept/Decline (Bool)
+
 echo "========= Invite Admins, Agents, & Creator ========="
 # Admin
 echo -n "Verify Admin Status: "
@@ -10,7 +14,7 @@ echo "---------- Answering Admins ----------"
 for user in admin admin2
 do
 echo -n $user
-flow transactions send ./transactions/admin/answer_admin_invite.cdc $1 --signer $user
+flow transactions send ./transactions/answer_admin_invite.cdc $1 --signer $user
 done
 
 echo -n "Verify Admin Status: "
@@ -28,7 +32,7 @@ echo "---------- Answering Agents ----------"
 for user in agent agent2
 do
 echo -n $user
-flow transactions send ./transactions/admin/answer_agent_invite.cdc $2 --signer $user
+flow transactions send ./transactions/answer_agent_invite.cdc $2 --signer $user
 done
 
 echo -n "Verify Agent Status: "
@@ -46,7 +50,7 @@ echo "---------- Answering Creators ----------"
 for user in creator creator2
 do
 echo -n $user
-flow transactions send ./transactions/admin/answer_creator_invite.cdc $3 --signer $user
+flow transactions send ./transactions/answer_creator_invite.cdc $3 --signer $user
 done
 
 echo -n "Verify Creator Status: "

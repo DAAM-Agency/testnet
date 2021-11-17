@@ -15,9 +15,3 @@ then
     flow transactions send ./transactions/admin/change_metadata_status.cdc $1 false --signer admin2  # MID x
 fi
 
-# Verify Metadata
-echo "---------- Veriy Metadata ----------"
-echo "Creator " -n
-flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
-echo "Creator2 " -n
-flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2
