@@ -1,6 +1,6 @@
 // clear_admin.cdc
 
-import DAAM_V6.   from 0xa4ad5ea5c0bd2fba
+import DAAM       from 0xa4ad5ea5c0bd2fba
 import DAAM_V6.V1 from 0xa4ad5ea5c0bd2fba
 import DAAM_V6.V2 from 0xa4ad5ea5c0bd2fba
 import DAAM_V6.V3 from 0xa4ad5ea5c0bd2fba
