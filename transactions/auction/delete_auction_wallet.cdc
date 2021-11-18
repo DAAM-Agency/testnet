@@ -12,5 +12,5 @@ transaction() {
         destroy auctionRes
         self.auction.unlink(AuctionHouse.auctionPublicPath)
         log("AuctionHouse cleared.")
-    }    
+    } 
 }
