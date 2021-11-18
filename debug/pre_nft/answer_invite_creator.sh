@@ -1,17 +1,9 @@
 #Creator
 echo -n "Verify Creator Status: "
-flow scripts execute ./scripts/is_creator.cdc $CREATOR
-echo -n "Verify Creator2 Status: "
-flow scripts execute ./scripts/is_creator.cdc $CREATOR2
+flow scripts execute ./scripts/is_creator.cdc $1
 
 echo "---------- Answering Creators ----------"
-for user in creator creator2
-do
-echo -n $user
-flow transactions send ./transactions/admin/answer_creator_invite.cdc $3 --signer $user
-done
+flow transactions send ./transactions/admin/answer_creator_invite.cdc true --signer $1
 
 echo -n "Verify Creator Status: "
-flow scripts execute ./scripts/is_creator.cdc $CREATOR
-echo -n "Verify Creator2 Status: "
-flow scripts execute ./scripts/is_creator.cdc $CREATOR2
+flow scripts execute ./scripts/is_creator.cdc $1

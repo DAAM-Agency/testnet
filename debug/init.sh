@@ -2,6 +2,7 @@
 
 #NOTE: . ./init.sh
 # Don't forget the first '.' to carry over to the next sh file.
+# CTO is must always stay Admin. 
 
 # This is the initialization setup. This setup all the emulator contracts such as NFT, FUSD, Profile.
 # Also DAAM contracts daam_nft, auction. All Accounts are generated and assigned the following:

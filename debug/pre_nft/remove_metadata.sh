@@ -9,7 +9,7 @@ flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2
 
 # Remove Metadata [MID]
 echo "========= Remove Metadata Submission ========="
-flow transactions send ./transactions/creator/remove_submission.cdc $1 --signer $2
+flow transactions send ./transactions/creator/remove_submission.cdc $2 --signer $1
 
 echo "========= Veriy Metadata ========="
 # verify metadata
