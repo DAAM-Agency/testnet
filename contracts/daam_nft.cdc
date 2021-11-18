@@ -157,12 +157,12 @@ pub resource RequestGenerator {
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMetadatas()              : {UInt64 : Metadata} // Return Creators' Metadata collection
-    pub fun getMetadataRef(mid: UInt64) : Metadata            // Return specific Metadata of Creator
+    pub fun getMetadataRef(mid: UInt64) : &Metadata            // Return specific Metadata of Creator
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadatas()                : {UInt64 : Metadata} // Return Creators' Metadata collection
-    pub fun getMetadataRef(mid: UInt64)   : Metadata            // Return specific Metadata of Creator
+    pub fun getMetadataRef(mid: UInt64)   : &Metadata            // Return specific Metadata of Creator
     pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
 /************************************************************************/
@@ -244,11 +244,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return self.metadata
         }
 
-        pub fun getMetadataRef(mid: UInt64): Metadata { // Return specific Metadata of Creator
+        pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
             pre { 
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
-            return self.metadata[mid]!                 // Return Metadata
+            return &self.metadata[mid]! as &Metadata    // Return Metadata
         }
 }
 /************************************************************************/

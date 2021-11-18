@@ -23,8 +23,9 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen : { UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
-    access(contract) var auctionCounter : UInt64 // Incremental counter used for AID (Auction ID)
+    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
+    access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
+    pub var currentAuctions             : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -81,6 +82,10 @@ pub contract AuctionHouse {
             let aid = auction.auctionID // Auction ID
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
+
+            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
+            log("Auction Created. Start: ".concat(start.toString()) )
+            emit AuctionCreated(auctionID: aid)
         }
 
         // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
@@ -101,6 +106,7 @@ pub contract AuctionHouse {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
             
+            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
         }
@@ -128,6 +134,13 @@ pub contract AuctionHouse {
 
                     let auction <- self.currentAuctions.remove(key:auctionID)!   // No Series minting or last mint
                     destroy auction                                              // end auction.
+                    
+                    // Update Current Auctions List
+                    if AuctionHouse.currentAuctions[self.titleholder]!.length == 0 {
+                        AuctionHouse.currentAuctions.remove(key:self.titleholder) // If auctioneer has no more auctions remove from list
+                    } else {
+                        AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys)  // otherwise update list
+                    }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )
                     emit AuctionClosed(auctionID: auctionID)
@@ -653,8 +666,9 @@ pub contract AuctionHouse {
     }
 
     init() {
-        self.metadataGen = {}
-        self.auctionCounter = 0
+        self.metadataGen     = {}
+        self.currentAuctions = {}
+        self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
     }
