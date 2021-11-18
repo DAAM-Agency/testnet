@@ -5,12 +5,18 @@ echo -n "Verify Admin2 Status: "
 flow scripts execute ./scripts/is_admin.cdc $ADMIN2
 
 echo "---------- Get 1 of 2 Admin Votes ----------"
-flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer admin
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer admin
 
 echo "FAIL TEST: Removing Admin: Not Admin"
-flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer client
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer client
 
 echo "---------- Get 2 of 2 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer admin2
+
+echo "---------- Get 1 of 2 Admin2 Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer cto
+
+echo "---------- Get 2 of 2 Admin2 Votes ----------"
 flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN2 --signer admin2
 
 echo -n "Verify Admin Status: "

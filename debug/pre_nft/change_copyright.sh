@@ -10,7 +10,7 @@ flow transactions send ./transactions/admin/change_copyright.cdc 7 3 --signer ad
 flow transactions send ./transactions/admin/change_copyright.cdc 8 3 --signer admin #H Verfied
 flow transactions send ./transactions/admin/change_copyright.cdc 9 3 --signer admin #I Verfied
 
-if [$1 != null]
+if [$1 && $2 != null]
 then
     flow transactions send ./transactions/admin/change_copyright.cdc $1 $2 --signer admin #I Verfied
 fi

@@ -1,7 +1,7 @@
 # Submit Metadatas: [Series Max Prints*, About/Misc Data, Thumbnail data, File Data] *0=Unlimited
 # Tests: #A 1-Shot, #B Series(of 7), #C to be deleted by Creator. #D Disapproved by Admin, #E False Copyright,
 #F Unlimited Print, #G 10 series
-echo "========= Submite NFTs ========="
+echo "========= Submit NFTs ========="
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data A" "thumbnail A" "file A" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 7 "data B" "thumbnail B" "file B" --signer creator
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data C" "thumbnail C" "file C" --signer creator
