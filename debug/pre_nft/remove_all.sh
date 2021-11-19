@@ -45,3 +45,26 @@ flow scripts execute ./scripts/is_creator.cdc $CREATOR2
 
 # Delete / Reset Addresses
 flow transactions send ./transactions/creator/delete_creator.cdc --signer creator
+
+# Remove Agent
+echo -n "Verify Agent Status: "
+flow scripts execute ./scripts/is_agent.cdc $AGENT
+echo -n "Verify Agent2 Status: "
+flow scripts execute ./scripts/is_agent.cdc $AGENT2
+
+echo "FAIL TEST: Attempting to Remove Agent by non-Admin"
+flow transactions send ./transactions/admin/remove_agent.cdc $AGENT --signer client
+
+echo "---------- Remove Agent ----------"
+flow transactions send ./transactions/admin/remove_agent.cdc $AGENT --signer cto
+
+echo "---------- Remove Agent ----------"
+flow transactions send ./transactions/admin/remove_agent.cdc $AGENT2 --signer cto
+
+echo -n "Verify Agent Status: "
+flow scripts execute ./scripts/is_agent.cdc $AGENT
+echo -n "Verify Agent2 Status: "
+flow scripts execute ./scripts/is_agent.cdc $AGENT2
+
+# Delete / Reset Addresses
+flow transactions send ./transactions/admin/delete_agent.cdc --signer agent

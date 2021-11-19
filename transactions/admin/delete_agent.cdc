@@ -8,7 +8,7 @@ transaction() {
         let requestRes  <- agent.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
         destroy agentRes
         destroy requestRes
-        agent.unlink(DAAM.agentPrivatePath)
+        agent.unlink(DAAM.adminPrivatePath)
         agent.unlink(DAAM.requestPrivatePath)
         log("Agent Removed")
     } 
