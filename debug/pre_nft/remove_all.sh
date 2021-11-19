@@ -24,6 +24,7 @@ flow scripts execute ./scripts/is_admin.cdc $ADMIN
 echo -n "Verify Admin2 Status: "
 flow scripts execute ./scripts/is_admin.cdc $ADMIN2
 
+flow transactions send ./transactions/admin/delete_admin.cdc --signer admin
 flow transactions send ./transactions/admin/delete_admin.cdc --signer admin2
 
 # Remove Creator
@@ -48,6 +49,7 @@ flow scripts execute ./scripts/is_creator.cdc $CREATOR2
 
 # Delete / Reset Addresses
 flow transactions send ./transactions/creator/delete_creator.cdc --signer creator
+flow transactions send ./transactions/creator/delete_creator.cdc --signer creator2
 
 # Remove Agent
 echo -n "Verify Agent Status: "
@@ -71,3 +73,4 @@ flow scripts execute ./scripts/is_agent.cdc $AGENT2
 
 # Delete / Reset Addresses
 flow transactions send ./transactions/admin/delete_agent.cdc --signer agent
+flow transactions send ./transactions/admin/delete_agent.cdc --signer agent2

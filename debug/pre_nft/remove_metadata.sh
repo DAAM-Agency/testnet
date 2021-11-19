@@ -1,17 +1,20 @@
 # Remove Metadata [MID]
-echo "========= Remove Metadata Submission ========="
-flow transactions send ./transactions/creator/remove_submission.cdc 3 --signer creator  #C MID 3 
+# $1 is MID
+# $2 is signer aka creator or creator2
 
+# Verify metadata
 echo "========= Veriy Metadata ========="
-# verify metadata
+echo -n "Creator: "
 flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR 
+echo -n "Creator2: "
 flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2 
 
-# Remove Metadata [MID]
 echo "========= Remove Metadata Submission ========="
-flow transactions send ./transactions/creator/remove_submission.cdc $2 --signer $1
+flow transactions send ./transactions/creator/remove_submission.cdc $1 --signer $2
 
+# Verify metadata
 echo "========= Veriy Metadata ========="
-# verify metadata
+echo -n "Creator: "
 flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR 
-flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2
+echo -n "Creator2: "
+flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2 

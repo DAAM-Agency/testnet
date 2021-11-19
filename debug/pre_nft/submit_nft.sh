@@ -12,7 +12,7 @@ flow transactions send ./transactions/creator/submit_nft.cdc 2 "data G" "thumbna
 flow transactions send ./transactions/creator/submit_nft.cdc 4 "data H" "thumbnail H" "file H" --signer creator2
 flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbnail I" "file I" --signer creator2
 
-echo "========= Veriy Metadata ========="
+echo "========= Verify Metadata ========="
 # verify metadata
 flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR 
 flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR2 
