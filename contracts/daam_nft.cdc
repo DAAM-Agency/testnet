@@ -399,8 +399,7 @@ pub resource Admin: Agent
         pub var status: Bool       // The current status of the Admin
 
         init(_ admin: AuthAccount) {
-            self.status = true      // Default Admin status: True
-            DAAM.admins.insert(key: admin.address, true) // Insert new Admin in admins list.
+            self.status = true      // Default Admin status: True   
         }
 
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
@@ -620,9 +619,10 @@ pub resource Admin: Agent
         }  // Refused invitation. Return and end function
         
         // Invitation accepted at this point
+        DAAM.admins[newAdmin.address] = submit // Insert new Admin in admins list.
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin)! // Accepted and returning Admin Resource
+        return <- create Admin(newAdmin)!      // Accepted and returning Admin Resource
     }
 
     // // The Agent potential can accept (True) or deny (False)
@@ -771,7 +771,6 @@ pub resource Admin: Agent
         self.remove    = {}
         self.request  <- {}
         self.copyright = {}
-        self.admins    = {}
         self.agents    = {} 
         self.creators  = {}
         self.minters   = {}

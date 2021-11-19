@@ -38,6 +38,9 @@ flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer
 echo "---------- Remove Creator ----------"
 flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer cto
 
+echo "---------- Remove Creator2 ----------"
+flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR2 --signer cto
+
 echo -n "Verify Creator Status: "
 flow scripts execute ./scripts/is_creator.cdc $CREATOR
 echo -n "Verify Creator2 Status: "
