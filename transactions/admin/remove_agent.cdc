@@ -4,7 +4,7 @@
 import DAAM_V6 from 0xa4ad5ea5c0bd2fba
 
 transaction(exAgent: Address) {
-    let admin   : &DAAM_V6.Agent
+    let admin   : &DAAM_V6.Admin
     let exAgent : Address
 
     prepare(admin: AuthAccount) {

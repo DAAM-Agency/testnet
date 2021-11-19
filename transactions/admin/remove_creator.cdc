@@ -5,11 +5,11 @@ import DAAM_V6 from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address)
 {
-    let admin   : &{DAAM_V6.Agent}
+    let admin   : &DAAM_V6.Admin{DAAM_V6.Agent}
     let creator : Address
 
     prepare(agent: AuthAccount) {
-        self.admin   = agent.borrow<&{DAAM_V6.Agent}>(from: DAAM_V6.adminStoragePath)!
+        self.admin   = agent.borrow<&DAAM_V6.Admin{DAAM_V6.Agent}>(from: DAAM_V6.adminStoragePath)!
         self.creator = creator
     }
 
