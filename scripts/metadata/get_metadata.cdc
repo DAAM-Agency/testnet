@@ -9,10 +9,12 @@ pub fun main(creator: Address, mid: UInt64): [[DAAM_V6.Metadata];2]
         .getCapability<&DAAM_V6.MetadataGenerator{DAAM_V6.MetadataGeneratorPublic}>(DAAM_V6.metadataPublicPath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
-    let metadata = metadataGenRef.getMetadataRef(mid: mid)
+    let metadata = DAAM_V6.Metadata(creator: metadataRef.creator, series: metadataRef.series, data: metadataRef.data,
+        thumbnail: metadataRef.thumbnail, file: metadataRef.file, counter: metadataRef.counter)
     let convert_metadata = DAAM_V6.convertMetadata(metadata: [metadata])
 
     return convert_metadata
+}
 }
 
 
