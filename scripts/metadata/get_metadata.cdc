@@ -15,6 +15,5 @@ pub fun main(creator: Address, mid: UInt64): [[DAAM_V6.Metadata];2]
 
     return convert_metadata
 }
-}
 
 
