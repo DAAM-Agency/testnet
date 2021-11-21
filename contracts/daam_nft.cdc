@@ -372,14 +372,14 @@ pub resource Admin: Agent
         pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
             pre {
                 self.status                    : "You're no longer a have Access."
-                DAAM.creators[newAdmin] == nil : "A Admin can not use the same address as an Creator."
-                DAAM.agents[newAdmin] == nil   : "A Admin can not use the same address as an Agent."
-                DAAM.admins[newAdmin] == nil   : "They're already sa DAAM Admin!!!"
+                DAAM_V6.creators[newAdmin] == nil : "A Admin can not use the same address as an Creator."
+                DAAM_V6.agents[newAdmin] == nil   : "A Admin can not use the same address as an Agent."
+                DAAM_V6.admins[newAdmin] == nil   : "They're already sa DAAM Admin!!!"
                 Profile.check(newAdmin) : "You can't be a DAAM Admin without a Profile! Go make one Fool!!"
             }
-            post { DAAM.admins[newAdmin] == false : "Illegal Operaion: inviteAdmin" }
+            post { DAAM_V6.admins[newAdmin] == false : "Illegal Operaion: inviteAdmin" }
 
-            DAAM.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
+            DAAM_V6.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
             log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
@@ -387,14 +387,14 @@ pub resource Admin: Agent
         pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
             pre {
                 self.status                 : "You're no longer a have Access."
-                DAAM.admins[agent] == nil   : "A Agent can not use the same address as an Admin."
-                DAAM.creators[agent] == nil : "A Agent can not use the same address as an Creator."
-                DAAM.agents[agent] == nil   : "They're already a DAAM Agent!!!"
+                DAAM_V6.admins[agent] == nil   : "A Agent can not use the same address as an Admin."
+                DAAM_V6.creators[agent] == nil : "A Agent can not use the same address as an Creator."
+                DAAM_V6.agents[agent] == nil   : "They're already a DAAM Agent!!!"
                 Profile.check(agent) : "You can't be a DAAM Admin without a Profile! Go make one Fool!!"
             }
-            post { DAAM.agents[agent] == false : "Illegal Operaion: inviteAdmin" }
+            post { DAAM_V6.agents[agent] == false : "Illegal Operaion: inviteAdmin" }
 
-            DAAM.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
+            DAAM_V6.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
             log("Sent Agent Invitation: ".concat(agent.toString()) )
             emit AgentInvited(agent: agent)         
         }
@@ -402,23 +402,23 @@ pub resource Admin: Agent
         pub fun inviteCreator(_ creator: Address) {    // Admin or Agent invite a new creator
             pre {
                 self.status                   : "You're no longer a have Access."
-                DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
-                DAAM.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
-                DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
+                DAAM_V6.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
+                DAAM_V6.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
+                DAAM_V6.creators[creator] == nil : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
-            post { DAAM.creators[creator] == false : "Illegal Operaion: inviteCreator" }
+            post { DAAM_V6.creators[creator] == false : "Illegal Operaion: inviteCreator" }
 
-            DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
+            DAAM_V6.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
 
         pub fun inviteMinter(_ minter: Address) {   // Admin invites a new Minter (Key)
             pre { self.status : "You're no longer a have Access." }
-            post { DAAM.minters[minter] == false : "Illegal Operaion: inviteCreator" }
+            post { DAAM_V6.minters[minter] == false : "Illegal Operaion: inviteCreator" }
 
-            DAAM.minters.insert(key: minter, false) // Minter Key is setup but not active untill accepted.
+            DAAM_V6.minters.insert(key: minter, false) // Minter Key is setup but not active untill accepted.
             log("Sent Minter Setup: ".concat(minter.toString()) )
             emit MinterSetup(minter: minter)      
         }
@@ -456,11 +456,11 @@ pub resource Admin: Agent
         pub fun removeAgent(agent: Address) { // Admin removes selected Agent by Address
             pre  {
                 self.status                    : "You're no longer a have Access."
-                DAAM.agents.containsKey(agent) : "This is not a Agent Address."
+                DAAM_V6.agents.containsKey(agent) : "This is not a Agent Address."
             }
-            post { !DAAM.agents.containsKey(agent) : "Illegal operation: removeAgent" } // Unreachable
+            post { !DAAM_V6.agents.containsKey(agent) : "Illegal operation: removeAgent" } // Unreachable
 
-            DAAM.agents.remove(key: agent)    // Remove Agent from list
+            DAAM_V6.agents.remove(key: agent)    // Remove Agent from list
             log("Removed Agent")
             emit AgentRemoved(agent: agent)
         }
@@ -468,11 +468,11 @@ pub resource Admin: Agent
         pub fun removeCreator(creator: Address) { // Admin removes selected Creator by Address
             pre  {
                 self.status                        : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator) : "This is not a Creator address."
+                DAAM_V6.creators.containsKey(creator) : "This is not a Creator address."
             }
-            post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
+            post { !DAAM_V6.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
 
-            DAAM.creators.remove(key: creator)    // Remove Creator from list
+            DAAM_V6.creators.remove(key: creator)    // Remove Creator from list
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
@@ -480,10 +480,10 @@ pub resource Admin: Agent
         pub fun removeMinter(minter: Address) { // Admin removes selected Agent by Address
             pre  {
                 self.status                      : "You're no longer a have Access."
-                DAAM.minters.containsKey(minter) : "This is not a Minter Address."
+                DAAM_V6.minters.containsKey(minter) : "This is not a Minter Address."
             }
-            post { !DAAM.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
-            DAAM.minters.remove(key: minter)    // Remove Agent from list
+            post { !DAAM_V6.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
+            DAAM_V6.minters.remove(key: minter)    // Remove Agent from list
             log("Removed Minter")
             emit MinterRemoved(minter: minter)
         }
@@ -492,12 +492,12 @@ pub resource Admin: Agent
         pub fun changeAgentStatus(agent: Address, status: Bool) {
             pre {
                 self.status                     : "You're no longer a have Access."
-                DAAM.agents.containsKey(agent)  : "Wrong Address. This is not an Agent."
-                DAAM.agents[agent] != status    : "Agent already has this Status."
+                DAAM_V6.agents.containsKey(agent)  : "Wrong Address. This is not an Agent."
+                DAAM_V6.agents[agent] != status    : "Agent already has this Status."
             }
-            post { DAAM.agents[agent] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
+            post { DAAM_V6.agents[agent] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            DAAM.agents[agent] = status // status changed
+            DAAM_V6.agents[agent] = status // status changed
             log("Agent Status Changed")
             emit ChangeAgentStatus(agent: agent, status: status)
         }        
@@ -506,12 +506,12 @@ pub resource Admin: Agent
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
                 self.status                         : "You're no longer a have Access."
-                DAAM.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
-                DAAM.creators[creator] != status    : "Agent already has this Status."
+                DAAM_V6.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
+                DAAM_V6.creators[creator] != status    : "Agent already has this Status."
             }
-            post { DAAM.creators[creator] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
+            post { DAAM_V6.creators[creator] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            DAAM.creators[creator] = status // status changed
+            DAAM_V6.creators[creator] = status // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
@@ -520,12 +520,12 @@ pub resource Admin: Agent
         pub fun changeMinterStatus(minter: Address, status: Bool) {
             pre {
                 self.status                       : "You're no longer a have Access."
-                DAAM.minters.containsKey(minter)  : "Wrong Address. This is not a Minter."
-                DAAM.minters[minter] != status    : "Minter already has this Status."
+                DAAM_V6.minters.containsKey(minter)  : "Wrong Address. This is not a Minter."
+                DAAM_V6.minters[minter] != status    : "Minter already has this Status."
             }
-            post { DAAM.minters[minter] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
+            post { DAAM_V6.minters[minter] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            DAAM.minters[minter] = status // status changed
+            DAAM_V6.minters[minter] = status // status changed
             log("Minter Status Changed")
             emit ChangeMinterStatus(minter: minter, status: status)
         }         
@@ -534,11 +534,11 @@ pub resource Admin: Agent
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre  {
                 self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid)  : "This is an Invalid MID"
+                DAAM_V6.copyright.containsKey(mid)  : "This is an Invalid MID"
             }
-            post { DAAM.copyright[mid] == copyright : "Illegal Operation: changeCopyright" } // Unreachable
+            post { DAAM_V6.copyright[mid] == copyright : "Illegal Operation: changeCopyright" } // Unreachable
 
-            DAAM.copyright[mid] = copyright    // Change to new copyright
+            DAAM_V6.copyright[mid] = copyright    // Change to new copyright
             log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
@@ -547,9 +547,9 @@ pub resource Admin: Agent
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre  {
                 self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid): "This is an Invalid MID"
+                DAAM_V6.copyright.containsKey(mid): "This is an Invalid MID"
             }            
-            DAAM.metadata[mid] = status // change to a new Metadata status
+            DAAM_V6.metadata[mid] = status // change to a new Metadata status
         }
 	}
 /************************************************************************/
