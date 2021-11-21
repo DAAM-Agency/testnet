@@ -232,7 +232,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 let counter = self.metadata[mid]!.counter + 1 as UInt64 // increment counter
                 let new_metadata = Metadata(                            // prep Next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
-                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: self.metadata[mid]!.counter
+                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: counter
                 ) 
                 self.metadata[mid] = new_metadata // update to new incremented (counter) Metadata
             }
