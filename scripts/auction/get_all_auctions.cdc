@@ -3,20 +3,21 @@
 
 import AuctionHouse  from 0x045a1763c93006ca
 
-pub struct data {
-        pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub var mid         : UInt64       // collect Metadata ID
-        pub var start       : UFix64       // timestamp
-        pub var length        : UFix64   // post{!isExtended && length == before(length)}
-        pub var isExtended    : Bool     // true = Auction extends with every bid.
-        pub var extendedTime  : UFix64   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
-        pub var leader        : Address? // leading bidder
-        pub var minBid        : UFix64?  // minimum bid
-        pub var startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
-        pub var reserve       : UFix64   // the reserve. must be sold at min price.
-        pub var buyNow        : UFix64   // buy now price
-        pub var reprintSeries : Bool     // Active Series Minter (if series)
-        pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+pub struct Data {
+        pub(set) var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
+        pub(set) var mid         : UInt64       // collect Metadata ID
+        pub(set) var start       : UFix64       // timestamp
+        pub(set) var length        : UFix64   // post{!isExtended && length == before(length)}
+        pub(set) var isExtended    : Bool     // true = Auction extends with every bid.
+        pub(set) var extendedTime  : UFix64   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
+        pub(set) var leader        : Address? // leading bidder
+        pub(set) var minBid        : UFix64?  // minimum bid
+        pub(set) var startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
+        pub(set) var reserve       : UFix64   // the reserve. must be sold at min price.
+        pub(set) var buyNow        : UFix64   // buy now price
+        pub(set) var reprintSeries : Bool     // Active Series Minter (if series)
+        pub(set) var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+        pub(set) var timeLeft      : UFix64?
 
         init() {
             self.auctionID = 0
@@ -32,27 +33,42 @@ pub struct data {
             self.buyNow = 0.0
             self.reprintSeries = false
             self.auctionLog = {}
+            self.timeLeft = nil
         }
 }
 
-pub fun getData(_ auction: &AuctionHouse.Auction): data {
-    
-    return
+pub fun getData(_ auction: &AuctionHouse.Auction): Data {
+    var data = Data()
+    data.auctionID = auction.auctionID
+    data.mid = auction.mid
+    data.start = auction.start
+    data.length = auction.length
+    data.isExtended = auction.isExtended
+    data.extendedTime = auction.extendedTime
+    data.leader = auction.leader
+    data.minBid = auction.minBid
+    data.startingBid = auction.startingBid
+    data.reserve = auction.reserve
+    data.buyNow = auction.buyNow
+    data.reprintSeries = auction.reprintSeries
+    data.auctionLog = {}
+    data.timeLeft = auction.timeLeft()  
+    return data
 } 
 
-pub fun main(): {Address : [data] } {    
-    let auctionList = AuctionHouse.currentAuctions
-    var detailedList: {Address : [data] } = {}
+pub fun main(): {Address : [Data] } {    
+    let auctionList = AuctionHouse.currentAuctions // get Auctioneers and AIDs {Address : [aid]}
+    var detailedList: {Address : [Data] } = {}     // create conversation type for react
     for auctionieer in auctionList.keys {
-        var convertAuctionList: [data] = []
-        for aid in auctionList[auctionieer] {
+        var convertAuctionList: [Data] = []        // converted data
+        for aid in auctionList[auctionieer]! {
             let auctionHouse = getAccount(auctionieer)
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
 
-            convertAuctionList.append(auctionHouse.item(aid))            
+            convertAuctionList.append( getData(auctionHouse.item(aid)) ) // Save converted data
         }
-        detailedList.insert(key: auctionieer, convertAuctionList)
+        detailedList.insert(key: auctionieer, convertAuctionList)  // Append auctionieer with Data
     }
     return detailedList
 }
