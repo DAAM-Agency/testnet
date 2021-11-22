@@ -1,7 +1,8 @@
 // get_all_auctions.cdc
 // Return all auctions
 
-import AuctionHouse  from 0x045a1763c93006ca
+import DAAM         from 0xfd43f9148d4b725d
+import AuctionHouse from 0x045a1763c93006ca
 
 pub struct Data {
         pub(set) var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
@@ -18,8 +19,9 @@ pub struct Data {
         pub(set) var reprintSeries : Bool     // Active Series Minter (if series)
         pub(set) var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         pub(set) var timeLeft      : UFix64?
+        pub let metadata           : DAAM.Metadata?
 
-        init() {
+        init(metadata: DAAM.Metadata?) {
             self.auctionID = 0
             self.mid = 0
             self.start = 0.0
@@ -34,11 +36,12 @@ pub struct Data {
             self.reprintSeries = false
             self.auctionLog = {}
             self.timeLeft = nil
+            self.metadata = metadata
         }
 }
 
-pub fun getData(_ auction: &AuctionHouse.Auction): Data {
-    var data = Data()
+pub fun getData(auction: &AuctionHouse.Auction, metadata: DAAM.Metadata?): Data {
+    var data = Data(metadata: metadata)
     data.auctionID = auction.auctionID
     data.mid = auction.mid
     data.start = auction.start
@@ -66,7 +69,11 @@ pub fun main(): {Address : [Data] } {
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
 
-            convertAuctionList.append( getData(auctionHouse.item(aid)) ) // Save converted data
+            let metadata = auctionHouse.item(aid).itemInfo() 
+
+            convertAuctionList.append(
+                getData(auction: auctionHouse.item(aid), metadata: metadata)
+            ) // Save converted data
         }
         detailedList.insert(key: auctionieer, convertAuctionList)  // Append auctionieer with Data
     }
