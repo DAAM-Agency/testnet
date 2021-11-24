@@ -103,7 +103,11 @@ pub resource RequestGenerator {
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
-        pre { percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%." }
+        pre {
+            DAAM.creators.containsKey(creator.address) : "You are not a Creator"
+            DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
+            percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
+        }
 
         let mid = metadata.mid                             // get MID
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
@@ -121,6 +125,8 @@ pub resource RequestGenerator {
     // Get the Request resource, exclusive for Minting
     pub fun getRequest(metadata: &MetadataHolder): @Request {
         pre {
+            DAAM.creators.containsKey(self.owner?.address!)  : "You are not a Creator"
+            DAAM.creators[self.owner?.address!]!             : "Your Creator account is Frozen."
             metadata != nil                                  : "Metadata Holder is Empty."
             DAAM.request.containsKey(metadata.getMID() )     : "No Request made."
             DAAM.getRequestValidity(mid: metadata.getMID() ) : "This request has not been approved."
@@ -141,7 +147,7 @@ pub resource RequestGenerator {
         
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
             pre {
-                counter != 0 as UInt64 : "Illegal operation. Internal Error: Metadata" // Unreachabe
+                counter != 0 : "Illegal operation. Internal Error: Metadata" // Unreachabe
                 (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
             }
             // Init all NFT setting
@@ -178,12 +184,12 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
         pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String) {
             pre{
-                DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
-                DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(creator.address) : "You are not a Creator"
+                DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1 as UInt64  // Must be first, increment Metadata Countert
+            DAAM.metadataCounterID = DAAM.metadataCounterID + 1  // Must be first, increment Metadata Countert
             let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
-                file: file, counter: 1 as UInt64)            // Create Metadata
+                file: file, counter: 1)            // Create Metadata
             self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
             DAAM.metadata.insert(key: metadata.mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
@@ -196,8 +202,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(creator: AuthAccount, mid: UInt64) {
             pre {
-                DAAM.creators.containsKey(creator.address!) : "You are not a Creator"
-                DAAM.creators[creator.address!]!            : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(creator.address) : "You are not a Creator"
+                DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.deleteMetadata(mid: mid)  // Delete Metadata
@@ -276,11 +282,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         init(metadata: @MetadataHolder, request: &Request) {
             pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
-            DAAM.totalSupply = DAAM.totalSupply + 1 as UInt64 // Increment total supply
-            self.id = DAAM.totalSupply                        // Set Token ID with total supply
-            self.royality = request.royality                  // Save Request which are the royalities.  
-            self.metadata = metadata.metadata                 // Save Metadata from Metadata Holder
-            destroy metadata                                  // Destroy no loner needed container Metadata Holder
+            DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
+            self.id = DAAM.totalSupply              // Set Token ID with total supply
+            self.royality = request.royality        // Save Request which are the royalities.  
+            self.metadata = metadata.metadata       // Save Metadata from Metadata Holder
+            destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
 
         pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
@@ -644,10 +650,10 @@ pub resource Admin: Agent
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-            DAAM.creators[newAdmin.address] == nil    : "An Admin can not use the same address as an Creator."
-            DAAM.agents[newAdmin.address] == nil      : "An Admin can not use the same address as an Agent."
-            DAAM.admins.containsKey(newAdmin.address) : "You got no DAAM Admin invite."
-            Profile.check(newAdmin.address)           : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            DAAM.admins.containsKey(newAdmin.address)    : "You got no DAAM Admin invite."
+            !DAAM.agents.containsKey(newAdmin.address)   : "A Admin can not use the same address as an Agent."
+            !DAAM.creators.containsKey(newAdmin.address) : "A Admin can not use the same address as an Creator."
+            Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
 
         if !submit { 
