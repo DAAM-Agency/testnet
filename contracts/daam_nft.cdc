@@ -101,7 +101,7 @@ pub resource Request {
 pub resource RequestGenerator {
     priv let grantee: Address
 
-    init() { self.grantee = self.owner?.address! }
+    init(_ grantee: Address) { self.grantee = grantee }
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
     pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
@@ -182,9 +182,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
         priv let grantee: Address
 
-        init() {
+        init(_ grantee: Address) {
             self.metadata = {}  // Init metadata
-            self.grantee  = self.owner?.address!
+            self.grantee  = grantee
         } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
@@ -373,7 +373,7 @@ pub resource Admin: Agent
 
         init(_ admin: AuthAccount) {
             self.status  = true      // Default Admin status: True
-            self.grantee = self.owner?.address!
+            self.grantee = admin.address
         }
 
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
@@ -592,9 +592,9 @@ pub resource Admin: Agent
         pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
         priv let grantee: Address
 
-        init() {
+        init(_ creator: AuthAccount) {
             self.agent = {}
-            self.grantee = self.owner?.address!
+            self.grantee = creator.address
         }  // init Creators agent(s)
 
         // Used to create a Metadata Generator when initalizing Creator Storge
@@ -604,7 +604,7 @@ pub resource Admin: Agent
                 DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
-            return <- create MetadataGenerator() // return Metadata Generator
+            return <- create MetadataGenerator(self.grantee) // return Metadata Generator
         }
 
         // Used to create a Request Generator when initalizing Creator Storge
@@ -614,7 +614,7 @@ pub resource Admin: Agent
                 DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
-            return <- create RequestGenerator() // return Request Generator
+            return <- create RequestGenerator(self.grantee) // return Request Generator
         } 
     }
 /************************************************************************/
@@ -750,7 +750,7 @@ pub resource Admin: Agent
         DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True) 
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
-        return <- create Creator()!                        // Return Creator Resource
+        return <- create Creator(newCreator)!                         // Return Creator Resource
     }
 
     pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
