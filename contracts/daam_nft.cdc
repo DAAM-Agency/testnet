@@ -590,12 +590,17 @@ pub resource Admin: Agent
 // to Create Metadata which inturn can be made in NFTs after Minting
     pub resource Creator {
         pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
+        priv let grantee: Address
 
-        init() { self.agent = {} }  // init Creators agent(s)
+        init() {
+            self.agent = {}
+            self.grantee = self.owner?.address!
+        }  // init Creators agent(s)
 
         // Used to create a Metadata Generator when initalizing Creator Storge
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
+                self.grantee == self.owner?.address! : "Permission Denied"
                 DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
@@ -605,6 +610,7 @@ pub resource Admin: Agent
         // Used to create a Request Generator when initalizing Creator Storge
         pub fun newRequestGenerator(): @RequestGenerator {
             pre{
+                self.grantee == self.owner?.address! : "Permission Denied"
                 DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
                 DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
             }
@@ -616,12 +622,15 @@ pub resource Admin: Agent
 // Note: new is defined by newly Minted. Age is not a consideration.
     pub resource Minter
     {
+        priv let grantee: Address
         init(_ minter: AuthAccount) {
+            self.grantee = self.owner?.address!
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
         pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
             pre{
+                self.grantee == self.owner?.address! : "Permission Denied"
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
@@ -651,8 +660,12 @@ pub resource Admin: Agent
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
         pub fun notNew(tokenID: UInt64) {
-            pre  { DAAM.newNFTs.contains(tokenID)  : "This NFT is not a new NFT" }
+            pre  {
+                self.grantee == self.owner?.address! : "Permission Denied"
+                DAAM.newNFTs.contains(tokenID)  : "This NFT is not a new NFT"
+            }
             post { !DAAM.newNFTs.contains(tokenID) : "Illegal Operation: notNew" } // Unreachable
+
             var counter = 0 as UInt64              // start the conter
             for nft in DAAM.newNFTs {              // cycle through 'new' list
                 if nft == tokenID {                // if Token ID is found
