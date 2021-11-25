@@ -130,10 +130,10 @@ pub resource RequestGenerator {
         pre {
             self.grantee == self.owner?.address!            : "Permission Denied"
             DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-            DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
+            DAAM.creators[self.owner?.address!]!            : "Your Creator Account is Frozen."
             metadata != nil                                 : "Metadata Holder is Empty."
             DAAM.request.containsKey(metadata.getMID())     : "No Request made."
-            DAAM.getRequestValidity(mid: metadata.getMID()) : "This request has not been approved."
+            DAAM.getRequestValidity(creator: self.grantee, mid: metadata.getMID()) == true : "This Request has not been Approved."
         }
         let request <- DAAM.request.remove(key: metadata.metadata.mid)! // Remove Request
         return <- request // Return requested Request
@@ -634,7 +634,7 @@ pub resource Admin: Agent
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(mid: metadata.metadata.mid)  : "There is no Request for this MID."
+                DAAM.getRequestValidity(creator: self.grantee, mid: metadata.metadata.mid) == true : "There is no Request for this MID."
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
@@ -768,9 +768,23 @@ pub resource Admin: Agent
     }
 
     // Verifies if Request is valid
-    pub fun getRequestValidity(mid: UInt64): Bool {
-        pre { self.request.containsKey(mid) : "The is not a valid MID." }
-        return self.request[mid]?.isValid() == true ? true : false // Return validity of Request
+    pub fun getRequestValidity(creator: Address, mid: UInt64): Bool? {
+        pre {
+            DAAM.isCreator(creator) != nil : "This address is not a Creator."
+            mid <= DAAM.metadataCounterID  : "Invalid MID"
+        }
+
+        let metadataRef = getAccount(creator)
+        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
+        .borrow() ?? panic("Could not borrow capability from Metadata")
+
+        let metadatas = metadataRef.getMetadatas()
+        if metadatas[mid] != nil { // MID exists
+            if self.request.containsKey(mid) {
+                return self.request[mid]?.isValid() == true ? true : false // Return validity of Request
+            }
+        }
+        return nil
     }
 
     pub fun getCreators(): [Address] {
