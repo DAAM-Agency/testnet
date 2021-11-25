@@ -125,19 +125,6 @@ pub resource RequestGenerator {
         log("Request Accepted, MID: ".concat(mid.toString()) )
         emit RequestAccepted(mid: mid)
     }
-    // Get the Request resource, exclusive for Minting
-    pub fun getRequest(metadata: &MetadataHolder): @Request {
-        pre {
-            self.grantee == self.owner?.address!            : "Permission Denied"
-            DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
-            DAAM.creators[self.owner?.address!]!            : "Your Creator Account is Frozen."
-            metadata != nil                                 : "Metadata Holder is Empty."
-            DAAM.request.containsKey(metadata.getMID())     : "No Request made."
-            DAAM.getRequestValidity(creator: self.grantee, mid: metadata.getMID()) == true : "This Request has not been Approved."
-        }
-        let request <- DAAM.request.remove(key: metadata.metadata.mid)! // Remove Request
-        return <- request // Return requested Request
-    }
 }
 /************************************************************************/
     pub struct Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
@@ -239,19 +226,19 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
             }            
                         
-            let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create Current Metadata
+            let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create current Metadata
             // Verify Metadata Counter (print) is last, if so delete Metadata
-            if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 as UInt64 {
-                self.deleteMetadata(mid: mid) // remove metadata template
+            if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 {
+                self.deleteMetadata(mid: mid) // Remove metadata template
             } else { // if not last print
-                let counter = self.metadata[mid]!.counter + 1 as UInt64 // increment counter
-                let new_metadata = Metadata(                            // prep Next Metadata
+                let counter = self.metadata[mid]!.counter + 1 // Increment counter
+                let new_metadata = Metadata(                  // Prep next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: counter
                 ) 
-                self.metadata[mid] = new_metadata // update to new incremented (counter) Metadata
+                self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
             }
-            return <- mh // return Current Metadata  
+            return <- mh // Return current Metadata  
         }
 
         // Script function
@@ -634,7 +621,7 @@ pub resource Admin: Agent
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(creator: self.grantee, mid: metadata.metadata.mid) == true : "There is no Request for this MID."
+                DAAM.getRequestValidity(creator: metadata.metadata.creator, mid: metadata.metadata.mid) == true : "There is no Request for this MID."
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
