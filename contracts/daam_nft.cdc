@@ -256,7 +256,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // Script function
         pub fun getMetadatas(): {UInt64:Metadata} {  // Return Creators' Metadata collection
-            return self.metadata
+            return self.metadata 
         }
 
         pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
@@ -785,15 +785,14 @@ pub resource Admin: Agent
         return self.copyright[mid]
     }
 
-    // TODO Consider Deleting
     pub fun getMetadataStatus(): {UInt64:Bool} {
         return self.metadata
     }
 
     // Used for simplifing connection to React
     // Witnin mlist: The first array of Metadatas have a status of false, the second are true.
-    pub fun convertMetadata(metadata: [Metadata]): [[Metadata];2] {
-        var mlist: [[Metadata];2] = [[],[]]
+    pub fun convertMetadata(metadata: [&Metadata]): [[&Metadata];2] {
+        var mlist: [[&Metadata];2] = [[],[]]
         for m in metadata {
             self.metadata[m.mid]! ? mlist[1].append(m) : mlist[0].append(m)
         }
