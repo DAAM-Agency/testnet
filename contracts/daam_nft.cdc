@@ -382,7 +382,7 @@ pub resource Admin: Agent
                 self.grantee == self.owner?.address! : "Permission Denied"
                 self.status : "You're no longer a have Access."
             }
-            return <- create RequestGenerator() // return new Request
+            return <- create RequestGenerator(self.grantee) // return new Request
         }
 
         pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
@@ -624,7 +624,7 @@ pub resource Admin: Agent
     {
         priv let grantee: Address
         init(_ minter: AuthAccount) {
-            self.grantee = self.owner?.address!
+            self.grantee = minter.address
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
@@ -638,18 +638,13 @@ pub resource Admin: Agent
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
-            let request <- DAAM.request.remove(key: mid)! // Get Request using MID
-            let requestRef = &request as & Request        // Reference the Request
-            let nft <- create NFT(metadata: <- metadata, request: requestRef) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
+                let request <- DAAM.request.remove(key: mid)! // Get Request using MID
                 destroy request       // if last destroy request, Request not needed. Counter has reached limit.
-            } else {             
-                let empty_request <- DAAM.request.insert(key: mid, <- request) // re-insert request
-                destroy empty_request // destroy place holder
-            }
-
+            } 
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
