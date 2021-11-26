@@ -20,6 +20,7 @@ pub struct Data {
         pub(set) var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         pub(set) var timeLeft      : UFix64?
         pub let metadata           : DAAM.Metadata?
+        pub(set) var vault         : UFix64
 
         init(metadata: DAAM.Metadata?) {
             self.auctionID = 0
@@ -37,6 +38,7 @@ pub struct Data {
             self.auctionLog = {}
             self.timeLeft = nil
             self.metadata = metadata
+            self.vault = 0.0
         }
 }
 
@@ -55,7 +57,8 @@ pub fun getData(auction: &AuctionHouse.Auction, metadata: DAAM.Metadata?): Data 
     data.buyNow = auction.buyNow
     data.reprintSeries = auction.reprintSeries
     data.auctionLog = {}
-    data.timeLeft = auction.timeLeft()  
+    data.timeLeft = auction.timeLeft()
+    data.vault = auction.auctionVault.balance
     return data
 } 
 
