@@ -729,9 +729,7 @@ pub resource Admin: Agent
 
         let metadatas = metadataRef.getMetadatas()
         if metadatas[mid] != nil { // MID exists
-            if self.request.containsKey(mid) {
-                return self.request[mid]?.isValid() == true ? true : false // Return validity of Request
-            }
+            return self.request.containsKey(mid)                
         }
         return nil
     }
