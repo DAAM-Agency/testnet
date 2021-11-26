@@ -137,10 +137,10 @@ pub resource RequestGenerator {
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
         init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: &Metadata?) {
-            pre {
-                //counter != 0 : "Illegal operation. Internal Error: Metadata" // Unreachabe
-                (series != 0 && counter!.counter < series) || series == 0 : "Reached limit on prints."
+            if counter != nil {
+                if counter!.counter >= series && series != 0 { panic("Metadata setting incorrect.") }
             }
+            
             // Init all NFT setting
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
@@ -187,7 +187,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
             let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
-                file: file, counter: 1)            // Create Metadata
+                file: file, counter: nil) // Create Metadata
             self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
             DAAM.metadata.insert(key: metadata.mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
@@ -235,11 +235,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 {
                 self.deleteMetadata(mid: mid) // Remove metadata template
             } else { // if not last print
-                let counter = self.metadata[mid]!.counter + 1 // Increment counter
                 let new_metadata = Metadata(                  // Prep next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
-                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: counter
-                )
+                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata)
                 log("Generate Metadata")
                 log(new_metadata.mid)
                 self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
