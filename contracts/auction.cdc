@@ -67,14 +67,15 @@ pub contract AuctionHouse {
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
-            log("metadataGenerator")
-            log(metadataGenerator)
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
+            log("MetadataHolder")
+            log(metadata.getMID())
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
-
+            log("NFT")
+            log(nft.metadata)
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)

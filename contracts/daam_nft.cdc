@@ -136,16 +136,21 @@ pub resource RequestGenerator {
         pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: UInt64) {
+        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: &Metadata?) {
             pre {
-                counter != 0 : "Illegal operation. Internal Error: Metadata" // Unreachabe
-                (series != 0 && counter <= series) || series == 0 : "Reached limit on prints."
+                //counter != 0 : "Illegal operation. Internal Error: Metadata" // Unreachabe
+                (series != 0 && counter!.counter < series) || series == 0 : "Reached limit on prints."
             }
             // Init all NFT setting
-            self.mid       = DAAM.metadataCounterID // init MID with counter
+            if counter == nil {
+                DAAM.metadataCounterID = DAAM.metadataCounterID + 1
+                self.mid = DAAM.metadataCounterID
+            } else {
+                self.mid = counter!.mid // init MID with counter
+            }
             self.creator   = creator   // creator of NFT
             self.series    = series    // total prints
-            self.counter   = counter   // current print of total prints
+            self.counter = counter == nil ? 1 : counter!.counter + 1   // current print of total prints
             self.data      = data      // data,about,misc page
             self.thumbnail = thumbnail // thumbnail are stored here
             self.file      = file      // NFT data is stored here
@@ -181,7 +186,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
-            DAAM.metadataCounterID = DAAM.metadataCounterID + 1  // Must be first, increment Metadata Countert
             let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
                 file: file, counter: 1)            // Create Metadata
             self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
@@ -235,7 +239,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 let new_metadata = Metadata(                  // Prep next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: counter
-                ) 
+                )
+                log("Generate Metadata")
+                log(new_metadata.mid)
                 self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
             }
             return <- mh // Return current Metadata  
@@ -618,10 +624,11 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
             pre{
                 self.grantee == self.owner?.address! : "Permission Denied"
+                metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(creator: metadata.metadata.creator, mid: metadata.metadata.mid) == true : "There is no Request for this MID."
+                DAAM.getRequestValidity(creator: metadata.metadata.creator, mid: metadata.metadata.mid) == true : "Request for this MID is Denied."
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
@@ -767,9 +774,7 @@ pub resource Admin: Agent
 
         let metadatas = metadataRef.getMetadatas()
         if metadatas[mid] != nil { // MID exists
-            if self.request.containsKey(mid) {
-                return self.request[mid]?.isValid() == true ? true : false // Return validity of Request
-            }
+            return self.request.containsKey(mid)                
         }
         return nil
     }
