@@ -612,13 +612,13 @@ pub contract AuctionHouse {
             let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let metadataRef = metadataGen.getMetadataRef(mid: self.mid)       // get Metadata Referencee
             let creator = metadataRef.creator                                 // get Creator from Metadata
+            let counter = metadataRef.counter                                 // get Creator from Metadata
             if creator != self.owner?.address! { return }                     // Verify Owner is Creator
             let metadata <- metadataGen.generateMetadata(mid: self.mid)       // get Metadata from Metadata Generator
-            
+
+
 log("Counter")
-log(metadataRef.counter)
-log("MID")
-log(metadataRef.mid)
+log(counter)
 
             
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction

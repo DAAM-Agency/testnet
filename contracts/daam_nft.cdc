@@ -626,7 +626,6 @@ pub resource Admin: Agent
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
-                DAAM.getRequestValidity(creator: metadata.metadata.creator, mid: metadata.metadata.mid) == true : "Request for this MID is Denied."
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
@@ -760,23 +759,25 @@ pub resource Admin: Agent
     }
 
     // Verifies if Request is valid
+    // Returns nil=No MID, true=Approved, false=Disapproved
     pub fun getRequestValidity(creator: Address, mid: UInt64): Bool? {
         pre {
             DAAM.isCreator(creator) != nil : "This address is not a Creator."
             mid <= DAAM.metadataCounterID  : "Invalid MID"
         }
 
-        let metadataRef = getAccount(creator)
+        let metadataRef = getAccount(creator) // Get Metadata Capability
         .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
-        let metadatas = metadataRef.getMetadatas()
-        if metadatas[mid] != nil { // MID exists
-            return self.request.containsKey(mid)                
+        let metadatas = metadataRef.getMetadatas() // Get Metadata list
+        if metadatas[mid] != nil {                 // Check if MID exists
+            return self.request.containsKey(mid)   // Return Request status             
         }
-        return nil
+        return nil // If MID does not exist, return nil
     }
 
+    // Return list of Creators
     pub fun getCreators(): [Address] {
         var clist: [Address] = []
         for creator in self.creators.keys {
@@ -785,7 +786,8 @@ pub resource Admin: Agent
         return clist
     }
 
-    pub fun getCopyright(mid: UInt64): CopyrightStatus? { // Return Copyright Status. nil = non-existent MID
+    // Return Copyright Status. nil = non-existent MID
+    pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
         return self.copyright[mid]
     }
 
