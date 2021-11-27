@@ -53,8 +53,8 @@ echo "---------- Remove Creator ----------"
 flow transactions send ./transactions/admin/remove_creator.cdc $CREATOR --signer admin
 
 # Delete / Reset Addresses
-flow transactions send ./transactions/creator/delete_creator.cdc --signer creator
-flow transactions send ./transactions/admin/delete_admin.cdc --signer admin2
+flow transactions send ./transactions/tools/delete_creator.cdc --signer creator
+flow transactions send ./transactions/tools/delete_admin.cdc --signer admin2
 
 # (Re)Invite Creator & Accept
 echo "========= Re(Invite) Admin & Creator ========="

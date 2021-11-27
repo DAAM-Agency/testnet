@@ -22,4 +22,4 @@ fi
 echo -n "Verify Admin Status: "
 flow scripts execute ./scripts/is_admin.cdc $1
 
-flow transactions send ./transactions/admin/delete_admin.cdc --signer $1
+flow transactions send ./transactions/tools/delete_admin.cdc --signer $1

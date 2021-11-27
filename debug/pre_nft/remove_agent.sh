@@ -12,4 +12,4 @@ echo -n "Verify Agent Status: "
 flow scripts execute ./scripts/is_agent.cdc $1
 
 # Delete / Reset Addresses
-flow transactions send ./transactions/admin/delete_agent.cdc --signer agent
+flow transactions send ./transactions/tools/delete_agent.cdc --signer agent
