@@ -6,15 +6,16 @@ import DAAM_V2 from 0xa4ad5ea5c0bd2fba
 import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 import DAAM_V4 from 0xa4ad5ea5c0bd2fba
 import DAAM_V5 from 0xa4ad5ea5c0bd2fba
+import DAAM_V6 from 0xa4ad5ea5c0bd2fba
 
 transaction() {
     prepare(admin: AuthAccount) {
-        let adminRes <- admin.load<@DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)
-        let requestRes <- admin.load<@DAAM_V7.RequestGenerator>(from: DAAM_V7.requestStoragePath)
+        let adminRes <- admin.load<@DAAM.Admin>(from: DAAM.adminStoragePath)
+        let requestRes <- admin.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
         destroy adminRes
         destroy requestRes
-        admin.unlink(DAAM_V7.adminPrivatePath)
-        admin.unlink(DAAM_V7.requestPrivatePath)
+        admin.unlink(DAAM.adminPrivatePath)
+        admin.unlink(DAAM.requestPrivatePath)
         log("Admin Removed")
 
         let adminRes1 <- admin.load<@DAAM_V1.Admin>(from: DAAM_V1.adminStoragePath)

@@ -35,9 +35,9 @@ transaction() {
         let creatorRes2  <- creator.load<@DAAM_V2.Creator>(from: DAAM_V2.creatorStoragePath)
         let requestRes2  <- creator.load<@DAAM_V2.RequestGenerator>(from: DAAM_V2.requestStoragePath)
         let metadataRes2 <- creator.load<@DAAM_V2.MetadataGenerator>(from: DAAM_V2.metadataStoragePath)
-        destroy creatorRes
-        destroy requestRes
-        destroy metadataRes
+        destroy creatorRes2
+        destroy requestRes2
+        destroy metadataRes2
         creator.unlink(DAAM_V2.creatorPrivatePath)
         creator.unlink(DAAM_V2.requestPrivatePath)
         creator.unlink(DAAM_V2.metadataPublicPath)
@@ -46,9 +46,9 @@ transaction() {
         let creatorRes3  <- creator.load<@DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath)
         let requestRes3  <- creator.load<@DAAM_V3.RequestGenerator>(from: DAAM_V3.requestStoragePath)
         let metadataRes3 <- creator.load<@DAAM_V3.MetadataGenerator>(from: DAAM_V3.metadataStoragePath)
-        destroy creatorRes
-        destroy requestRes
-        destroy metadataRes
+        destroy creatorRes3
+        destroy requestRes3
+        destroy metadataRes3
         creator.unlink(DAAM_V3.creatorPrivatePath)
         creator.unlink(DAAM_V3.requestPrivatePath)
         creator.unlink(DAAM_V3.metadataPublicPath)
@@ -57,9 +57,9 @@ transaction() {
         let creatorRes4  <- creator.load<@DAAM_V4.Creator>(from: DAAM_V4.creatorStoragePath)
         let requestRes4  <- creator.load<@DAAM_V4.RequestGenerator>(from: DAAM_V4.requestStoragePath)
         let metadataRes4 <- creator.load<@DAAM_V4.MetadataGenerator>(from: DAAM_V4.metadataStoragePath)
-        destroy creatorRes
-        destroy requestRes
-        destroy metadataRes
+        destroy creatorRes4
+        destroy requestRes4
+        destroy metadataRes4
         creator.unlink(DAAM_V4.creatorPrivatePath)
         creator.unlink(DAAM_V4.requestPrivatePath)
         creator.unlink(DAAM_V4.metadataPublicPath)
@@ -68,9 +68,9 @@ transaction() {
         let creatorRes5  <- creator.load<@DAAM_V5.Creator>(from: DAAM_V5.creatorStoragePath)
         let requestRes5  <- creator.load<@DAAM_V5.RequestGenerator>(from: DAAM_V5.requestStoragePath)
         let metadataRes5 <- creator.load<@DAAM_V5.MetadataGenerator>(from: DAAM_V5.metadataStoragePath)
-        destroy creatorRes
-        destroy requestRes
-        destroy metadataRes
+        destroy creatorRes5
+        destroy requestRes5
+        destroy metadataRes5
         creator.unlink(DAAM_V5.creatorPrivatePath)
         creator.unlink(DAAM_V5.requestPrivatePath)
         creator.unlink(DAAM_V5.metadataPublicPath)
@@ -79,12 +79,20 @@ transaction() {
         let creatorRes6  <- creator.load<@DAAM_V6.Creator>(from: DAAM_V6.creatorStoragePath)
         let requestRes6  <- creator.load<@DAAM_V6.RequestGenerator>(from: DAAM_V6.requestStoragePath)
         let metadataRes6 <- creator.load<@DAAM_V6.MetadataGenerator>(from: DAAM_V6.metadataStoragePath)
-        destroy creatorRes
-        destroy requestRes
-        destroy metadataRes
+        destroy creatorRes6
+        destroy requestRes6
+        destroy metadataRes6
         creator.unlink(DAAM_V6.creatorPrivatePath)
         creator.unlink(DAAM_V6.requestPrivatePath)
         creator.unlink(DAAM_V6.metadataPublicPath)
         log("Creator Removed 6")
+
+        let collection = signer.borrow<&DAAM_V6.Collection> (from: DAAM_V6.collectionStoragePath)
+        let nfts = collection?.getIDs()!
+        for token in nfts {
+            let nft <- collection?.withdraw(withdrawID: token)
+            destroy nft
+        }
+        log("NFTs' cleared.")
     } 
 }

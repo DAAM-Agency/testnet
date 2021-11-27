@@ -1,20 +1,22 @@
 // clear_signer.cdc
 
-import DAAM       from 0xa4ad5ea5c0bd2fba
+import DAAM    from 0xa4ad5ea5c0bd2fba
 import DAAM_V1 from 0xa4ad5ea5c0bd2fba
 import DAAM_V2 from 0xa4ad5ea5c0bd2fba
 import DAAM_V3 from 0xa4ad5ea5c0bd2fba
 import DAAM_V4 from 0xa4ad5ea5c0bd2fba
 import DAAM_V5 from 0xa4ad5ea5c0bd2fba
+import DAAM_V6 from 0xa4ad5ea5c0bd2fba
+import AuctionHouse from 0x01837e15023c9249
 
 transaction() {
     prepare(signer: AuthAccount) {
-        let adminRes <- signer.load<@DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)
-        let requestRes <- signer.load<@DAAM_V7.RequestGenerator>(from: DAAM_V7.requestStoragePath)
+        let adminRes <- signer.load<@DAAM.Admin>(from: DAAM.adminStoragePath)
+        let requestRes <- signer.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
         destroy adminRes
         destroy requestRes
-        signer.unlink(DAAM_V7.adminPrivatePath)
-        signer.unlink(DAAM_V7.requestPrivatePath)
+        signer.unlink(DAAM.adminPrivatePath)
+        signer.unlink(DAAM.requestPrivatePath)
         log("Admin Removed")
 
         let adminRes1 <- signer.load<@DAAM_V1.Admin>(from: DAAM_V1.adminStoragePath)
@@ -70,7 +72,7 @@ transaction() {
         destroy creatorRes
         destroy metadataRes
         signer.unlink(DAAM.creatorPrivatePath)
-        signer.unlink(DAAM.metadataPublicPath)
+        signer.unlink(DAAM.metadataPrivatePath)
         log("Creator Removed")
 
         let creatorRes1  <- signer.load<@DAAM_V1.Creator>(from: DAAM_V1.creatorStoragePath)
@@ -78,45 +80,45 @@ transaction() {
         destroy creatorRes1
         destroy metadataRes1
         signer.unlink(DAAM_V1.creatorPrivatePath)
-        signer.unlink(DAAM_V1.metadataPublicPath)
+        signer.unlink(DAAM_V1.metadataPrivatePath)
         log("Creator Removed 1")
 
         let creatorRes2  <- signer.load<@DAAM_V2.Creator>(from: DAAM_V2.creatorStoragePath)
         let metadataRes2 <- signer.load<@DAAM_V2.MetadataGenerator>(from: DAAM_V2.metadataStoragePath)
-        destroy creatorRes
-        destroy metadataRes
+        destroy creatorRes2
+        destroy metadataRes2
         signer.unlink(DAAM_V2.creatorPrivatePath)
-        signer.unlink(DAAM_V2.metadataPublicPath)
+        signer.unlink(DAAM_V2.metadataPrivatePath)
         log("Creator Removed 2")
 
         let creatorRes3  <- signer.load<@DAAM_V3.Creator>(from: DAAM_V3.creatorStoragePath)
         let metadataRes3 <- signer.load<@DAAM_V3.MetadataGenerator>(from: DAAM_V3.metadataStoragePath)
-        destroy creatorRes
-        destroy metadataRes
+        destroy creatorRes3
+        destroy metadataRes3
         signer.unlink(DAAM_V3.creatorPrivatePath)
         signer.unlink(DAAM_V3.metadataPublicPath)
         log("Creator Removed 3")
 
         let creatorRes4  <- signer.load<@DAAM_V4.Creator>(from: DAAM_V4.creatorStoragePath)
         let metadataRes4 <- signer.load<@DAAM_V4.MetadataGenerator>(from: DAAM_V4.metadataStoragePath)
-        destroy creatorRes
-        destroy metadataRes
+        destroy creatorRes4
+        destroy metadataRes4
         signer.unlink(DAAM_V4.creatorPrivatePath)
         signer.unlink(DAAM_V4.metadataPublicPath)
         log("Creator Removed 4")
 
         let creatorRes5  <- signer.load<@DAAM_V5.Creator>(from: DAAM_V5.creatorStoragePath)
         let metadataRes5 <- signer.load<@DAAM_V5.MetadataGenerator>(from: DAAM_V5.metadataStoragePath)
-        destroy creatorRes
-        destroy metadataRes
+        destroy creatorRes5
+        destroy metadataRes5
         signer.unlink(DAAM_V5.creatorPrivatePath)
         signer.unlink(DAAM_V5.metadataPublicPath)
         log("Creator Removed 5")
 
         let creatorRes6  <- signer.load<@DAAM_V6.Creator>(from: DAAM_V6.creatorStoragePath)
         let metadataRes6 <- signer.load<@DAAM_V6.MetadataGenerator>(from: DAAM_V6.metadataStoragePath)
-        destroy creatorRes
-        destroy metadataRes
+        destroy creatorRes6
+        destroy metadataRes6
         signer.unlink(DAAM_V6.creatorPrivatePath)
         signer.unlink(DAAM_V6.metadataPublicPath)
         log("Creator Removed 6")
@@ -129,9 +131,9 @@ transaction() {
         }
         log("NFTs' cleared.")
 
-        let auctionRes  <- signer..load<@AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)
+        let auctionRes  <- signer.load<@AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)
         destroy auctionRes
-        signer..unlink(AuctionHouse.auctionPublicPath)
+        signer.unlink(AuctionHouse.auctionPublicPath)
         log("AuctionHouse cleared.")
     } 
 }
