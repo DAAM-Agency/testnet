@@ -15,5 +15,6 @@ pub fun main(creator: Address): [[DAAM_V6.Metadata];2]
         mlist.append(metadatas[m]!)
     }
     let convert_metadata = DAAM_V6.convertMetadata(metadata: mlist)
+    
     return convert_metadata
 }

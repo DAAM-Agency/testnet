@@ -8,6 +8,5 @@ pub fun main(account: Address): Bool {
     let auction = getAccount(account)
         .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()
-    let status = (auction != nil)
-    return status
+    return auction != nil
 }
