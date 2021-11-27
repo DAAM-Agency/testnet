@@ -20,44 +20,44 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 # Start Bidding
 # starts in 20 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=20.0
+OFFSET=30.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "START: "$START
 
 echo "========== Create Original Auctions I =========="
 echo "---------- A ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
-250.0 false 0.0 false 0.05 11.00 \
+330.0 false 0.0 false 0.05 11.00 \
 20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
 
 echo "---------- B ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
-250.0 false 0.0 true 1.0 12.00 \
+330.0 false 0.0 true 1.0 12.00 \
 25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
-250.0 false 0.0 false 0.04 10.00 \
+330.0 false 0.0 false 0.04 10.00 \
 26.0 30.3 false --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
-250.0 false 0.0 false 0.04 10.00 \
+330.0 false 0.0 false 0.04 10.00 \
 26.0 30.4 false --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
-250.0 false 0.0 false 0.04 13.00 \
+330.0 false 0.0 false 0.04 13.00 \
 26.0 30.5 false --signer creator #E
 
 echo "---------- F ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
-250.0 false 0.0 false 0.05 14.00 \
+330.0 false 0.0 false 0.05 14.00 \
 27.0 30.3 true --signer creator #F, MID: 6, AID: 3
 
 echo "---------- G ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
-250.0 false 0.0 false 0.025 15.00 \
+330.0 false 0.0 false 0.025 15.00 \
 28.0 0.0 false --signer creator #G, MID: 7, AID: 4
 
 # Verify Metadata
@@ -83,13 +83,13 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 5 $STA
 # Auction ID: 6, Winner and Collect
 echo "---------- H ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
-300.0 false 0.0 false 0.025 15.00 \
+330.0 false 0.0 false 0.025 15.00 \
 20.0 30.6 true --signer creator #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "---------- I ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
-300.0 false 0.0 false 0.025 15.00 \
+330.0 false 0.0 false 0.025 15.00 \
 20.0 30.7 true --signer creator #I, AID: 7
 
 # Auction Scripts
@@ -511,11 +511,11 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
+flow scripts execute ./scripts/wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
+flow scripts execute ./scripts/wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
+flow scripts execute ./scripts/wallet/collection.cdc $NOBODY
 
 # End of Auctions
 echo "========== Testing Section E =========="
@@ -562,11 +562,11 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
+flow scripts execute ./scripts/wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
+flow scripts execute ./scripts/wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
+flow scripts execute ./scripts/wallet/collection.cdc $NOBODY
 
 echo "Testing Section F ===================="
 
@@ -669,8 +669,8 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
+flow scripts execute ./scripts/wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
+flow scripts execute ./scripts/wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
+flow scripts execute ./scripts/wallet/collection.cdc $NOBODY

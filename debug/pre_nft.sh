@@ -186,8 +186,8 @@ flow transactions send ./transactions/admin/change_creator_status.cdc $CREATOR t
 # Look at participents collections
 echo "---------- View Collections ----------"
 echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
+flow scripts execute ./scripts/wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
+flow scripts execute ./scripts/wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
+flow scripts execute ./scripts/wallet/collection.cdc $NOBODY
