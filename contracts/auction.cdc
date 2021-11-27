@@ -67,14 +67,15 @@ pub contract AuctionHouse {
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
-            log("metadataGenerator")
-            log(metadataGenerator)
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
+            log("MetadataHolder")
+            log(metadata.getMID())
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
-
+            log("NFT")
+            log(nft.metadata)
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -186,7 +187,7 @@ pub contract AuctionHouse {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
-        priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
+        pub var auctionVault : @FungibleToken.Vault // Vault, All funds are stored. //TODO make priv
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time
@@ -389,18 +390,23 @@ pub contract AuctionHouse {
                 log("Item: Won")
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
-                receiver = self.owner?.address // set receiver from leader to auctioneer
+                receiver = self.owner?.address! // set receiver from leader to auctioneer
                 self.returnFunds()             // return funds to all bidders
                 log("Item: Returned")
                 emit ItemReturned(auctionID: self.auctionID)    
             }
-            log("receiver: ".concat(receiver?.toString()!) )   
+            log("receiver: ".concat(receiver!.toString()) )   
             let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
-            let nft <- self.auctionNFT <- nil     // remove nft   
+            let nft <- self.auctionNFT <- nil     // remove nft
+
+            let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
+            log("vrp(); pre seriesMinter; counter: ".concat(nft?.metadata?.counter!.toString()) )
+            log("vrp(); series: ".concat(nft?.metadata?.series!.toString()) )
+
             collectionRef.deposit(token: <- nft!) // deposit nft
 
-            if pass { // possible re-auction Series Minter                
+            if pass && !isLast { // possible re-auction Series Minter                
                 self.seriesMinter() // Note must be last after transer of NFT
             }
         }
@@ -466,16 +472,16 @@ pub contract AuctionHouse {
         }
 
         // Return all funds in auction log to bidder
-        // Note: leader is typically removed from log before called.
+        // Note: leader is typically removed from auctionLog before called.
         priv fun returnFunds() {
-            //post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
+            post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
             for bidder in self.auctionLog.keys {
                 // get FUSD Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
+                self.auctionLog.remove(key: bidder)
                 bidderRef.deposit(from: <- amount)  // Deposit amount to bidder
             }
-
             log("Funds Returned")
             emit FundsReturned()
         }
@@ -612,6 +618,7 @@ pub contract AuctionHouse {
             let metadataRef = metadataGen.getMetadataRef(mid: self.mid)       // get Metadata Referencee
             let creator = metadataRef.creator                                 // get Creator from Metadata
             if creator != self.owner?.address! { return }                     // Verify Owner is Creator
+
             let metadata <- metadataGen.generateMetadata(mid: self.mid)       // get Metadata from Metadata Generator
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
