@@ -9,70 +9,70 @@ import DAAM       from 0xa4ad5ea5c0bd2fba
 
 transaction() {
     prepare(creator: AuthAccount) {
-        let creatorRes  <- creator.load<@DAAM_V6.Creator>(from: DAAM_V6.creatorStoragePath)
-        let requestRes  <- creator.load<@DAAM_V6.RequestGenerator>(from: DAAM_V6.requestStoragePath)
-        let metadataRes <- creator.load<@DAAM_V6.MetadataGenerator>(from: DAAM_V6.metadataStoragePath)
+        let creatorRes  <- creator.load<@DAAM_V7.Creator>(from: DAAM_V7.creatorStoragePath)
+        let requestRes  <- creator.load<@DAAM_V7.RequestGenerator>(from: DAAM_V7.requestStoragePath)
+        let metadataRes <- creator.load<@DAAM_V7.MetadataGenerator>(from: DAAM_V7.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM_V6.creatorPrivatePath)
-        creator.unlink(DAAM_V6.requestPrivatePath)
-        creator.unlink(DAAM_V6.metadataPublicPath)
+        creator.unlink(DAAM_V7.creatorPrivatePath)
+        creator.unlink(DAAM_V7.requestPrivatePath)
+        creator.unlink(DAAM_V7.metadataPublicPath)
         log("Creator Removed")
 
-        let creatorRes1  <- creator.load<@DAAM_V6.V1.Creator>(from: DAAM_V6.V1.creatorStoragePath)
-        let requestRes1  <- creator.load<@DAAM_V6.V1.RequestGenerator>(from: DAAM_V6.V1.requestStoragePath)
-        let metadataRes1 <- creator.load<@DAAM_V6.V1.MetadataGenerator>(from: DAAM_V6.V1.metadataStoragePath)
+        let creatorRes1  <- creator.load<@DAAM_V7.V1.Creator>(from: DAAM_V7.V1.creatorStoragePath)
+        let requestRes1  <- creator.load<@DAAM_V7.V1.RequestGenerator>(from: DAAM_V7.V1.requestStoragePath)
+        let metadataRes1 <- creator.load<@DAAM_V7.V1.MetadataGenerator>(from: DAAM_V7.V1.metadataStoragePath)
         destroy creatorRes1
         destroy requestRes1
         destroy metadataRes1
-        creator.unlink(DAAM_V6.V1.creatorPrivatePath)
-        creator.unlink(DAAM_V6.V1.requestPrivatePath)
-        creator.unlink(DAAM_V6.V1.metadataPublicPath)
+        creator.unlink(DAAM_V7.V1.creatorPrivatePath)
+        creator.unlink(DAAM_V7.V1.requestPrivatePath)
+        creator.unlink(DAAM_V7.V1.metadataPublicPath)
         log("Creator Removed 1")
 
-        let creatorRes2  <- creator.load<@DAAM_V6.V2.Creator>(from: DAAM_V6.V2.creatorStoragePath)
-        let requestRes2  <- creator.load<@DAAM_V6.V2.RequestGenerator>(from: DAAM_V6.V2.requestStoragePath)
-        let metadataRes2 <- creator.load<@DAAM_V6.V2.MetadataGenerator>(from: DAAM_V6.V2.metadataStoragePath)
+        let creatorRes2  <- creator.load<@DAAM_V7.V2.Creator>(from: DAAM_V7.V2.creatorStoragePath)
+        let requestRes2  <- creator.load<@DAAM_V7.V2.RequestGenerator>(from: DAAM_V7.V2.requestStoragePath)
+        let metadataRes2 <- creator.load<@DAAM_V7.V2.MetadataGenerator>(from: DAAM_V7.V2.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM_V6.V2.creatorPrivatePath)
-        creator.unlink(DAAM_V6.V2.requestPrivatePath)
-        creator.unlink(DAAM_V6.V2.metadataPublicPath)
+        creator.unlink(DAAM_V7.V2.creatorPrivatePath)
+        creator.unlink(DAAM_V7.V2.requestPrivatePath)
+        creator.unlink(DAAM_V7.V2.metadataPublicPath)
         log("Creator Removed 2")
 
-        let creatorRes3  <- creator.load<@DAAM_V6.V3.Creator>(from: DAAM_V6.V3.creatorStoragePath)
-        let requestRes3  <- creator.load<@DAAM_V6.V3.RequestGenerator>(from: DAAM_V6.V3.requestStoragePath)
-        let metadataRes3 <- creator.load<@DAAM_V6.V3.MetadataGenerator>(from: DAAM_V6.V3.metadataStoragePath)
+        let creatorRes3  <- creator.load<@DAAM_V7.V3.Creator>(from: DAAM_V7.V3.creatorStoragePath)
+        let requestRes3  <- creator.load<@DAAM_V7.V3.RequestGenerator>(from: DAAM_V7.V3.requestStoragePath)
+        let metadataRes3 <- creator.load<@DAAM_V7.V3.MetadataGenerator>(from: DAAM_V7.V3.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM_V6.V3.creatorPrivatePath)
-        creator.unlink(DAAM_V6.V3.requestPrivatePath)
-        creator.unlink(DAAM_V6.V3.metadataPublicPath)
+        creator.unlink(DAAM_V7.V3.creatorPrivatePath)
+        creator.unlink(DAAM_V7.V3.requestPrivatePath)
+        creator.unlink(DAAM_V7.V3.metadataPublicPath)
         log("Creator Removed 3")
 
-        let creatorRes4  <- creator.load<@DAAM_V6.V4.Creator>(from: DAAM_V6.V4.creatorStoragePath)
-        let requestRes4  <- creator.load<@DAAM_V6.V4.RequestGenerator>(from: DAAM_V6.V4.requestStoragePath)
-        let metadataRes4 <- creator.load<@DAAM_V6.V4.MetadataGenerator>(from: DAAM_V6.V4.metadataStoragePath)
+        let creatorRes4  <- creator.load<@DAAM_V7.V4.Creator>(from: DAAM_V7.V4.creatorStoragePath)
+        let requestRes4  <- creator.load<@DAAM_V7.V4.RequestGenerator>(from: DAAM_V7.V4.requestStoragePath)
+        let metadataRes4 <- creator.load<@DAAM_V7.V4.MetadataGenerator>(from: DAAM_V7.V4.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM_V6.V4.creatorPrivatePath)
-        creator.unlink(DAAM_V6.V4.requestPrivatePath)
-        creator.unlink(DAAM_V6.V4.metadataPublicPath)
+        creator.unlink(DAAM_V7.V4.creatorPrivatePath)
+        creator.unlink(DAAM_V7.V4.requestPrivatePath)
+        creator.unlink(DAAM_V7.V4.metadataPublicPath)
         log("Creator Removed 4")
 
-        let creatorRes5  <- creator.load<@DAAM_V6.V5.Creator>(from: DAAM_V6.V5.creatorStoragePath)
-        let requestRes5  <- creator.load<@DAAM_V6.V5.RequestGenerator>(from: DAAM_V6.V5.requestStoragePath)
-        let metadataRes5 <- creator.load<@DAAM_V6.V5.MetadataGenerator>(from: DAAM_V6.V5.metadataStoragePath)
+        let creatorRes5  <- creator.load<@DAAM_V7.V5.Creator>(from: DAAM_V7.V5.creatorStoragePath)
+        let requestRes5  <- creator.load<@DAAM_V7.V5.RequestGenerator>(from: DAAM_V7.V5.requestStoragePath)
+        let metadataRes5 <- creator.load<@DAAM_V7.V5.MetadataGenerator>(from: DAAM_V7.V5.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM_V6.V5.creatorPrivatePath)
-        creator.unlink(DAAM_V6.V5.requestPrivatePath)
-        creator.unlink(DAAM_V6.V5.metadataPublicPath)
+        creator.unlink(DAAM_V7.V5.creatorPrivatePath)
+        creator.unlink(DAAM_V7.V5.requestPrivatePath)
+        creator.unlink(DAAM_V7.V5.metadataPublicPath)
         log("Creator Removed 5")
     } 
 }
