@@ -511,11 +511,11 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 
 # End of Auctions
 echo "========== Testing Section E =========="
@@ -562,11 +562,11 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 
 echo "Testing Section F ===================="
 
@@ -669,8 +669,8 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY

@@ -5,13 +5,13 @@ echo "Testing: Create Auction, excpet for Extended Auctions."
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 echo CTO
-flow scripts execute ./scripts/collecion.cdc $CTO
+flow scripts execute ./scripts//wallet/collection.cdc $CTO
 # "Creator: [10, 3, 4]"
 # "Client : [2, 7, 6, 5]"
 # "Nobody : [8, 9, 11, 12, 1]"
@@ -436,13 +436,13 @@ flow scripts execute ./scripts/auction/auction_status.cdc $NOBODY 14
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 echo CTO
-flow scripts execute ./scripts/collecion.cdc $CTO
+flow scripts execute ./scripts//wallet/collection.cdc $CTO
 
 # End of Auctions
 echo "========== Testing Section E =========="
@@ -475,13 +475,13 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 echo CTO
-flow scripts execute ./scripts/collecion.cdc $CTO
+flow scripts execute ./scripts//wallet/collection.cdc $CTO
 
 echo "Testing Section F ===================="
 
@@ -524,10 +524,10 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts/collecion.cdc $CREATOR
+flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts/collecion.cdc $CLIENT
+flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts/collecion.cdc $NOBODY
+flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
 echo CTO
-flow scripts execute ./scripts/collecion.cdc $CTO
+flow scripts execute ./scripts//wallet/collection.cdc $CTO

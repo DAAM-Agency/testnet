@@ -78,7 +78,7 @@ echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2
 do
 getAddressName $user
-flow scripts execute ./scripts/collecion.cdc $user
+flow scripts execute ./scripts//wallet/collection.cdc $user
 done
 
 # Verify Metadata
