@@ -300,7 +300,7 @@ pub resource interface CollectionPublic {
     pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
     pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
-    pub fun borrowDAAM_V7(id: UInt64): &DAAM_V7.NFT      // Get NFT as DAAM_V7.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM_V7.NFT      // Get NFT as DAAM_V7.NFT
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -337,7 +337,7 @@ pub resource interface CollectionPublic {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
         // borrowDAAM_V7 gets a reference to an DAAM_V7.NFT in the collection.
-        pub fun borrowDAAM_V7(id: UInt64): &DAAM_V7.NFT {
+        pub fun borrowDAAM(id: UInt64): &DAAM_V7.NFT {
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM_V7.NFT                                    // return NFT Reference
