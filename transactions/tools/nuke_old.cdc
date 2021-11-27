@@ -40,7 +40,7 @@ transaction() {
 
         let wallet <- signer.load<@DAAM.Collection> (from: DAAM.collectionStoragePath)
         destroy wallet
-        signer.unlick(DAAM.collectionPublicPath)
+        signer.unlink(DAAM.collectionPublicPath)
         log("Wallet cleared.")
     } 
 }
