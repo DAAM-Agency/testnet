@@ -71,10 +71,9 @@ pub contract AuctionHouse {
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
-            log("MetadataHolder")
-            log(metadata.getMID())
+            log("MetadataHolder".concat(metadata.getMID().toString()) )
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
-            log("NFT")
+            log("NFT:")
             log(nft.metadata)
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,

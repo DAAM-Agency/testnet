@@ -238,8 +238,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 let new_metadata = Metadata(                  // Prep next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata)
-                log("Generate Metadata")
-                log(new_metadata.mid)
+                log("Generate Metadata: ".concat(new_metadata.mid.toString()) )
                 self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
             }
             return <- mh // Return current Metadata  
