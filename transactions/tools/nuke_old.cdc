@@ -135,5 +135,10 @@ transaction() {
         destroy auctionRes
         signer.unlink(AuctionHouse.auctionPublicPath)
         log("AuctionHouse cleared.")
+
+        let wallet <- signer.load<@DAAM_V6.Collection> (from: DAAM.collectionStoragePath)
+        destroy wallet
+        signer.unlink(DAAM.collectionPublicPath)
+        log("Wallet cleared.")
     } 
 }

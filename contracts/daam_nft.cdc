@@ -683,6 +683,7 @@ pub resource Admin: Agent
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
+            newAdmin.borrow<&DAAM_V7.Admin{DAAM_V7.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Admin."
             DAAM_V7.admins.containsKey(newAdmin.address)    : "You got no DAAM Admin invite."
             !DAAM_V7.agents.containsKey(newAdmin.address)   : "A Admin can not use the same address as an Agent."
             !DAAM_V7.creators.containsKey(newAdmin.address) : "A Admin can not use the same address as an Creator."
@@ -705,10 +706,11 @@ pub resource Admin: Agent
     pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
     {
         pre {
+            newAgent.borrow<&DAAM_V7.Admin{DAAM_V7.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Agent."
             !DAAM_V7.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
             !DAAM_V7.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
-            DAAM_V7.agents.containsKey(newAgent.address)    : "You got no DAAM_V7 Agent invite."
-            Profile.check(newAgent.address)  : "You can't be a DAAM_V7 Agent without a Profile first. Go make a Profile first."
+            DAAM_V7.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
+            Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                  // Refused invitation. 
@@ -725,10 +727,11 @@ pub resource Admin: Agent
     // // The Creator potential can accept (True) or deny (False)
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
+            newCreator.borrow<&DAAM_V7.Creator>(from: self.creatorStoragePath) == nil : "You are aleady a Creator."
             !DAAM_V7.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
             !DAAM_V7.agents.containsKey(newCreator.address)    : "A Creator can not use the same address as an Agent."
-            DAAM_V7.creators.containsKey(newCreator.address) : "You got no DAAM_V7 Creator invite."
-            Profile.check(newCreator.address)  : "You can't be a DAAM_V7 Creator without a Profile first. Go make a Profile first."
+            DAAM_V7.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
+            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                       // Refused invitation.
@@ -743,7 +746,10 @@ pub resource Admin: Agent
     }
 
     pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
-        pre { DAAM_V7.minters.containsKey(minter.address) : "You do not have a Minter Invitation" }
+        pre {
+            minter.borrow<&DAAM_V7.Minter>(from: self.minterStoragePath) == nil : "You are aleady a Minter."
+            DAAM_V7.minters.containsKey(minter.address) : "You do not have a Minter Invitation"
+        }
 
         if !submit {                                 // Refused invitation. 
             DAAM_V7.minters.remove(key: minter.address) // Remove potential from Agent list
