@@ -8,13 +8,16 @@ pub fun main(): {Address: [[DAAM_V7.Metadata]; 2] }
     let creators = DAAM_V7.getCreators()
     var mlist: [DAAM_V7.Metadata] = []
     var clist: { Address : [[DAAM_V7.Metadata]; 2] } = {}
-    
+
+    var metadataRef = getAccount(creators[0])
+        .getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorPublic}>(DAAM_V7.metadataPublicPath)
+        .borrow() ?? panic("Could not borrow capability from Metadata")
+
+    let metadatas = metadataRef.getMetadatas()  
     for creator in creators {
-        let metadataRef = getAccount(creator)
+        metadataRef = getAccount(creator)
             .getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorPublic}>(DAAM_V7.metadataPublicPath)
             .borrow() ?? panic("Could not borrow capability from Metadata")
-
-        let metadatas = metadataRef.getMetadatas()        
         for m in metadatas.keys {
             mlist.append(metadatas[m]!)
         }
