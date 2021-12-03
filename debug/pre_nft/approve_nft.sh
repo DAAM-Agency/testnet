@@ -9,10 +9,13 @@ do
     fi
 
     echo "mid: $mid"
-    flow transactions send ./transactions/admin/change_metadata_status.cdc $mid true --signer cto
+    if [$1 != null]
+    then
+        DISAPPROVED_METADTA=$mid
+        flow transactions send ./transactions/admin/change_metadata_status.cdc $mid false --signer cto  # MID x
+    else
+        flow transactions send ./transactions/admin/change_metadata_status.cdc $mid true --signer cto
+    fi
 done
 
-if [$1 != null]
-then
-    flow transactions send ./transactions/admin/change_metadata_status.cdc $1 false --signer cto  # MID x
-fi
+
