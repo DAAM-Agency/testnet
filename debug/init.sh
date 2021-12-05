@@ -252,3 +252,4 @@ echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. --
 # pre_nft variables
 export REMOVED_METADATA
 export DISAPPROVED_METADTA
+export DISAPPROVED_COPYRIGHT

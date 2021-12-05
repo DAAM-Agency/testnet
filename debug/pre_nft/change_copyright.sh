@@ -13,7 +13,8 @@ do
     flow transactions send ./transactions/admin/change_copyright.cdc $mid 3 --signer cto #A Verfied
 done
 
-if [$1 && $2 != null]
+if [ ! "$1" ]
 then
-    flow transactions send ./transactions/admin/change_copyright.cdc $2 $1 --signer cto #I Verfied
+    DISAPPROVED_COPYRIGHT=$2
+    flow transactions send ./transactions/admin/change_copyright.cdc $1 0 --signer cto #I Verfied
 fi

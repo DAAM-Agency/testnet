@@ -13,7 +13,7 @@ echo "START: "$START
 echo "========== Create Original Auctions Tests II =========="
 # Auction MID 5, AID: 5 after copyright adjustment. (set to Verfied)
 echo "Test Auction E: Buy It Now"
-flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
+flow transactions send ./transactions/auction/create_original_auction.cdc $DISAPPROVED_COPYRIGHT $START \
 150.0 false 0.0 false 0.04 13.00 \
 20.0 30.5 false --signer creator #E AID: 5
 

@@ -9,7 +9,7 @@ do
     fi
 
     echo "mid: $mid"
-    if [$1 != null]
+    if [ ! "$1" ]
     then
         DISAPPROVED_METADTA=$mid
         flow transactions send ./transactions/admin/change_metadata_status.cdc $mid false --signer cto  # MID x
