@@ -15,5 +15,5 @@ done
 
 if [$1 && $2 != null]
 then
-    flow transactions send ./transactions/admin/change_copyright.cdc $1 $2 --signer cto #I Verfied
+    flow transactions send ./transactions/admin/change_copyright.cdc $2 $1 --signer cto #I Verfied
 fi
