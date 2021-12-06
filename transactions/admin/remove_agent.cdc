@@ -1,19 +1,19 @@
 // remove_agent.cdc
 // Admin can remove an Agent.
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(exAgent: Address) {
-    let admin   : &DAAM_V7.Admin
+    let admin   : &DAAM.Admin
     let exAgent : Address
 
     prepare(admin: AuthAccount) {
-        self.admin = admin.borrow<&DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)!
+        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
 	    self.exAgent = exAgent
     }
 
     // Verify exAgent is an Agent
-    pre { DAAM_V7.isAgent(exAgent) == true : exAgent.toString().concat(" is not an Agent.") }
+    pre { DAAM.isAgent(exAgent) == true : exAgent.toString().concat(" is not an Agent.") }
     
     execute {
         self.admin.removeAgent(agent: self.exAgent)
@@ -21,6 +21,6 @@ transaction(exAgent: Address) {
     }
 
     // Verify is not an Agent
-    post { DAAM_V7.isAgent(self.exAgent) == nil : self.exAgent.toString().concat(" is still an Agent.") }
+    post { DAAM.isAgent(self.exAgent) == nil : self.exAgent.toString().concat(" is still an Agent.") }
 
 }

@@ -1,8 +1,7 @@
 // winner_collect.cdc
 // Used to claim an item. Must meet reserve price.
 
-import AuctionHouse from 0x01837e15023c9249
-
+import AuctionHouse  from 0x045a1763c93006ca
 transaction(auction: Address, auctionID: UInt64)
 {
     let bidder          : AuthAccount

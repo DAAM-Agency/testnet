@@ -1,20 +1,20 @@
 // get_metadata_list.cdc
 // Used to get a all Metadatas from a Creator
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
-pub fun main(creator: Address): [[DAAM_V7.Metadata];2]
+pub fun main(creator: Address):[[DAAM.Metadata];2]
 {
     let metadataRef = getAccount(creator)
-        .getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorPublic}>(DAAM_V7.metadataPublicPath)
+        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
     let metadatas = metadataRef.getMetadatas()
-    var mlist: [DAAM_V7.Metadata] = []
+    var mlist: [DAAM.Metadata] = []
     for m in metadatas.keys {
         mlist.append(metadatas[m]!)
     }
-    let convert_metadata = DAAM_V7.convertMetadata(metadata: mlist)
-    
+    let convert_metadata = DAAM.convertMetadata(metadata: mlist)
+
     return convert_metadata
 }

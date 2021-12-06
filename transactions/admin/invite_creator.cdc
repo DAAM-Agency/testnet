@@ -2,22 +2,22 @@
 // Used for Admin / Agent to invite a Creator.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(creator: Address)
 {
-    let admin   : &{DAAM_V7.Agent}
+    let admin   : &DAAM.Admin{DAAM.Agent}
     let creator : Address
 
     prepare(agent: AuthAccount) {
-        self.admin   = agent.borrow<&{DAAM_V7.Agent}>(from: DAAM_V7.adminStoragePath)!
+        self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
         self.creator = creator
     }
 
     pre {
-        DAAM_V7.isAdmin(creator)   == nil : creator.toString().concat(" is already an Admin.")
-        DAAM_V7.isAgent(creator)   == nil : creator.toString().concat(" is already an Agent.")
-        DAAM_V7.isCreator(creator) == nil : creator.toString().concat(" is already an Creator.")
+        DAAM.isAdmin(creator)   == nil : creator.toString().concat(" is already an Admin.")
+        DAAM.isAgent(creator)   == nil : creator.toString().concat(" is already an Agent.")
+        DAAM.isCreator(creator) == nil : creator.toString().concat(" is already an Creator.")
     }
     
     execute {
@@ -25,5 +25,5 @@ transaction(creator: Address)
         log("Creator Invited")
     }
 
-    post { DAAM_V7.isCreator(self.creator) != nil : self.creator.toString().concat(" invitation has not been sent.") }
+    post { DAAM.isCreator(self.creator) != nil : self.creator.toString().concat(" invitation has not been sent.") }
 }

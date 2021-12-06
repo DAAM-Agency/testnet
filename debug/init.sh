@@ -130,6 +130,7 @@ flow transactions send ./transactions/setup_fusd.cdc 100000000.0 $CTO --signer p
 
 echo "========== Send 100K FUSD to All Accounts =========="
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer profile
 
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer creator
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer admin
@@ -247,3 +248,8 @@ echo "Verify Minter Status: false"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
 echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. -----------"
+
+# pre_nft variables
+export REMOVED_METADATA
+export DISAPPROVED_METADTA
+export DISAPPROVED_COPYRIGHT

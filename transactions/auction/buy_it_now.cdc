@@ -1,17 +1,17 @@
 // but_it_now.cdc
 // Used for direct purchases
 
-import FungibleToken from 0x9a0766d93b6608b7
-import FUSD          from 0xe223d8a629e49c68
-import AuctionHouse  from 0x01837e15023c9249
-import DAAM_V7          from 0xa4ad5ea5c0bd2fba
+import FungibleToken from 0xee82856bf20e2aa6
+import FUSD          from 0x192440c99cb17282
+import AuctionHouse  from 0x045a1763c93006ca
+import DAAM          from 0xfd43f9148d4b725d
 
 transaction(auction: Address, auctionID: UInt64, bid: UFix64)
 {
     let bidder          : AuthAccount
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath
-    let collection      : &{DAAM_V7.CollectionPublic}
+    let collection      : &{DAAM.CollectionPublic}
     let vaultRef        : &FUSD.Vault{FungibleToken.Provider}
     let auctionID       : UInt64
     
@@ -20,7 +20,7 @@ transaction(auction: Address, auctionID: UInt64, bid: UFix64)
         self.fusdStoragePath = /storage/fusdVault
 
         self.vaultRef   = self.bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
-        self.collection = self.bidder.borrow<&{DAAM_V7.CollectionPublic}>(from: DAAM_V7.collectionStoragePath)!
+        self.collection = self.bidder.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)!
         
         self.auctionHouse = getAccount(auction)
             .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)

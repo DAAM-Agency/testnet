@@ -1,17 +1,17 @@
 // submit_nft.cdc
 // Creator uses to submit Metadata
 
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V7          from 0xa4ad5ea5c0bd2fba
+import NonFungibleToken from 0xf8d6e0586b0a20c7
+import DAAM             from 0xfd43f9148d4b725d
 
 transaction(series: UInt64, data: String, thumbnail: String, file: String)
 {    
     let creator     : AuthAccount
-    let metadataGen : &DAAM_V7.MetadataGenerator
+    let metadataGen : &DAAM.MetadataGenerator
 
     prepare(creator: AuthAccount) {
         self.creator = creator
-        self.metadataGen = creator.borrow<&DAAM_V7.MetadataGenerator>(from: DAAM_V7.metadataStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
     execute {

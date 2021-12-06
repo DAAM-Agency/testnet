@@ -1,10 +1,10 @@
 // collection.cdc
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 pub fun main(account: Address): [UInt64]? {
     let collectionRef = getAccount(account)
-        .getCapability<&{DAAM_V7.CollectionPublic}>(DAAM_V7.collectionPublicPath)
+        .getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath)
         .borrow()
         //?? panic("Could not borrow capability from public collection")
     

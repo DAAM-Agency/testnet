@@ -1,7 +1,8 @@
 // is_creator.cdc
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 pub fun main(creator: Address): Bool? {
-    return DAAM_V7.isCreator(creator)
+    return DAAM.isCreator(creator)
 }
+// nil = not a creator, false = invited to be a creator, true = is a creator

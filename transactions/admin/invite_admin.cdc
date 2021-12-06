@@ -2,22 +2,22 @@
 // Used for Admin to invite another Admin.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(newAdmin: Address)
 {
-    let admin    : &DAAM_V7.Admin
+    let admin    : &DAAM.Admin
     let newAdmin : Address 
 
     prepare(admin: AuthAccount) {
-        self.admin    = admin.borrow<&DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)!
+        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
         self.newAdmin = newAdmin
     }
 
     pre {
-        DAAM_V7.isAdmin(newAdmin) == nil   : newAdmin.toString().concat(" is already an Admin.")
-        DAAM_V7.isAgent(newAdmin) == nil   : newAdmin.toString().concat(" is already an Agent.")
-        DAAM_V7.isCreator(newAdmin) == nil : newAdmin.toString().concat(" is already an Creator.")
+        DAAM.isAdmin(newAdmin) == nil   : newAdmin.toString().concat(" is already an Admin.")
+        DAAM.isAgent(newAdmin) == nil   : newAdmin.toString().concat(" is already an Agent.")
+        DAAM.isCreator(newAdmin) == nil : newAdmin.toString().concat(" is already an Creator.")
     }
     
     execute {
