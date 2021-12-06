@@ -1,7 +1,7 @@
 // answer_agent_invite.cdc
 // Answer the invitation to be an Agent.
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V7 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -11,18 +11,18 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let agent  <- DAAM.answerAgentInvite(newAgent: self.signer, submit: submit)
+        let agent  <- DAAM_V7.answerAgentInvite(newAgent: self.signer, submit: submit)
 
         if agent != nil && submit {
-            self.signer.save<@DAAM.Admin{DAAM.Agent}>(<- agent!, to: DAAM.adminStoragePath)!
-            self.signer.link<&{DAAM.Agent}>(DAAM.adminPrivatePath, target: DAAM.adminStoragePath)!
-            let agentRef = self.signer.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+            self.signer.save<@DAAM_V7.Admin{DAAM_V7.Agent}>(<- agent!, to: DAAM_V7.adminStoragePath)!
+            self.signer.link<&{DAAM_V7.Agent}>(DAAM_V7.adminPrivatePath, target: DAAM_V7.adminStoragePath)!
+            let agentRef = self.signer.borrow<&{DAAM_V7.Agent}>(from: DAAM_V7.adminStoragePath)!
 
             let requestGen <- agentRef.newRequestGenerator()!
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
+            self.signer.save<@DAAM_V7.RequestGenerator>(<- requestGen, to: DAAM_V7.requestStoragePath)!
+            self.signer.link<&DAAM_V7.RequestGenerator>(DAAM_V7.requestPrivatePath, target: DAAM_V7.requestStoragePath)!
             
-            log("You are now a DAAM Agent: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V7 Agent: ".concat(self.signer.address.toString()) )
         }
         if !submit { log("Thank You for your consideration.") }
     }

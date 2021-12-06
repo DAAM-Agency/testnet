@@ -1,7 +1,8 @@
 // get_request_status.cdc
 // Returns the Request status using the MID
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V7 from 0xa4ad5ea5c0bd2fba
 pub fun main(creator: Address, mid: UInt64):Bool? {
-    return DAAM.getRequestValidity(creator: creator, mid: mid)
+    return DAAM_V7.getRequestValidity(creator: creator, mid: mid)
 }
+   

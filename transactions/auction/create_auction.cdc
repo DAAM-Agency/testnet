@@ -1,23 +1,23 @@
 // create_auction.cdc
 // Used to create an auction for an NFT
 
-import AuctionHouse     from 0x045a1763c93006ca
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import DAAM             from 0xfd43f9148d4b725d
+import AuctionHouse     from 0x01837e15023c9249
+import NonFungibleToken from 0x631e88ae7f1d7c20
+import DAAM_V7             from 0xa4ad5ea5c0bd2fba
 
 transaction(auctionID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
   incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let nftCollection: &DAAM.Collection
+  let nftCollection: &DAAM_V7.Collection
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-    self.nftCollection = auctioneer.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!
+    self.nftCollection = auctioneer.borrow<&DAAM_V7.Collection>(from: DAAM_V7.collectionStoragePath)!
   }
 
   execute {
-      let nft <- self.nftCollection.withdraw(withdrawID: auctionID) as! @DAAM.NFT
+      let nft <- self.nftCollection.withdraw(withdrawID: auctionID) as! @DAAM_V7.NFT
 
       self.auctionHouse.createAuction(nft: <-nft, start: start, length: length, isExtended: isExtended,
         extendedTime: extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
