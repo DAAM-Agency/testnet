@@ -21,15 +21,10 @@ flow transactions send ./transactions/auction/create_original_auction.cdc $DISAP
 echo "Test Auction H: Bids followed by Buy It Now"
 flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
 330.0 false 0.0 false 0.025 15.00 \
-20.0 30.6 true --signer creator #H, AID: 6
+20.0 30.6 true --signer creator2 #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "Test Auction I: Bids followed by Buy It Now"
 flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
 330.0 false 0.0 false 0.025 15.00 \
-20.0 30.7 true --signer creator #I, AID: 7
-
-# Auction Scripts
-echo "========= Verify Auctions ========="
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR2
+20.0 30.7 true --signer creator2 #I, AID: 7
