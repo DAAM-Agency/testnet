@@ -11,7 +11,7 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String)
 
     prepare(creator: AuthAccount) {
         self.creator = creator
-        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
     execute {
