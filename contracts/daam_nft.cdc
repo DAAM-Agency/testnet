@@ -179,8 +179,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.grantee  = grantee
         } 
 
-        // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin
-        pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String) {
+        // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
+        pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String): UInt64 {
             pre{
                 self.grantee == creator.address            : "Permission Denied"
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
@@ -188,12 +188,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             }
             let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
                 file: file, counter: nil) // Create Metadata
-            self.metadata.insert(key:metadata.mid, metadata) // Save Metadata
-            DAAM.metadata.insert(key: metadata.mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
-            DAAM.copyright.insert(key:metadata.mid, CopyrightStatus.UNVERIFIED) // default copyright setting
+            let mid = metadata.mid
+            self.metadata.insert(key: mid, metadata) // Save Metadata
+            DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
+            DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
-            log("Metadata Generatated ID: ".concat(metadata.mid.toString()) )
+            log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata()
+            return mid
         }
 
         // RemoveMetadata uses deleteMetadata to delete the Metadata.
