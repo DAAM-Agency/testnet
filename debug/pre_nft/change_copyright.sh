@@ -11,11 +11,11 @@ do
     echo "mid: $mid"
 
     if [ $(($mid == $1)) == 1 ]; then
-        echo DISAPPROVED
+        echo "DISAPPROVED Copyright"
         DISAPPROVED_COPYRIGHT=$1
         flow transactions send ./transactions/admin/change_copyright.cdc $1 0 --signer cto #Verfied
     else
-        echo APPROVED
+        echo "APPROVED Copyright"
         flow transactions send ./transactions/admin/change_copyright.cdc $mid 3 --signer cto #Fraud
     fi
 done
