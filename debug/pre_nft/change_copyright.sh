@@ -4,17 +4,20 @@
 echo "========== Change Copyright Status =========="
 for mid in {1..9}
 do
-    if [ $mid == $REMOVED_METADATA ]
-    then
+    if [ $(($mid == $REMOVED_METADATA)) == 1 ]; then
         echo "FAIL TEST: Metadata Disapproved & Removed."
     fi
 
     echo "mid: $mid"
-    flow transactions send ./transactions/admin/change_copyright.cdc $mid 3 --signer cto #A Verfied
+
+    if [ $(($mid == $1)) == 1 ]; then
+        echo DISAPPROVED
+        DISAPPROVED_COPYRIGHT=$1
+        flow transactions send ./transactions/admin/change_copyright.cdc $1 0 --signer cto #Verfied
+    else
+        echo APPROVED
+        flow transactions send ./transactions/admin/change_copyright.cdc $mid 3 --signer cto #Fraud
+    fi
 done
 
-if [ ! "$1" ]
-then
-    DISAPPROVED_COPYRIGHT=$2
-    flow transactions send ./transactions/admin/change_copyright.cdc $1 0 --signer cto #I Verfied
-fi
+
