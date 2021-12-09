@@ -60,25 +60,24 @@ getAddressName() {
 echo "---------- FUSD ----------"
 for user in $AGENCY $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2
 do
-getAddressName $user
-flow scripts execute ./scripts/get_fusd_balance.cdc $user
+    getAddressName $user
+    flow scripts execute ./scripts/get_fusd_balance.cdc $user
 done
 
 # Get all Auctions
 echo "---------- Auction Wallet ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2
 do
-getAddressName $user
-flow scripts execute ./scripts/auction/get_auctions.cdc $user
+    getAddressName $user
+    flow scripts execute ./scripts/auction/get_auctions.cdc $user
 done
-
 
 # Verify Collection
 echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2
 do
-getAddressName $user
-flow scripts execute ./scripts//wallet/collection.cdc $user
+    getAddressName $user
+    flow scripts execute ./scripts//wallet/collection.cdc $user
 done
 
 # Verify Metadata
