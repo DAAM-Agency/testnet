@@ -27,3 +27,9 @@ flow transactions send ./transactions/admin/change_copyright.cdc $DISAPPROVED_CO
 
 . ./debug/create_original_auctions/bids/bid_auction_7.sh
 . ./debug/view_basic_data.sh
+
+. ./debug/create_original_auctions/serial_minter//serial_aid_2.sh
+. ./debug/view_basic_data.sh
+
+. ./debug/withdraw.sh $CREATOR2 6
+. ./debug/winner_collect.sh.sh $CREATOR2 6
