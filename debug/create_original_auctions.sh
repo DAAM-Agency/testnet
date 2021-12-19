@@ -28,10 +28,21 @@ flow transactions send ./transactions/admin/change_copyright.cdc $DISAPPROVED_CO
 . ./debug/create_original_auctions/bids/bid_auction_7.sh
 . ./debug/view_basic_data.sh
 
-. ./debug/create_original_auctions/withdraw.sh $CREATOR2 6
-. ./debug/create_original_auctions/winner_collect.sh.sh $CREATOR2 6
+# Wait for Auctions to Expire
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+TIME_LEFT=$(flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6 | awk  '{print $2}')
+echo "Time Left: $TIME_LEFT"
+sleep $TIME_LEFT
+TIME_LEFT=0
 
+
+. ./debug/create_original_auctions/withdraw.sh $CREATOR2 6
+. ./debug/create_original_auctions/winner_collect.sh $CREATOR2 6
+
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 . ./debug/create_original_auctions/serial_minter/serial_aid_2.sh
 . ./debug/view_basic_data.sh
 
-
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6
+. ./debug/create_original_auctions/serial_minter/serial_aid_6.sh
+. ./debug/view_basic_data.sh

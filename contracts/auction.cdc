@@ -445,7 +445,7 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() } // verify log
 
             self.status = false          // ends the auction
-            self.length = 0.0 as UFix64  // set length to 0; double end auction
+            self.length = 0.0            // set length to 0; double end auction
             self.leader = bidder.address // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
