@@ -1,4 +1,3 @@
-
 # Test Serial Minter
 echo "========== Testing Serial Minter AID: 6 =========="
 

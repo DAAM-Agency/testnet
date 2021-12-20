@@ -400,6 +400,8 @@ pub contract AuctionHouse {
             let nft <- self.auctionNFT <- nil     // remove nft
 
             let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
+            log("isLast: ")
+            log(isLast)
             log("vrp(); pre seriesMinter; counter: ".concat(nft?.metadata?.counter!.toString()) )
             log("vrp(); series: ".concat(nft?.metadata?.series!.toString()) )
 
