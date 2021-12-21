@@ -11,10 +11,6 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 echo "CTO FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Auction Status: AID: 9 (True due to reprint Series = true) =========="
-flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 9
-
 echo "========== Script: timeLeft.cdc AID: 9 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
 echo "========== AID: 9 =========="
@@ -40,3 +36,7 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc AID: 9 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
+
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "========= Auction Status: AID: 9 (True due to reprint Series = true) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 9
