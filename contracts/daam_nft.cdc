@@ -13,7 +13,7 @@ pub contract DAAM: NonFungibleToken {
     pub event NewAdmin(admin  : Address)         // A new Admin has been added. Accepted Invite
     pub event NewAgent(agent  : Address)         // A new Agent has been added. Accepted Invite
     pub event NewMinter(minter: Address)         // A new Minter has been added. Accepted Invite
-    pub event NewCreator(creator: Address)       // A new Creator has been addeed. Accepted Invite
+    pub event NewCreator(creator: Address)       // A new Creator has been added. Accepted Invite
     pub event AdminInvited(admin  : Address)     // Admin has been invited
     pub event AgentInvited(agent  : Address)     // Agent has been invited
     pub event CreatorInvited(creator: Address)   // Creator has been invited
@@ -23,14 +23,14 @@ pub contract DAAM: NonFungibleToken {
     pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
     pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
     pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin/Agemnt
-    pub event ChangeMinterStatus(minter: Address, status: Bool)    // Minterr Status has been changed by Admin
+    pub event ChangeMinterStatus(minter: Address, status: Bool)    // Minter Status has been changed by Admin
     pub event AdminRemoved(admin: Address)       // Admin has been removed
     pub event AgentRemoved(agent: Address)       // Agent has been removed by Admin
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
-    pub event RequestAccepted(mid: UInt64)       // Royality rate has been accepted 
+    pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
-    pub event RemovedAdminInvite()               // Admin invitation has been recinded
+    pub event RemovedAdminInvite()               // Admin invitation has been rescinded
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -46,14 +46,14 @@ pub contract DAAM: NonFungibleToken {
     pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
     pub var totalSupply : UInt64 // the total supply of NFTs, also used as counter for token ID
-    access(contract) var remove  : {Address: Address}  // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
-    access(contract) var admins  : {Address: Bool}  // {Admin Address : status}  Admin address are stored here
-    access(contract) var agents  : {Address: Bool}  // {Agents Address : status} Agents address are stored here // preparation for V2
-    access(contract) var minters : {Address: Bool}  // {Minters Address : status} Minter address are stored here // preparation for V2
-    access(contract) var creators: {Address: Bool}  // {Creator Address : status} Creator address are stored here
-    access(contract) var metadata: {UInt64: Bool}   // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var request : @{UInt64: Request}  // {MID : @Request } Request are stored here by MID
-    access(contract) var copyright: {UInt64: CopyrightStatus}       // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
+    access(contract) var remove  : {Address: Address} // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
+    access(contract) var admins  : {Address: Bool}    // {Admin Address : status}  Admin address are stored here
+    access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
+    access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
+    access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
+    access(contract) var metadata: {UInt64: Bool}     // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
+    access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.

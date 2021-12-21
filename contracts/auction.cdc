@@ -8,10 +8,9 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract AuctionHouse {
     // Events
-    //pub event AuctionInitialized() //
     pub event AuctionCreated(auctionID: UInt64) // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)  // Auction has been finalized and has been removed.
-    pub event AuctionCancelled(auctionID: UInt64) // Auction has been cancelled
+    pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not meet.
     pub event BidMade(auctionID: UInt64, bidder: Address ) // Bid has been made on an Item
     pub event BidWithdrawn(bidder: Address)                // Bidder has withdrawn their bid

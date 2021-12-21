@@ -1,32 +1,3 @@
-echo "Testing Section G ===================="
-echo "Testing: Create Auction, excpet for Extended Auctions."
-
-# Verify Collection
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Verify Collections ========="
-echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
-echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
-echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
-echo CTO
-flow scripts execute ./scripts//wallet/collection.cdc $CTO
-# "Creator: [10, 3, 4]"
-# "Client : [2, 7, 6, 5]"
-# "Nobody : [8, 9, 11, 12, 1]"
-
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
-
-
 # Create Auction Tests
 # TokenID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64,

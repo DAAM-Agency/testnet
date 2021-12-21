@@ -40,8 +40,8 @@ sleep $TIME_LEFT
 TIME_LEFT=0
 
 
-. ./debug/create_original_auctions/withdraw.sh $CREATOR2 6
-. ./debug/create_original_auctions/winner_collect.sh $CREATOR2 6
+. ./debug/create_original_auctions/withdraw_original_auctions.sh $CREATOR2 6
+. ./debug/create_original_auctions/winner_collect_original.sh $CREATOR2 6
 
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6
 . ./debug/create_original_auctions/serial_minter/serial_aid_6.sh
