@@ -41,9 +41,8 @@ echo "Time Left: $TIME_LEFT"
 sleep $TIME_LEFT
 TIME_LEFT=0
 
-. ./debug/close_auctions.sh $CREATOR $CREATOR
-
 . ./debug/create_auctions/winner_collect_original.sh $CREATOR2 6
+. ./debug/close_auctions.sh creator creator2
 
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6
 . ./debug/create_auctions/serial_minter/serial_aid_6.sh
