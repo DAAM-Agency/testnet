@@ -8,5 +8,5 @@ pub fun main(auction: Address, auctionID: UInt64): Bool? {
         .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
         
-    return auctionHouse.item(auctionID)!.getStatus()
+    return auctionHouse.item(auctionID).getStatus()
 }

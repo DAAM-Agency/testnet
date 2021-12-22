@@ -8,10 +8,9 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract AuctionHouse {
     // Events
-    //pub event AuctionInitialized() //
     pub event AuctionCreated(auctionID: UInt64) // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)  // Auction has been finalized and has been removed.
-    pub event AuctionCancelled(auctionID: UInt64) // Auction has been cancelled
+    pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not meet.
     pub event BidMade(auctionID: UInt64, bidder: Address ) // Bid has been made on an Item
     pub event BidWithdrawn(bidder: Address)                // Bidder has withdrawn their bid
@@ -400,6 +399,8 @@ pub contract AuctionHouse {
             let nft <- self.auctionNFT <- nil     // remove nft
 
             let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
+            log("isLast: ")
+            log(isLast)
             log("vrp(); pre seriesMinter; counter: ".concat(nft?.metadata?.counter!.toString()) )
             log("vrp(); series: ".concat(nft?.metadata?.series!.toString()) )
 
@@ -445,7 +446,7 @@ pub contract AuctionHouse {
             post { self.verifyAuctionLog() } // verify log
 
             self.status = false          // ends the auction
-            self.length = 0.0 as UFix64  // set length to 0; double end auction
+            self.length = 0.0            // set length to 0; double end auction
             self.leader = bidder.address // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
