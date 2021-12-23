@@ -389,7 +389,7 @@ pub contract AuctionHouse {
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
                 receiver = self.owner?.address! // set receiver from leader to auctioneer
-                self.returnFunds()             // return funds to all bidders
+                self.returnFunds()              // return funds to all bidders
                 log("Item: Returned")
                 emit ItemReturned(auctionID: self.auctionID)    
             }
@@ -397,10 +397,8 @@ pub contract AuctionHouse {
             let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil     // remove nft
-
             let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
-            log("isLast: ")
-            log(isLast)
+            
             log("vrp(); pre seriesMinter; counter: ".concat(nft?.metadata?.counter!.toString()) )
             log("vrp(); series: ".concat(nft?.metadata?.series!.toString()) )
 

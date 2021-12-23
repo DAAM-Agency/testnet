@@ -6,7 +6,7 @@
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=10.0
+OFFSET=30.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
 echo "========== Create Auctions I =========="
@@ -27,23 +27,33 @@ flow transactions send ./transactions/auction/create_auction.cdc 6 $START \
 100.0 false 0.0 false 0.04 \
 10.00 26.0 30.3 --signer client #AID: 10  // Auction ID
 
-echo "---------- Nobody Sells 3 -----------"
+echo "---------- TokenID: 5 ---------- "
+flow transactions send ./transactions/auction/create_auction.cdc 5 $START \
+100.0 false 0.0 false 0.05 \
+11.00 20.0 30.1 --signer client #AID: 11  // Auction ID
+
+echo "---------- Nobody Sells All (5) -----------"
 echo "---------- TokenID: 8 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 8 $START \
 100.0 false 0.0 false 0.04 \
-13.00 26.0 30.5 --signer nobody #AID: 11  // Auction ID
+13.00 26.0 30.5 --signer nobody #AID: 12  // Auction ID
 
 echo "---------- TokenID: 10 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 10 $START \
 100.0 false 0.0 false 0.04 \
-10.00 26.0 30.4 --signer client #AID: 12  // Auction ID
+10.00 26.0 30.4 --signer nobody #AID: 13  // Auction ID
 
 echo "---------- TokenID: 14 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 14 $START \
 200.0 false 0.0 false 0.025 \
-15.00 28.0 30.6 --signer nobody #AID: 13  // Auction ID
+15.00 28.0 30.6 --signer nobody #AID: 14  // Auction ID
 
 echo "---------- TokenID: 12 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 12 $START \
 200.0 false 0.0 false 0.025 \
-15.00 28.0 30.7 --signer nobody #AID: 14  // Auction ID
+15.00 28.0 30.7 --signer nobody #AID: 15  // Auction ID
+
+echo "---------- TokenID: 1 ---------- "
+flow transactions send ./transactions/auction/create_auction.cdc 1 $START \
+200.0 false 0.0 false 0.025 \
+15.00 28.0 30.7 --signer nobody #AID: 16  // Auction ID
