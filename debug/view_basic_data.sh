@@ -66,7 +66,7 @@ done
 
 # Get all Auctions
 echo "---------- Auction Wallet ----------"
-for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2
+for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
     flow scripts execute ./scripts/auction/get_auctions.cdc $user
@@ -74,7 +74,7 @@ done
 
 # Verify Collection
 echo "---------- Verify Collections ----------"
-for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2
+for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
     flow scripts execute ./scripts//wallet/collection.cdc $user

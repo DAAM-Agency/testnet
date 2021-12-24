@@ -1,4 +1,3 @@
-. ./debug/view_basic_data.sh
 . ./debug/create_auctions/client_auctions.sh
 
 . ./debug/create_auctions/bids/bid_auction_8.sh
@@ -22,6 +21,8 @@
 . ./debug/create_auctions/bids/bid_auction_14.sh
 . ./debug/view_basic_data.sh
 
-. ./debug/close_auctions.sh $CLIENT $NOBODY 
+. ./debug/create_auctions/bids/bid_auction_15.sh
+. ./debug/view_basic_data.sh
 
-. ./debug/create_auctions/winner_collect_original.sh $CREATOR2 6
+. ./debug/close_auctions.sh client nobody
+. ./debug/view_basic_data.sh

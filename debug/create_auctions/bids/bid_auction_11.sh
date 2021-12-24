@@ -1,18 +1,3 @@
-# I AID: 8
-# Testing Buy It Now with Bids.
-
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR2
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
-
-# F AID: 11
-# Also Testing Auction Status
 echo "========= Cancel Auction AID: 11 ========="
 
 echo "---------- FUSD ----------"
