@@ -8,8 +8,8 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 echo "========== Script: timeLeft.cdc AID: 9 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
@@ -20,18 +20,18 @@ flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 9
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Not Enough. AID: 9"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 2.0 --signer cto
+flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 2.0 --signer client2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Did not meet Buy It Now: Too much. AID: 9"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 43.0 --signer cto
+flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 43.0 --signer client2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Buy It Now: CTO AID: 9 ========="
-flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 30.1 --signer cto
+echo "========= Buy It Now: Client2 AID: 9 ========="
+flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 30.2 --signer client2
 
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc AID: 9 =========="

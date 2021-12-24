@@ -8,8 +8,8 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 # reserve price will be met
 echo "========= AID: 10 ========="
@@ -21,8 +21,8 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 echo "---------- Auction Item, AID: 10 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 10
@@ -37,10 +37,10 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Client :AID: 10 : 23.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 23.0 --signer cto
+flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 23.0 --signer client2
 
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
@@ -52,10 +52,10 @@ flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Client AID: 10 : 12.0 more----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 12.0 --signer cto # total 35
+flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 12.0 --signer client2 # total 35
 
 echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Nobody makes the same bid too late. AID: 10"

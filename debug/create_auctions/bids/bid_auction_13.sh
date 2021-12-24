@@ -8,8 +8,8 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 # AID 13
 # reserve price will be met and Collected
@@ -23,8 +23,8 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 echo "---------- Auction Item, AID: 13 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $NOBODY 13
@@ -37,11 +37,11 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: CTO AID:13 23.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 13 23.0 --signer cto
+echo "---------- Bid: CLIENT2 AID:13 23.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 13 23.0 --signer client2
 
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+echo "CLIENT2 FUSD"
+flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: Client AID:13 20.0 ----------"
@@ -51,5 +51,5 @@ echo "CLIENT FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: AID 13, CTO: 30.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 13 30.0 --signer cto # total 50
+echo "---------- Bid: AID 13, CLIENT2: 30.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 13 30.0 --signer client2 # total 50
