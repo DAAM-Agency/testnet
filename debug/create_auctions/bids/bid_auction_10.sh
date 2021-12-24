@@ -36,7 +36,7 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Client :AID: 10 : 23.0 ----------"
+echo "---------- BID: Client2 :AID: 10 : 23.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 23.0 --signer client2
 
 echo "CLIENT2 FUSD"
@@ -51,7 +51,7 @@ echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Client AID: 10 : 12.0 more----------"
+echo "---------- BID: Client2 AID: 10 : 12.0 more----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 12.0 --signer client2 # total 35
 
 echo "CLIENT FUSD"

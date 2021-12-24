@@ -16,7 +16,7 @@ echo "---------- Auction Item, AID: 15 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $NOBODY 15
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Client AID: 15 20.0 ----------"
+echo "---------- Bid: Client2 AID: 15 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 15 20.0 --signer client
 
 echo "CLIENT FUSD"
@@ -30,7 +30,7 @@ echo "CLIENT2 FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- Bid: Client ID:15 9.0 ----------"
+echo "---------- Bid: Client2 ID:15 9.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 15 9.0 --signer client # total 29
 
 echo "CLIENT FUSD"
