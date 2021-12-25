@@ -6,8 +6,10 @@
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=30.0
+OFFSET=20.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+
+sleep 30
 
 echo "========== Create Auctions I =========="
 echo "---------- Client Sells All (4) -----------"
