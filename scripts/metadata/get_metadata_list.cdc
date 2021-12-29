@@ -6,7 +6,7 @@ import DAAM from 0xfd43f9148d4b725d
 pub fun main(creator: Address):[[DAAM.Metadata];2]
 {
     let metadataRef = getAccount(creator)
-        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
+        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
     let metadatas = metadataRef.getMetadatas()
