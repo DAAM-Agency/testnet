@@ -12,8 +12,8 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String, perce
     let metadataGen : &DAAM.MetadataGenerator
 
     prepare(creator: AuthAccount) {
-        self.creator = creator
-        self.requestGen = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.creator     = creator
+        self.requestGen  = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
         self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
     }
 
