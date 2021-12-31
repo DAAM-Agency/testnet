@@ -52,6 +52,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64: Bool}     // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var metadataCap: {Address: Capability<&MetadataGenerator{MetadataGeneratorPublic}> } // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
@@ -158,12 +159,10 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatas()              : {UInt64 : Metadata} // Return Creators' Metadata collection
     pub fun getMetadataRef(mid: UInt64) : &Metadata            // Return specific Metadata of Creator
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun getMetadatas()                : {UInt64 : Metadata} // Return Creators' Metadata collection
     pub fun getMetadataRef(mid: UInt64)   : &Metadata            // Return specific Metadata of Creator
     pub fun generateMetadata(mid: UInt64) : @MetadataHolder
 }
@@ -177,6 +176,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         init(_ grantee: Address) {
             self.metadata = {}  // Init metadata
             self.grantee  = grantee
+            DAAM.metadataCap.insert(key: self.grantee, &self as Capability<&MetadataGenerator{MetadataGeneratorPublic}>)
         } 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
@@ -215,6 +215,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun deleteMetadata(mid: UInt64) {
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
+            DAAM.metadata.remove(key: mid) // Metadata removed from DAAM. Logging no longer neccessary
             DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
             log("Destroyed Metadata")
@@ -246,16 +247,19 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return <- mh // Return current Metadata  
         }
 
-        // Script function
-        pub fun getMetadatas(): {UInt64:Metadata} {  // Return Creators' Metadata collection
-            return self.metadata 
-        }
-
         pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
             pre { 
                 self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
             }
             return &self.metadata[mid]! as &Metadata    // Return Metadata
+        }
+
+        pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
+            return self.metadata.keys
+        }
+
+        destroy() {
+            DAAM.metadataCap.remove(key: self.grantee) // remove Capability if MetaGenerator is destroyed.
         }
 }
 /************************************************************************/
@@ -355,6 +359,7 @@ pub resource interface CollectionPublic {
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agent can change Copyright Status of MID
         pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
+        pub fun getMetadataStatus(): {UInt64:Bool}                  // 
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -557,22 +562,30 @@ pub resource Admin: Agent
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
-                self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid)  : "This is an Invalid MID"
+                self.status                          : "You're no longer a have Access."
+                DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
             }
-            post { DAAM.copyright[mid] == copyright : "Illegal Operation: changeCopyright" } // Unreachable
+            post { DAAM.copyright[mid] == copyright  : "Illegal Operation: changeCopyright" } // Unreachable
 
             DAAM.copyright[mid] = copyright    // Change to new copyright
             log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
 
+        pub fun getMetadataStatus(): {UInt64:Bool} {
+            pre {
+                self.grantee == self.owner?.address! : "Permission Denied"
+                self.status                          : "You're no longer a have Access."
+            }
+            return DAAM.metadata
+        }
+
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
-                self.status                 : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid): "This is an Invalid MID"
+                self.status                          : "You're no longer a have Access."
+                DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
             }            
             DAAM.metadata[mid] = status // change to a new Metadata status
         }
@@ -765,6 +778,7 @@ pub resource Admin: Agent
         return <- create Collection() // Return Collection Resource
     }
 
+<<<<<<< HEAD
     // Verifies if Request is valid
     // Returns nil=No MID, true=Approved, false=Disapproved
     pub fun getRequestValidity(creator: Address, mid: UInt64): Bool? {
@@ -784,6 +798,8 @@ pub resource Admin: Agent
         return nil // If MID does not exist, return nil
     }
 
+=======
+>>>>>>> origin/meta_private
     // Return list of Creators
     pub fun getCreators(): [Address] {
         var clist: [Address] = []
@@ -798,19 +814,7 @@ pub resource Admin: Agent
         return self.copyright[mid]
     }
 
-    pub fun getMetadataStatus(): {UInt64:Bool} {
-        return self.metadata
-    }
-
-    // Used for simplifing connection to React
-    // Witnin mlist: The first array of Metadatas have a status of false, the second are true.
-    pub fun convertMetadata(metadata: [Metadata]): [[Metadata];2] {
-        var mlist: [[Metadata];2] = [[],[]]
-        for m in metadata {
-            self.metadata[m.mid]! ? mlist[1].append(m) : mlist[0].append(m)
-        }
-        return mlist
-    }
+    
 
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
@@ -869,6 +873,7 @@ pub resource Admin: Agent
         self.creators  = {}
         self.minters   = {}
         self.metadata  = {}
+        self.metadataCap = {}
         self.newNFTs   = []
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
