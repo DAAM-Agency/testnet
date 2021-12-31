@@ -181,9 +181,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Done immediately after init(). Needed to get Capability
         pub fun activate(creator: AuthAccount, metadata: Capability<&MetadataGenerator{MetadataGeneratorPublic}> ) {
             pre{
-                self.grantee == creator.address            : "Permission Denied"
-                DAAM.metadataCap[self.grantee] == nil      : "Your account is already Activated."
+                self.grantee == creator.address             : "Permission Denied"
+                !DAAM.metadataCap.containsKey(self.grantee) : "Your account is already Activated."
             }
+            post { DAAM.metadataCap.containsKey(self.grantee) : "Your account did not Activate." }
+            
             DAAM.metadataCap.insert(key: self.grantee, metadata)
         }
 
@@ -191,7 +193,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String): UInt64 {
             pre{
                 self.grantee == creator.address            : "Permission Denied"
-                DAAM.metadataCap[self.grantee] != nil      : "Activate your account first."
+                DAAM.metadataCap.containsKey(self.grantee) : "Activate your account first."
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
@@ -212,7 +214,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun removeMetadata(creator: AuthAccount, mid: UInt64) {
             pre {
                 self.grantee == self.owner?.address!       : "Permission Denied"
-                DAAM.metadataCap[self.grantee] != nil      : "Activate your account first."
+                DAAM.metadataCap.containsKey(self.grantee) : "Activate your account first."
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -236,7 +238,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun generateMetadata(mid: UInt64) : @MetadataHolder {
             pre {
                 self.grantee == self.owner?.address!            : "Permission Denied"
-                DAAM.metadataCap[self.grantee] != nil           : "Activate your account first."
+                DAAM.metadataCap.containsKey(self.grantee)      : "Activate your account first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
