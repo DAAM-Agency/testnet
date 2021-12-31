@@ -34,7 +34,7 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
-    pub let metadataPublicPath    : PublicPath   // Public path to Metadata Generator
+    pub let metadataPrivatePath   : PrivatePath  // Private path to Metadata Generator
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
     pub let adminStoragePath      : StoragePath  // Storage path to Admin 
@@ -774,7 +774,7 @@ pub resource Admin: Agent
         }
 
         let metadataRef = getAccount(creator) // Get Metadata Capability
-        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
+        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath)
         .borrow() ?? panic("Could not borrow capability from Metadata")
 
         let metadatas = metadataRef.getMetadatas() // Get Metadata list
@@ -848,7 +848,7 @@ pub resource Admin: Agent
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPublicPath    = /public/DAAM_SubmitNFT
+        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
