@@ -288,22 +288,33 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
     }
 /************************************************************************/
     pub resource interface INFT {
-        pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let metadata : Metadata // Metadata of NFT
+        pub let id       : UInt64             // Token ID, A unique serialized number       
+        pub let metadata : Metadata           // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities
+        pub let type     : String?            // Type is a string identifier for type. nil when standard nft.
+        pub let actions  : [String]?          // Interaction actions, interaction code is placed here
+    }
+/************************************************************************/
+    pub resource interface Interaction {
+        pub let type    : String   // What type of NFT
+        pub let actions : [String] // Enter interactions via JSON/Javascripts as string here
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let metadata : Metadata // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let type     : String?            // Type is a string identifier for type. nil when standard nft.
+        pub let actions  : [String]?          // Interaction actions, interaction code is placed here
 
-        init(metadata: @MetadataHolder, request: &Request) {
+        init(metadata: @MetadataHolder, request: &Request, interaction: &{Interaction}? ) {
             pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id = DAAM.totalSupply              // Set Token ID with total supply
+            self.type = interaction?.type           // Standard NFT or NFT with Interaction
             self.royality = request.royality        // Save Request which are the royalities.  
             self.metadata = metadata.metadata       // Save Metadata from Metadata Holder
+            self.actions  = interaction?.actions    // Interaction Resource
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
 
@@ -646,7 +657,7 @@ pub resource Admin: Agent
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
-        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder, interaction: &{Interaction}): @DAAM.NFT {
             pre{
                 self.grantee == self.owner?.address! : "Permission Denied"
                 metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
@@ -656,7 +667,7 @@ pub resource Admin: Agent
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
-            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request, interaction: interaction) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
