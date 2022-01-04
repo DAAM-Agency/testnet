@@ -657,7 +657,7 @@ pub resource Admin: Agent
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
-        pub fun mintNFT(metadata: @MetadataHolder, interaction: &{Interaction}): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder, interaction: &{Interaction}? ): @DAAM.NFT {
             pre{
                 self.grantee == self.owner?.address! : "Permission Denied"
                 metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
