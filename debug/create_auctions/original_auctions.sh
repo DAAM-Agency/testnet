@@ -4,9 +4,9 @@
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
 # Start Bidding
-# Starts in 30 seconds
+# Starts in 20 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=30.0
+OFFSET=20.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "START: "$START
 
@@ -48,6 +48,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 7 $STA
 28.0 0.0 false --signer creator2 #G, MID: 7, AID: 4
 
 # Auction Scripts
+sleep 20
 echo "========= Verify Auctions ========="
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR2

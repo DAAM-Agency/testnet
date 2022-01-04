@@ -9,8 +9,6 @@ CURRENT_TIME=$(date +%s)
 OFFSET=20.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
-sleep 30
-
 echo "========== Create Auctions I =========="
 echo "---------- Client Sells All (4) -----------"
 
@@ -59,3 +57,5 @@ echo "---------- TokenID: 1 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 1 $START \
 330.0 false 0.0 false 0.025 \
 15.00 28.0 30.7 --signer nobody #AID: 16  // Auction ID
+
+sleep 20

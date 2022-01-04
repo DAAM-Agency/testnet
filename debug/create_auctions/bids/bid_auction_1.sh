@@ -4,7 +4,7 @@ flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 1
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: BID: Client, AID 1 : 10.99 too low"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 2 10.99 --signer nobody #A
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 1 10.99 --signer nobody #A
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- BID: Client :AID 1 : 11.0 ----------"
