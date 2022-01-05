@@ -3,6 +3,7 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FungibleToken    from 0xee82856bf20e2aa6 
 import Profile          from 0x192440c99cb17282
+import Royality 
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
     // Events
@@ -67,65 +68,6 @@ pub enum CopyrightStatus: UInt8 {
             pub case UNVERIFIED // 2 as UInt8
             pub case VERIFIED   // 3 as UInt8
             pub case INCLUDED   // 4 as UInt8
-}
-/***********************************************************************/
-// Used to make requests for royality. A resource for Neogoation of royalities.
-// When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
-// Neogoation may not continue. V2 Featur TODO
-// Request manage the royality rate
-// Accept Default are auto agreements
-pub resource Request {
-    access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
-    access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
-    
-    init(metadata: &Metadata) {
-        self.mid       = metadata.mid    // Get Metadata ID
-        DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royality  = {}              // royality is initialized
-        self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
-    }
-
-    pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
-    
-    // Accept Default royality. Skip Neogations.
-    access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
-        self.royality = royality        // get royality
-        self.agreement = [true, true]   // set agreement status to Both parties Agreed
-    }
-    // If both parties agree (Creator & Admin) return true
-    pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
-}    
-/***********************************************************************/
-// Used to create Request Resources. Metadata ID is passed into Request.
-// Request handle Royalities, and Negoatons.
-pub resource RequestGenerator {
-    priv let grantee: Address
-
-    init(_ grantee: Address) { self.grantee = grantee }
-    // Accept the default Request. No Neogoation is required.
-    // Percentages are between 10% - 30%
-    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
-        pre {
-            self.grantee == creator.address            : "Permission Denied"
-            DAAM.creators.containsKey(creator.address) : "You are not a Creator"
-            DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
-            percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
-        }
-
-        let mid = metadata.mid                             // get MID
-        var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
-        royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // get Creator percentage
-
-        let request <-! create Request(metadata: metadata) // get request
-        request.acceptDefault(royality: royality)          // append royality rate
-
-        let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
-        destroy old // destroy place holder
-        
-        log("Request Accepted, MID: ".concat(mid.toString()) )
-        emit RequestAccepted(mid: mid)
-    }
 }
 /************************************************************************/
     pub struct Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
@@ -284,7 +226,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             pre { metadata != nil : "Metadata can not be Empty." }              
             self.metadata = metadata // Store Metadata
         }
-        pub fun getMID(): UInt64 { return self.metadata.mid } // get MID
+        pub fun getMID(): UInt64 { return self.metadata.mid } // Get MID
     }
 /************************************************************************/
     pub resource interface INFT {
@@ -319,16 +261,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
-            return DAAM.copyright[self.id]! // return copyright status
+            return DAAM.copyright[self.id]!       // Return copyright status
         }
     }
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
-    pub fun getIDs(): [UInt64]                    // get NFT Token IDs
-    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
+    pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
+    pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // Get NFT as DAAM.NFT
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -478,7 +420,7 @@ pub resource Admin: Agent
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
                 // Talley Votes
                 for a in DAAM.remove.keys {
-                    let remove = DAAM.remove[a]! // get To Remove
+                    let remove = DAAM.remove[a]! // Get To Remove
                     // increment counter
                     if counter[remove] == nil {
                         counter.insert(key: remove, 1 as Int)
@@ -489,7 +431,7 @@ pub resource Admin: Agent
                 }
                 // Remove all with a vote of 3 or greater
                 for c in counter.keys {
-                    if counter[c]! >= vote {        // Does To Remove have enough votes to be removed
+                    if counter[c]! >= vote {       // Does To Remove have enough votes to be removed
                         DAAM.remove = {}           // Reset DAAM.Remove
                         DAAM.admins.remove(key: c) // Remove selected Admin
                         log("Removed Admin")
