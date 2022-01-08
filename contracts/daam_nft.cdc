@@ -3,7 +3,7 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FungibleToken    from 0xee82856bf20e2aa6 
 import Profile          from 0x192440c99cb17282
-import Royality 
+import Royalty         from 0xfd43f9148d4b725d
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
     // Events
@@ -29,7 +29,6 @@ pub contract DAAM: NonFungibleToken {
     pub event AgentRemoved(agent: Address)       // Agent has been removed by Admin
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
-    pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite()               // Admin invitation has been rescinded
     // Paths
@@ -43,8 +42,6 @@ pub contract DAAM: NonFungibleToken {
     pub let minterStoragePath     : StoragePath  // Storage path to Minter
     pub let creatorPrivatePath    : PrivatePath  // Private path to Creator
     pub let creatorStoragePath    : StoragePath  // Storage path to Creator
-    pub let requestPrivatePath    : PrivatePath  // Private path to Request
-    pub let requestStoragePath    : StoragePath  // Storage path to Request
     // Variables
     pub var totalSupply : UInt64 // the total supply of NFTs, also used as counter for token ID
     access(contract) var remove  : {Address: Address} // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
@@ -54,12 +51,11 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64: Bool}     // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var metadataCap: {Address: Capability<&MetadataGenerator{MetadataGeneratorPublic}> } // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
-    pub let agency : Address     // DAAM Ageny Address
+    pub let agency : Royalty.Group     // DAAM Agency Royalty.Group
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -152,7 +148,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         // RemoveMetadata uses deleteMetadata to delete the Metadata.
-        // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(creator: AuthAccount, mid: UInt64) {
             pre {
                 self.grantee == self.owner?.address!       : "Permission Denied"
@@ -162,8 +157,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.deleteMetadata(mid: mid)  // Delete Metadata
-            let old_request <- DAAM.request.remove(key: mid)  // Get Request
-            destroy old_request // Delete Request
         }
 
         // Used to remove Metadata from the Creators metadata dictionary list.
@@ -175,8 +168,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
         }
-        // Remove Metadata as Resource MetadataHolder. MetadataHolder + Request = NFT.
-        // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
+        // Remove Metadata as Resource MetadataHolder. The MetadataHolder will be destroyed 
         pub fun generateMetadata(mid: UInt64) : @MetadataHolder {
             pre {
                 self.grantee == self.owner?.address!            : "Permission Denied"
@@ -232,7 +224,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
     pub resource interface INFT {
         pub let id       : UInt64             // Token ID, A unique serialized number       
         pub let metadata : Metadata           // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalities
+        pub let royalty  : Royalty.Group      // Where all royalities
         pub let type     : String?            // Type is a string identifier for type. nil when standard nft.
         pub let actions  : [String]?          // Interaction actions, interaction code is placed here
     }
@@ -243,18 +235,17 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
-        pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let metadata : Metadata // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
-        pub let type     : String?            // Type is a string identifier for type. nil when standard nft.
-        pub let actions  : [String]?          // Interaction actions, interaction code is placed here
+        pub let id       : UInt64        // Token ID, A unique serialized number
+        pub let metadata : Metadata      // Metadata of NFT
+        pub let royalty  : Royalty.Group // Where all royalities are stored Note: 1.0 = 100%
+        pub let type     : String?       // Type is a string identifier for type. nil when standard nft.
+        pub let actions  : [String]?     // Interaction actions, interaction code is placed here
 
-        init(metadata: @MetadataHolder, request: &Request, interaction: &{Interaction}? ) {
-            pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+        init(metadata: @MetadataHolder, percentage: UFix64, interaction: &{Interaction}? ) {
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id = DAAM.totalSupply              // Set Token ID with total supply
             self.type = interaction?.type           // Standard NFT or NFT with Interaction
-            self.royality = request.royality        // Save Request which are the royalities.  
+            self.royalty = Royalty.request(name: DAAM.agency.name, percentage: percentage) // Save Royalty 
             self.metadata = metadata.metadata       // Save Metadata from Metadata Holder
             self.actions  = interaction?.actions    // Interaction Resource
             destroy metadata                        // Destroy no loner needed container Metadata Holder
@@ -324,7 +315,6 @@ pub resource interface CollectionPublic {
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove Creator            
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agent can change Copyright Status of MID
         pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
-        pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // 
     }
 /************************************************************************/
@@ -337,15 +327,6 @@ pub resource Admin: Agent
         init(_ admin: AuthAccount) {
             self.status  = true      // Default Admin status: True
             self.grantee = admin.address
-        }
-
-        // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
-        pub fun newRequestGenerator(): @RequestGenerator {
-            pre {
-                self.grantee == self.owner?.address! : "Permission Denied"
-                self.status : "You're no longer a have Access."
-            }
-            return <- create RequestGenerator(self.grantee) // return new Request
         }
 
         pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
@@ -578,15 +559,6 @@ pub resource Admin: Agent
             return <- create MetadataGenerator(self.grantee) // return Metadata Generator
         }
 
-        // Used to create a Request Generator when initalizing Creator Storge
-        pub fun newRequestGenerator(): @RequestGenerator {
-            pre{
-                self.grantee == self.owner?.address! : "Permission Denied"
-                DAAM.creators.containsKey(self.owner?.address!) : "You're not a Creator."
-                DAAM.creators[self.owner?.address!] == true     : "This Creators' account is Frozen."
-            }
-            return <- create RequestGenerator(self.grantee) // return Request Generator
-        } 
     }
 /************************************************************************/
 // mintNFT mints a new NFT and returns it.
@@ -599,23 +571,18 @@ pub resource Admin: Agent
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
-        pub fun mintNFT(metadata: @MetadataHolder, interaction: &{Interaction}? ): @DAAM.NFT {
+        pub fun mintNFT(metadata: @MetadataHolder, percentage: UFix64, interaction: &{Interaction}? ): @DAAM.NFT {
             pre{
+                Royalty.validate(name: DAAM.agency.name, percentage: percentage) : "Percentage is invalid."
                 self.grantee == self.owner?.address! : "Permission Denied"
                 metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
-                DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
             }
             let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
             let mid = metadata.metadata.mid               // Get MID
-            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request, interaction: interaction) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, percentage: percentage, interaction: interaction) // Create NFT
 
-            // Update Request, if last remove.
-            if isLast {
-                let request <- DAAM.request.remove(key: mid)! // Get Request using MID
-                destroy request       // if last destroy request, Request not needed. Counter has reached limit.
-            } 
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
@@ -791,7 +758,7 @@ pub resource Admin: Agent
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(agency: Address, founder: Address)
+    init(agency: Royalty.Group, admin: Address)
     {
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
@@ -804,14 +771,12 @@ pub resource Admin: Agent
         self.minterStoragePath     = /storage/DAAM_Minter
         self.creatorPrivatePath    = /private/DAAM_Creator
         self.creatorStoragePath    = /storage/DAAM_Creator
-        self.requestPrivatePath    = /private/DAAM_Request
-        self.requestStoragePath    = /storage/DAAM_Request
         // Internal  variables
         self.agency = agency
+        self.admins = {}
+        self.admins.insert(key: admin, false)
         // Initialize variables
-        self.admins    = {}
         self.remove    = {}
-        self.request  <- {}
         self.copyright = {}
         self.agents    = {} 
         self.creators  = {}
@@ -822,8 +787,6 @@ pub resource Admin: Agent
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
-
-        self.admins.insert(key: founder, false)
 
         emit ContractInitialized()
 	}

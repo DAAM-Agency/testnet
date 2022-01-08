@@ -1,23 +1,37 @@
 pub contract Royalty
 {
     // Events
-    event GroupInvited(name: String)    
+    pub event ContractInitialized()
+    pub event GroupInvited(name: String)    
 /***********************************************************************/
     pub struct Group {
         pub let signer : Address
         pub let name    : String
         pub let royalty : {Address : [UFix64]}
 
-        init(signer: AuthAccount, name: String, royalty: {Address:[UFix64]} )
+        init(signer: AuthAccount, name: String, royalty: {Address:[UFix64]} ) {
+            self.signer = signer.address
+            self.name = name
+            self.royalty = royalty
+        }
     }
 /***********************************************************************/
     priv var group : {String : Group}
 /***********************************************************************/
-    pub fun getGroup(name: String): {Address:[UFix64]}? {
+    pub fun getGroup(name: String): Group? {
         return self.group[name]
     }
+/***********************************************************************/
+    pub fun validate(name: String, percentage: UFix64): Bool { return true }     
 /***********************************************************************/     
-    pub fun newGroup(signer: Authaccount, name: String, royalty: {Address:[UFix64]} ) {    // Admin or Agent invite a new creator
+    pub fun request(name: String, percentage: UFix64): Group {
+        pre { self.validate(name: name, percentage: percentage) : "Percentage is invalid." }
+        // insert percentage mod here
+        return self.group[name]!
+    } 
+
+/***********************************************************************/     
+    pub fun newGroup(signer: AuthAccount, name: String, royalty: {Address:[UFix64]} ) {    // Admin or Agent invite a new creator
         pre {
             // name: first/last character must be Alpha-numeric
             // name: set to upper-case
@@ -25,15 +39,19 @@ pub contract Royalty
         }
         post { self.group.containsKey(name) : "Illegal Operation" }
 
-        self.group.insert(key: name, new Group(signer: signer, name: name, royalty: royalty) )
+        let group = Group(signer: signer, name: name, royalty: royalty)
+        self.group.insert(key: name, group)
 
         log("New Royalty: ".concat(name) )
         emit GroupInvited(name: name)      
     }
 /***********************************************************************/
-init() {
-    self.group = {}
-}
+    init() {
+        self.group = {}
+
+        emit ContractInitialized()
+    }
+} // END Royalty
 /***********************************************************************
     // Used to create Request Resources. Metadata ID is passed into Request.
     // Request handle Royalities, and Negoatons.
@@ -65,7 +83,7 @@ init() {
         }
     }
 
-    /***********************************************************************
+    /***********************************************************************/
     // Used to make requests for royality. A resource for Neogoation of royalities.
     // When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
     // Neogoation may not continue. V2 Featur TODO
@@ -97,3 +115,4 @@ init() {
 
     // If both parties agree (Creator & Admin) return true
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
+    */

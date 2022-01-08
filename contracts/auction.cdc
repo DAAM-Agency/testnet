@@ -8,6 +8,7 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract AuctionHouse {
     // Events
+    pub event ContractInitialized()
     pub event AuctionCreated(auctionID: UInt64) // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)  // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
@@ -676,5 +677,7 @@ pub contract AuctionHouse {
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
+
+        emit ContractInitialized()
     }
 }
