@@ -2,48 +2,49 @@ pub contract Royalty
 {
     // Events
     pub event ContractInitialized()
-    pub event GroupInvited(name: String)    
+    pub event GroupInvited(group_name: String)    
 /***********************************************************************/
     pub struct Group {
-        pub let signer : Address
-        pub let name    : String
-        pub let royalty : {Address : [UFix64]}
+        pub let signer  : Address                      // Owner address
+        pub let group_name    : String                       // Group group_name
+        pub let royalty : {String : {Address:UFix64} } // { Shareholder name: {address:percentage} }
 
-        init(signer: AuthAccount, name: String, royalty: {Address:[UFix64]} ) {
+        init(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64} } ) {
+            //pre { Royalty.verifyRoyalty(royalty) : "Royalty entry is invalid." }
             self.signer = signer.address
-            self.name = name
+            self.group_name = group_name
             self.royalty = royalty
         }
     }
 /***********************************************************************/
     priv var group : {String : Group}
 /***********************************************************************/
-    pub fun getGroup(name: String): Group? {
-        return self.group[name]
+    pub fun getGroup(group_name: String): Group? {
+        return self.group[group_name]
     }
 /***********************************************************************/
-    pub fun validate(name: String, percentage: UFix64): Bool { return true }     
+    pub fun validate(group_name: String, percentage: UFix64): Bool { return true }     
 /***********************************************************************/     
-    pub fun request(name: String, percentage: UFix64): Group {
-        pre { self.validate(name: name, percentage: percentage) : "Percentage is invalid." }
+    pub fun request(group_name: String, percentage: UFix64): Group {
+        pre { self.validate(group_name: group_name, percentage: percentage) : "Percentage is invalid." }
         // insert percentage mod here
-        return self.group[name]!
+        return self.group[group_name]!
     } 
 
 /***********************************************************************/     
-    pub fun newGroup(signer: AuthAccount, name: String, royalty: {Address:[UFix64]} ) {    // Admin or Agent invite a new creator
+    pub fun newGroup(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64}} ) {
         pre {
-            // name: first/last character must be Alpha-numeric
-            // name: set to upper-case
-            !self.group.containsKey(name) : "Name is already taken"
+            // group_name: first/last character must be Alpha-numeric
+            // group_name: set to upper-case
+            !self.group.containsKey(group_name) : "Name is already taken"
         }
-        post { self.group.containsKey(name) : "Illegal Operation" }
+        post { self.group.containsKey(group_name) : "Illegal Operation" }
 
-        let group = Group(signer: signer, name: name, royalty: royalty)
-        self.group.insert(key: name, group)
+        let group = Group(signer: signer, group_name: group_name, royalty: royalty)
+        self.group.insert(key: group_name, group)
 
-        log("New Royalty: ".concat(name) )
-        emit GroupInvited(name: name)      
+        log("New Royalty: ".concat(group_name) )
+        emit GroupInvited(group_name: group_name)      
     }
 /***********************************************************************/
     init() {

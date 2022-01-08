@@ -169,6 +169,9 @@ flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
 echo "========= Publish DAAM Contracts =========="
 
+#Royalty
+flow accounts add-contract Royalty ./contracts/royalty.cdc --signer daam_nft
+
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
 flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE $AGENCY $CTO --signer daam_nft
