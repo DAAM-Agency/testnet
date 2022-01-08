@@ -1,5 +1,8 @@
-pub contract Royality
+pub contract Royalty
 {
+    pub var royalty : {Address : [UFix64]}
+
+    pub fun 
     /***********************************************************************/
     // Used to create Request Resources. Metadata ID is passed into Request.
     // Request handle Royalities, and Negoatons.
@@ -14,17 +17,17 @@ pub contract Royality
                 self.grantee == creator.address            : "Permission Denied"
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
-                percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
+                percentage >= 0.1 && percentage <= 0.3     : "Percentage must be inbetween 10% to 30%."
             }
 
             let mid = metadata.mid                             // Get MID
             var royality = {DAAM.agency: (0.1 * percentage) }  // Get Agency percentage, Agency takes 10% of Creator
-            royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // Get Creator percentage
+            royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // Get Creator Percentage
 
             let request <-! create Request(metadata: metadata) // Get request
-            request.acceptDefault(royality: royality)          // append royality rate
+            request.acceptDefault(royality: royality)          // Append royality rate
 
-            let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
+            let old <- DAAM.request.insert(key: mid, <-request) // Advice DAAM of request
             destroy old // destroy place holder
             
             log("Request Accepted, MID: ".concat(mid.toString()) )
@@ -53,7 +56,7 @@ pub contract Royality
         pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
         
         // Accept Default royality. Skip Neogations.
-        access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
+        access(contract) fun acceptDefault(royality: {Address : UFix64} ) {
             self.royality = royality        // Get royality
             self.agreement = [true, true]   // set agreement status to Both parties Agreed
         }
@@ -82,10 +85,13 @@ pub contract Royality
     }
     // If both parties agree (Creator & Admin) return true
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
-}    
+    }    
+
+    pub fun inviteGroup(signer: Authaccount, group: {Address:[UFix64]} ) {    // Admin or Agent invite a new creator
+        self.group.insert(key: signer.address, group)
+        log("Sent Creator Invitation: ".concat(creator.toString()) )
+        emit CreatorInvited(creator: creator)      
+    }
 /***********************************************************************/
-init() {
-
-}
-
+init(_ grantee: AuthAccount) {
 }
