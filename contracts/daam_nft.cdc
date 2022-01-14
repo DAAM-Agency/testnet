@@ -245,7 +245,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id = DAAM.totalSupply              // Set Token ID with total supply
             self.type = interaction?.type           // Standard NFT or NFT with Interaction
-            self.royalty = Royalty.request(name: DAAM.agency.name, percentage: percentage) // Save Royalty 
+            self.royalty = Royalty.request(group_name: DAAM.agency.group_name, percentage: percentage) // Save Royalty 
             self.metadata = metadata.metadata       // Save Metadata from Metadata Holder
             self.actions  = interaction?.actions    // Interaction Resource
             destroy metadata                        // Destroy no loner needed container Metadata Holder
@@ -573,7 +573,7 @@ pub resource Admin: Agent
 
         pub fun mintNFT(metadata: @MetadataHolder, percentage: UFix64, interaction: &{Interaction}? ): @DAAM.NFT {
             pre{
-                Royalty.validate(name: DAAM.agency.name, percentage: percentage) : "Percentage is invalid."
+                Royalty.validate(group_name: DAAM.agency.group_name, percentage: percentage) : "Percentage is invalid."
                 self.grantee == self.owner?.address! : "Permission Denied"
                 metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."

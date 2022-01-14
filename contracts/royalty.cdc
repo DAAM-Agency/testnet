@@ -5,9 +5,9 @@ pub contract Royalty
     pub event GroupInvited(group_name: String)    
 /***********************************************************************/
     pub struct Group {
-        pub let signer  : Address                      // Owner address
-        pub let group_name    : String                       // Group group_name
-        pub let royalty : {String : {Address:UFix64} } // { Shareholder name: {address:percentage} }
+        pub let signer     : Address                      // Owner address
+        pub let group_name : String                       // Group group_name
+        pub let royalty    : {String : {Address:UFix64} } // { Shareholder name: {address:percentage} }
 
         init(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64} } ) {
             //pre { Royalty.verifyRoyalty(royalty) : "Royalty entry is invalid." }
@@ -15,27 +15,37 @@ pub contract Royalty
             self.group_name = group_name
             self.royalty = royalty
         }
+        
     }
 /***********************************************************************/
+    // Variables
     priv var group : {String : Group}
 /***********************************************************************/
+    // Functions
     pub fun getGroup(group_name: String): Group? {
         return self.group[group_name]
     }
 /***********************************************************************/
-    pub fun validate(group_name: String, percentage: UFix64): Bool { return true }     
+    priv fun validatePercentage(group_name: String, percentage: UFix64): Bool { return true }     
 /***********************************************************************/     
-    pub fun request(group_name: String, percentage: UFix64): Group {
-        pre { self.validate(group_name: group_name, percentage: percentage) : "Percentage is invalid." }
-        // insert percentage mod here
+    pub fun request(group_name: String, percentage: UFix64): Group { // Save Royalty
+        pre {
+            self.group.containsKey(group_name) : "This Group does not exist."
+            self.validatePercentage(group_name: group_name, percentage: percentage) : "Percentage is invalid."
+        }
+        // Insert percentage here
+        base = self.group[group_name].base
+
+        
         return self.group[group_name]!
     } 
-
 /***********************************************************************/     
     pub fun newGroup(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64}} ) {
         pre {
+            // must be Alpha-numeric
             // group_name: first/last character must be Alpha-numeric
             // group_name: set to upper-case
+            // can not contain 2 spaces concerntly
             !self.group.containsKey(group_name) : "Name is already taken"
         }
         post { self.group.containsKey(group_name) : "Illegal Operation" }
@@ -49,7 +59,6 @@ pub contract Royalty
 /***********************************************************************/
     init() {
         self.group = {}
-
         emit ContractInitialized()
     }
 } // END Royalty
