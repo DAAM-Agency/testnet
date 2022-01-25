@@ -17,7 +17,7 @@ transaction(exAgent: Address) {
     
     execute {
         self.admin.removeAgent(agent: self.exAgent)
-        log("Remove Agent Requested")
+        log("Agent Removed.")
     }
 
     // Verify is not an Agent
