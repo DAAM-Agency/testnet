@@ -323,14 +323,6 @@ pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
 }
 /************************************************************************/
-// Wallet Public standards. For Public access only
-pub resource interface CollectionName {
-    pub fun getCollections(): [String]// : [UInt64]}
-    pub fun createCollection(name: String)
-    pub fun addToCollection(name: String, tokenID: UInt64)
-    pub fun removeFromCollection(name: String, tokenID: UInt64)    
-}     
-/************************************************************************/
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic, CollectionName {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
@@ -373,7 +365,6 @@ pub resource interface CollectionName {
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
-
         // Create a collection name
         pub fun createCollection(name: String) {
             pre  { !self.collection.containsKey(name) : "Collection already exist." }
@@ -425,7 +416,7 @@ pub resource interface CollectionName {
             }            
         }
         // Get all collections
-        pub fun getCollections(): [String] { return self.collection.keys }
+        pub fun getCollections(): {String: [UInt64]} { return self.collection }
 
         // Find index of TokenID in collection
         priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
