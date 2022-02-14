@@ -387,11 +387,11 @@ pub resource interface CollectionPublic {
             }            
             var elm = self.findIndex(name: name, tokenID: tokenID)
             if elm == nil { panic("This TokenID does not exist in this Collection.") }
-            self.collection[name]!.remove(at: elm)
+            self.collection[name]!.remove(at: elm!)
         }
 
-        priv fun findIndex(name: String, tokenID: UInt64): Uint64? {
-            var counter = 0
+        priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
+            var counter = 0 as UInt64
             for id in self.collection[name]! {                
                 if id == tokenID { return counter }
                 counter = counter + 1
@@ -399,7 +399,7 @@ pub resource interface CollectionPublic {
             return nil       
         }
 
-        priv fun findCollection(tokenID: UInt64): [String] {
+        pub fun findCollection(tokenID: UInt64): [String] {
             var list: [String] = []
             for c in self.collection.keys {
                 if self.findIndex(name: c, tokenID: tokenID) != nil {
