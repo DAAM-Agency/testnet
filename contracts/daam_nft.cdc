@@ -318,10 +318,15 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub var collection: {String : [UInt64]}
+    pub fun createCollection(name: String)
+    pub fun addToCollection(name: String, tokenID: UInt64)
+    pub fun removeFromCollection(name: String, tokenID: UInt64)
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
+    // NonFungibleToken.NFT
     pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
     pub fun getIDs(): [UInt64]                    // get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
+    
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -367,6 +372,7 @@ pub resource interface CollectionPublic {
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
 
+        // Add a collection name
         pub fun createCollection(name: String) {
             pre  { !self.collection.containsKey(name) : "Collection already exist" }
             post { self.collection.containsKey(name)  : "Internal Error: Create" }
@@ -392,7 +398,7 @@ pub resource interface CollectionPublic {
         }
 
         pub fun findCollection(tokenID: UInt64): [String] {
-            pre { self.ownedNFTs[id] != nil : "This TokenID is not in your Collection." }
+            pre { self.ownedNFTs[tokenID] != nil : "This TokenID is not in your Collection." }
             var list: [String] = []
             for c in self.collection.keys {
                 if self.findIndex(name: c, tokenID: tokenID) != nil {
