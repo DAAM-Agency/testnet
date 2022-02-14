@@ -325,7 +325,7 @@ pub resource interface CollectionPublic {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionName {
-    pub fun getCollections(): {String : [UInt64]}
+    pub fun getCollections(): [String]// : [UInt64]}
     pub fun createCollection(name: String)
     pub fun addToCollection(name: String, tokenID: UInt64)
     pub fun removeFromCollection(name: String, tokenID: UInt64)    
@@ -334,8 +334,8 @@ pub resource interface CollectionName {
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic, CollectionName {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-        pub var collection: {String: [UInt64]}
+        pub var ownedNFTs  : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+        pub var collection : {String: [UInt64]}
                         
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
@@ -379,12 +379,14 @@ pub resource interface CollectionName {
             pre  { !self.collection.containsKey(name) : "Collection already exist." }
             post { self.collection.containsKey(name)  : "Internal Error: Create Collection" }
             self.collection.insert(key: name, [])
+            log("Collection Created: ".concat(name))
         } 
         // Remove a collection name
         pub fun removeCollection(name: String) {
             pre  { self.collection.containsKey(name) : "Collection does not already." }
             post { !self.collection.containsKey(name)  : "Internal Error: Remove Collection" }
             self.collection.remove(key: name)
+            log("Collection Removed")
         }       
         // Add a tokenID to collection
         pub fun addToCollection(name: String, tokenID: UInt64) {
@@ -423,7 +425,7 @@ pub resource interface CollectionName {
             }            
         }
         // Get all collections
-        pub fun getCollections(): {String:[UInt64]} { return self.collection }
+        pub fun getCollections(): [String] { return self.collection.keys }
 
         // Find index of TokenID in collection
         priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
