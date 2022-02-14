@@ -317,16 +317,18 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub var collection: {String : [UInt64]}
-    pub fun createCollection(name: String)
-    pub fun addToCollection(name: String, tokenID: UInt64)
-    pub fun removeFromCollection(name: String, tokenID: UInt64)
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
-    // NonFungibleToken.NFT
     pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
     pub fun getIDs(): [UInt64]                    // get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
-    
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
+}
+/************************************************************************/
+// Wallet Public standards. For Public access only
+pub resource interface CollectionName {
+    pub var collection: {String : [UInt64]}
+    pub fun createCollection(name: String)
+    pub fun addToCollection(name: String, tokenID: UInt64)
+    pub fun removeFromCollection(name: String, tokenID: UInt64)    
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
