@@ -372,13 +372,13 @@ pub resource interface CollectionPublic {
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
 
-        // Add a collection name
+        // Create a collection name
         pub fun createCollection(name: String) {
             pre  { !self.collection.containsKey(name) : "Collection already exist" }
             post { self.collection.containsKey(name)  : "Internal Error: Create" }
             self.collection.insert(key: name, [])
         }       
-
+        // Add a tokenID to collection
         pub fun addToCollection(name: String, tokenID: UInt64) {
             pre  {
                 self.collection.containsKey(name)   : "Collection does not exist"
@@ -386,7 +386,7 @@ pub resource interface CollectionPublic {
             }
             self.collection[name]!.append(tokenID)
         }
-
+        // Remove a tokenID from a collection
         pub fun removeFromCollection(name: String, tokenID: UInt64) {
             pre  {
                 self.collection.containsKey(name)   : "Collection does not exist"
@@ -396,7 +396,7 @@ pub resource interface CollectionPublic {
             if elm == nil { panic("This TokenID does not exist in this Collection.") }
             self.collection[name]!.remove(at: elm!)
         }
-
+        // Find collection(s) with selected TokenID
         pub fun findCollection(tokenID: UInt64): [String] {
             pre { self.ownedNFTs[tokenID] != nil : "This TokenID is not in your Collection." }
             var list: [String] = []
@@ -407,14 +407,14 @@ pub resource interface CollectionPublic {
             }
             return list
         }        
-
-        priv fun removeFromCollections(tokenID: UInt64) {            
+        // Remove a tokenID from all collection
+        pub fun removeFromCollections(tokenID: UInt64) {            
             let list = self.findCollection(tokenID: tokenID)
             for name in list {
                 self.removeFromCollection(name: name, tokenID: tokenID)
             }            
         }      
-
+        // Find index of TokenID in collection
         priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
             var counter = 0 as UInt64
             for id in self.collection[name]! {                
