@@ -374,6 +374,7 @@ pub resource interface CollectionPublic {
             post { self.collection.containsKey(name)  : "Internal Error: Create Collection" }
             self.collection.insert(key: name, [])
             log("Collection Created: ".concat(name))
+            log(self.collection)
         } 
         // Remove a collection name
         pub fun removeCollection(name: String) {
@@ -419,7 +420,10 @@ pub resource interface CollectionPublic {
             }            
         }
         // Get all collections
-        pub fun getCollections(): {String: [UInt64]} { return self.collection }
+        pub fun getCollections(): {String: [UInt64]} {
+            log(self.collection)
+            return self.collection
+        }
 
         // Find index of TokenID in collection
         priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
