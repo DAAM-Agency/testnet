@@ -7,12 +7,12 @@ import DAAM from 0xfd43f9148d4b725d
 // to another user's collection.
 transaction(name: String) {
     let name: String
-    let collectionRef: &DAAM.Collection{DAAM.CollectionName}
+    let collectionRef: &DAAM.Collection
 
     prepare(acct: AuthAccount) {
         self.name = name // Get name of collection
         // Borrow a reference from the stored collection
-        self.collectionRef = acct.borrow<&DAAM.Collection{DAAM.CollectionName}>(from: DAAM.collectionStoragePath)
+        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
     }
 

@@ -320,14 +320,14 @@ pub resource interface CollectionPublic {
     pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
     pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
-    
+
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // Get NFT as DAAM.NFT
     pub fun getCollections(): {String: [UInt64]}         // Get collections
     pub fun findCollection(tokenID: UInt64): [String]    // Find collections containing TokenID
 }
 /************************************************************************/
 // Standand Flow Collection Wallet
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic, CollectionName {
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs  : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
         pub var collection : {String: [UInt64]}
