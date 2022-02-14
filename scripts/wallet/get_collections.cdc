@@ -1,4 +1,4 @@
-// collection.cdc
+// get_collections.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 

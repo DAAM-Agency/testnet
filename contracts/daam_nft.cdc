@@ -325,14 +325,14 @@ pub resource interface CollectionPublic {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionName {
-    pub var collection: {String : [UInt64]}
+    pub fun getCollections(): {String : [UInt64]}
     pub fun createCollection(name: String)
     pub fun addToCollection(name: String, tokenID: UInt64)
     pub fun removeFromCollection(name: String, tokenID: UInt64)    
 }     
 /************************************************************************/
 // Standand Flow Collection Wallet
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic, CollectionName {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
         pub var collection: {String: [UInt64]}
@@ -421,7 +421,10 @@ pub resource interface CollectionName {
             for name in list {
                 self.removeFromCollection(name: name, tokenID: tokenID)
             }            
-        }      
+        }
+        // Get all collections
+        pub fun getCollections(): {String:[UInt64]} { return self.collection }
+
         // Find index of TokenID in collection
         priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
             var counter = 0 as UInt64
