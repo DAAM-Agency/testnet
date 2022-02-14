@@ -338,6 +338,7 @@ pub resource interface CollectionPublic {
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
+            self.
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -390,16 +391,8 @@ pub resource interface CollectionPublic {
             self.collection[name]!.remove(at: elm!)
         }
 
-        priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
-            var counter = 0 as UInt64
-            for id in self.collection[name]! {                
-                if id == tokenID { return counter }
-                counter = counter + 1
-            }
-            return nil       
-        }
-
         pub fun findCollection(tokenID: UInt64): [String] {
+            pre { self.ownedNFTs[id] != nil : "This TokenID is not in your Collection." }
             var list: [String] = []
             for c in self.collection.keys {
                 if self.findIndex(name: c, tokenID: tokenID) != nil {
@@ -407,7 +400,23 @@ pub resource interface CollectionPublic {
                 }
             }
             return list
-        }                  
+        }        
+
+        priv fun removeFromCollections(tokenID: UInt64) {            
+            let list = self.findCollection(tokenID: tokenID)
+            for name in list {
+                self.removeFromCollection(name: name, tokenID: tokenID)
+            }            
+        }      
+
+        priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
+            var counter = 0 as UInt64
+            for id in self.collection[name]! {                
+                if id == tokenID { return counter }
+                counter = counter + 1
+            }
+            return nil       
+        }              
 
         destroy() { destroy self.ownedNFTs } // Destructor
     }
