@@ -374,9 +374,15 @@ pub resource interface CollectionPublic {
 
         // Create a collection name
         pub fun createCollection(name: String) {
-            pre  { !self.collection.containsKey(name) : "Collection already exist" }
-            post { self.collection.containsKey(name)  : "Internal Error: Create" }
+            pre  { !self.collection.containsKey(name) : "Collection already exist." }
+            post { self.collection.containsKey(name)  : "Internal Error: Create Collection" }
             self.collection.insert(key: name, [])
+        } 
+        // Remove a collection name
+        pub fun removeCollection(name: String) {
+            pre  { self.collection.containsKey(name) : "Collection does not already." }
+            post { !self.collection.containsKey(name)  : "Internal Error: Remove Collection" }
+            self.collection.remove(key: name)
         }       
         // Add a tokenID to collection
         pub fun addToCollection(name: String, tokenID: UInt64) {
