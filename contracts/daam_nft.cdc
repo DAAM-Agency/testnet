@@ -338,7 +338,7 @@ pub resource interface CollectionPublic {
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
-            self.
+            self.removeFromCollections(tokenID: withdrawID)
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
