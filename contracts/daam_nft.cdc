@@ -143,6 +143,7 @@ pub resource RequestGenerator {
             }
             
             // Init all NFT setting
+            // initializing Metadata ID, self.mid
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid = DAAM.metadataCounterID
@@ -249,10 +250,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             }            
                         
             let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create current Metadata
-            // Verify Metadata Counter (print) is last, if so delete Metadata
+            // Verify Metadata Counter (print) is not last, if so delete Metadata
             if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 {
                 self.deleteMetadata(mid: mid) // Remove metadata template
-            } else { // if not last print
+            } else { // if not last, print
                 let new_metadata = Metadata(                  // Prep next Metadata
                     creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
                     thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata)
@@ -316,22 +317,30 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun deposit(token: @NonFungibleToken.NFT) // used to deposit NFT
-    pub fun getIDs(): [UInt64]                    // get NFT Token IDs
-    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // get NFT as NonFungibleToken.NFT
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // get NFT as DAAM.NFT
-}     
+    pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
+    pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
+
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // Get NFT as DAAM.NFT
+    pub fun getCollections(): {String: [UInt64]}         // Get collections
+    pub fun findCollection(tokenID: UInt64): [String]    // Find collections containing TokenID
+}
 /************************************************************************/
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+        pub var ownedNFTs  : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+        pub var collection : {String: [UInt64]}
                         
-        init() { self.ownedNFTs <- {} } // List of owned NFTs
+        init() {
+            self.ownedNFTs <- {} // List of owned NFTs
+            self.collection = {}
+        } 
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
+            self.removeFromCollections(tokenID: withdrawID)
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -358,7 +367,73 @@ pub resource interface CollectionPublic {
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM.NFT                                    // return NFT Reference
+        }
+        // Create a collection name
+        pub fun createCollection(name: String) {
+            pre  { !self.collection.containsKey(name) : "Collection already exist." }
+            post { self.collection.containsKey(name)  : "Internal Error: Create Collection" }
+            self.collection.insert(key: name, [])
+            log("Collection Created: ".concat(name))
+            log(self.collection)
+        } 
+        // Remove a collection name
+        pub fun removeCollection(name: String) {
+            pre  { self.collection.containsKey(name) : "Collection does not already." }
+            post { !self.collection.containsKey(name)  : "Internal Error: Remove Collection" }
+            self.collection.remove(key: name)
+            log("Collection Removed")
+        }       
+        // Add a tokenID to collection
+        pub fun addToCollection(name: String, tokenID: UInt64) {
+            pre  {
+                self.collection.containsKey(name)   : "Collection does not exist"
+                self.ownedNFTs.containsKey(tokenID) : "This Token ID is not in your Collection."
+            }
+            self.collection[name]!.append(tokenID)
+        }
+        // Remove a tokenID from a collection
+        pub fun removeFromCollection(name: String, tokenID: UInt64) {
+            pre  {
+                self.collection.containsKey(name)   : "Collection does not exist"
+                self.ownedNFTs.containsKey(tokenID) : "This Token ID is not in your Collection."
+            }            
+            var elm = self.findIndex(name: name, tokenID: tokenID)
+            if elm == nil { panic("This TokenID does not exist in this Collection.") }
+            self.collection[name]!.remove(at: elm!)
+        }
+        // Find collection(s) with selected TokenID
+        pub fun findCollection(tokenID: UInt64): [String] {
+            pre { self.ownedNFTs[tokenID] != nil : "This TokenID is not in your Collection." }
+            var list: [String] = []
+            for c in self.collection.keys {
+                if self.findIndex(name: c, tokenID: tokenID) != nil {
+                    list.append(c)                   
+                }
+            }
+            return list
         }        
+        // Remove a tokenID from all collection
+        pub fun removeFromCollections(tokenID: UInt64) {            
+            let list = self.findCollection(tokenID: tokenID)
+            for name in list {
+                self.removeFromCollection(name: name, tokenID: tokenID)
+            }            
+        }
+        // Get all collections
+        pub fun getCollections(): {String: [UInt64]} {
+            log(self.collection)
+            return self.collection
+        }
+
+        // Find index of TokenID in collection
+        priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
+            var counter = 0 as UInt64
+            for id in self.collection[name]! {                
+                if id == tokenID { return counter }
+                counter = counter + 1
+            }
+            return nil       
+        }              
 
         destroy() { destroy self.ownedNFTs } // Destructor
     }
@@ -370,9 +445,7 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
-        pub fun removeCreator(creator: Address)                     // Admin or Agent can remove Creator            
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agent can change Copyright Status of MID
-        pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
+        pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // 
     }

@@ -7,8 +7,7 @@ import DAAM from 0xfd43f9148d4b725d
 // to another user's collection.
 transaction(signer: Address, withdrawID: UInt64) {
 
-    // The field that will hold the NFT as it is being
-    // transferred to the other account
+    // The field that will hold the NFT as it is being transferred to the other account
     let transferToken: @DAAM.NFT
 	
     prepare(acct: AuthAccount) {
@@ -17,8 +16,7 @@ transaction(signer: Address, withdrawID: UInt64) {
         let collectionRef = acct.borrow<&DAAM.Collection{NonFungibleToken.Provider}>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
 
-        // Call the withdraw function on the sender's Collection
-        // to move the NFT out of the collection
+        // Call the withdraw function on the sender's Collection to move the NFT out of the collection
         self.transferToken <- collectionRef.withdraw(withdrawID: withdrawID) as! @DAAM.NFT
     }
 
