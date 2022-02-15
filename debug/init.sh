@@ -126,7 +126,7 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT2
 echo "========== Publish Test FUSD Contract =========="
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
-flow transactions send ./transactions/setup_fusd.cdc 100000000.0 $CTO --signer profile
+flow transactions send ./transactions/fusd/setup_fusd.cdc 100000000.0 $CTO --signer profile
 
 echo "========== Send 100K FUSD to All Accounts =========="
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
