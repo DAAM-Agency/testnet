@@ -866,6 +866,12 @@ pub resource Admin: Agent
         return <- create Collection() // Return Collection Resource
     }
 
+    // Create an new Collection to store NFTs
+    pub fun createDAAMCollection(): @DAAM.Collection {
+        post { result.getIDs().length == 0: "The created DAAM collection must be empty!" }
+        return <- create DAAM.Collection() // Return Collection Resource
+    }
+
     // Return list of Creators
     pub fun getCreators(): [Address] {
         var clist: [Address] = []
