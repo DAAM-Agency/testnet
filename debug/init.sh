@@ -195,17 +195,17 @@ flow transactions send ./transactions/create_profile.cdc --signer nobody
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
-flow transactions send ./transactions/setup_daam_account.cdc --signer cto
-flow transactions send ./transactions/setup_daam_account.cdc --signer admin
-flow transactions send ./transactions/setup_daam_account.cdc --signer admin2
-flow transactions send ./transactions/setup_daam_account.cdc --signer agent
-flow transactions send ./transactions/setup_daam_account.cdc --signer agent2
+flow transactions send ./transactions/setup_daam_account.cdc true --signer cto
+flow transactions send ./transactions/setup_daam_account.cdc true --signer admin
+flow transactions send ./transactions/setup_daam_account.cdc true --signer admin2
+flow transactions send ./transactions/setup_daam_account.cdc true --signer agent
+flow transactions send ./transactions/setup_daam_account.cdc true --signer agent2
 
-flow transactions send ./transactions/setup_daam_account.cdc --signer creator
-flow transactions send ./transactions/setup_daam_account.cdc --signer creator2
-flow transactions send ./transactions/setup_daam_account.cdc --signer client
-flow transactions send ./transactions/setup_daam_account.cdc --signer client2
-flow transactions send ./transactions/setup_daam_account.cdc --signer nobody
+flow transactions send ./transactions/setup_daam_account.cdc true --signer creator
+flow transactions send ./transactions/setup_daam_account.cdc true --signer creator2
+flow transactions send ./transactions/setup_daam_account.cdc true --signer client
+flow transactions send ./transactions/setup_daam_account.cdc true --signer client2
+flow transactions send ./transactions/setup_daam_account.cdc true --signer nobody
 
 # Setup Auction Wallets
 echo "========= Setup All Auction Wallets ========="

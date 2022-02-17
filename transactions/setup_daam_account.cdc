@@ -12,10 +12,10 @@ transaction(public: Bool)
         //acct.save<@NonFungibleToken.Collection> (<-collection, to: DAAM.collectionStoragePath) // save the new account
         acct.save<@DAAM.Collection> (<-collection, to: DAAM.collectionStoragePath) // save the new account
         if public {
-            acct.link<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)
-            log("DAAM Account Created, you now have a DAAM Collection to store NFTs'")
+            acct.link<&DAAM.Collection{DAAM.CollectionPublic}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)
+            log("DAAM Account Created, you now have a Public DAAM Collection to store NFTs'")
         } else {
-            log("DAAM Account Created, you now have a non-public DAAM Collection to store NFTs'")
+            log("DAAM Account Created, you now have a Non-Public DAAM Collection to store NFTs'")
         }
     }
 }
