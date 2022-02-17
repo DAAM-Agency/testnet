@@ -886,8 +886,6 @@ pub resource Admin: Agent
         return self.copyright[mid]
     }
 
-    
-
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
     }

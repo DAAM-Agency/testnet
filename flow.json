@@ -5,102 +5,105 @@
 			"serviceAccount": "emulator-account"
 		}
 	},
-	"contracts":  {},
-	"networks": {
-		"emulator": {
-			"host": "127.0.0.1:3569",
-			"chain": "flow-emulator"
+	"contracts": {
+		"FlowToken": {
+			"source": "./contracts/FlowToken.cdc",
+			"aliases": {
+				"emulator": "0x0ae53cb6e3f42a79",
+				"testnet": "0x7e60df042a9c0868",
+				"mainnet" : "0x1654653399040a61"
+			}
 		},
-		"mainnet": {
-			"host": "access.mainnet.nodes.onflow.org:9000",
-			"chain": "flow-mainnet"
+		"FungibleToken": {
+			"source": "./contracts/FungibleToken.cdc",
+			"aliases": {
+				"emulator": "0xee82856bf20e2aa6",
+				"testnet": "0x9a0766d93b6608b7",
+				"mainnet" :"0xf233dcee88fe0abe"
+			}
 		},
-		"testnet": {
-			"host": "access.devnet.nodes.onflow.org:9000",
-			"chain": "flow-testnet"
+		"NonFungibleToken": {
+			"source": "./contracts/NonFungibleToken.cdc",
+			"aliases": {
+				"testnet": "0x631e88ae7f1d7c20",
+				"mainnet": "0x1d7e57aa55817448"
+			}
 		}
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"keys": "2a63f2e45839ce7544a9b53568794f71f7e22af6be0f1628d572680797089d35",
-			"chain": "flow-emulator"
+			"key": "dc0097a6b58533e56af78c955e7b0c0f386b5f44f22b75c390beab7fcb1af13f"
 		},
 		"admin": {
 			"address": "01cf0e2f2f715450",
-			"keys": "603c87086c7a2ddea5050724f5a46c3827ae66efd10ea51a7937f6abc982ac01",
-			"chain": "flow-emulator"
+			"keys": "603c87086c7a2ddea5050724f5a46c3827ae66efd10ea51a7937f6abc982ac01"
 		},
 		"admin2": {
 			"address": "e03daebed8ca0615",
-			"keys": "82707875e9c232fbe4998a4f0744c36fe7d35250b2eaf8721a6ee5f92c4586e2",
-			"chain": "flow-emulator"
+			"keys": "82707875e9c232fbe4998a4f0744c36fe7d35250b2eaf8721a6ee5f92c4586e2"
 		},
 		"agent": {
 			"address": "e2f72218abeec2b9",
-			"keys": "9bc7634b9fe7acaefbd22089746fd1a19cd50b0bff782f0dd49c018b6efc420f",
-			"chain": "flow-emulator"
+			"keys": "9bc7634b9fe7acaefbd22089746fd1a19cd50b0bff782f0dd49c018b6efc420f"
 		},
 		"agent2": {
 			"address": "06909bc5ba14c266",
-			"keys": "03383c2de4a15e279a9256b4c84c4642b4f9965c047fbf036a54fd9e18868a56",
-			"chain": "flow-emulator"
+			"keys": "03383c2de4a15e279a9256b4c84c4642b4f9965c047fbf036a54fd9e18868a56"
 		},
 		"creator": {
 			"address": "179b6b1cb6755e31",
-			"keys": "6fc47b7427a2ef54af73e3b1c9da51ad3b3c18fe3cab8dfa4fc8023a57e2bb02",
-			"chain": "flow-emulator"
+			"keys": "6fc47b7427a2ef54af73e3b1c9da51ad3b3c18fe3cab8dfa4fc8023a57e2bb02"
 		},
 		"creator2": {
 			"address": "10c4fef62310c807",
-			"keys": "551126572d68e310b827f6e89b1a694124e318af46b141171abe76ccbda1747d",
-			"chain": "flow-emulator"
+			"keys": "551126572d68e310b827f6e89b1a694124e318af46b141171abe76ccbda1747d"
 		},
 		"client": {
 			"address": "f3fcd2c1a78f5eee",
-			"keys": "5d9255fe314bc47cbd218ae9b80430408d0b8fc94a64a0bf3c89dab112e4dbb4",
-			"chain": "flow-emulator"
+			"keys": "5d9255fe314bc47cbd218ae9b80430408d0b8fc94a64a0bf3c89dab112e4dbb4"
 		},
 		"client2": {
 			"address": "f4a3472b32eac8d8",
-			"keys": "17c2458b90ea1fb7498c5dfdfe64b8014ed4447cbc8e5f60f66ecb6a0e2cc08c",
-			"chain": "flow-emulator"
+			"keys": "17c2458b90ea1fb7498c5dfdfe64b8014ed4447cbc8e5f60f66ecb6a0e2cc08c"
 		},
 		"marketplace": {
 			"address": "0x045a1763c93006ca",
-			"keys": "a22569bb4b6f4ff0d9404144ea88271e20bdc6d33bc8fc3d4dd591e34189374b",
-			"chain": "flow-emulator"
+			"keys": "a22569bb4b6f4ff0d9404144ea88271e20bdc6d33bc8fc3d4dd591e34189374b"
 		},
 		"nft": {
 			"address": "0x120e725050340cab",
-			"keys": "c1d780f0def5f9e06f6df631547bde7554a5f688a4679731ae7014b2b3eb8dc2",
-			"chain": "flow-emulator"
+			"keys": "c1d780f0def5f9e06f6df631547bde7554a5f688a4679731ae7014b2b3eb8dc2"
 		},
 		"nobody": {
 			"address": "f669cb8d41ce0c74",
-			"keys": "53cbbf7fcfca85868ca0495f8d9d183d3db84e7c1ed214a1ba2663952a3d7645",
-			"chain": "flow-emulator"
+			"keys": "53cbbf7fcfca85868ca0495f8d9d183d3db84e7c1ed214a1ba2663952a3d7645"
 		},
 		"profile": {
 			"address": "192440c99cb17282",
-			"keys": "c3f7c8540630bb52e1ec629f281df1f2411c5ec898d532023e155e9d8b5c80ca",
-			"chain": "flow-emulator"
+			"keys": "c3f7c8540630bb52e1ec629f281df1f2411c5ec898d532023e155e9d8b5c80ca"
 		},
 		"daam_nft": {
 			"address": "fd43f9148d4b725d",
-			"keys": "49d98386b472e6f4ea3b2f6e6e1b3b7a17094f1e3c96e33b98d909624e817b4a",
-			"chain": "flow-emulator"
+			"keys": "49d98386b472e6f4ea3b2f6e6e1b3b7a17094f1e3c96e33b98d909624e817b4a"
 		},
 		"agency": {
 			"address": "0xeb179c27144f783c",
-			"keys": "3a28eab7873ff7e8f518c8a55163770f26ffd9d4f1c6f5da1f8ad8fd08118408",
-			"chain": "flow-emulator"
+			"keys": "3a28eab7873ff7e8f518c8a55163770f26ffd9d4f1c6f5da1f8ad8fd08118408"
 		},
 		"cto": {
 			"address": "0xf7025fa05b578e3",
-			"keys": "3dee459c2f6e644c14dcce6511ed0c679c6651eb205a6d689eab2e16c80ee369",
-			"chain": "flow-emulator"
+			"keys": "3dee459c2f6e644c14dcce6511ed0c679c6651eb205a6d689eab2e16c80ee369"
 		} 
 	},
-	"deployments": {}
+	"deployments": {
+		"emulator": {
+			"emulator-account": ["NonFungibleToken"]
+		}
+	}
 }
