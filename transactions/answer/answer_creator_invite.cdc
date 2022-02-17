@@ -14,15 +14,12 @@ transaction(submit: Bool) {
         let creator <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: submit)
         if creator != nil {
             self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)
-            self.signer.link<&DAAM.Creator>(DAAM.creatorPrivatePath, target: DAAM.creatorStoragePath)!
             let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
             
             let requestGen <- creatorRef.newRequestGenerator()
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
-            self.signer.link<&DAAM.RequestGenerator>(DAAM.requestPrivatePath, target: DAAM.requestStoragePath)!
             
             let metadataGen <- creatorRef.newMetadataGenerator()
-            self.signer.link<&DAAM.MetadataGenerator>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
             let metadataGenCap = self.signer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath)
             metadataGen.activate(creator: self.signer, metadata: metadataGenCap)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
