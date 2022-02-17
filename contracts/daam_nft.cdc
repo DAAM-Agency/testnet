@@ -445,9 +445,10 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
+        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
-        pub fun getMetadataStatus(): {UInt64:Bool}                  // 
+        pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
