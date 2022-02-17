@@ -195,17 +195,18 @@ flow transactions send ./transactions/create_profile.cdc --signer nobody
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
-flow transactions send ./transactions/setup_daam_account.cdc true --signer cto
-flow transactions send ./transactions/setup_daam_account.cdc true --signer admin
-flow transactions send ./transactions/setup_daam_account.cdc true --signer admin2
-flow transactions send ./transactions/setup_daam_account.cdc true --signer agent
-flow transactions send ./transactions/setup_daam_account.cdc true --signer agent2
-
-flow transactions send ./transactions/setup_daam_account.cdc true --signer creator
-flow transactions send ./transactions/setup_daam_account.cdc true --signer creator2
-flow transactions send ./transactions/setup_daam_account.cdc true --signer client
-flow transactions send ./transactions/setup_daam_account.cdc true --signer client2
-flow transactions send ./transactions/setup_daam_account.cdc true --signer nobody
+# Non-Public Accounts
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer cto
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer admin
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer admin2
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer agent
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer agent2
+# Public Accounts
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer creator
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer creator2
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer client
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer client2
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer nobody
 
 # Setup Auction Wallets
 echo "========= Setup All Auction Wallets ========="

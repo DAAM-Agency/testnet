@@ -80,9 +80,9 @@ do
     flow scripts execute ./scripts//wallet/get_tokenIDs.cdc $user
 done
 
-# Verify Metadata
-echo "---------- Veriy Metadata ----------"
-echo "Creator " -n
-flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR
-echo "Creator2 " -n
-flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR2
+# Verify Metadata TODO
+#echo "---------- Veriy Metadata ----------"
+#echo "Creator " -n
+#flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR
+#echo "Creator2 " -n
+#flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR2
