@@ -160,22 +160,24 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadataRef(mid: UInt64) : &Metadata            // Return specific Metadata of Creator
+    pub fun getMetadataRef(mid: UInt64) : &Metadata  // Return specific Metadata of Creator
+    pub fun getMetadatasRef(): &{UInt64 : Metadata}  // {MID : Metadata (Struct),  Return Creators' Metadatas
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun getMetadataRef(mid: UInt64)   : &Metadata            // Return specific Metadata of Creator
-    pub fun generateMetadata(mid: UInt64) : @MetadataHolder
+    pub fun getMetadataRef(mid: UInt64)   : &Metadata  // Return specific Metadata of Creator
+    pub fun getMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun generateMetadata(mid: UInt64) : @MetadataHolder // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
 pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint { 
         // Variables
-        access(contract) var metadata : {UInt64 : Metadata} // {mid : metadata}
+        access(contract) var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
         priv let grantee: Address
 
         init(_ grantee: Address) {
-            self.metadata = {}  // Init metadata
+            self.metadata = {}  // Init Metadata
             self.grantee  = grantee
         }
 
@@ -264,10 +266,12 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
-            pre { 
-                self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
-            }
+            pre { self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection." }
             return &self.metadata[mid]! as &Metadata    // Return Metadata
+        }
+
+        pub fun getMetadatasRef(): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
+            return &self.metadata as &{UInt64 : Metadata}    // Return Metadatas
         }
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
@@ -445,10 +449,11 @@ pub resource interface CollectionPublic {
 
         pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
+        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus)   // Admin or Agenct can change MID copyright status
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
+        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata} // Returns a Creators Metadatas
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -661,12 +666,21 @@ pub resource Admin: Agent
             emit ChangedCopyright(metadataID: mid)            
         }
 
-        pub fun getMetadataStatus(): {UInt64:Bool} {
+        // Get all MIDs & their Status
+        pub fun getMetadataStatus(): {UInt64:Bool} { // { MID : Status}
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
             }
             return DAAM.metadata
+        }
+
+        // Get a Creators' Metadatas
+        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata}  {
+            pre { DAAM.metadataCap.containsKey(creator) }
+            let mCap = DAAM.metadataCap[creator]!.borrow()! 
+            let mlist = mCap!.getMetadatasRef()
+            return mlist 
         }
 
         // Admin or Agent can change a Metadata status.
@@ -908,7 +922,7 @@ pub resource Admin: Agent
     }
 
 /************************************************************************/
-	// TESTNET ONLY FUNCTIONS !!!! // TODO REMOVE
+	// TESTNET ONLY FUNCTION !!!! // TODO REMOVE
 
     pub fun resetAdmin(_ admin: Address) {
         self.admins.insert(key: admin, false)

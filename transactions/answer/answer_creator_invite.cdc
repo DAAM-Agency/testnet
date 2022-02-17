@@ -27,7 +27,7 @@ transaction(submit: Bool) {
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )        
         } else {
             destroy creator
-            log("Thank You for your consoderation.")
+            log("Thank You for your Consoderation.")
         }
     }
 }
