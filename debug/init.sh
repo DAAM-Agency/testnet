@@ -226,7 +226,7 @@ echo "Answer default Admin Invite created by contract creation."
 flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer cto
 
 # Setup AuctionHouse Minter Key
-echo "Verify Minter Status: false"
+echo "Verify Minter Status: nil"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
 echo "Send AuctionHouse Minter Key."
@@ -241,10 +241,10 @@ flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 echo "Re-Send AuctionHouse Minter Key."
 flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
 
-echo "AuctionHouse Acceptd Minter Key."
+echo "AuctionHouse Accepted Minter Key."
 flow transactions send ./transactions/answer/answer_minter_invite.cdc true --signer marketplace
 
-echo "Verify Minter Status: false"
+echo "Verify Minter Status: true"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
 echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. -----------"
