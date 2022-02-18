@@ -1,4 +1,4 @@
-// get_mids.cdc
+// refresh_metadatas_ref.cdc
 // Get Creators' MIDs
 
 // Tools used for debugging
@@ -17,6 +17,6 @@ transaction()
     }
 
     execute {
-        log(self.metadataGen.getMIDs())
+        log(self.metadataGen.refreshMetadatasRef())
     }
 }

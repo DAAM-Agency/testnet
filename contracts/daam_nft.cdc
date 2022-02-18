@@ -161,12 +161,12 @@ pub resource RequestGenerator {
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMetadataRef(mid: UInt64) : &Metadata  // Return specific Metadata of Creator
-    pub fun getMetadatasRef(): &{UInt64 : Metadata}  // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun refreshMetadatasRef(): &{UInt64 : Metadata}  // {MID : Metadata (Struct),  Return Creators' Metadatas
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadataRef(mid: UInt64)   : &Metadata  // Return specific Metadata of Creator
-    pub fun getMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun refreshMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
     pub fun generateMetadata(mid: UInt64) : @MetadataHolder // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
@@ -270,7 +270,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return &self.metadata[mid]! as &Metadata    // Return Metadata
         }
 
-        pub fun getMetadatasRef(): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
+        pub fun refreshMetadatasRef(): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
             return &self.metadata as &{UInt64 : Metadata}    // Return Metadatas
         }
 
@@ -679,7 +679,7 @@ pub resource Admin: Agent
         pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata}  {
             pre { DAAM.metadataCap.containsKey(creator) }
             let mCap = DAAM.metadataCap[creator]!.borrow()! 
-            let mlist = mCap!.getMetadatasRef()
+            let mlist = mCap!.refreshMetadatasRef()
             return mlist 
         }
 
