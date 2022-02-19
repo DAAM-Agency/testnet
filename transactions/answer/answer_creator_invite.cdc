@@ -23,6 +23,7 @@ transaction(submit: Bool) {
             let metadataGenCap = self.signer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath)
             metadataGen.activate(creator: self.signer, metadata: metadataGenCap)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
+            //self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
 
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )        
         } else {

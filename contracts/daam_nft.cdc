@@ -453,7 +453,7 @@ pub resource interface CollectionPublic {
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
-        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata} // Returns a Creators Metadatas
+        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata}? // Returns a Creators Metadatas
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -676,11 +676,11 @@ pub resource Admin: Agent
         }
 
         // Get a Creators' Metadatas
-        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata}  {
+        pub fun refreshCreatorMetadatas(creator: Address): &{UInt64 : Metadata}?  {
             pre { DAAM.metadataCap.containsKey(creator) }
-            let mCap = DAAM.metadataCap[creator]!.borrow()! 
-            let mlist = mCap!.refreshMetadatasRef()
-            return mlist 
+            let mRef = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
+            let mlist = mRef.refreshMetadatasRef()
+            return mlist as &{UInt64 : Metadata}?
         }
 
         // Admin or Agent can change a Metadata status.
