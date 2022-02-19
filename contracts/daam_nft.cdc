@@ -34,7 +34,7 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
-    pub let metadataPrivatePath   : PrivatePath  // Private path to Metadata Generator
+    pub let metadataPrivatePath   : PublicPath   // Public path that to Metadata Generator: Requires Admin/Agent  or Creator Key
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
     pub let adminStoragePath      : StoragePath  // Storage path to Admin 
@@ -166,7 +166,7 @@ pub resource interface MetadataGeneratorPublic {
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
     pub fun getMetadataRef(mid: UInt64)   : &Metadata  // Return specific Metadata of Creator
-    pub fun refreshMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
+    //pub fun refreshMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
     pub fun generateMetadata(mid: UInt64) : @MetadataHolder // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
@@ -591,6 +591,7 @@ pub resource Admin: Agent
             post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
 
             DAAM.creators.remove(key: creator)    // Remove Creator from list
+            DAAM.metadataCap.remove(key: creator) // Remove Metadata Capability
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
@@ -937,7 +938,7 @@ pub resource Admin: Agent
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
-        self.metadataPrivatePath   = /private/DAAM_SubmitNFT
+        self.metadataPrivatePath   = /public/DAAM_SubmitNFT
         self.metadataStoragePath   = /storage/DAAM_SubmitNFT
         self.adminPrivatePath      = /private/DAAM_Admin
         self.adminStoragePath      = /storage/DAAM_Admin
