@@ -83,6 +83,6 @@ done
 # Verify Metadata
 echo "---------- Veriy Metadata ----------"
 echo "Creator " -n
-flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR
+flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR
 echo "Creator2 " -n
-flow transactions send ./transactions/admin/get_metadata_list.cdc $CREATOR2
+flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR2
