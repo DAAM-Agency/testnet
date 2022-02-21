@@ -14,5 +14,5 @@ flow transactions send ./transactions/creator/submit_nft.cdc 2 "data I" "thumbna
 
 echo "========= Verify Metadata ========="
 # verify metadata
-flow scripts execute ./scripts/wallet/get_tokenIds.cdc $CREATOR 
-flow scripts execute ./scripts/wallet/get_tokenIds.cdc $CREATOR2 
+flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR 
+flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR2 
