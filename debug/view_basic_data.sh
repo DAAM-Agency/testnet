@@ -77,12 +77,14 @@ echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
-    flow scripts execute ./scripts//wallet/get_tokenIDs.cdc $user
+    flow scripts execute ./scripts/wallet/get_collections.cdc $user 
 done
 
 # Verify Metadata
 echo "---------- Veriy Metadata ----------"
-echo "Creator " -n
+
+echo "Creator: "
 flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR
-echo "Creator2 " -n
+
+echo "Creator2: "
 flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR2

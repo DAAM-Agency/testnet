@@ -22,7 +22,8 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
     // Variables
     // Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> } // { MID : Capability<&DAAM.MetadataGenerator> }
+                                        // { MID : Capability<&DAAM.MetadataGenerator{MetadataGeneratorMint}> }
+    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     pub var currentAuctions             : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
 
