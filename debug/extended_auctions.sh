@@ -63,7 +63,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 7 $STA
 
 # Verify Metadata
 echo "========= Veriy Metadata ========="
-flow scripts execute ./scripts/wallet/get_tokenIds.cdc $CREATOR
+flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR
 
 # Reset Copyright
 echo "========= Reset Copyright ========="
