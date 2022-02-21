@@ -160,13 +160,12 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadataRef(mid: UInt64) : &Metadata  // Return specific Metadata of Creator
-    pub fun refreshMetadatasRef(): &{UInt64 : Metadata}  // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun getMetadataRef(mid: UInt64) : &Metadata     // Return specific Metadata of Creator
+    pub fun refreshMetadatasRef(): &{UInt64 : Metadata} // {MID : Metadata (Struct),  Return Creators' Metadatas
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun getMetadataRef(mid: UInt64)   : &Metadata  // Return specific Metadata of Creator
-    //pub fun refreshMetadatasRef(): &{UInt64 : Metadata}    // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun getMetadataRef(mid: UInt64)   : &Metadata       // Return specific Metadata of Creator
     pub fun generateMetadata(mid: UInt64) : @MetadataHolder // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
@@ -240,8 +239,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         // Remove Metadata as Resource MetadataHolder. MetadataHolder + Request = NFT.
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(mid: UInt64) : @MetadataHolder {
+        pub fun generateMetadata(minter: AuthAccount, mid: UInt64) : @MetadataHolder {
             pre {
+                // TODO Only Minter
                 self.grantee == self.owner?.address!            : "Permission Denied"
                 DAAM.metadataCap.containsKey(self.grantee)      : "Activate your account first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
@@ -265,16 +265,21 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return <- mh // Return current Metadata  
         }
 
-        pub fun getMetadataRef(mid: UInt64): &Metadata { // Return specific Metadata of Creator
-            pre { self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection." }
+        pub fun getMetadataRef(_ access: AuthAccount, mid: UInt64): &Metadata { // Return specific Metadata of Creator
+            pre {
+                access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" // Only allow Creator / Admin/Agent                
+                self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
+            }
             return &self.metadata[mid]! as &Metadata    // Return Metadata
         }
 
-        pub fun refreshMetadatasRef(): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
+        pub fun refreshMetadatasRef(_ access: AuthAccount): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
+            pre { access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" }  // Only allow Creator / Admin/Agent
             return &self.metadata as &{UInt64 : Metadata}    // Return Metadatas
         }
 
-        pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
+        pub fun getMIDs(_ access: AuthAccount, ): [UInt64] { // Return specific MIDs of Creator
+            pre { access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" }  // Only allow Creator / Admin/Agent
             return self.metadata.keys
         }
 
