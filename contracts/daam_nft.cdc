@@ -18,7 +18,7 @@ pub contract DAAM: NonFungibleToken {
     pub event AgentInvited(agent  : Address)     // Agent has been invited
     pub event CreatorInvited(creator: Address)   // Creator has been invited
     pub event MinterSetup(minter: Address)       // Minter has been invited
-    pub event AddMetadata()                      // Metadata Added
+    pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
     pub event MintedNFT(id: UInt64)              // Minted NFT
     pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
     pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
@@ -29,7 +29,7 @@ pub contract DAAM: NonFungibleToken {
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
     pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
-    pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
+    pub event RemovedMetadata(creator: Address, mid: UInt64) // Metadata has been removed by Creator
     pub event RemovedAdminInvite()               // Admin invitation has been rescinded
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
@@ -209,7 +209,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
-            emit AddMetadata()
+            emit AddMetadata(creator: creator.address, mid: mid)
             return mid
         }
 
@@ -224,7 +224,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.deleteMetadata(mid: mid)  // Delete Metadata
-            let old_request <- DAAM.request.remove(key: mid)  // Get Request
+            let old_request <- DAAM.request.remove(creator: creator.address, mid: mid)  // Get Request
             destroy old_request // Delete Request
         }
 
