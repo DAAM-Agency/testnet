@@ -29,7 +29,7 @@ pub contract DAAM: NonFungibleToken {
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
     pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
-    pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
+    pub event RemovedMetadata(creator: Address, mid: UInt64) // Metadata has been removed by Creator
     pub event RemovedAdminInvite()               // Admin invitation has been rescinded
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
@@ -224,7 +224,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] != nil : "No Metadata entered"
             }
             self.deleteMetadata(mid: mid)  // Delete Metadata
-            let old_request <- DAAM.request.remove(key: mid)  // Get Request
+            let old_request <- DAAM.request.remove(creator: creator.address, mid: mid)  // Get Request
             destroy old_request // Delete Request
         }
 
