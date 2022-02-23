@@ -77,14 +77,21 @@ echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
-    flow scripts execute ./scripts/wallet/get_collections.cdc $user 
+    flow scripts execute ./scripts/daam_wallet/get_collections.cdc $user 
 done
 
 # Verify Metadata
 echo "---------- Veriy Metadata ----------"
+for user in creator creator2
+do
+    getAddressName $user
+    flow transactions send ./transactions/creator/Get_mids.cdc --signer $user
+done
 
-echo "Creator: "
-flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR
-
-echo "Creator2: "
-flow scripts execute ./scripts/wallet/get_tokenIDs.cdc $CREATOR2
+# Verify TokenIDs
+echo "---------- Veriy TokenIDs ----------"
+for user in $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2 $NOBODY
+do
+    getAddressName $user
+    flow scripts execute ./scripts/daam_wallet/get_tokenIDs.cdc $user
+done
