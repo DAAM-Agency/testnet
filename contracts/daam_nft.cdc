@@ -18,7 +18,7 @@ pub contract DAAM: NonFungibleToken {
     pub event AgentInvited(agent  : Address)     // Agent has been invited
     pub event CreatorInvited(creator: Address)   // Creator has been invited
     pub event MinterSetup(minter: Address)       // Minter has been invited
-    pub event AddMetadata()                      // Metadata Added
+    pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
     pub event MintedNFT(id: UInt64)              // Minted NFT
     pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
     pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
@@ -209,7 +209,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
-            emit AddMetadata()
+            emit AddMetadata(creator: creator.address, mid: mid)
             return mid
         }
 
