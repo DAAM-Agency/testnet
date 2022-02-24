@@ -63,7 +63,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 7 $STA
 
 # Verify Metadata
 echo "========= Veriy Metadata ========="
-flow scripts execute ./scripts/metadata/get_metadata_list.cdc $CREATOR
+flow scripts execute ./scripts/daam_wallet/get_tokenIDs.cdc $CREATOR
 
 # Reset Copyright
 echo "========= Reset Copyright ========="
@@ -335,13 +335,13 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CTO
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Verify Collections ========="
 echo Creator
-flow scripts execute ./scripts//wallet/collection.cdc $CREATOR
+flow scripts execute ./scripts/daam_wallet/collection.cdc $CREATOR
 echo Client
-flow scripts execute ./scripts//wallet/collection.cdc $CLIENT
+flow scripts execute ./scripts/daam_wallet/collection.cdc $CLIENT
 echo Nobody
-flow scripts execute ./scripts//wallet/collection.cdc $NOBODY
+flow scripts execute ./scripts/daam_wallet/collection.cdc $NOBODY
 echo CTO
-flow scripts execute ./scripts//wallet/collection.cdc $CTO
+flow scripts execute ./scripts/daam_wallet/collection.cdc $CTO
 
 echo "---------- FUSD ----------"
 echo "CREATOR FUSD"

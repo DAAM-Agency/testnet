@@ -1,4 +1,4 @@
-// get_tokenIds.cdc
+// get_tokenIDs.cdc
 
 import DAAM from 0xfd43f9148d4b725d
 

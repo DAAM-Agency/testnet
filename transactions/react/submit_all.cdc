@@ -23,7 +23,7 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String, perce
 
     execute {
         let mid = self.metadataGen.addMetadata(creator: self.creator, series: series, data: data, thumbnail: thumbnail, file: file)!
-        let metadata = self.metadataGen.getMetadataRef(mid: mid)
+        let metadata = self.metadataGen.getMetadataRef(creator.owner, mid: mid)
         self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)
         log("Metadata & Royality Submitted")
     }

@@ -17,6 +17,6 @@ transaction()
     }
 
     execute {
-        log(self.metadataGen.refreshMetadatasRef())
+        log(self.metadataGen.refreshMetadatasRef(creator))
     }
 }
