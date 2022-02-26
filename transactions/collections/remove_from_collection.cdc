@@ -20,6 +20,6 @@ transaction(name: String, tokenID: UInt64) {
 
     execute {
         self.collectionRef.removeFromCollection(name: self.name, tokenID: self.tokenID) 
-        log("Collection Created.")
+        log("Remove TokenID ".concat(tokenID.toString()).concat(" from Collection: ").concat(name) )
     }
 }

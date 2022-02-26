@@ -394,7 +394,7 @@ pub resource interface CollectionPublic {
         } 
         // Remove a collection name
         pub fun removeCollection(name: String) {
-            pre  { self.collection.containsKey(name) : "Collection does not already." }
+            pre  { self.collection.containsKey(name) : "Collection: ".concat(name).concat(" does not exist.") }
             post { !self.collection.containsKey(name)  : "Internal Error: Remove Collection" }
             self.collection.remove(key: name)
             log("Collection Removed")
@@ -402,16 +402,17 @@ pub resource interface CollectionPublic {
         // Add a tokenID to collection
         pub fun addToCollection(name: String, tokenID: UInt64) {
             pre  {
-                self.collection.containsKey(name)   : "Collection does not exist"
-                self.ownedNFTs.containsKey(tokenID) : "This Token ID is not in your Collection."
+                self.collection.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
+                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
+                self.findIndex(name: name, tokenID: tokenID) == nil : "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
             }
             self.collection[name]!.append(tokenID)
         }
         // Remove a tokenID from a collection
         pub fun removeFromCollection(name: String, tokenID: UInt64) {
             pre  {
-                self.collection.containsKey(name)   : "Collection does not exist"
-                self.ownedNFTs.containsKey(tokenID) : "This Token ID is not in your Collection."
+                self.collection.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
+                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
             }            
             var elm = self.findIndex(name: name, tokenID: tokenID)
             if elm == nil { panic("This TokenID does not exist in this Collection.") }
@@ -419,7 +420,7 @@ pub resource interface CollectionPublic {
         }
         // Find collection(s) with selected TokenID
         pub fun findCollection(tokenID: UInt64): [String] {
-            pre { self.ownedNFTs[tokenID] != nil : "This TokenID is not in your Collection." }
+            pre { self.ownedNFTs[tokenID] != nil : "Token ID: ".concat(tokenID.toString()).concat(" is not part of your Collection(s).") }
             var list: [String] = []
             for c in self.collection.keys {
                 if self.findIndex(name: c, tokenID: tokenID) != nil {

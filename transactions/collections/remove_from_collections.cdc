@@ -6,7 +6,6 @@ import DAAM from 0xfd43f9148d4b725d
 // This transaction transfers an NFT from one user's collection
 // to another user's collection.
 transaction(tokenID: UInt64) {
-    let name: String
     let tokenID : UInt64
     let collectionRef: &DAAM.Collection
 
@@ -19,6 +18,6 @@ transaction(tokenID: UInt64) {
 
     execute {
         self.collectionRef.removeFromCollections(tokenID: self.tokenID) 
-        log("Collection Created.")
+        log("Removed from Collection(s).")
     }
 }
