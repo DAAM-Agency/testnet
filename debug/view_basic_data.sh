@@ -82,11 +82,7 @@ done
 
 # Verify Metadata
 echo "---------- Veriy Metadata ----------"
-for user in creator creator2
-do
-    getAddressName $user
-    flow transactions send ./transactions/creator/Get_mids.cdc --signer $user
-done
+./scripts/get_mids.sh | jq -c
 
 # Verify TokenIDs
 echo "---------- Veriy TokenIDs ----------"
