@@ -337,6 +337,7 @@ pub resource interface CollectionPublic {
     pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
 
+    pub var album : {String: CollectionData } 
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // Get NFT as DAAM.NFT
     pub fun getCollections(): {String: CollectionData}   // Get collections
     pub fun findCollection(tokenID: UInt64): [String]    // Find collections containing TokenID
@@ -345,10 +346,11 @@ pub resource interface CollectionPublic {
 // Structure to store collection data
 pub struct CollectionData {
     pub var ids : [UInt64]  // List of TokenIDs in collection
-    pub var sub_collection: &CollectionData? // List of sub-collections
+    pub var sub_collection: [String] // List of sub-collections
+
     init() {
         self.ids  = []
-        self.sub_collection = nil
+        self.sub_collection = []
     }
 }
 /************************************************************************/
@@ -432,24 +434,28 @@ pub struct CollectionData {
         }
 
         // Add a sub-collection to collection
-        pub fun addSubCollection(name: String, tokenID: UInt64) {
+        pub fun addSubCollection(name: String, collection: String) {
             pre  {
-                self.album.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
-                self.findIndex(name: name, tokenID: tokenID) == nil : "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
+                self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
+                self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
+                !self.album[name]!.sub_collection.contains(name) : "Collection: ".concat(collection).concat(" already in this Collection.")
             }
-            self.album[name]!.ids.append(tokenID)
+            
         }
 
         // Remove a sub-collection from a collection
-        pub fun removeSubCollection(name: String, tokenID: UInt64) {
+        pub fun removeSubCollection(name: String, collection: String) {
             pre  {
-                self.album.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
-            }            
-            var elm = self.findIndex(name: name, tokenID: tokenID)
-            if elm == nil { panic("This TokenID does not exist in this Collection.") }
-            self.album[name]!.ids.remove(at: elm!)
+                self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
+                self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
+                self.album[name]!.sub_collection.contains(name) : "Collection: ".concat(collection).concat(" does not exist in this Collection.")
+            }
+            var counter = 0
+            for elm in self.album[name]!.sub_collection {
+                if elm == collection { break }
+                counter = counter + 1
+            }  
+            self.album[name]!.sub_collection.remove(at: counter)
         }
 
         // Find collection(s) with selected TokenID
@@ -912,7 +918,7 @@ pub resource Admin: Agent
         // Invitation accepted at this point
         log("Minter: ".concat(minter.address.toString()) )
         emit NewMinter(minter: minter.address)
-        return <- create Minter(minter)!                 // Return Minter (Key) Resource
+        return <- create Minter(minter)             // Return Minter (Key) Resource
     }
     
     // Create an new Collection to store NFTs
