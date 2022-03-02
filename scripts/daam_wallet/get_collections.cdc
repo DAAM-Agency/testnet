@@ -8,5 +8,5 @@ pub fun main(account: Address): {String: DAAM.CollectionData}? {
         .borrow()
         //?? panic("Could not borrow capability from public collection")
     
-    return collectionRef?.getCollections()
+    return collectionRef?.getAlbum()
 }

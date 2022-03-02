@@ -66,7 +66,6 @@ pub enum CopyrightStatus: UInt8 {
             pub case CLAIM      // 1 as UInt8
             pub case UNVERIFIED // 2 as UInt8
             pub case VERIFIED   // 3 as UInt8
-            pub case INCLUDED   // 4 as UInt8
 }
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
@@ -337,10 +336,9 @@ pub resource interface CollectionPublic {
     pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
 
-    pub var album : {String: CollectionData } 
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT            // Get NFT as DAAM.NFT
-    pub fun getCollections(): {String: CollectionData}   // Get collections
-    pub fun findCollection(tokenID: UInt64): [String]    // Find collections containing TokenID
+    pub fun getAlbum(): {String: CollectionData}      // Get collections
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT         // Get NFT as DAAM.NFT
+    pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
 }
 /************************************************************************/
 // Structure to store collection data
@@ -415,9 +413,9 @@ pub struct CollectionData {
         // Add a tokenID to collection
         pub fun addToCollection(name: String, tokenID: UInt64) {
             pre  {
-                self.album.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
-                self.findIndex(name: name, tokenID: tokenID) == nil : "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
+                self.album.containsKey(name)            : "Collection: ".concat(name).concat(" does not exist.")
+                self.ownedNFTs.containsKey(tokenID)     : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
+                !self.album[name]!.ids.contains(tokenID): "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
             }
             self.album[name]!.ids.append(tokenID)
         }
@@ -425,11 +423,11 @@ pub struct CollectionData {
         // Remove a tokenID from a collection
         pub fun removeFromCollection(name: String, tokenID: UInt64) {
             pre  {
-                self.album.containsKey(name)   : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
+                self.album.containsKey(name)            : "Collection: ".concat(name).concat(" does not exist.")
+                self.ownedNFTs.containsKey(tokenID)     : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
+                self.album[name]!.ids.contains(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
             }            
             var elm = self.findIndex(name: name, tokenID: tokenID)
-            if elm == nil { panic("This TokenID does not exist in this Collection.") }
             self.album[name]!.ids.remove(at: elm!)
         }
 
@@ -438,9 +436,9 @@ pub struct CollectionData {
             pre  {
                 self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
                 self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
-                !self.album[name]!.sub_collection.contains(name) : "Collection: ".concat(collection).concat(" already in this Collection.")
+                !self.album[name]!.sub_collection.contains(collection) : "Collection: ".concat(collection).concat(" already in this Collection.")
             }
-            
+            self.album[name]!.sub_collection.append(name)
         }
 
         // Remove a sub-collection from a collection
@@ -448,7 +446,7 @@ pub struct CollectionData {
             pre  {
                 self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
                 self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
-                self.album[name]!.sub_collection.contains(name) : "Collection: ".concat(collection).concat(" does not exist in this Collection.")
+                self.album[name]!.sub_collection.contains(collection) : "Collection: ".concat(collection).concat(" does not exist in this Collection.")
             }
             var counter = 0
             for elm in self.album[name]!.sub_collection {
@@ -462,9 +460,9 @@ pub struct CollectionData {
         pub fun findCollection(tokenID: UInt64): [String] {
             pre { self.ownedNFTs[tokenID] != nil : "Token ID: ".concat(tokenID.toString()).concat(" is not part of your Collection(s).") }
             var list: [String] = []
-            for c in self.album.keys {
-                if self.findIndex(name: c, tokenID: tokenID) != nil {
-                    list.append(c)                   
+            for name in self.album.keys {
+                if self.findIndex(name: name, tokenID: tokenID) != nil {
+                    list.append(name)                 
                 }
             }
             return list
@@ -477,8 +475,9 @@ pub struct CollectionData {
                 self.removeFromCollection(name: name, tokenID: tokenID)
             }            
         }
+
         // Get all collections
-        pub fun getCollections(): {String: CollectionData} {
+        pub fun getAlbum(): {String: CollectionData} {
             log(self.album)
             return self.album
         }
