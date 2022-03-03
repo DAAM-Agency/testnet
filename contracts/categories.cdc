@@ -3,7 +3,7 @@ pub contract Categories {
     pub event CategoryAdded(name: String, id: UInt64)
     pub event CategoryRemoved(name: String, id: UInt64)
 
-    //struct
+    // struct
     pub struct Category {
         pub let name: String
         pub let id: UInt64
@@ -16,17 +16,11 @@ pub contract Categories {
     }
 
     // variables
+    priv let grantee: Address
     priv var counter   : UInt64            // A counter used as an incremental Category ID
     access(contract) var categories: {String : UInt64} // category list { category name : categoty counter (acts as ID)}
 
     // functions
-    // Validate category entries are valid.
-    priv fun validate(list: [UInt64]) {
-        for l in list {
-            self.categories.contains
-        }
-    }
-
     // Get Catagories by a list of names or as {name: category id}
     pub fun getCategories(): [String] { return self.categories.keys }
     pub fun getCategoriesFull(): {String : UInt64} { return self.categories }
@@ -47,13 +41,13 @@ pub contract Categories {
         return self.categories[name]!
     }
 
-    pub fun assignCategoryByName(_ name: String): Category {
-        pre { self.categories.containsKey(name) : "Invalid Category" }
-        return Category(self.categories[name]!.ids)
-    }
+    // management functions
     
-    pub fun addCategory(name: String) {
-        pre { !self.categories.containsKey(name) : "Category: ".concat(name).concat(" already exists.") }
+    pub fun addCategory(_ signer: AuthAccount, name: String) {
+        pre {
+            signer.address == self.grantee : "Not Authorized!"
+            !self.categories.containsKey(name) : "Category: ".concat(name).concat(" already exists.")
+        }
         post{ self.categories.containsKey(name) : "Internal Error: Add Category" }
 
         self.categories.insert(key: name, self.counter)
@@ -61,15 +55,19 @@ pub contract Categories {
         emit CategoryAdded(name: name, id: self.counter)
     }
 
-    pub fun removeCategory(name: String) {
-        pre { self.categories.containsKey(name) : "Category: ".concat(name).concat(" does not exists.") }
+    pub fun removeCategory(_ signer: AuthAccount, name: String) {
+        pre {
+            signer.address == self.grantee : "Not Authorized!"
+            self.categories.containsKey(name) : "Category: ".concat(name).concat(" does not exists.")
+        }
         post{ !self.categories.containsKey(name) : "Internal Error: Remove Category" }
 
         self.categories.remove(key: name)
         emit CategoryRemoved(name: name, id: self.counter)
     }
 
-    init() {
+    init(creator: AuthAccount) {
+        self.grantee = creator.address
         self.counter = 0
         self.categories = {}
     }
