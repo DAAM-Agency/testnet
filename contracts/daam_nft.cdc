@@ -449,8 +449,8 @@ pub struct CollectionData {
                 self.album[name]!.sub_collection.contains(collection) : "Collection: ".concat(collection).concat(" does not exist in this Collection.")
             }
             var counter = 0
-            for elm in self.album[name]!.sub_collection {
-                if elm == collection { break }
+            for c in self.album[name]!.sub_collection {
+                if c == collection { break }
                 counter = counter + 1
             }  
             self.album[name]!.sub_collection.remove(at: counter)
