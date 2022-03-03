@@ -27,6 +27,8 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM_V7.MetadataGenerator>(DAAM_V7.metadataPublicPath, target: DAAM_V7.metadataStoragePath)
 
             log("You are now a DAAM_V7 Creator: ".concat(self.signer.address.toString()) )
+        } else {
+            destroy creator
         }
 
         if !submit { log("Thank You for your consideration.") }
