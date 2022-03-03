@@ -17,7 +17,10 @@ transaction(submit: Bool) {
             self.signer.save<@DAAM_V7.Minter>(<- minter!, to: DAAM_V7.minterStoragePath)!
             self.signer.link<&DAAM_V7.Minter>(DAAM_V7.minterPrivatePath, target: DAAM_V7.minterStoragePath)!
             log("You are now a DAAM_V7 Minter: ".concat(self.signer.address.toString()) )
+        } else {
+            destroy minter
         }
+
         if !submit { log("Thank You for your consideration.") }
     }
 }

@@ -23,6 +23,8 @@ transaction(submit: Bool) {
             self.signer.link<&DAAM_V7.RequestGenerator>(DAAM_V7.requestPrivatePath, target: DAAM_V7.requestStoragePath)!
             
             log("You are now a DAAM_V7 Admin: ".concat(self.signer.address.toString()) )
+        } else {
+            destroy admin
         }
         if !submit { log("Thank You for your consideration.") }
     }
