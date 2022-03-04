@@ -3,6 +3,7 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FungibleToken    from 0xee82856bf20e2aa6 
 import Profile          from 0x192440c99cb17282
+import Categories       from 0xfd43f9148d4b725d
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
     // Events
@@ -132,11 +133,12 @@ pub resource RequestGenerator {
         pub let creator   : Address  // Creator of NFT
         pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let category  : [Categories.Category]
         pub let data      : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, series: UInt64, data: String, thumbnail: String, file: String, counter: &Metadata?) {
+        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: &Metadata?) {
             if counter != nil {
                 if counter!.counter >= series && series != 0 { panic("Metadata setting incorrect.") }
             }
@@ -151,7 +153,8 @@ pub resource RequestGenerator {
             }
             self.creator   = creator   // creator of NFT
             self.series    = series    // total prints
-            self.counter = counter == nil ? 1 : counter!.counter + 1   // current print of total prints
+            self.counter = counter == nil ? 1 : counter!.counter + 1 // current print of total prints
+            self.category  = categories
             self.data      = data      // data,about,misc page
             self.thumbnail = thumbnail // thumbnail are stored here
             self.file      = file      // NFT data is stored here
@@ -191,14 +194,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(creator: AuthAccount, series: UInt64, data: String, thumbnail: String, file: String): UInt64 {
+        pub fun addMetadata(creator: AuthAccount, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String): UInt64 {
             pre{
                 self.grantee == creator.address            : "Permission Denied"
                 DAAM.metadataCap.containsKey(self.grantee) : "Activate your account first."
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
-            let metadata = Metadata(creator: creator.address, series: series, data: data, thumbnail: thumbnail,
+            let metadata = Metadata(creator: creator.address, series: series, categories: categories, data: data, thumbnail: thumbnail,
                 file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             self.metadata.insert(key: mid, metadata) // Save Metadata
@@ -256,8 +259,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.deleteMetadata(mid: mid) // Remove metadata template
             } else { // if not last, print
                 let new_metadata = Metadata(                  // Prep next Metadata
-                    creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, data: self.metadata[mid]?.data!,
-                    thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata)
+                    creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, categories: self.metadata[mid]?.category!,
+                    data: self.metadata[mid]?.data!, thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata
+                )
                 log("Generate Metadata: ".concat(new_metadata.mid.toString()) )
                 self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
             }
