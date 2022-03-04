@@ -66,9 +66,22 @@ pub contract Categories {
         emit CategoryRemoved(name: name, id: self.counter)
     }
 
-    init(creator: AuthAccount) {
-        self.grantee = creator.address
+    init(signer: AuthAccount) {
+        self.grantee = signer.address
         self.counter = 0
         self.categories = {}
+        // initial categories
+        self.addCategory(signer, name: "Digital")
+        self.addCategory(signer, name: "Physical")
+
+        self.addCategory(signer, name: "Art")
+        self.addCategory(signer, name: "Audio")
+        self.addCategory(signer, name: "Video")
+        self.addCategory(signer, name: "Photography")
+        self.addCategory(signer, name: "Virtual Reality")
+        self.addCategory(signer, name: "Augmented Reality")
+
+        self.addCategory(signer, name: "Sculpture")
+        self.addCategory(signer, name: "Fashion")
     }
 }
