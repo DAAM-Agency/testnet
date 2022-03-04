@@ -163,7 +163,7 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatasRef(): {UInt64 : Metadata}
+    pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata}
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
@@ -271,11 +271,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return self.metadata.keys
         }
 
-        pub fun getMetadatasRef(_ user: AuthAccount): {UInt64 : Metadata} {
+        pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata} {
             pre {
-                DAAM.admins[user.address]! ||
-                DAAM.agents[user.address]! ||
-                DAAM.creators[user.address]!  : "Premission Denied"
+                DAAM.admins[access.address]! ||
+                DAAM.agents[access.address]! ||
+                DAAM.creators[access.address]!  : "Premission Denied"
             }
             return self.metadata
         }
@@ -493,10 +493,11 @@ pub struct CollectionData {
 
         pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus)   // Admin or Agenct can change MID copyright status
+        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
+        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata}   // Get Metadatas of a Creator
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -727,6 +728,16 @@ pub resource Admin: Agent
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
             }            
             DAAM.metadata[mid] = status // change to a new Metadata status
+        }
+
+        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
+            pre {
+                self.grantee == self.owner?.address! : "Permission Denied"
+                self.status : "You're no longer a have Access."
+            }
+            let metaRef =  DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
+            let mlist = metaRef.getMetadatasRef(access: self.owner!)!
+            return mlist
         }
 	}
 /************************************************************************/
