@@ -167,7 +167,6 @@ pub resource interface MetadataGeneratorPublic {
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun getMetadataRef(_ access: PublicAccount, mid: UInt64): &Metadata         // Return specific Metadata of Creator
     pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder  // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
@@ -266,14 +265,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
             }
             return <- mh // Return current Metadata  
-        }
-
-        pub fun getMetadataRef(_ access: PublicAccount, mid: UInt64): &Metadata { // Return specific Metadata of Creator
-            pre {
-                access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" // Only allow Creator / Admin/Agent                
-                self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
-            }
-            return &self.metadata[mid]! as &Metadata    // Return Metadata
         }
 
         pub fun adminGetMetadataRef(_ access: AuthAccount, mid: UInt64): &Metadata { // Return specific Metadata of Creator

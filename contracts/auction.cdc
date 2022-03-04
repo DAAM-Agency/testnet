@@ -171,6 +171,7 @@ pub contract AuctionHouse {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
+        pub let creator     : Address
         pub let mid         : UInt64       // collect Metadata ID
         pub var start       : UFix64       // timestamp
         priv let origLength   : UFix64   // original length of auction, needed to reset if Series
@@ -224,6 +225,7 @@ pub contract AuctionHouse {
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
             self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
+            self.creator = nft.metadata.creator
             self.mid = nft.metadata.mid // Metadata ID
             self.start = start        // When auction start
             self.length = length      // Length of auction
@@ -231,7 +233,7 @@ pub contract AuctionHouse {
             self.leader = nil         // Current leader, when nil = no leader
             self.minBid = startingBid // when nil= Direct Purchase, buyNow Must have a value
             self.isExtended = isExtended // isExtended status
-            self.extendedTime = (isExtended) ? extendedTime : 0.0 as UFix64  // Store extended time
+            self.extendedTime = (isExtended) ? extendedTime : 0.0 // Store extended time
             self.increment = {incrementByPrice : incrementAmount} // Store increment 
             
             self.startingBid = startingBid 
@@ -614,9 +616,7 @@ pub contract AuctionHouse {
             if !self.reprintSeries { return } // if reprint is set to false, return
 
             let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            let metadataRef = metadataGen.getMetadataRef(self.owner!, mid: self.mid)       // get Metadata Referencee
-            let creator = metadataRef.creator                                 // get Creator from Metadata
-            if creator != self.owner?.address! { return }                     // Verify Owner is Creator
+            if self.creator != self.owner?.address! { return }                     // Verify Owner is Creator
 
             let metadata <- metadataGen.generateMetadata(minter: self.owner!, mid: self.mid)       // get Metadata from Metadata Generator
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
