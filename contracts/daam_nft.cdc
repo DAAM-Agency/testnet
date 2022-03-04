@@ -93,6 +93,7 @@ pub resource Request {
         self.royality = royality        // get royality
         self.agreement = [true, true]   // set agreement status to Both parties Agreed
     }
+
     // If both parties agree (Creator & Admin) return true
     pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
 }    
@@ -162,8 +163,7 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun adminGetMetadataRef(_ access: AuthAccount, mid: UInt64): &Metadata    // Return specific Metadata of Creator
-    pub fun refreshMetadatasRef(_ access: AuthAccount): &{UInt64 : Metadata} // {MID : Metadata (Struct),  Return Creators' Metadatas
+    pub fun getMetadatasRef(): {UInt64 : Metadata}
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
@@ -242,7 +242,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder {
             pre {
-                // DAAM.minters.containsKey(minter.address) TODO
+                DAAM.minters[minter.address]!                   : "Permission Denied"
                 self.grantee == self.owner?.address!            : "Permission Denied"
                 DAAM.metadataCap.containsKey(self.grantee)      : "Activate your account first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
@@ -269,6 +269,15 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
             return self.metadata.keys
+        }
+
+        pub fun getMetadatasRef(_ user: AuthAccount): {UInt64 : Metadata} {
+            pre {
+                DAAM.admins[user.address]! ||
+                DAAM.agents[user.address]! ||
+                DAAM.creators[user.address]!  : "Premission Denied"
+            }
+            return self.metadata
         }
 
         destroy() {
