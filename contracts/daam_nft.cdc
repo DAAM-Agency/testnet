@@ -267,19 +267,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return <- mh // Return current Metadata  
         }
 
-        pub fun adminGetMetadataRef(_ access: AuthAccount, mid: UInt64): &Metadata { // Return specific Metadata of Creator
-            pre {
-                access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" // Only allow Creator / Admin/Agent                
-                self.metadata[mid] != nil : "This MID does not exist in your Metadata Collection."
-            }
-            return &self.metadata[mid]! as &Metadata    // Return Metadata
-        }
-
-        pub fun refreshMetadatasRef(_ access: AuthAccount): &{UInt64 : Metadata} { // {MID : Metadata (Struct),  Return Creators' Metadatas
-            pre { access.address == self.grantee || DAAM.minters.containsKey(access.address) : "Permission Denied" }  // Only allow Creator / Admin/Agent
-            return &self.metadata as &{UInt64 : Metadata}    // Return Metadatas
-        }
-
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
             return self.metadata.keys
         }
