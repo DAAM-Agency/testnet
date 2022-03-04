@@ -51,8 +51,10 @@ pub contract Categories {
         post{ self.categories.containsKey(name) : "Internal Error: Add Category" }
 
         self.categories.insert(key: name, self.counter)
-        self.counter = self.counter + 1
+        log("Category Added: ".concat(name))
         emit CategoryAdded(name: name, id: self.counter)
+
+        self.counter = self.counter + 1
     }
 
     pub fun removeCategory(_ signer: AuthAccount, name: String) {
@@ -63,6 +65,7 @@ pub contract Categories {
         post{ !self.categories.containsKey(name) : "Internal Error: Remove Category" }
 
         self.categories.remove(key: name)
+        log("Category Removed: ".concat(name))
         emit CategoryRemoved(name: name, id: self.counter)
     }
 
@@ -70,17 +73,20 @@ pub contract Categories {
         self.grantee = signer.address
         self.counter = 0
         self.categories = {}
+
         // initial categories
+        
+        // category types
         self.addCategory(signer, name: "Digital")
         self.addCategory(signer, name: "Physical")
-
+        // detailed types
         self.addCategory(signer, name: "Art")
         self.addCategory(signer, name: "Audio")
         self.addCategory(signer, name: "Video")
         self.addCategory(signer, name: "Photography")
         self.addCategory(signer, name: "Virtual Reality")
         self.addCategory(signer, name: "Augmented Reality")
-
+        // typically physival in nature
         self.addCategory(signer, name: "Sculpture")
         self.addCategory(signer, name: "Fashion")
     }

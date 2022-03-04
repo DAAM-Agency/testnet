@@ -28,7 +28,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     }
 
     execute {
-        self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self,file)       
+        self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
         log("Metadata Submitted")
     }
 }
