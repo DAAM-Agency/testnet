@@ -168,6 +168,10 @@ flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 
 echo "========= Publish DAAM Contracts =========="
+# Categories
+export CODE=$(cat ../dev/hex_categories_enum)
+flow transactions send ./transactions/Init_Categories.cdc "Categories" $CODE --signer daam_nft
+flow accounts update-contract Categories ./contracts/categories.cdc --signer daam_nft
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
