@@ -15,7 +15,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
       self.metadataCap  = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPrivatePath)
   }
-
+  
   execute {
       self.auctionHouse.createOriginalAuction(metadataGenerator: self.metadataCap, mid: mid, start: start, length: length, isExtended: isExtended,
         extendedTime: extendedTime, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount,
