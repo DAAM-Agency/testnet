@@ -242,7 +242,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder {
             pre {
-                DAAM.minters[minter.address]!                   : "Permission Denied"
                 self.grantee == self.owner?.address!            : "Permission Denied"
                 DAAM.metadataCap.containsKey(self.grantee)      : "Activate your account first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
@@ -364,8 +363,8 @@ pub struct CollectionData {
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
             self.removeFromCollections(tokenID: withdrawID)
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
