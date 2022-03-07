@@ -9,8 +9,6 @@ CURRENT_TIME=$(date +%s)
 OFFSET=20.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
-sleep 30
-
 echo "========== Create Auctions I =========="
 echo "---------- Client Sells All (4) -----------"
 
