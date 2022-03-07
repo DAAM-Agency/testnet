@@ -80,7 +80,7 @@ pub contract Categories {
         self.addCategory(signer, name: "Digital")
         self.addCategory(signer, name: "Physical")
         // detailed types
-        self.addCategory(signer, name: "Art")
+        self.addCategory(signer, name: "Image")
         self.addCategory(signer, name: "Audio")
         self.addCategory(signer, name: "Video")
         self.addCategory(signer, name: "Photography")
