@@ -17,7 +17,7 @@ transaction(mid: UInt64, percentage: UFix64) {
     pre { percentage >= 0.1 || percentage <= 0.3 }
 
     execute {
-        let metadata = self.metadataGen.adminGetMetadataRef(self.creator, mid: mid)
+        let metadata = self.metadataGen.getMetadataRef(creator: self.creator, mid: mid)
         self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)
         log("Request Made")
     }

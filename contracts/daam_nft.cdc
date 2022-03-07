@@ -275,9 +275,17 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             pre {
                 DAAM.admins[access.address]! ||
                 DAAM.agents[access.address]! ||
-                DAAM.creators[access.address]!  : "Premission Denied"
+                DAAM.creators[access.address]!  : "Permission Denied"
             }
             return self.metadata
+        }
+
+        pub fun getMetadataRef(creator: AuthAccount, mid: UInt64): &Metadata {
+            pre {
+                self.grantee == creator.address : "Permission Denied"
+                self.metadata.containsKey(mid)  : "Incorrect MID"
+            }
+            return &self.metadata[mid]! as &Metadata
         }
 
         destroy() {
