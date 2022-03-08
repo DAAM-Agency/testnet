@@ -194,8 +194,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.metadata.insert(key: mid, metadata) // Save Metadata
             DAAM_V7.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM_V7.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
-
-            DAAM_V7.metadata[mid] = true // TODO REMOVE AUTO-APPROVE FOR DEVELOPEMNT
+            
+            // TODO REMOVE AUTO-APPROVE: AFTER DEVELOPEMNT
+            RequestGenerator.acceptDefault(royality: {creator.address : 0.15} )
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata()
