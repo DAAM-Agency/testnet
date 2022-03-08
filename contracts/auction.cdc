@@ -71,7 +71,7 @@ pub contract AuctionHouse {
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(minter: self.owner!, mid: mid)      // Create MetadataHolder
-            if metadata.series == 1 && reprintSeries { panic("Reprint is set to True. Can not Reprint a One-Shot.") }            
+            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -136,7 +136,7 @@ pub contract AuctionHouse {
                     if AuctionHouse.currentAuctions[self.titleholder]!.length == 0 {
                         AuctionHouse.currentAuctions.remove(key:self.titleholder) // If auctioneer has no more auctions remove from list
                     } else {
-                        AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys)  // otherwise update list
+                        AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // otherwise update list
                     }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )
@@ -159,7 +159,7 @@ pub contract AuctionHouse {
             self.currentAuctions[auctionID]?.endReprints()
         }
 
-        pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // return all auctions by User
+        pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
 
         destroy() { destroy self.currentAuctions }
     }

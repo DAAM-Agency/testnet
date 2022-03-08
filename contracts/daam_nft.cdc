@@ -274,7 +274,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             pre {
                 DAAM.admins[access.address]! ||
                 DAAM.agents[access.address]! ||
-                DAAM.creators[access.address]!  : "Permission Denied"
+                self.grantee == access.address : "Permission Denied"
             }
             return self.metadata
         }
@@ -504,7 +504,6 @@ pub struct CollectionData {
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
-        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata}   // Get Metadatas of a Creator
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -735,16 +734,6 @@ pub resource Admin: Agent
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
             }            
             DAAM.metadata[mid] = status // change to a new Metadata status
-        }
-
-        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
-            pre {
-                self.grantee == self.owner?.address! : "Permission Denied"
-                self.status : "You're no longer a have Access."
-            }
-            let metaRef =  DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
-            let mlist = metaRef.getMetadatasRef(access: self.owner!)!
-            return mlist
         }
 	}
 /************************************************************************/

@@ -2,7 +2,7 @@
 echo "========= Winner Tests ========="
 
 echo "Script: timeLeft.cdc Auction #F, AID: 6"
-flow scripts execute ./scripts/auction/time_left.cdc $1 $2
+sleep ${flow scripts execute ./scripts/auction/time_left.cdc $1 $2 | tail -3 | awk '{print $2}'}
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Wrong Bidder attempting to collect NFT. AID: 6"
