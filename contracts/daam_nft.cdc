@@ -53,7 +53,6 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64: Bool}     // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var metadataCap: {Address: Capability<&MetadataGenerator{MetadataGeneratorPublic}> } // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
@@ -177,22 +176,10 @@ pub resource MetadataGenerator: MetadataGeneratorMint {
             self.grantee  = grantee
         }
 
-        // Done immediately after init(). Needed to get Capability
-        pub fun activate(creator: AuthAccount, metadata: Capability<&MetadataGenerator{MetadataGeneratorPublic}> ) {
-            pre{
-                self.grantee == creator.address             : "Permission Denied"
-                !DAAM.metadataCap.containsKey(self.grantee) : "Your account is already Activated."
-            }
-            post { DAAM.metadataCap.containsKey(self.grantee) : "Your account did not Activate." }
-            
-            DAAM.metadataCap.insert(key: self.grantee, metadata)
-        }
-
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
         pub fun addMetadata(creator: AuthAccount, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String): UInt64 {
             pre{
                 self.grantee == creator.address            : "Permission Denied"
-                DAAM.metadataCap.containsKey(self.grantee) : "Activate your account first."
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             }
@@ -215,7 +202,6 @@ pub resource MetadataGenerator: MetadataGeneratorMint {
         pub fun removeMetadata(creator: AuthAccount, mid: UInt64) {
             pre {
                 self.grantee == self.owner?.address!       : "Permission Denied"
-                DAAM.metadataCap.containsKey(self.grantee) : "Activate your account first."
                 DAAM.creators.containsKey(creator.address) : "You are not a Creator"
                 DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -239,7 +225,6 @@ pub resource MetadataGenerator: MetadataGeneratorMint {
         pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder {
             pre {
                 self.grantee == self.owner?.address!            : "Permission Denied"
-                DAAM.metadataCap.containsKey(self.grantee)      : "Activate your account first."
                 DAAM.creators.containsKey(self.owner?.address!) : "You are not a Creator"
                 DAAM.creators[self.owner?.address!]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
@@ -283,9 +268,7 @@ pub resource MetadataGenerator: MetadataGeneratorMint {
             return &self.metadata[mid]! as &Metadata
         }
 
-        destroy() {
-            DAAM.metadataCap.remove(key: self.grantee) // remove Capability if MetaGenerator is destroyed.
-        }
+        destroy() {}
 }
 /************************************************************************/
 // MetadataHolder is a container for Metadata. It is where Metadata is stored to become
@@ -637,7 +620,6 @@ pub resource Admin: Agent
             post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
 
             DAAM.creators.remove(key: creator)    // Remove Creator from list
-            DAAM.metadataCap.remove(key: creator) // Remove Metadata Capability
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
@@ -997,7 +979,6 @@ pub resource Admin: Agent
         self.creators  = {}
         self.minters   = {}
         self.metadata  = {}
-        self.metadataCap = {}
         self.newNFTs   = []
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
