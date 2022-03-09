@@ -5,13 +5,15 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {
     let signer: AuthAccount
+    let submit: Bool
 
     prepare(signer: AuthAccount) {
         self.signer = signer
+        self.submit = submit     
     }
 
     execute {
-        let admin <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: submit)
+        let admin <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: self.submit)
         if admin != nil {
             self.signer.save<@DAAM.Admin>(<- admin!, to: DAAM.adminStoragePath)
             let adminRef = self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!

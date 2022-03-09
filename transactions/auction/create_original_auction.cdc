@@ -13,6 +13,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
 
   prepare(auctioneer: AuthAccount) {
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+      
       self.metadataCap  = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPrivatePath)
   }
   

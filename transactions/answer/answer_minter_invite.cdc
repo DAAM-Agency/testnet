@@ -5,13 +5,15 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {
     let signer: AuthAccount
+    let submit: Bool
 
     prepare(signer: AuthAccount) {
         self.signer = signer
+        self.submit = submit
     }
 
     execute {
-        let minter <- DAAM.answerMinterInvite(minter: self.signer, submit: submit)
+        let minter <- DAAM.answerMinterInvite(minter: self.signer, submit: self.submit)
         if minter != nil {
             self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)
             log("You are now a DAAM Minter: ".concat(self.signer.address.toString()) )

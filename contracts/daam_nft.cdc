@@ -162,16 +162,12 @@ pub resource RequestGenerator {
         }
     }
 /************************************************************************/
-pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata}
-}
-/************************************************************************/
 pub resource interface MetadataGeneratorMint {
     pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder  // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
-pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint { 
+pub resource MetadataGenerator: MetadataGeneratorMint { 
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
         priv let grantee: Address

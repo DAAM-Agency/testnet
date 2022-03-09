@@ -71,6 +71,7 @@ pub contract AuctionHouse {
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let metadata <-! metadataRef.generateMetadata(minter: self.owner!, mid: mid)      // Create MetadataHolder
+
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
@@ -610,11 +611,10 @@ pub contract AuctionHouse {
         // Where the reprintSeries Mints another NFT.
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
-            if !self.reprintSeries { return } // if reprint is set to false, return
+            if !self.reprintSeries { return } // if reprint is set to false, skip function
+            if self.creator != self.owner?.address! { return } // Verify Owner is Creator otherwise skip function
 
             let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            if self.creator != self.owner?.address! { return }                     // Verify Owner is Creator
-
             let metadata <- metadataGen.generateMetadata(minter: self.owner!, mid: self.mid)       // get Metadata from Metadata Generator
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
