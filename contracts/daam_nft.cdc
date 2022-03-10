@@ -192,7 +192,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             self.metadata.insert(key: mid, metadata) // Save Metadata
-            DAAM_V7.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
+            DAAM_V7.metadata.insert(key: mid, true)  // TODO change back to false // Auto Approve for Testing // a metadata ID for Admin approval, currently unapproved (false)
             DAAM_V7.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
             
             log("Metadata Generatated ID: ".concat(mid.toString()) )
