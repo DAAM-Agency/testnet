@@ -11,10 +11,10 @@ transaction(creator: Address) {
         self.signer = signer
     }
 
-    pre { DAAM.iscreator(creator) != nil : creator.toString().concat(" is not a Creator.") }
+    pre { DAAM.isCreator(creator) != nil : creator.toString().concat(" is not a Creator.") }
 
     execute {
-        let metadatas = self.signer.getMetadatasRef(creator: self.creator)
+        let metadatas = self.signer.getMetadatasRef(access: self.creator)
         log(metadatas)  
     }
 }

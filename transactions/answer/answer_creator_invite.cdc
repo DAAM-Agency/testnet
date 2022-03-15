@@ -23,7 +23,7 @@ transaction(submit: Bool) {
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
             
-            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
 
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )        
         } else {

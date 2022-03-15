@@ -30,7 +30,7 @@ pub contract DAAM: NonFungibleToken {
     pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
     pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
-    pub event RemovedMetadata(mid: UInt64) // Metadata has been removed by Creator
+    pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite()               // Admin invitation has been rescinded
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
@@ -52,7 +52,8 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
-    access(contract) var metadata: {UInt64: Bool}     // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var metadataCap: {Address : Capability<MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
@@ -165,8 +166,13 @@ pub resource interface MetadataGeneratorMint {
     pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder  // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
+pub resource interface MetadataGeneratorPublic {
+    pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata}  // Gets all of the Creators Metadata
+    pub fun getMetadataRef(access: AuthAccount, mid: UInt64): &Metadata
+}
+/************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
-pub resource MetadataGenerator: MetadataGeneratorMint { 
+pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
         access(contract) var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
         priv let grantee: Address
@@ -260,9 +266,11 @@ pub resource MetadataGenerator: MetadataGeneratorMint {
             return self.metadata
         }
 
-        pub fun getMetadataRef(creator: AuthAccount, mid: UInt64): &Metadata {
+        pub fun getMetadataRef(access: AuthAccount, mid: UInt64): &Metadata {
             pre {
-                self.grantee == creator.address : "Permission Denied"
+                self.grantee == creator.address ||
+                DAAM.admins[access.address]! ||
+                DAAM.agents[access.address]! : "Permission Denied"
                 self.metadata.containsKey(mid)  : "Incorrect MID"
             }
             return &self.metadata[mid]! as &Metadata
