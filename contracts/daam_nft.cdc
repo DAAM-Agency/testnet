@@ -53,7 +53,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var metadataCap: {Address : Capability<MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var metadataCap: {Address : Capability<&MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
     access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
@@ -268,7 +268,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun getMetadataRef(access: AuthAccount, mid: UInt64): &Metadata {
             pre {
-                self.grantee == creator.address ||
+                self.grantee == access.address ||
                 DAAM.admins[access.address]! ||
                 DAAM.agents[access.address]! : "Permission Denied"
                 self.metadata.containsKey(mid)  : "Incorrect MID"
@@ -987,6 +987,7 @@ pub resource Admin: Agent
         self.creators  = {}
         self.minters   = {}
         self.metadata  = {}
+        self.metadataCap = {}
         self.newNFTs   = []
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
