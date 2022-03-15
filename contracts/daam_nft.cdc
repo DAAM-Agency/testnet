@@ -167,8 +167,7 @@ pub resource interface MetadataGeneratorMint {
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata}  // Gets all of the Creators Metadata
-    pub fun getMetadataRef(access: AuthAccount, mid: UInt64): &Metadata
+    access(contract) var metadata : {UInt64 : Metadata} 
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -257,24 +256,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return self.metadata.keys
         }
 
-        pub fun getMetadatasRef(access: PublicAccount): {UInt64 : Metadata} {
-            pre {
-                DAAM.admins[access.address]! ||
-                DAAM.agents[access.address]! ||
-                self.grantee == access.address : "Permission Denied"
-            }
-            return self.metadata
-        }
-
-        pub fun getMetadataRef(access: AuthAccount, mid: UInt64): &Metadata {
-            pre {
-                self.grantee == access.address ||
-                DAAM.admins[access.address]! ||
-                DAAM.agents[access.address]! : "Permission Denied"
-                self.metadata.containsKey(mid)  : "Incorrect MID"
-            }
-            return &self.metadata[mid]! as &Metadata
-        }
+        
 
         destroy() {}
 }
@@ -710,6 +692,27 @@ pub resource Admin: Agent
                 self.status                          : "You're no longer a have Access."
             }
             return DAAM.metadata
+        }
+
+        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
+            pre {
+                self.grantee == self.owner?.address! : "Permission Denied"
+                self.status                          : "You're no longer a have Access."
+                DAAM.creators[creator] != nil        : "You have not selected a Creator."
+            }
+            let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
+            return mCap.metadata
+        }
+
+        pub fun getMetadataRef(creator: Address, mid: UInt64): Metadata {
+            pre {
+                self.grantee == self.owner?.address! : "Permission Denied"
+                self.status                          : "You're no longer a have Access."
+                DAAM.creators[creator] != nil        : "You have not selected a Creator."
+                DAAM.metadata.containsKey(mid)       : "Incorrect MID"
+            }
+            let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
+            return mCap.metadata[mid]!
         }
 
         // Admin or Agent can change a Metadata status.
