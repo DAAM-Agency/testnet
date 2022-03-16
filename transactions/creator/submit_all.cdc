@@ -36,8 +36,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
 
     execute {
         let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
-        let metadata = self.metadataGen.getMetadataRef(access: self.creator, mid: mid)
-        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: self.percentage)
+        self.requestGen.acceptDefault(creator: self.creator, mid: mid, percentage: self.percentage)
 
         log("Metadata Submitted: ".concat(mid.toString()).concat(" with a Royalty Percentage: ".concat((self.percentage*100.0).toString()).concat(" Accepted.")))
     }
