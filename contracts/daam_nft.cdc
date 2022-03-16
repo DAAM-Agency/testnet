@@ -79,8 +79,8 @@ pub resource Request {
     access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
-    init(metadata: &Metadata) {
-        self.mid       = metadata.mid    // Get Metadata ID
+    init(mid: UInt64) {
+        self.mid       = mid             // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
         self.royality  = {}              // royality is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
@@ -106,7 +106,7 @@ pub resource RequestGenerator {
     init(_ grantee: Address) { self.grantee = grantee }
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(creator: AuthAccount, metadata: &Metadata, percentage: UFix64) {
+    pub fun acceptDefault(creator: AuthAccount, mid: UInt64, percentage: UFix64) {
         pre {
             self.grantee == creator.address            : "Permission Denied"
             DAAM.creators.containsKey(creator.address) : "You are not a Creator"
@@ -114,11 +114,10 @@ pub resource RequestGenerator {
             percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
         }
 
-        let mid = metadata.mid                             // get MID
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
         royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // get Creator percentage
 
-        let request <-! create Request(metadata: metadata) // get request
+        let request <-! create Request(mid: mid) // get request
         request.acceptDefault(royality: royality)          // append royality rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
