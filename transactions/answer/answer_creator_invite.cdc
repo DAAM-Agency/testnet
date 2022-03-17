@@ -15,16 +15,16 @@ transaction(submit: Bool) {
     execute {
         let creator <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: self.submit)
         if creator != nil {
-            self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)
-            let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
-
-            let requestGen  <- creatorRef.newRequestGenerator()
-            let metadataGen <- creatorRef.newMetadataGenerator()
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
+            let metadataGen <- creator.newMetadataGenerator()
+            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+            metadataGen.activate(creator: self.signer)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
             
-            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPrivatePath, target: DAAM.metadataStoragePath)
+            let requestGen  <- creator.newRequestGenerator()
+            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
 
+            self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)
+            
             log("You are now a DAAM Creator: ".concat(self.signer.address.toString()) )        
         } else {
             destroy creator
