@@ -180,6 +180,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.grantee  = grantee
         }
 
+        pub fun activate(creator: AuthAccount) {
+            pre{
+                self.grantee == creator.address                : "Permission Denied"
+                DAAM.creators.containsKey(creator.address)     : "You are not a Creator"
+                !DAAM.metadataCap.containsKey(creator.address) : "This Metadata Generator is already Activated."
+            }
+            DAAM.metadataCap.insert(key: self.grantee,getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPrivatePath))
+            // Adding Metadata Capability
+        }
+
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
         pub fun addMetadata(creator: AuthAccount, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String): UInt64 {
             pre{
@@ -538,6 +548,7 @@ pub resource Admin: Agent
             post { DAAM.creators[creator] == false : "Illegal Operaion: inviteCreator" }
 
             DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
+
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
@@ -884,7 +895,7 @@ pub resource Admin: Agent
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True) 
+        DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
         return <- create Creator(newCreator)!                         // Return Creator Resource
