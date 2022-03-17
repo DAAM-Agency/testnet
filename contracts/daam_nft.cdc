@@ -620,6 +620,7 @@ pub resource Admin: Agent
             post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
 
             DAAM.creators.remove(key: creator)    // Remove Creator from list
+            DAAM.metadataCap.remove(key: creator) // Remove Metadata Capability from list
             log("Removed Creator")
             emit CreatorRemoved(creator: creator)
         }
