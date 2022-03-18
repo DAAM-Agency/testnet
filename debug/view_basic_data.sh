@@ -1,6 +1,6 @@
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 1.0 $PROFILE --signer cto # Dummy action to update flow
 
-echo "---------- Testing Functions ----------"
+echo "---------- Update Blockchain Transaction ----------"
 
 getAddressName() {
     case $1 in
@@ -65,7 +65,7 @@ do
 done
 
 # Get all Auctions
-echo "---------- Auction Wallet ----------\n"
+echo "---------- Auction Wallet ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
@@ -73,7 +73,7 @@ do
 done
 
 # Verify Collection
-echo "---------- Verify Collections ----------\n"
+echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
@@ -81,11 +81,11 @@ do
 done
 
 # Verify Metadata
-echo "---------- Veriy Metadata ----------\n"
+echo "---------- Veriy Metadata ----------"
 ./scripts/get_mids.sh | jq -c
 
 # Verify TokenIDs
-echo "---------- Veriy TokenIDs ----------\n"
+echo "---------- Veriy TokenIDs ----------"
 for user in $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
