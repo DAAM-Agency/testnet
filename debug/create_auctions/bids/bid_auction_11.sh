@@ -2,13 +2,19 @@ echo "========= Cancel Auction AID: 11 ========="
 
 echo "---------- FUSD ----------"
 echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR | jq -c ' .value | .value'
+echo "CREATOR2 FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR2 | jq -c ' .value | .value'
 echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
+echo "CLIENT2 FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2 | jq -c ' .value | .value'
 echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
+echo "AGENCY FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $AGENCY| jq -c ' .value | .value'
 echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CTO| jq -c ' .value | .value'
 
 echo "---------- Auction Item, AID: 11 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CLIENT 11

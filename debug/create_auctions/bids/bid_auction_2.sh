@@ -5,13 +5,20 @@ echo "========== # B, AID: 2 =========="
 
 echo "---------- FUSD ----------"
 echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR | jq -c ' .value | .value'
+echo "CREATOR2 FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR2 | jq -c ' .value | .value'
 echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
+echo "CLIENT2 FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2 | jq -c ' .value | .value'
 echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
+echo "AGENCY FUSD"
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $AGENCY| jq -c ' .value | .value'
 echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CTO| jq -c ' .value | .value'
+
 
 echo "---------- Auction Item, AID: 2 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 2
@@ -32,7 +39,7 @@ echo "========= Buy It Now: Client AID: 2 ========="
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 30.2 --signer client #I
 
 echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="

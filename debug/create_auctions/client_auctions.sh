@@ -6,10 +6,11 @@
 # Start Bidding
 # starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=20.0
+OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 
-echo "========== Create Auctions I =========="
+echo "========== Create Auctions II =========="
+
 echo "---------- Client Sells All (4) -----------"
 
 echo "---------- TokenID: 2 ---------- "
@@ -33,6 +34,7 @@ flow transactions send ./transactions/auction/create_auction.cdc 5 $START \
 11.00 20.0 30.1 --signer client #AID: 11  // Auction ID
 
 echo "---------- Nobody Sells All (5) -----------"
+
 echo "---------- TokenID: 8 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 8 $START \
 330.0 false 0.0 false 0.04 \
