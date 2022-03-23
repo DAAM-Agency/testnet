@@ -14,5 +14,7 @@ flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Imag
 
 echo "========= Verify Metadata ========="
 # verify metadata
-flow scripts execute ./scripts/daam_wallet/get_tokenIDs.cdc $CREATOR 
-flow scripts execute ./scripts/daam_wallet/get_tokenIDs.cdc $CREATOR2 
+echo -n "Creator: "
+flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR --signer admin
+echo -n "Creator2: "
+flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR2 --signer admin

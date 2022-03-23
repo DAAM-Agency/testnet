@@ -8,21 +8,22 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract AuctionHouse {
     // Events
-    pub event AuctionCreated(auctionID: UInt64) // Auction has been created. 
-    pub event AuctionClosed(auctionID: UInt64)  // Auction has been finalized and has been removed.
+    pub event AuctionCreated(auctionID: UInt64)   // Auction has been created. 
+    pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
-    pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not meet.
+    pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address ) // Bid has been made on an Item
     pub event BidWithdrawn(bidder: Address)                // Bidder has withdrawn their bid
     pub event ItemWon(winner: Address, auctionID: UInt64)  // Item has been Won in an auction
     pub event BuyItNow(winner: Address, auction: UInt64, amount: UFix64) // Buy It Now has been completed
-    pub event FundsReturned() // Funds have been returned accordingly
+    pub event FundsReturned()   // Funds have been returned accordingly
+
     // Path for Auction Wallet
     pub let auctionStoragePath: StoragePath
     pub let auctionPublicPath : PublicPath
-    // Variables
-    // Note: Do not confuse (Token)ID with MID
-                                        // { MID : Capability<&DAAM.MetadataGenerator{MetadataGeneratorMint}> }
+
+    // Variables; *Note: Do not confuse (Token)ID with MID
+                                       // { MID   : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     pub var currentAuctions             : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions

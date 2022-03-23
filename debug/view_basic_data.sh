@@ -81,8 +81,9 @@ do
 done
 
 # Verify Metadata
-echo "---------- Veriy Metadata ----------"
-./scripts/get_mids.sh | jq -c
+echo "========= Verify Metadata ========="
+flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR --signer admin
+flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR2 --signer admin
 
 # Verify TokenIDs
 echo "---------- Veriy TokenIDs ----------"
