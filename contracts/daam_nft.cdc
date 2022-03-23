@@ -109,6 +109,7 @@ pub resource RequestGenerator {
     pub fun acceptDefault(creator: AuthAccount, mid: UInt64, percentage: UFix64) {
         pre {
             self.grantee == creator.address            : "Permission Denied"
+            DAAM.request.containsKey(mid)
             DAAM.creators.containsKey(creator.address) : "You are not a Creator"
             DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
@@ -704,7 +705,7 @@ pub resource Admin: Agent
             }
             return DAAM.metadata
         }
-
+        // Mainly for testing, Considering Removing TODO
         pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
@@ -714,7 +715,7 @@ pub resource Admin: Agent
             let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
             return mCap.metadata
         }
-
+        // Mainly for testing, Considering Removing TODO
         pub fun getMetadataRef(creator: Address, mid: UInt64): Metadata {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
