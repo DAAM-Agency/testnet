@@ -21,7 +21,7 @@ transaction(mid: UInt64, percentage: UFix64) {
     pre { percentage >= 0.1 || percentage <= 0.3 }
 
     execute {
-        self.requestGen.acceptDefault(creator: self.creator, mid: self.mid, percentage: self.percentage)
+        self.requestGen.acceptDefault(creator: self.creator, mid: self.mid, metadataGen: self.metadataGen, percentage: self.percentage)
         log("Request Made")
     }
 }

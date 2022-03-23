@@ -106,10 +106,10 @@ pub resource RequestGenerator {
     init(_ grantee: Address) { self.grantee = grantee }
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(creator: AuthAccount, mid: UInt64, percentage: UFix64) {
+    pub fun acceptDefault(creator: AuthAccount, mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
         pre {
             self.grantee == creator.address            : "Permission Denied"
-            DAAM.request.containsKey(mid)
+            metadataGen.getMetadata().containsKey(mid) : "Wrong MID"
             DAAM.creators.containsKey(creator.address) : "You are not a Creator"
             DAAM.creators[creator.address]!            : "Your Creator account is Frozen."
             percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
@@ -167,13 +167,13 @@ pub resource interface MetadataGeneratorMint {
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    access(contract) var metadata : {UInt64 : Metadata} 
+    pub fun getMetadata(): {UInt64 : Metadata} 
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
 pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
-        access(contract) var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
+        priv var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
         priv let grantee: Address
 
         init(_ grantee: Address) {
@@ -266,7 +266,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return self.metadata.keys
         }
 
-        
+        pub fun getMetadata(): {UInt64: Metadata} {
+            return self.metadata
+        }        
 
         destroy() {}
 }
@@ -713,7 +715,7 @@ pub resource Admin: Agent
                 DAAM.creators[creator] != nil        : "You have not selected a Creator."
             }
             let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
-            return mCap.metadata
+            return mCap.getMetadata()
         }
         // Mainly for testing, Considering Removing TODO
         pub fun getMetadataRef(creator: Address, mid: UInt64): Metadata {
@@ -724,7 +726,7 @@ pub resource Admin: Agent
                 DAAM.metadata.containsKey(mid)       : "Incorrect MID"
             }
             let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
-            return mCap.metadata[mid]!
+            return mCap.getMetadata()[mid]!
         }
 
         // Admin or Agent can change a Metadata status.
