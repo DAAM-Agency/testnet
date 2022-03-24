@@ -1,13 +1,9 @@
 // submit_all.cdc
 // Creator uses to submit Metadata & Approve Rpyalty
 
-<<<<<<< HEAD
 import DAAM_V7      from 0xa4ad5ea5c0bd2fba
 import AuctionHouse from 0x01837e15023c9249
 
-=======
-import DAAM_V7 from 0xa4ad5ea5c0bd2fba
->>>>>>> 7c6b7fcd1042c957590a3d1116c463d951c16568
 transaction(
     // Metadata Arguments
     series: UInt64, data: String,  thumbnail: String, file: String,
