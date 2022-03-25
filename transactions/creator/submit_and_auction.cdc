@@ -44,7 +44,7 @@ transaction(
         self.metadataGen  = self.creator.borrow<&DAAM_V7.MetadataGenerator>(from: DAAM_V7.metadataStoragePath)!
         self.requestGen   = self.creator.borrow<&DAAM_V7.RequestGenerator>( from: DAAM_V7.requestStoragePath)!
         self.auctionHouse = self.creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        self.metadataCap  = self.creator.getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorMint}>(DAAM_V7.metadataPrivatePath)!
+        self.metadataCap  = self.creator.getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorMint}>(DAAM_V7.metadataPublicPath)!
 
         self.series     = series
         self.data       = data
