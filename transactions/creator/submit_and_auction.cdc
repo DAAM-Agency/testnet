@@ -23,7 +23,6 @@ transaction(
 
     let series      : UInt64
     let data        : String
-    var categories  : [Categories.Category]
     let thumbnail   : String
     let file        : String
 
