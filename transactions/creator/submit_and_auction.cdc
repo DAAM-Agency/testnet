@@ -70,7 +70,7 @@ transaction(
         let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, data: self.data, thumbnail: self.thumbnail, file: self.file)       
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
         
-        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)
+        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: self.percentage)
 
         self.auctionHouse.createOriginalAuction(
             metadataGenerator: self.metadataCap, mid: mid, start: self.start, length: self.length, isExtended: self.isExtended,
