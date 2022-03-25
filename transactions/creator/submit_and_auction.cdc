@@ -67,7 +67,7 @@ transaction(
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, data: self.data, thumbnail: self.thumbnail, file: self.file)       
         let metadata = self.metadataGen.getMetadataRef(mid: mid)
         
         self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: percentage)
