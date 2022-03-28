@@ -1,3 +1,21 @@
+displayFUSD() {
+    echo "---------- FUSD ----------"
+    echo "CREATOR FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR | jq -c ' .value | .value'
+    echo "CREATOR2 FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CREATOR2 | jq -c ' .value | .value'
+    echo "CLIENT FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
+    echo "CLIENT2 FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2 | jq -c ' .value | .value'
+    echo "NOBODY FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
+    echo "AGENCY FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $AGENCY| jq -c ' .value | .value'
+    echo "CTO FUSD"
+    flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CTO| jq -c ' .value | .value'
+}
+
 echo "Testing Section C ===================="
 echo "Testing Auction: Direct Purchase & Extended Auctions."
 # Note: A Direct Purchase is an Auction with a minBid = nil
@@ -10,22 +28,14 @@ echo "Testing Auction: Direct Purchase & Extended Auctions."
 # Start Bidding
 # starts in 30 seconds
 
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+displayFUSD()
 
 CURRENT_TIME=$(date +%s)
 OFFSET=10.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
 echo "Start Time: "$START
 
-echo "========== Create Original Auctions I =========="
+echo "========== Create Extended Auctions I =========="
 echo "---------- A ---------- "
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 nil \
@@ -105,15 +115,7 @@ sleep 20
 # The reserve price will NOT be met.
 echo "========== # A, AID: 1 =========="
 
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+displayFUSD()
 
 echo "---------- Auction Item, AID: 1 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 1
@@ -146,15 +148,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 
 echo "========== # B, AID: 2 =========="
 
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+displayFUSD()
 
 echo "---------- Auction Item, AID: 2 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 2
@@ -171,7 +165,7 @@ echo "---------- BID: Client AID: 2 : 13.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 2 13.0 --signer client #B
 
 echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
 
 echo "========== Script: timeLeft.cdc Auction #B, AID: 2 =========="
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
@@ -181,7 +175,7 @@ echo "---------- BID: Nobody AID: 2 : 20.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 2 20.0 --signer nobody #B
 
 echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
+flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 2 (True due to reprint Series = true) =========="
@@ -191,15 +185,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 
 echo "========== # E, AID: 5 =========="
 
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+displayFUSD()
 
 echo "---------- Auction Item, AID: 5 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 5
@@ -253,15 +239,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
 
 echo "========== # F, AID: 3 =========="
 
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO
+displayFUSD()
 
 echo "---------- Auction Item, AID: 3 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 3
@@ -310,45 +288,3 @@ flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 3 (true) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3 # New NFT #9
-
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Script: Check Auction Wallet ========="
-echo "Creator"
-flow scripts execute ./scripts/auction/check_auction_wallet.cdc $CREATOR
-echo "Client"
-flow scripts execute ./scripts/auction/check_auction_wallet.cdc $CLIENT
-echo "Nobody"
-flow scripts execute ./scripts/auction/check_auction_wallet.cdc $NOBODY
-echo "CTO"
-flow scripts execute ./scripts/auction/check_auction_wallet.cdc $CTO
-
-# Check Auction Wallets
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Verify Auctions Wallets ========="
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
-flow scripts execute ./scripts/auction/get_auctions.cdc $CLIENT
-flow scripts execute ./scripts/auction/get_auctions.cdc $NOBODY
-flow scripts execute ./scripts/auction/get_auctions.cdc $CTO
-
-# Verify Collection
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Verify Collections ========="
-echo Creator
-flow scripts execute ./scripts/daam_wallet/collection.cdc $CREATOR
-echo Client
-flow scripts execute ./scripts/daam_wallet/collection.cdc $CLIENT
-echo Nobody
-flow scripts execute ./scripts/daam_wallet/collection.cdc $NOBODY
-echo CTO
-flow scripts execute ./scripts/daam_wallet/collection.cdc $CTO
-
-echo "---------- FUSD ----------"
-echo "CREATOR FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CREATOR
-echo "CLIENT FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CLIENT
-echo "NOBODY FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
-echo "CTO FUSD"
-flow scripts execute ./scripts/get_fusd_balance.cdc $CTO

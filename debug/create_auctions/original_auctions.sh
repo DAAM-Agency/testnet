@@ -28,7 +28,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc $REMOV
 26.0 30.3 false --signer creator #C MID: 3
 
 echo "FAIL TEST: Test Auction D, does not exist. Rejected by Admin. Metadata Removed"
-flow transactions send ./transactions/auction/create_original_auction.cdc $DISAPPROVED_METADTA $START \
+flow transactions send ./transactions/auction/create_original_auction.cdc $DISAPPROVED_METADATA $START \
 330.0 false 0.0 false 0.04 10.00 \
 26.0 30.4 false --signer creator #D MID: 4
 
@@ -45,7 +45,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 6 $STA
 echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 false --signer creator2 #G, MID: 7, AID: 4
+28.0 0.0 false --signer creator2 #G, MID: 7, AID: 4, No Buy it now
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
