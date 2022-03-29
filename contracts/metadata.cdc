@@ -5,7 +5,7 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import Profile          from 0x192440c99cb17282
 import Categories       from 0xfd43f9148d4b725d
 /************************************************************************/
-pub contract DAAM: NonFungibleToken {
+pub contract DAAMDATA: NonFungibleToken {
     // Events
     pub event ContractInitialized()
     pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
@@ -13,7 +13,6 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let metadataPrivatePath   : PublicPath   // Public path that to Metadata Generator: Requires Admin/Agent  or Creator Key
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
-    // Variables
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
 /***********************************************************************/
@@ -320,7 +319,7 @@ pub resource Admin: Agent
             return DAAM.metadata
         }
         // Mainly for testing, Considering Removing TODO
-        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
+        pub fun getMetadatasRef(creator: Address): {UInt64 :DAAMDATA} {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
@@ -330,7 +329,7 @@ pub resource Admin: Agent
             return mCap.getMetadata()
         }
         // Mainly for testing, Considering Removing TODO
-        pub fun getMetadataRef(creator: Address, mid: UInt64): Metadata {
+        pub fun getMetadataRef(creator: Address, mid: UInt64):DAAMDATA {
             pre {
                 self.grantee == self.owner?.address! : "Permission Denied"
                 self.status                          : "You're no longer a have Access."

@@ -172,6 +172,9 @@ echo "========= Publish DAAM Contracts =========="
 export CODE=$(cat ../dev/hex_categories_enum)
 flow transactions send ./transactions/Init_Categories.cdc "Categories" $CODE --signer daam_nft
 flow accounts update-contract Categories ./contracts/categories.cdc --signer daam_nft
+'''
+#  Metadata
+flow accounts add-contract DAAM_Metadata ./contract/daam_metadata.cdc --signer daam_nft
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
@@ -251,7 +254,7 @@ flow transactions send ./transactions/answer/answer_minter_invite.cdc true --sig
 
 echo "Verify Minter Status: true"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
-
+'''
 echo "----------- All Contracts Are Published with Flow Accounts FUSD Funded. -----------"
 
 # pre_nft variables
