@@ -71,8 +71,8 @@ pub resource RequestGenerator {
         pre {
             self.grantee == creator.address            : "Permission Denied"
             metadataGen.getMetadata().containsKey(mid) : "Wrong MID"
-            //DAAMDATA.creators.containsKey(creator.address) : "You are not a Creator"
-            //DAAMDATA.creators[creator.address]!            : "Your Creator account is Frozen."
+            DAAMDATA.creators.containsKey(creator.address) : "You are not a Creator"
+            DAAMDATA.creators[creator.address]!            : "Your Creator account is Frozen."
             percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
         }
 
