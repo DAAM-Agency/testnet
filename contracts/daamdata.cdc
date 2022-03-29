@@ -4,61 +4,23 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FungibleToken    from 0xee82856bf20e2aa6 
 import Profile          from 0x192440c99cb17282
 import Categories       from 0xfd43f9148d4b725d
-/************************************************************************/:
+/************************************************************************/
 pub contract DAAMDATA {
     // Events
     pub event ContractInitialized()
     pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
 
-    // Events
-    pub event NewAdmin(admin  : Address)         // A new Admin has been added. Accepted Invite
-    pub event NewAgent(agent  : Address)         // A new Agent has been added. Accepted Invite
-    pub event NewMinter(minter: Address)         // A new Minter has been added. Accepted Invite
-    pub event NewCreator(creator: Address)       // A new Creator has been added. Accepted Invite
-    pub event AdminInvited(admin  : Address)     // Admin has been invited
-    pub event AgentInvited(agent  : Address)     // Agent has been invited
-    pub event CreatorInvited(creator: Address)   // Creator has been invited
-    pub event MinterSetup(minter: Address)       // Minter has been invited
-    
-    pub event MintedNFT(id: UInt64)              // Minted NFT
-    pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
-    pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
-    pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin/Agemnt
-    pub event ChangeMinterStatus(minter: Address, status: Bool)    // Minter Status has been changed by Admin
-    pub event AdminRemoved(admin: Address)       // Admin has been removed
-    pub event AgentRemoved(agent: Address)       // Agent has been removed by Admin
-    pub event CreatorRemoved(creator: Address)   // Creator has been removed by Admin
-    pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
-    pub event RemovedAdminInvite()               // Admin invitation has been rescinded
-
     // Paths
     pub let metadataPrivatePath   : PublicPath   // Public path that to Metadata Generator: Requires Admin/Agent  or Creator Key
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     // Variables 
-    access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     // Variables
-    pub var totalSupply : UInt64 // the total supply of NFTs, also used as counter for token ID
-    access(contract) var remove  : {Address: Address} // Requires 2 Admins to remove an Admin, the Admins are stored here. {Voter : To Remove}
-    access(contract) var admins  : {Address: Bool}    // {Admin Address : status}  Admin address are stored here
-    access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
-    access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var metadataCap: {Address : Capability<&MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
-    access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
-    // Variables 
-    access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
-    // Paths
-    pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
-    pub let adminStoragePath      : StoragePath  // Storage path to Admin 
-    pub let minterPrivatePath     : PrivatePath  // Private path to Minter
-    pub let minterStoragePath     : StoragePath  // Storage path to Minter
-    pub let creatorPrivatePath    : PrivatePath  // Private path to Creator
-    pub let creatorStoragePath    : StoragePath  // Storage path to Creator
-    pub let requestPrivatePath    : PrivatePath  // Private path to Request
-    pub let requestStoragePath    : StoragePath  // Storage path to Request
+//    access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
+    //access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -109,8 +71,8 @@ pub resource RequestGenerator {
         pre {
             self.grantee == creator.address            : "Permission Denied"
             metadataGen.getMetadata().containsKey(mid) : "Wrong MID"
-            DAAMDATA.creators.containsKey(creator.address) : "You are not a Creator"
-            DAAMDATA.creators[creator.address]!            : "Your Creator account is Frozen."
+            //DAAMDATA.creators.containsKey(creator.address) : "You are not a Creator"
+            //DAAMDATA.creators[creator.address]!            : "Your Creator account is Frozen."
             percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
         }
 
