@@ -2,67 +2,78 @@ pub contract Royalty
 {
     // Events
     pub event ContractInitialized()
-    pub event GroupInvited(group_name: String)    
+    pub event GroupInvited(royalty: {Address:UFix64})    
+    pub event AgreementReached(royalty: {Address:UFix64})
 /***********************************************************************/
-    pub struct Group {
-        pub let signer     : Address                      // Owner address
-        pub let group_name : String                       // Group group_name
-        pub let royalty    : {String : {Address:UFix64} } // { Shareholder name: {address:percentage} }
+    pub resource Percentage {
+        pub let signer    : Address          // Owner address
+        pub var royalty   : {Address:UFix64} // { Shareholder name: {address:percentage} }
+        pub var agreement : {Address:Bool}
+        pub var isOpen    : Bool
 
-        init(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64} } ) {
-            //pre { Royalty.verifyRoyalty(royalty) : "Royalty entry is invalid." }
-            self.signer = signer.address
-            self.group_name = group_name
+        init(signer: AuthAccount, royalty: {Address:UFix64}) {
+            //pre { self.is100Percent(royalty) : "Royalty entry is invalid." }
+            
+            self.signer    = signer.address
+            self.royalty   = royalty
+            self.isOpen    = true
+            self.agreement = {}             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
+            for r in royalty.keys { self.agreement.insert(key: r, false) }
+        }
+    
+        priv fun is100Percent(_ percentage: {Address:UFix64} ): Bool {
+            var total = 0.0
+            for p in percentage.keys {
+                total = total + percentage[p]!
+            }
+            return (total == 1.0)
+        }   
+
+        pub fun newPercentage(signer: AuthAccount, royalty: {Address:UFix64}): @Percentage {
+            let percentage <- create Percentage(signer: signer, royalty: royalty)
+            
+            log("New Royalty: ".concat(signer.address.toString()))
+            emit GroupInvited(royalty: royalty)
+
+            return <- percentage 
+        }
+
+        access(contract) fun bargin(signer: AuthAccount, royalty: {Address:UFix64} ) {
+            // Verify is Creator
+            pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed."  }
+            self.agreement[signer.address] = true
             self.royalty = royalty
-        }
-        
-    }
-/***********************************************************************/
-    // Variables
-    priv var group : {String : Group}
-/***********************************************************************/
-    // Functions
-    pub fun getGroup(group_name: String): Group? {
-        return self.group[group_name]
-    }
-/***********************************************************************/
-    priv fun validatePercentage(group_name: String, percentage: UFix64): Bool { return true }     
-/***********************************************************************/     
-    pub fun request(group_name: String, percentage: UFix64): Group { // Save Royalty
-        pre {
-            self.group.containsKey(group_name) : "This Group does not exist."
-            self.validatePercentage(group_name: group_name, percentage: percentage) : "Percentage is invalid."
-        }
-        // Insert percentage here
-        base = self.group[group_name].base
 
-        
-        return self.group[group_name]!
-    } 
-/***********************************************************************/     
-    pub fun newGroup(signer: AuthAccount, group_name: String, royalty: {String : {Address:UFix64}} ) {
-        pre {
-            // must be Alpha-numeric
-            // group_name: first/last character must be Alpha-numeric
-            // group_name: set to upper-case
-            // can not contain 2 spaces concerntly
-            !self.group.containsKey(group_name) : "Name is already taken"
+            log("Negotiating")
+            if self.isValid() {
+                log("Agreement Reached")
+                emit AgreementReached(royalty: royalty)
+            }
         }
-        post { self.group.containsKey(group_name) : "Illegal Operation" }
 
-        let group = Group(signer: signer, group_name: group_name, royalty: royalty)
-        self.group.insert(key: group_name, group)
+        pub fun isValid(): Bool {
+            for r  in self.royalty.keys {
+                if self.agreement[r] == false { return false}
+            }
+            return true 
+        }
 
-        log("New Royalty: ".concat(group_name) )
-        emit GroupInvited(group_name: group_name)      
+        priv fun royaltyMatch(_ royalities: {Address:UFix64} ): Bool {
+            if self.royalty.length != royalities.length { return false}
+            for royalty in royalities.keys {
+                if royalities[royalty] != self.royalty[royalty] { return false }
+            }
+            return true
+        }
     }
 /***********************************************************************/
-    init() {
-        self.group = {}
-        emit ContractInitialized()
-    }
-} // END Royalty
+    init() { emit ContractInitialized() }
+ } 
+// END Royalty
 /***********************************************************************
+
+
+
     // Used to create Request Resources. Metadata ID is passed into Request.
     // Request handle Royalities, and Negoatons.
     pub resource RequestGenerator {
@@ -79,11 +90,11 @@ pub contract Royalty
                 percentage >= 0.1 && percentage <= 0.3     : "Percentage must be inbetween 10% to 30%."
             }
 
-            var royality = {creator.address: (0.1 * percentage) }  // Get Agency percentage, Agency takes 10% of Creator
-            royality.insert(key: self.owner?.address!, (0.9 * percentage) ) // Get Creator Percentage
+            var royalty = {creator.address: (0.1 * percentage) }  // Get Agency percentage, Agency takes 10% of Creator
+            royalty.insert(key: self.owner?.address!, (0.9 * percentage) ) // Get Creator Percentage
 
             let request <-! create Request(metadata: metadata) // Get request
-            request.acceptDefault(royality: royality)          // Append royality rate
+            request.acceptDefault(royalty: royalty)          // Append royalty rate
 
             let old <- DAAM.request.insert(key: mid, <-request) // Advice DAAM of request
             destroy old // destroy place holder
@@ -94,32 +105,32 @@ pub contract Royalty
     }
 
     /***********************************************************************/
-    // Used to make requests for royality. A resource for Neogoation of royalities.
-    // When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
+    // Used to make requests for royalty. A resource for Neogoation of royalities.
+    // When both parties agree on 'royalty' the Request is considered valid aka isValid() = true and
     // Neogoation may not continue. V2 Featur TODO
-    // Request manage the royality rate
+    // Request manage the royalty rate
     // Accept Default are auto agreements
     pub resource Request {
         access(contract) let mid       : UInt64                // Metadata ID number is stored
-        access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
-        access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
+        access(contract) var royalty  : {Address : UFix64}    // current royalty neogoation.
+        acc`ess(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
         
         init(metadata: &Metadata) {
             self.mid       = metadata.mid    // Get Metadata ID
             DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-            self.royality  = {}              // royality is initialized
+            self.royalty  = {}              // royalty is initialized
             self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
         }
 
     pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
+    access(contract) var royalty  : {Address : UFix64}    // current royalty neogoation.
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(metadata: &Metadata) {
         self.mid       = metadata.mid    // Get Metadata ID
         DAAM_V7.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royality  = {}              // royality is initialized
+        self.royalty  = {}              // royalty is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
