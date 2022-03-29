@@ -17,106 +17,83 @@ displayFUSD()
     flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CTO | jq -c ' .value | .value'
 }
 
-echo "Testing Section C ===================="
-echo "Testing Auction: Direct Purchase & Extended Auctions."
-# Note: A Direct Purchase is an Auction with a minBid = nil
-
 # Create Original Auction Tests
 # MID: UInt64, start: UFix64
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
 # Start Bidding
-# starts in 30 seconds
-
-DISPLAYFUSD
-
+# Starts in 30 seconds
 CURRENT_TIME=$(date +%s)
-OFFSET=10.0
+OFFSET=30.0
 START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
-echo "Start Time: "$START
+echo "START: "$START
 
-echo "========== Create Extended Auctions I =========="
-echo "---------- A ---------- "
+#EXTENDED_TIME=[-n $1] && $1 || 0.0 # Conditional statement, add extended time otherwise extended time = 0.0
+#IS_EXTENDED=[! -n $1] # if Extended Time is set, Set IS_EXTENDED = true
+
+if [ -z "$1" ]; then # Conditional statement, add extended time otherwise extended time = 0.0
+    EXTENDED_TIME=0.0
+    IS_EXTENDED=false
+else
+    EXTENDED_TIME=$(echo $1' * 1.0' | bc)
+    IS_EXTENDED=true    
+fi
+
+echo -n "EXTENDED_TIME: "; echo $EXTENDED_TIME
+echo -n "EXTENDED: "; echo $IS_EXTENDED
+
+echo "========== Create Extneded Auctions Tests I =========="
+
+echo "Test Auction A: Item will be Won, Item & Collected"
 flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
-100.0 false 0.0 false 0.05 nil \
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.05 11.00 \
 20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
 
-echo "---------- B ---------- "
+echo "Test Auction B: Item wil be Won, Item not Collected"
 flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
-40.0 true 60.0 true 5.0 12.0 \
-25.0 0.0 false --signer creator #B MID: 2, AID: 2
+330.0 $IS_EXTENDED $EXTENDED_TIME true 1.0 12.00 \
+25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
-echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
-flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
-100.0 false 0.0 false 0.04 nil \
-26.0 30.3 false --signer creator #C
+echo "FAIL TEST: Test Auction C Metadatanwas deleted by Creator. Does not exist."
+flow transactions send ./transactions/auction/create_original_auction.cdc $REMOVED_METADATA $START \
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.04 10.00 \
+26.0 30.3 false --signer creator #C MID: 3
 
-echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
-flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
-100.0 false 0.0 false 0.04 nil \
-26.0 30.4 false --signer creator #D
+echo "FAIL TEST: Test Auction D, does not exist. Rejected by Admin. Metadata Removed"
+flow transactions send ./transactions/auction/create_original_auction.cdc $DISAPPROVED_METADATA $START \
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.04 10.00 \
+26.0 30.4 false --signer creator #D MID: 4
 
-echo "FAIL TEST: #E Rejected by Copyright Claim"
+echo "FAIL TEST: Test Auction E, Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
-100.0 false 0.0 false 0.04 nil \
-26.0 30.5 false --signer creator #E
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.04 13.00 \
+26.0 30.5 false --signer creator #E MID: 5
 
-echo "---------- F ---------- "
+echo "Test Auction F: Item: Reserve not meet, Item returned."
 flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
-200.0 true 60.0 false 0.05 16.0 \
-27.0 30.3 true --signer creator #F, MID: 6, AID: 3
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.05 14.00 \
+27.0 30.3 true --signer creator2 #F, MID: 6, AID: 3
 
-echo "---------- G ---------- "
+echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
-200.0 false 0.0 false 0.025 nil \
-28.0 30.7 false --signer creator #G, MID: 7, AID: 4
-
-# Verify Metadata
-echo "========= Veriy Metadata ========="
-flow scripts execute ./scripts/daam_wallet/get_tokenIDs.cdc $CREATOR
-
-# Reset Copyright
-echo "========= Reset Copyright ========="
-flow transactions send ./transactions/admin/change_copyright.cdc 5 3 --signer admin #E Verfied
-
-echo "========= Create Original Auctions II ========="
-# Auction MID 5, AID: 5 after copyright adjustment. (set to Verfied)
-CURRENT_TIME=$(date +%s)
-OFFSET=10.0
-START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
-echo "Start Time: "$START
-
-# Auction ID: 5, Extended Auction, Reserve Price: Not Meet
-echo "---------- E ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
-60.0 true 60.0 false 0.04 15.0 \
-26.0 30.5 true --signer creator #E AID: 5
-
-# Auction ID: 6, Extended Auction, Reserve Price: Meet
-echo "---------- H ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
-200.0 false 0.0 false 0.025 nil \
-28.0 30.6 true --signer creator #H, AID: 6
-
-# Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
-echo "---------- I ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
-200.0 false 0.0 false 0.025 nil \
-28.0 30.7 false --signer creator #I, AID: 7
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.025 15.00 \
+28.0 0.0 false --signer creator2 #G, MID: 7, AID: 4, No Buy it now
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
+flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR2
 
 # ---------------------- BIDS ------------------------------
+
 echo "========= BIDS ========="
 sleep 20
 # A ID: 1
 # The reserve price will NOT be met.
 echo "========== # A, AID: 1 =========="
 
-DISPLAYFUSD
+displayFUSD
 
 echo "---------- Auction Item, AID: 1 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 1
@@ -149,7 +126,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 
 echo "========== # B, AID: 2 =========="
 
-DISPLAYFUSD
+displayFUSD
 
 echo "---------- Auction Item, AID: 2 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 2
@@ -186,7 +163,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
 
 echo "========== # E, AID: 5 =========="
 
-DISPLAYFUSD
+displayFUSD
 
 echo "---------- Auction Item, AID: 5 ----------"
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 5
@@ -288,4 +265,4 @@ flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 3 (true) =========="
-flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3 # New NFT #9
+flow scripts execute ./scripts/auction_status.cdc $CREATOR 3 # Auction has ended.
