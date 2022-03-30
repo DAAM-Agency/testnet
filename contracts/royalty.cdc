@@ -11,17 +11,17 @@ pub contract DAAMRoyalty
     }
 /***********************************************************************/
     pub resource Percentage {
-        pub let signer    : Address         equest// Owner address
+        pub let signer    : Address         //Owner address
         pub var royalty   : Royalty         // { Shareholder name: {address:percentage} }
         pub var agreement : {Address:Bool?} // {Address of share owners : if agreed
-        pub var isOpen    : Bool
+        pub var closed    : Bool
 
         init(signer: AuthAccount, royalty: Royalty) {
             //pre { self.is100Percent(royalty) : "Royalty entry is invalid." }
             
             self.signer    = signer.address
             self.royalty   = royalty
-            self.isOpen    = true
+            self.closed    = false
             self.agreement = {}             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
             for r in royalty.shares.keys { self.agreement.insert(key: r, false) }
         }
@@ -45,22 +45,23 @@ pub contract DAAMRoyalty
 
         access(contract) fun bargin(signer: AuthAccount, royalty: Royalty ) {
             // Verify is Creator
-            pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed."  }
+            pre { self.closed : "Neogoation is already closed. Both parties have already agreed."  }
             self.agreement[signer.address] = true
             self.royalty = royalty
 
-            log("Negotiating")
-            if self.isValid() {
+            log("Negotiating...")
+            if self.closed {
                 log("Agreement Reached")
                 emit AgreementReached(royalty: royalty)
             }
         }
 
-        pub fun isValid(): Bool {
+        pub fun barginFinished(): Bool {
             for r  in self.royalty.shares.keys {
-                if self.agreement[r] == false { return false}
+                if self.agreement[r] == false { return self.closed}
             }
-            return true 
+            self.closed = true
+            return self.closed
         }
 
         priv fun royaltyMatch(_ royalities: Royalty ): Bool {

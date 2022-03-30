@@ -4,7 +4,7 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FungibleToken    from 0xee82856bf20e2aa6 
 import Profile          from 0x192440c99cb17282
 import Categories       from 0xfd43f9148d4b725d
-import Royalty          from 0xfd43f9148d4b725d
+import DAAMRoyalty      from 0xfd43f9148d4b725d
 import DAAMData         from 0xfd43f9148d4b725d
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
@@ -19,21 +19,21 @@ pub contract DAAM: NonFungibleToken {
     pub var totalSupply : UInt64 // DAAM Ageny Address
 /************************************************************************/
     pub resource interface INFT {
-        pub let id       : UInt64             // Token ID, A unique serialized number
-        pub let metadata : DAAMData.Metadata  // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalitiews
+        pub let id       : UInt64              // Token ID, A unique serialized number
+        pub let metadata : DAAMData.Metadata   // Metadata of NFT
+        pub let royalty  : DAAMRoyalty.Royalty // Where all royalitiews
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
-        pub let id       : UInt64             // Token ID, A unique serialized number
-        pub let metadata : DAAMData.Metadata  // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let id       : UInt64              // Token ID, A unique serialized number
+        pub let metadata : DAAMData.Metadata   // Metadata of NFT
+        pub let royalty  : DAAMRoyalty.Royalty // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
-        init(metadata: @DAAMData.MetadataHolder, percentage: &Royalty.Percentage) {
+        init(metadata: @DAAMData.MetadataHolder, percentage: &DAAMRoyalty.Percentage) {
             //pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id = DAAM.totalSupply              // Set Token ID with total supply
-            self.royality = request.royality        // Save Request which are the royalities.  
+            self.royalty = percentage.royalty        // Save Request which are the royalities.  
             self.metadata = metadata.metadata       // Save DAAMData.Metadata from DAAMData.Metadata Holder
             destroy metadata                        // Destroy no loner needed container DAAMData.Metadata Holder
         }

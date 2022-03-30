@@ -148,7 +148,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 // MetadataHolder is a container for Metadata. It is where Metadata is stored to become
 // an argument for NFT
     pub resource MetadataHolder {        
-        access(contract) var metadata: Metadata
+        pub let metadata: Metadata
         init (metadata: Metadata) {
             pre { metadata != nil : "Metadata can not be Empty." }              
             self.metadata = metadata // Store Metadata
