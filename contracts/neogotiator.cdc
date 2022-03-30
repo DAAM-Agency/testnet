@@ -5,10 +5,10 @@ pub contract Neogotiator {
     pub event RequestPercentage(agency: Address, mid: UInt64)
     
     // Functions
-    pub fun makeRequest(type: RequestType, agency: &Agency, mid: UInt64): @{Request} {
+    pub fun makeRequest(type: RequestType): @{Request} {
         switch(type) {
             case RequestType.ROYALITY:
-                return <- create Royality(agency: agency, mid: mid)
+                return <- create Royality(d: mid)
             case RequestType.PRICE:
                 return <- create Price(agency: agency, mid: mid)
         }

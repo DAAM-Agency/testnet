@@ -3,7 +3,7 @@
 import Categories from 0xfd43f9148d4b725d
 import Royalty    from 0xfd43f9148d4b725d
 /************************************************************************/
-pub contract DAAMDATA {
+pub contract DAAMData {
     // Events
     pub event ContractInitialized()
     pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
@@ -44,8 +44,8 @@ pub enum CopyrightStatus: UInt8 {
             // Init all NFT setting
             // initializing Metadata ID, self.mid
             if counter == nil {
-                DAAMDATA.metadataCounterID = DAAMDATA.metadataCounterID + 1
-                self.mid = DAAMDATA.metadataCounterID
+                DAAMData.metadataCounterID = DAAMData.metadataCounterID + 1
+                self.mid = DAAMData.metadataCounterID
             } else {
                 self.mid = counter!.mid // init MID with counter
             }
@@ -86,7 +86,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             self.metadata.insert(key: mid, metadata) // Save Metadata
-            DAAMDATA.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
+            DAAMData.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: creator.address, mid: mid)
@@ -106,7 +106,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun deleteMetadata(mid: UInt64) {
             self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
-            DAAMDATA.copyright.remove(key:mid) // remove metadata copyright            
+            DAAMData.copyright.remove(key:mid) // remove metadata copyright            
             
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
@@ -156,7 +156,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun getMID(): UInt64 { return self.metadata.mid } // get MID
     }
 /************************************************************************/
-    // Public DAAM functions
+    // Public DAAMData functions
+
+    pub fun getCopyright(mid: UInt64): CopyrightStatus? {
+        return self.copyright[mid]
+    }
     
     init()
     {

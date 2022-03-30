@@ -1,35 +1,40 @@
-pub contract Royalty
+pub contract DAAMRoyalty
 {
     // Events
     pub event ContractInitialized()
-    pub event GroupInvited(royalty: {Address:UFix64})    
-    pub event AgreementReached(royalty: {Address:UFix64})
+    pub event GroupInvited(royalty: Royalty)    
+    pub event AgreementReached(royalty: Royalty)
+/***********************************************************************/
+    pub struct Royalty {
+        pub let shares: {Address:UFix64}
+        init() { self.shares =  {} }
+    }
 /***********************************************************************/
     pub resource Percentage {
-        pub let signer    : Address          // Owner address
-        pub var royalty   : {Address:UFix64} // { Shareholder name: {address:percentage} }
-        pub var agreement : {Address:Bool}
+        pub let signer    : Address         equest// Owner address
+        pub var royalty   : Royalty         // { Shareholder name: {address:percentage} }
+        pub var agreement : {Address:Bool?} // {Address of share owners : if agreed
         pub var isOpen    : Bool
 
-        init(signer: AuthAccount, royalty: {Address:UFix64}) {
+        init(signer: AuthAccount, royalty: Royalty) {
             //pre { self.is100Percent(royalty) : "Royalty entry is invalid." }
             
             self.signer    = signer.address
             self.royalty   = royalty
             self.isOpen    = true
             self.agreement = {}             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
-            for r in royalty.keys { self.agreement.insert(key: r, false) }
+            for r in royalty.shares.keys { self.agreement.insert(key: r, false) }
         }
     
-        priv fun is100Percent(_ percentage: {Address:UFix64} ): Bool {
+        priv fun is100Percent(_ percentage: Royalty ): Bool {
             var total = 0.0
-            for p in percentage.keys {
-                total = total + percentage[p]!
+            for p in percentage.shares.keys {
+                total = total + percentage.shares[p]!
             }
             return (total == 1.0)
         }   
 
-        pub fun newPercentage(signer: AuthAccount, royalty: {Address:UFix64}): @Percentage {
+        pub fun newPercentage(signer: AuthAccount, royalty: Royalty): @Percentage {
             let percentage <- create Percentage(signer: signer, royalty: royalty)
             
             log("New Royalty: ".concat(signer.address.toString()))
@@ -38,7 +43,7 @@ pub contract Royalty
             return <- percentage 
         }
 
-        access(contract) fun bargin(signer: AuthAccount, royalty: {Address:UFix64} ) {
+        access(contract) fun bargin(signer: AuthAccount, royalty: Royalty ) {
             // Verify is Creator
             pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed."  }
             self.agreement[signer.address] = true
@@ -52,16 +57,16 @@ pub contract Royalty
         }
 
         pub fun isValid(): Bool {
-            for r  in self.royalty.keys {
+            for r  in self.royalty.shares.keys {
                 if self.agreement[r] == false { return false}
             }
             return true 
         }
 
-        priv fun royaltyMatch(_ royalities: {Address:UFix64} ): Bool {
-            if self.royalty.length != royalities.length { return false}
-            for royalty in royalities.keys {
-                if royalities[royalty] != self.royalty[royalty] { return false }
+        priv fun royaltyMatch(_ royalities: Royalty ): Bool {
+            if self.royalty.shares.length != royalities.shares.length { return false}
+            for royalty in royalities.shares.keys {
+                if royalities.shares[royalty] != self.royalty.shares[royalty] { return false }
             }
             return true
         }

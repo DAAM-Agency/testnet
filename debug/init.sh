@@ -174,7 +174,7 @@ flow transactions send ./transactions/Init_Categories.cdc "Categories" $CODE --s
 flow accounts update-contract Categories ./contracts/categories.cdc --signer daam_nft
 '''
 #  Metadata
-flow accounts add-contract DAAM_Metadata ./contract/daam_metadata.cdc --signer daam_nft
+    flow accounts add-contract DAAM_Metadata ./contract/daam_metadata.cdc --signer daam_nft
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
