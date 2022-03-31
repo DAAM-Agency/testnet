@@ -8,5 +8,5 @@ pub fun main(auction: Address, auctionID: UInt64): UFix64 {
         .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
         
-    return auctionHouse.item(auctionID).getBuyNowAmount()
+    return auctionHouse.item(auctionID).getBuyNowAmount(bidder: auction)
 }
