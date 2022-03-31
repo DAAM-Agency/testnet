@@ -48,3 +48,6 @@ flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 2 (True due to reprint Series = true) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 2
+
+echo "========= Auction Log: AID: 2 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR 2

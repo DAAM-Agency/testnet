@@ -60,5 +60,7 @@ flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 30.0 --s
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 5 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
-
 # NFT will be sent to Winner.
+
+echo "========= Auction Log: AID: 5 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR 5

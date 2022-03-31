@@ -47,5 +47,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "========= Auction Status: AID: 1 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 1
 # auction_status: nil=not started, true=ongoing, false=ended
-
 # NFT will be sent back to Creator at closr of auction.
+
+echo "========= Auction Log: AID: 1 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR 1

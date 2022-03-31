@@ -37,3 +37,6 @@ flow scripts execute ./scripts/auction/buy_it_now_status.cdc $NOBODY 12
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 12 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $NOBODY 12
+
+echo "========= Auction Log: AID: 12 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $NOBODY 12

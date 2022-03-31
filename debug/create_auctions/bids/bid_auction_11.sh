@@ -34,3 +34,6 @@ flow transactions send ./transactions/auction/cancel_auction.cdc 11 --signer cli
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 11 (False) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 11
+
+echo "========= Auction Log: AID: 11 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CLIENT 11

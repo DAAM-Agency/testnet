@@ -52,3 +52,6 @@ flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .v
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: ID: 7 (False) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR2 7
+
+echo "========= Auction Log: AID: 7 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR2 7

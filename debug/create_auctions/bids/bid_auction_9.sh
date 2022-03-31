@@ -1,4 +1,4 @@
-# I AID: 8
+# J AID: 9
 # Testing Buy It Now with Bids.
 
 echo "---------- FUSD ----------"
@@ -47,3 +47,6 @@ flow scripts execute ./scripts/auction/time_left.cdc $CLIENT 9
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 9 (True due to reprint Series = true) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 9
+
+echo "========= Auction Log: AID: 9 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CLIENT 9

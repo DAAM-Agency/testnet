@@ -37,3 +37,6 @@ flow scripts execute ./scripts/auction/buy_it_now_status.cdc $CREATOR2 4
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 4 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR2 4
+
+echo "========= Auction Log: AID: 4 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR2 4

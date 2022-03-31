@@ -36,3 +36,6 @@ flow transactions send ./transactions/auction/cancel_auction.cdc 3 --signer crea
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Bid: Client AID:3, 20.0 Auction already cancelled. AID: 3"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR2 3 20.0 --signer client #G
+
+echo "========= Auction Log: AID: 3 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR2 3

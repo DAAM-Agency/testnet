@@ -51,3 +51,6 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 8 19.0 --s
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 8 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 8
+
+echo "========= Auction Log: AID: 8 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CLIENT 8

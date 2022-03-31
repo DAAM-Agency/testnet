@@ -49,3 +49,6 @@ flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .v
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Bid: AID 13, CLIENT2: 30.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $NOBODY 13 30.0 --signer client2 # total 50
+
+echo "========= Auction Log: AID: 13 =========="
+flow scripts execute ./scripts/auction/get_auction_log.cdc $NOBODY 13

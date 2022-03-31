@@ -501,7 +501,7 @@ pub contract AuctionHouse {
             emit AuctionCancelled(auctionID: self.auctionID)
         }
 
-        pub fun getAuctionLog(aid: UInt64): {Address:UFix64} {
+        pub fun getAuctionLog(): {Address:UFix64} {
             return self.auctionLog
         }
 
