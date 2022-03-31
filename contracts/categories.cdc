@@ -15,12 +15,12 @@ pub contract Categories {
         }
     }
 
-    // variables
+    // Variables
     priv let grantee: Address
     priv var counter   : UInt64            // A counter used as an incremental Category ID
     access(contract) var categories: {String : UInt64} // category list { category name : categoty counter (acts as ID)}
 
-    // functions
+    // Functions
     // Get Catagories by a list of names or as {name: category id}
     pub fun getCategories(): [String] { return self.categories.keys }
     pub fun getCategoriesFull(): {String : UInt64} { return self.categories }

@@ -26,7 +26,7 @@ pub contract AuctionHouse {
                                        // { MID   : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
-    pub var currentAuctions             : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -499,6 +499,10 @@ pub contract AuctionHouse {
 
             log("Auction Cancelled: ".concat(self.auctionID.toString()) )
             emit AuctionCancelled(auctionID: self.auctionID)
+        }
+
+        pub fun getAuctionLog(aid: UInt64): {Address:UFix64} {
+            return self.auctionLog
         }
 
         // Checks for Extended Auction and extends auction accordingly by extendedTime
