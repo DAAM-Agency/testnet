@@ -660,6 +660,10 @@ pub contract AuctionHouse {
         minter.notNew(tokenID: tokenID) // Set to not new
     }
 
+    // Get current auctions { Address : [AID] }
+    pub fun getCurrentAuctions(): {Address:[UInt64]} {
+        return self.currentAuctions
+    }
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
