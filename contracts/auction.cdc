@@ -205,7 +205,7 @@ pub contract AuctionHouse {
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
-                length > 1.0 as UFix64               : "Minimum is 1 min" // TODO Replace 1 with 60
+                length > 1.0                         : "Minimum is 1 min" // TODO Replace 1 with 60
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
                 isExtended && extendedTime >= 20.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 20 seconds."
@@ -418,10 +418,16 @@ pub contract AuctionHouse {
             var total = amount
             log("total: ".concat(total.toString()) )
             if self.auctionLog[bidder] != nil { 
-                total = total + self.auctionLog[bidder]! as UFix64 // get bidders' total deposit
+                total = total + self.auctionLog[bidder]! // get bidders' total deposit
             }
             log("total: ".concat(total.toString()) )
             return self.buyNow == total // compare bidders' total deposit to buyNow
+        }
+
+        // Return the amount needed to make the correct bid
+        pub fun getBuyNowAmount(bidder: Address): UFix64 {
+            // If no bid had been made return buynow price, else return the difference
+            return (self.auctionLog[bidder]==nil) ? self.buyNow : (self.buyNow-self.auctionLog[bidder]!)
         }
 
         // Record total amount of FUSD a bidder has deposited. Manages Log of that total.
