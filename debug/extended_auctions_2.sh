@@ -1,3 +1,13 @@
+timeLeft()
+{
+    flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+    TIME_LEFT=$(flow scripts execute ./scripts/auction/time_left.cdc $1 $2 | awk  '{print $2}')
+    TIME_LEFT=$(expr $TIME_LEFT + 20)
+    echo "Time Left: $TIME_LEFT"
+    sleep $TIME_LEFT
+    TIME_LEFT=0
+}
+
 displayFUSD()
 {
     echo "---------- FUSD ----------"
@@ -55,7 +65,7 @@ flow transactions send ./transactions/auction/create_original_auction.cdc 2 $STA
 330.0 $IS_EXTENDED $EXTENDED_TIME true 1.0 12.00 \
 25.0 30.2 true --signer creator #B MID: 2, AID: 2
 
-echo "FAIL TEST: Test Auction C Metadatanwas deleted by Creator. Does not exist."
+echo "FAIL TEST: Test Auction C Metadata was deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_original_auction.cdc $REMOVED_METADATA $START \
 330.0 $IS_EXTENDED $EXTENDED_TIME false 0.04 10.00 \
 26.0 30.3 false --signer creator #C MID: 3
@@ -79,6 +89,16 @@ echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
 330.0 $IS_EXTENDED $EXTENDED_TIME false 0.025 15.00 \
 28.0 0.0 false --signer creator2 #G, MID: 7, AID: 4, No Buy it now
+
+echo "Test Auction H: Item will be Won, Item & Collected"
+flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.05 11.00 \
+20.0 30.1 true --signer creator #H MID: 8, AID: 5  // Auction ID
+
+echo "Test Auction H: Item will be Won, Item & Collected"
+flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
+330.0 $IS_EXTENDED $EXTENDED_TIME false 0.05 11.00 \
+20.0 30.1 true --signer creator #H MID: 9, AID: 6  // Auction ID
 
 # Auction Scripts
 echo "========= Verify Auctions ========="
@@ -190,7 +210,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "========= Auction Status: AID: 5 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
 
-sleep 120
+timeLeft $CREATOR 5
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #E, AID: 5 =========="
@@ -215,54 +235,54 @@ echo "========= Auction Status: AID: 5 (false) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
 
 
-echo "========== # F, AID: 3 =========="
+echo "========== # I, AID: 6 =========="
 
 displayFUSD
 
-echo "---------- Auction Item, AID: 3 ----------"
-flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 3
+echo "---------- Auction Item, AID: 6 ----------"
+flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 6
 
 # F : MID 6, AID: 3
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
-flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 6
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "---------- BID: Nobody AID: 3 : 36.0 ----------"
-flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 3 36.0 --signer nobody #F // increase time 60 seconds
+echo "---------- BID: Nobody AID: 6 : 36.0 ----------"
+flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR 6 36.0 --signer nobody #F // increase time 60 seconds
 
 echo "NOBODY FUSD"
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
-flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
+echo "========== Script: timeLeft.cdc Auction #I, AID: 6 =========="
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 6
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Auction Status: AID: 3 (True) =========="
-flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3
+echo "========= Auction Status: AID: 6 (True) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 6
 
 sleep 120
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
-flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
+echo "========== Script: timeLeft.cdc Auction #I, AID: 6 =========="
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 6
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-echo "========= Auction Status: AID: 3 (false) =========="
-flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3 # Auction has ended.
+echo "========= Auction Status: AID: 6 (false) =========="
+flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 6 # Auction has ended.
 
 # Winner Colection
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Winner Collect: Nobody,  AID: 3 ----------"
-flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 3 --signer nobody
+flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 6 --signer nobody
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
 echo "Minted New NFT #9, reprint restarts new auction, Casue: Winner Collect"
-flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 3
+flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 6
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 3 (true) =========="
-flow scripts execute ./scripts/auction_status.cdc $CREATOR 3 # Auction has ended.
+flow scripts execute ./scripts/auction_status.cdc $CREATOR 6 # Auction has ended.
