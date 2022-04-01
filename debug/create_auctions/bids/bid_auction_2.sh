@@ -34,14 +34,14 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "FAIL TEST: Did not meet Buy It Now: Too much. AID: 2"
 flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2
 
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CLIENT 2 | awk '{print $2}')
+BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $CLIENT | awk '{print $2}')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer client #I
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Buy It Now: Client AID: 2 ========="
 
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 | awk '{print $2}')
+BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $CLIENT | awk '{print $2}')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer client #I
 
