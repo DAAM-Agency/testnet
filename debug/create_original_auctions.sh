@@ -36,7 +36,7 @@ flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
 # Wait for Auctions to Expire
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-TIME_LEFT=200 # $(flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6 | awk  '{print $2}')
+TIME_LEFT=$(flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6 | awk  '{print $2}')
 echo "Time Left: $TIME_LEFT"
 sleep $TIME_LEFT
 TIME_LEFT=0
