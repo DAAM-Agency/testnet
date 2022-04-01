@@ -51,17 +51,17 @@ echo "---------- BID: Client2 AID: 10 : 12.0 more----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 12.0 --signer client2 # total 35
 
 echo "CLIENT FUSD"
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2 | jq -c ' .value | .value'
 
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "FAIL TEST: Nobody makes the same bid too late. AID: 10"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 5.0 --signer nobody
-
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+
 echo "FAIL TEST: Buy It Now: too late.  AID: 10"
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 10 30.0 --signer nobody
-
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+
 echo "========= Auction Status: AID: 10 (True) =========="
 flow scripts execute ./scripts/auction/auction_status.cdc $CLIENT 10
 # NFT will be sent to Winner.

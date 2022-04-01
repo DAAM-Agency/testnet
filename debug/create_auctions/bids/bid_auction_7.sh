@@ -40,11 +40,13 @@ echo "---------- Bid: Nobody ID:7 9.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR2 7 9.0 --signer nobody #E // total 29
 
 echo "NOBODY FUSD"
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
 
-flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Buy It Now: Client ID: 7 ========="
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 7 7.7 --signer client #I 30.7
+BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 7 $CLIENT | awk '{print $2}')
+echo BUYITNOW: $BUYITNOW
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 7 $BUYITNOW --signer client #I 30.7
 
 echo "CLIENT FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
