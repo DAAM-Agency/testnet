@@ -5,7 +5,7 @@ import Categories from 0xfd43f9148d4b725d
 import DAAM       from 0xfd43f9148d4b725d
 transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String)
 {    
-    let creator     : AuthAccount
+    //let creator     : AuthAccount
     let metadataGen : &DAAM.MetadataGenerator
     let series      : UInt64
     let data        : String
@@ -14,8 +14,8 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     let file        : String
 
     prepare(creator: AuthAccount) {
-        self.creator = creator
-        self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        //self.creator = creator
+        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
 
         self.series     = series
         self.data       = data
@@ -28,7 +28,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     }
 
     execute {
-        self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
         log("Metadata Submitted")
     }
 }

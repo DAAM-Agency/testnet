@@ -5,7 +5,7 @@ import Categories from 0xfd43f9148d4b725d
 import DAAM       from 0xfd43f9148d4b725d
 transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String, percentage: UFix64)
 {    
-    let creator     : AuthAccount
+    //let creator     : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
     let metadataGen : &DAAM.MetadataGenerator
 
@@ -17,7 +17,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     let percentage  : UFix64
 
     prepare(creator: AuthAccount) {
-        self.creator     = creator
+        //self.creator     = creator
         self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
         self.requestGen  = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
 
@@ -35,8 +35,8 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
-        self.requestGen.acceptDefault(creator: self.creator, mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
+        let mid = self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
 
         log("Metadata Submitted: ".concat(mid.toString()).concat(" with a Royalty Percentage: ".concat((self.percentage*100.0).toString()).concat(" Accepted.")))
     }
