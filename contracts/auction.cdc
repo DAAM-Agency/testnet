@@ -457,7 +457,16 @@ pub contract AuctionHouse {
 
             log(self.auctionLog)
             self.winnerCollect(bidder: bidder) // Will receive NFT if reserve price is met
-        }    
+        }
+
+        // Returns the Bidder History
+        pub fun getAuctionLog(): {Address:UFix64} { return self.auctionLog }
+
+        // Return the amount needed to make the correct bid
+        pub fun getBuyNowAmount(bidder: Address): UFix64 {
+            // If no bid had been made return buynow price, else return the difference
+            return (self.auctionLog[bidder]==nil) ? self.buyNow : (self.buyNow-self.auctionLog[bidder]!)
+        }
 
         // returns BuyItNowStaus, true = active, false = inactive
         pub fun buyItNowStatus(): Bool {
@@ -649,6 +658,9 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
 // AuctionHouse Functions & Constructor
+
+    // Get current auctions { Address : [AID] }
+    pub fun getCurrentAuctions(): {Address:[UInt64]} { return self.currentAuctions }
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
