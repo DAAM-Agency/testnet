@@ -18,8 +18,8 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-        self.requestGen  = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
 
         self.series     = series
         self.data       = data
