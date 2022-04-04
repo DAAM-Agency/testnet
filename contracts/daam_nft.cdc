@@ -35,7 +35,7 @@ pub contract DAAM: NonFungibleToken {
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
-    pub let metadataPublicPath   : PublicPath   // Public path that to Metadata Generator: Requires Admin/Agent  or Creator Key
+    pub let metadataPublicPath    : PublicPath   // Public path that to Metadata Generator: Requires Admin/Agent  or Creator Key
     pub let metadataStoragePath   : StoragePath  // Storage path to Metadata Generator
     pub let adminPrivatePath      : PrivatePath  // Private path to Admin 
     pub let adminStoragePath      : StoragePath  // Storage path to Admin 
@@ -140,7 +140,8 @@ pub resource RequestGenerator {
         pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: &Metadata?) {
+        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: &Metadata?)
+        {
             if counter != nil {
                 if counter!.counter >= series && series != 0 { panic("Metadata setting incorrect.") }
             }
