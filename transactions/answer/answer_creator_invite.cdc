@@ -20,7 +20,6 @@ transaction(submit: Bool) {
 
             let metadataGen <- creatorRef.newMetadataGenerator()
             self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
-            metadataGen.activate()
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
 
             let requestGen  <- creatorRef.newRequestGenerator()

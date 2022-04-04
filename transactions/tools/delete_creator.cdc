@@ -12,7 +12,7 @@ transaction() {
         destroy metadataRes
         creator.unlink(DAAM.creatorPrivatePath)
         creator.unlink(DAAM.requestPrivatePath)
-        creator.unlink(DAAM.metadataPrivatePath)
+        creator.unlink(DAAM.metadataPublicPath)
         log("Creator Removed")
     } 
 }

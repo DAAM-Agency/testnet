@@ -104,6 +104,7 @@ pub resource RequestGenerator {
     priv let grantee: Address
 
     init(_ grantee: Address) { self.grantee = grantee }
+
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
@@ -179,16 +180,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         init(_ grantee: Address) {
             self.metadata = {}  // Init Metadata
             self.grantee  = grantee
-        }
-
-        pub fun activate() {
-            pre{
-                self.grantee == self.owner!.address           : "Permission Denied"
-                DAAM.creators.containsKey(self.grantee)     : "You are not a Creator"
-                !DAAM.metadataCap.containsKey(self.grantee) : "This Metadata Generator is already Activated."
-            }
-            DAAM.metadataCap.insert(key: self.grantee,getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
-            // Adding Metadata Capability
+            DAAM.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
@@ -749,7 +741,7 @@ pub resource Admin: Agent
 // to Create Metadata which inturn can be made in NFTs after Minting
     pub resource Creator {
         pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
-        priv let grantee: Address
+        access (contract) let grantee: Address
 
         init(_ creator: AuthAccount) {
             self.agent = {}

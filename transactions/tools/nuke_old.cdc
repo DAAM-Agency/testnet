@@ -22,7 +22,7 @@ transaction() {
         destroy creatorRes
         destroy metadataRes
         signer.unlink(DAAM.creatorPrivatePath)
-        signer.unlink(DAAM.metadataPrivatePath)
+        signer.unlink(DAAM.metadataPublicPath)
         log("Creator Removed")
 
         let auctionRes  <- signer.load<@AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)
