@@ -109,11 +109,11 @@ pub resource RequestGenerator {
     // Percentages are between 10% - 30%
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
         pre {
-            self.grantee == self.owner!.address       : "Permission Denied"
-            metadataGen.getMetadata().containsKey(mid) : "Wrong MID"
+            self.grantee == self.owner!.address     : "Permission Denied"
+            metadataGen.getMIDs().contains(mid)  : "Wrong MID"
             DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
             DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
-            percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
+            percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
 
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
@@ -181,7 +181,10 @@ pub resource RequestGenerator {
             self.file      = counter == nil ? file!       : counter!.file      // NFT data is stored here
         }
 
-        //pub fun getMID(): UInt64 { return self.mid } // get MID
+        pub fun getHolder(): MetadataHolder {
+            return MetadataHolder(creator: self.creator, series: self.series, categories: self.category,
+            data: self.data, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
+        }
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
@@ -189,7 +192,7 @@ pub resource interface MetadataGeneratorMint {
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadata(): {UInt64 : MetadataHolder} 
+    pub fun getMIDs(): [UInt64]
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -285,13 +288,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
             return self.metadata.keys
-        }
+        }    
 
-        pub fun getMetadata(): {UInt64: Metadata} {
-            return self.metadata
-        }        
-
-        destroy() {}
+        destroy() { destroy self.metadata } 
 }
 /************************************************************************/
     pub resource interface INFT {
@@ -309,10 +308,12 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         init(metadata: @Metadata, request: &Request) {
             pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+            
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
-            self.id = DAAM.totalSupply              // Set Token ID with total supply
-            self.royality = request.royality        // Save Request which are the royalities.  
-            self.metadata = metadata.metadata       // Save Metadata from Metadata Holder
+            self.id          = DAAM.totalSupply     // Set Token ID with total supply
+            self.mid         = metadata.mid         // Set Metadata ID
+            self.royality    = request.royality     // Save Request which are the royalities.  
+            self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
 
@@ -719,27 +720,6 @@ pub resource Admin: Agent
             }
             return DAAM.metadata
         }
-        // Mainly for testing, Considering Removing TODO
-        pub fun getMetadatasRef(creator: Address): {UInt64 : Metadata} {
-            pre {
-                self.grantee == self.owner!.address : "Permission Denied"
-                self.status                          : "You're no longer a have Access."
-                DAAM.creators[creator] != nil        : "You have not selected a Creator."
-            }
-            let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
-            return mCap.getMetadata()
-        }
-        // Mainly for testing, Considering Removing TODO
-        pub fun getMetadataRef(creator: Address, mid: UInt64): Metadata {
-            pre {
-                self.grantee == self.owner!.address : "Permission Denied"
-                self.status                          : "You're no longer a have Access."
-                DAAM.creators[creator] != nil        : "You have not selected a Creator."
-                DAAM.metadata.containsKey(mid)       : "Incorrect MID"
-            }
-            let mCap = DAAM.metadataCap[creator]!.borrow()! as &MetadataGenerator{MetadataGeneratorPublic}
-            return mCap.getMetadata()[mid]!
-        }
 
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
@@ -795,16 +775,16 @@ pub resource Admin: Agent
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
-        pub fun mintNFT(metadata: @MetadataHolder): @DAAM.NFT {
+        pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
-                metadata.metadata.counter <= metadata.metadata.series || metadata.metadata.series == 0 : "Internal Error: Mint Counter"
-                DAAM.creators.containsKey(metadata.metadata.creator) : "You're not a Creator."
-                DAAM.creators[metadata.metadata.creator] == true     : "This Creators' account is Frozen."
-                DAAM.request.containsKey(metadata.metadata.mid)      : "Invalid Request"
+                metadata.counter <= metadata.series || metadata.series == 0 : "Internal Error: Mint Counter"
+                DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
+                DAAM.creators[metadata.creator] == true     : "This Creators' account is Frozen."
+                DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
             }
-            let isLast = metadata.metadata.counter == metadata.metadata.series // Get print count
-            let mid = metadata.metadata.mid               // Get MID
+            let isLast = metadata.counter == metadata.series // Get print count
+            let mid = metadata.mid               // Get MID
             let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
 
             // Update Request, if last remove.

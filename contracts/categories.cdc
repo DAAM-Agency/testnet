@@ -86,7 +86,7 @@ pub contract Categories {
         self.addCategory(signer, name: "Photography")
         self.addCategory(signer, name: "Virtual Reality")
         self.addCategory(signer, name: "Augmented Reality")
-        // typically physival in nature
+        // typically physical in nature
         self.addCategory(signer, name: "Sculpture")
         self.addCategory(signer, name: "Fashion")
     }
