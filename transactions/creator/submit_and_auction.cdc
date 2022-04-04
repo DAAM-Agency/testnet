@@ -17,7 +17,6 @@ transaction(
 )
 
 {    
-    let creator     : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
     let metadataGen : &DAAM.MetadataGenerator
     let metadataCap : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
@@ -43,12 +42,10 @@ transaction(
     let reprintSeries   : Bool
 
     prepare(creator: AuthAccount) {
-        self.creator      = creator
-        self.metadataGen  = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-        self.requestGen   = self.creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
-        self.auctionHouse = self.creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        
-        self.metadataCap  = self.creator.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
+        self.metadataGen  = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.auctionHouse = creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+        self.metadataCap  = creator.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
 
         self.series     = series
         self.data       = data
@@ -76,8 +73,8 @@ transaction(
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
-        self.requestGen.acceptDefault(creator: self.creator, mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
+        let mid = self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
 
         self.auctionHouse.createOriginalAuction(
             metadataGenerator: self.metadataCap, mid: mid, start: self.start, length: self.length, isExtended: self.isExtended,

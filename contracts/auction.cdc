@@ -63,7 +63,7 @@ pub contract AuctionHouse {
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
-                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
+                self.titleholder == self.owner!.address : "You are not the owner of this Auction"
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
@@ -93,7 +93,7 @@ pub contract AuctionHouse {
             extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
         {
             pre {
-                self.titleholder == self.owner?.address! : "You are not the owner of this Auction" 
+                self.titleholder == self.owner!.address : "You are not the owner of this Auction" 
                 DAAM.getCopyright(mid: nft.metadata.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: nft.metadata.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
@@ -115,7 +115,7 @@ pub contract AuctionHouse {
         // even in instances where the Winner has not claimed their item.
         pub fun closeAuctions() {
             pre {
-                self.titleholder == self.owner?.address! : "You are not the owner of this Auction"
+                self.titleholder == self.owner!.address : "You are not the owner of this Auction"
             }
 
             for act in self.currentAuctions.keys {                
@@ -390,7 +390,7 @@ pub contract AuctionHouse {
                 log("Item: Won")
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
-                receiver = self.owner?.address! // set receiver from leader to auctioneer
+                receiver = self.owner!.address // set receiver from leader to auctioneer
                 self.returnFunds()              // return funds to all bidders
                 log("Item: Returned")
                 emit ItemReturned(auctionID: self.auctionID)    
@@ -497,7 +497,7 @@ pub contract AuctionHouse {
             pre {
                 self.updateStatus() == nil || true         : "Too late to cancel Auction."
                 self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
-                self.owner?.address! == auctioneer.address : "You are not the auctioneer."
+                self.owner!.address == auctioneer.address : "You are not the auctioneer."
             }
             
             self.status = false
@@ -623,7 +623,7 @@ pub contract AuctionHouse {
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
             if !self.reprintSeries { return } // if reprint is set to false, skip function
-            if self.creator != self.owner?.address! { return } // Verify Owner is Creator otherwise skip function
+            if self.creator != self.owner!.address { return } // Verify Owner is Creator otherwise skip function
 
             let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let metadata <- metadataGen.generateMetadata(minter: self.owner!, mid: self.mid)       // get Metadata from Metadata Generator
@@ -637,7 +637,7 @@ pub contract AuctionHouse {
         access(contract) fun endReprints() {
            pre {
                 self.reprintSeries : "Reprints is already off."
-                self.auctionNFT?.metadata!.creator == self.owner?.address! : "You are not the Creator of this NFT"
+                self.auctionNFT?.metadata!.creator == self.owner!.address : "You are not the Creator of this NFT"
                 //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
            }
            self.reprintSeries = false

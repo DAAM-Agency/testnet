@@ -17,7 +17,7 @@ pub contract Categories {
 
     // Variables
     priv let grantee: Address
-    priv var counter   : UInt64            // A counter used as an incremental Category ID
+    priv var counter: UInt64            // A counter used as an incremental Category ID
     access(contract) var categories: {String : UInt64} // category list { category name : categoty counter (acts as ID)}
 
     // Functions

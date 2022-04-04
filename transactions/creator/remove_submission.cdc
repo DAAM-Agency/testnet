@@ -17,7 +17,7 @@ transaction(mid: UInt64)
     }
 
     execute {
-        self.metadataGen.removeMetadata(creator: self.creator, mid: self.mid)        
+        self.metadataGen.removeMetadata(mid: self.mid)        
         log("Metadata Submitted")
     }
 }
