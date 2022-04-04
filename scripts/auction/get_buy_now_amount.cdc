@@ -3,7 +3,7 @@
 
 import AuctionHouse from 0x01837e15023c9249
 
-pub fun main(auction: Address, auctionID: UInt64, bidder: Address): UFix64 {
+pub fun main(auction: Address, auction: UInt64, bidder: Address): UFix64 {
     let auctionHouse = getAccount(auction)
         .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
