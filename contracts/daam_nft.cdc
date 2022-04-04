@@ -130,7 +130,28 @@ pub resource RequestGenerator {
     }
 }
 /************************************************************************/
-    pub struct Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
+    pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
+        pub let creator   : Address  // Creator of NFT
+        pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let category  : [Categories.Category]
+        pub let data      : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
+        pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
+        
+        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: UInt64)
+        {
+            self.creator   = creator   // creator of NFT
+            self.series    = series    // total prints
+            self.counter   = counter   // current print of total prints
+            self.category  = categories
+            self.data      = data      // data,about,misc page
+            self.thumbnail = thumbnail // thumbnail are stored here
+            self.file      = file      // NFT data is sto            
+        }
+    }
+/************************************************************************/
+    pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid       : UInt64   // Metadata ID number
         pub let creator   : Address  // Creator of NFT
         pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
@@ -140,47 +161,46 @@ pub resource RequestGenerator {
         pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: &Metadata?)
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, data: String?, thumbnail: String?, file: String?, counter: &Metadata?)
         {
-            if counter != nil {
-                if counter!.counter >= series && series != 0 { panic("Metadata setting incorrect.") }
-            }
-            
             // Init all NFT setting
             // initializing Metadata ID, self.mid
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
-                self.mid = DAAM.metadataCounterID
-            } else {
-                self.mid = counter!.mid // init MID with counter
+            } else if counter!.counter >= series! && series! != 0 {
+                panic("Metadata setting incorrect.")
             }
-            self.creator   = creator   // creator of NFT
-            self.series    = series    // total prints
-            self.counter = counter == nil ? 1 : counter!.counter + 1 // current print of total prints
-            self.category  = categories
-            self.data      = data      // data,about,misc page
-            self.thumbnail = thumbnail // thumbnail are stored here
-            self.file      = file      // NFT data is stored here
+
+            self.mid       = counter == nil ? DAAM.metadataCounterID : counter!.mid // init MID with counter
+            self.creator   = counter == nil ? creator!    : counter!.creator   // creator of NFT
+            self.series    = counter == nil ? series!     : counter!.series    // total prints
+            self.counter   = counter == nil ? 1 : counter!.counter + 1         // current print of total prints
+            self.category  = counter == nil ? categories! : counter!.category  // categories 
+            self.data      = counter == nil ? data!       : counter!.data      // data,about,misc page
+            self.thumbnail = counter == nil ? thumbnail!  : counter!.thumbnail // thumbnail are stored here
+            self.file      = counter == nil ? file!       : counter!.file      // NFT data is stored here
         }
+
+        //pub fun getMID(): UInt64 { return self.mid } // get MID
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder  // Used to generate a Metadata either new or one with an incremented counter
+    pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @Metadata  // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
-    pub fun getMetadata(): {UInt64 : Metadata} 
+    pub fun getMetadata(): {UInt64 : MetadataHolder} 
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
 pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
-        priv var metadata : {UInt64 : Metadata} // {MID : Metadata (Struct)}
+        priv var metadata : @{UInt64 : Metadata} // {MID : Metadata Resource}
         priv let grantee: Address
 
         init(_ grantee: Address) {
-            self.metadata = {}  // Init Metadata
-            self.grantee  = grantee
+            self.metadata <- {}  // Init Metadata
+            self.grantee = grantee
             DAAM.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
         }
 
@@ -191,10 +211,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
             }
-            let metadata = Metadata(creator: self.grantee, series: series, categories: categories, data: data, thumbnail: thumbnail,
+            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, data: data, thumbnail: thumbnail,
                 file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
-            self.metadata.insert(key: mid, metadata) // Save Metadata
+            let old <- self.metadata[mid] <- metadata // Save Metadata
+            destroy old
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
@@ -205,7 +226,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return mid
         }
 
-        // RemoveMetadata uses deleteMetadata to delete the Metadata.
+        // RemoveMetadata uses clearMetadata to delete the Metadata.
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
@@ -214,23 +235,26 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
             }
-            self.deleteMetadata(mid: mid)  // Delete Metadata
+            let old_meta <- self.clearMetadata(mid: mid)  // Delete Metadata
+            destroy old_meta
+
             let old_request <- DAAM.request.remove(key: mid)  // Get Request
             destroy old_request // Delete Request
         }
 
         // Used to remove Metadata from the Creators metadata dictionary list.
-        priv fun deleteMetadata(mid: UInt64) {
-            self.metadata.remove(key: mid) // Metadata removed. Metadata Template has reached its max count (series)
+        priv fun clearMetadata(mid: UInt64): @Metadata {            
             DAAM.metadata.remove(key: mid) // Metadata removed from DAAM. Logging no longer neccessary
             DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
+
+            return <- self.metadata.remove(key: mid)! // Metadata removed. Metadata Template has reached its max count (series)
         }
-        // Remove Metadata as Resource MetadataHolder. MetadataHolder + Request = NFT.
-        // The MetadataHolder will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder {
+        // Remove Metadata as Resource. Metadata + Request = NFT.
+        // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
+        pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @Metadata {
             pre {
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.owner!.address) : "You are not a Creator"
@@ -245,19 +269,18 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             log("Generate Metadata Grantee ---- ")
             log(self.grantee)
 
-            let mh <- create MetadataHolder(metadata: self.metadata[mid]!) // Create current Metadata
+            // Create Metadata with incremented counter/print
+            let mRef = &self.metadata[mid] as &Metadata
+
             // Verify Metadata Counter (print) is not last, if so delete Metadata
-            if self.metadata[mid]!.counter == self.metadata[mid]?.series! && self.metadata[mid]?.series! != 0 {
-                self.deleteMetadata(mid: mid) // Remove metadata template
+            if mRef.counter < mRef.series! && mRef.series! != 0 {            
+                let new_metadata <- create Metadata(creator: nil,series: nil,categories: nil,data: nil,thumbnail: nil,file: nil, counter: mRef!)
+                let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
+                return <- orig_metadata! // Return current Metadata                 
             } else { // if not last, print
-                let new_metadata = Metadata(                  // Prep next Metadata
-                    creator: self.metadata[mid]?.creator!, series: self.metadata[mid]?.series!, categories: self.metadata[mid]?.category!,
-                    data: self.metadata[mid]?.data!, thumbnail: self.metadata[mid]?.thumbnail!, file: self.metadata[mid]?.file!, counter: &self.metadata[mid] as &Metadata
-                )
-                log("Generate Metadata: ".concat(new_metadata.mid.toString()) )
-                self.metadata[mid] = new_metadata // Update to new incremented (counter) Metadata
+                let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
+                return <- orig_metadata! // Return current Metadata  
             }
-            return <- mh // Return current Metadata  
         }
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
@@ -271,30 +294,21 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         destroy() {}
 }
 /************************************************************************/
-// MetadataHolder is a container for Metadata. It is where Metadata is stored to become
-// an argument for NFT
-    pub resource MetadataHolder {        
-        access(contract) var metadata: Metadata
-        init (metadata: Metadata) {
-            pre { metadata != nil : "Metadata can not be Empty." }              
-            self.metadata = metadata // Store Metadata
-        }
-        pub fun getMID(): UInt64 { return self.metadata.mid } // get MID
-    }
-/************************************************************************/
     pub resource interface INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let metadata : Metadata // Metadata of NFT
+        pub let mid      : UInt64   // Token ID, A unique serialized number
+        pub let metadata : MetadataHolder // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let metadata : Metadata // Metadata of NFT
+        pub let mid      : UInt64   // Metadata ID, A unique serialized number
+        pub let metadata : MetadataHolder // Metadata of NFT
         pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
-        init(metadata: @MetadataHolder, request: &Request) {
-            pre { metadata.metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+        init(metadata: @Metadata, request: &Request) {
+            pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id = DAAM.totalSupply              // Set Token ID with total supply
             self.royality = request.royality        // Save Request which are the royalities.  
