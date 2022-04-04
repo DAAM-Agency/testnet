@@ -94,8 +94,8 @@ pub contract AuctionHouse {
         {
             pre {
                 self.titleholder == self.owner!.address : "You are not the owner of this Auction" 
-                DAAM.getCopyright(mid: nft.metadata.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
-                DAAM.getCopyright(mid: nft.metadata.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
+                DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
@@ -225,7 +225,7 @@ pub contract AuctionHouse {
             self.height = nil  // when auction is ended does it get a value
             self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
             self.creator = nft.metadata.creator
-            self.mid = nft.metadata.mid // Metadata ID
+            self.mid = nft.mid // Metadata ID
             self.start = start        // When auction start
             self.length = length      // Length of auction
             self.origLength = length  // If length is reset (extneded auction), a new reprint can reset the original length
@@ -523,7 +523,7 @@ pub contract AuctionHouse {
             return self.updateStatus()
         }
 
-        pub fun itemInfo(): DAAM.Metadata? { // returns the metadata of the item NFT.
+        pub fun itemInfo(): DAAM.MetadataHolder? { // returns the metadata of the item NFT.
             return self.auctionNFT?.metadata
         }
 
@@ -555,12 +555,11 @@ pub contract AuctionHouse {
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance                           // get price of NFT
-            let metadataRef = &self.auctionNFT?.metadata! as &DAAM.Metadata // get NFT Metadata Reference
             let tokenID = self.auctionNFT?.id!                              // get TokenID
             let royality = self.getRoyality()                               // get all royalities percentages
             
             let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
-            let creatorPercentage = royality[metadataRef.creator]!  // extract creators percentage using Metadata Reference
+            let creatorPercentage = royality[self.creator]!  // extract creators percentage using Metadata Reference
             
             let agencyRoyality  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
             let creatorRoyality = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
@@ -580,7 +579,7 @@ pub contract AuctionHouse {
             }
             
             let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
-            let creatorPay = getAccount(metadataRef.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+            let creatorPay = getAccount(self.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             
             agencyPay.deposit(from: <-agencyCut)   // Deposit Agency Cut
             creatorPay.deposit(from: <-creatorCut) // Deposit Creators' Cut
@@ -672,7 +671,7 @@ pub contract AuctionHouse {
     }
 
     // Requires Minter Key // Minter function to mint
-    access(contract) fun mintNFT(metadata: @DAAM.MetadataHolder): @DAAM.NFT {
+    access(contract) fun mintNFT(metadata: @DAAM.Metadata): @DAAM.NFT {
         let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
         let nft <- minter.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT

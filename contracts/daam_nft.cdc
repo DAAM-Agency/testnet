@@ -959,15 +959,6 @@ pub resource Admin: Agent
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
         return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
     }
-
-/************************************************************************/
-	// TESTNET ONLY FUNCTION !!!! // TODO REMOVE
-
-    pub fun resetAdmin(_ admin: Address) {
-        self.admins.insert(key: admin, false)
-    }
-
-    // END TESNET FUNCTIONS
 /************************************************************************/
 // Init DAAM Contract variables
     

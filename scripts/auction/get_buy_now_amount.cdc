@@ -3,10 +3,10 @@
 
 import AuctionHouse from 0x045a1763c93006ca
 
-pub fun main(auction: Address, auctionID: UInt64, bidder: Address): UFix64 {
+pub fun main(auction: Address, aid: UInt64, bidder: Address): UFix64 {
     let auctionHouse = getAccount(auction)
         .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
         
-    return auctionHouse.item(auctionID).getBuyNowAmount(bidder: bidder)
+    return auctionHouse.item(aid).getBuyNowAmount(bidder: bidder)
 }
