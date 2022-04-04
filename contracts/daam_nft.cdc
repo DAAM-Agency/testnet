@@ -267,11 +267,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
             }
 
-            log("Generate Metadata Owner ---- ")
-            log(self.owner!.address)
-            log("Generate Metadata Grantee ---- ")
-            log(self.grantee)
-
             // Create Metadata with incremented counter/print
             let mRef = &self.metadata[mid] as &Metadata
 
@@ -288,7 +283,13 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
             return self.metadata.keys
-        }    
+        }
+
+        pub fun viewMetadata(mid: UInt64): MetadataHolder? {
+            pre { self.metadata[mid] != nil : "Invalid MID" }
+            let mRef = &self.metadata[mid] as &Metadata
+            return mRef.getHolder()
+        }  
 
         destroy() { destroy self.metadata } 
 }
