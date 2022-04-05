@@ -491,9 +491,9 @@ pub resource Admin: Agent
         pub var status: Bool       // The current status of the Admin
         priv let grantee: Address
 
-        init(_ admin: AuthAccount) {
+        init(_ admin: Address) {
             self.status  = true      // Default Admin status: True
-            self.grantee = admin.address
+            self.grantee = admin
         }
 
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
@@ -517,7 +517,7 @@ pub resource Admin: Agent
             post { DAAM.admins[newAdmin] == false : "Illegal Operaion: inviteAdmin" }
 
             DAAM.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
-            log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
+            log("Sent Admin Invitation: ".concat(self.owner!.toString()) )
             emit AdminInvited(admin: newAdmin)                        
         }
 
@@ -744,9 +744,9 @@ pub resource Admin: Agent
         pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
         access (contract) let grantee: Address
 
-        init(_ creator: AuthAccount) {
+        init(_ creator: Address) {
             self.agent = {}
-            self.grantee = creator.address
+            self.grantee = creator
         }  // init Creators agent(s)
 
         // Used to create a Metadata Generator when initalizing Creator Storge
@@ -776,8 +776,8 @@ pub resource Admin: Agent
     {
         priv let grantee: Address
 
-        init(_ minter: AuthAccount) {
-            self.grantee = minter.address
+        init(_ minter: Address) {
+            self.grantee = minter
             DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
         }
 
@@ -840,84 +840,84 @@ pub resource Admin: Agent
     // False: invitation is declined and invitation setting reset
 
     // The Admin potential can accept (True) or deny (False)
-    pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
+    pub fun answerAdminInvite(submit: Bool): @Admin? {
         pre {
-            newAdmin.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Admin."
-            DAAM.admins.containsKey(newAdmin.address)    : "You got no DAAM Admin invite."
-            !DAAM.agents.containsKey(newAdmin.address)   : "A Admin can not use the same address as an Agent."
-            !DAAM.creators.containsKey(newAdmin.address) : "A Admin can not use the same address as an Creator."
-            Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
+            self.owner!.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Admin."
+            DAAM.admins.containsKey(self.owner!.address)    : "You got no DAAM Admin invite."
+            !DAAM.agents.containsKey(self.owner!.address)   : "A Admin can not use the same address as an Agent."
+            !DAAM.creators.containsKey(self.owner!.address) : "A Admin can not use the same address as an Creator."
+            Profile.check(self.owner!.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
 
         if !submit { 
-            DAAM.admins.remove(key: newAdmin.address) // Release Admin
+            DAAM.admins.remove(key: self.owner!.address) // Release Admin
             return nil
         }  // Refused invitation. Return and end function
         
         // Invitation accepted at this point
-        DAAM.admins[newAdmin.address] = submit // Insert new Admin in admins list.
-        log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
-        emit NewAdmin(admin: newAdmin.address)
+        DAAM.admins[self.owner!.address] = submit // Insert new Admin in admins list.
+        log("Admin: ".concat(self.owner!.address.toString()).concat(" added to DAAM") )
+        emit NewAdmin(admin: self.owner!.address)
         return <- create Admin(newAdmin)!      // Accepted and returning Admin Resource
     }
 
     // // The Agent potential can accept (True) or deny (False)
-    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
+    pub fun answerAgentInvite(submit: Bool): @Admin{Agent}?
     {
         pre {
-            newAgent.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Agent."
-            !DAAM.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
-            !DAAM.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
-            DAAM.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
-            Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
+            self.owner!.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Agent."
+            !DAAM.admins.containsKey(self.owner!.address)   : "A Agent can not use the same address as an Admin."
+            !DAAM.creators.containsKey(self.owner!.address) : "A Agent can not use the same address as an Creator."
+            DAAM.agents.containsKey(self.owner!.address)    : "You got no DAAM Agent invite."
+            Profile.check(self.owner!.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                  // Refused invitation. 
-            DAAM.agents.remove(key: newAgent.address) // Remove potential from Agent list
+            DAAM.agents.remove(key: self.owner!.address) // Remove potential from Agent list
             return nil                                // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.agents[newAgent.address] = submit        // Add Agent & set Status (True)
-        log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
-        emit NewAgent(agent: newAgent.address)
-        return <- create Admin(newAgent)!             // Return Admin Resource as {Agent}
+        DAAM.agents[self.owner!.address] = submit        // Add Agent & set Status (True)
+        log("Agent: ".concat(self.owner!.address.toString()).concat(" added to DAAM") )
+        emit NewAgent(agent: self.owner!.address)
+        return <- create Admin(self.owner!.address)!             // Return Admin Resource as {Agent}
     }
 
     // // The Creator potential can accept (True) or deny (False)
-    pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
+    pub fun answerCreatorInvite(submit: Bool): @Creator? {
         pre {
-            newCreator.borrow<&DAAM.Creator>(from: self.creatorStoragePath) == nil : "You are aleady a Creator."
-            !DAAM.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
-            !DAAM.agents.containsKey(newCreator.address)    : "A Creator can not use the same address as an Agent."
-            DAAM.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
-            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
+            self.owner!.borrow<&DAAM.Creator>(from: self.creatorStoragePath) == nil : "You are aleady a Creator."
+            !DAAM.admins.containsKey(self.owner!.address)  : "A Creator can not use the same address as an Admin."
+            !DAAM.agents.containsKey(self.owner!.address)    : "A Creator can not use the same address as an Agent."
+            DAAM.creators.containsKey(self.owner!.address) : "You got no DAAM Creator invite."
+            Profile.check(self.owner!.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                       // Refused invitation.
-            DAAM.creators.remove(key: newCreator.address)  // Remove potential from Agent list
+            DAAM.creators.remove(key: self.owner!.address)  // Remove potential from Agent list
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True)
-        log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
-        emit NewCreator(creator: newCreator.address)
-        return <- create Creator(newCreator)!                         // Return Creator Resource
+        DAAM.creators[self.owner!.address] = submit         // Add Creator & set Status (True)
+        log("Creator: ".concat(self.owner!.address.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: self.owner!.address)
+        return <- create Creator(self.owner!.address)!                         // Return Creator Resource
     }
 
-    pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
+    pub fun answerMinterInvite(submit: Bool): @Minter? {
         pre {
-            minter.borrow<&DAAM.Minter>(from: self.minterStoragePath) == nil : "You are aleady a Minter."
-            DAAM.minters.containsKey(minter.address) : "You do not have a Minter Invitation"
+            self.owner!.borrow<&DAAM.Minter>(from: self.minterStoragePath) == nil : "You are aleady a Minter."
+            DAAM.minters.containsKey(self.owner!.address)                         : "You do not have a Minter Invitation"
         }
 
-        if !submit {                                 // Refused invitation. 
-            DAAM.minters.remove(key: minter.address) // Remove potential from Agent list
-            return nil                               // Return and end function
+        if !submit {                                      // Refused invitation. 
+            DAAM.minters.remove(key: self.owner!.address) // Remove potential from Agent list
+            return nil                                    // Return and end function
         }
         // Invitation accepted at this point
-        log("Minter: ".concat(minter.address.toString()) )
+        log("Minter: ".concat(selself.owner!f.owner!.address.toString()) )
         emit NewMinter(minter: minter.address)
-        return <- create Minter(minter)             // Return Minter (Key) Resource
+        return <- create Minter(minterself.owner.address!)             // Return Minter (Key) Resource
     }
     
     // Create an new Collection to store NFTs

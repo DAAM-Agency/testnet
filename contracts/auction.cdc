@@ -39,9 +39,9 @@ pub contract AuctionHouse {
         pub let titleholder  : Address  // owner of the wallet
         pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
 
-        init(auctioneer: AuthAccount) {
-            self.titleholder = auctioneer.address // Owner of the address
-            self.currentAuctions <- {}            // Auction Resources are stored here. The Auctions themselves.
+        init(auctioneer: Address) {
+            self.titleholder = auctioneer // Owner of the address
+            self.currentAuctions <- {}    // Auction Resources are stored here. The Auctions themselves.
         }
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
@@ -251,22 +251,22 @@ pub contract AuctionHouse {
         }
 
         // Makes Bid, Bids are deposited into vault
-        pub fun depositToBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
+        pub fun depositToBid(amount: @FungibleToken.Vault) {
             pre {         
                 self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
-                self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
-                self.leader != bidder.address         : "You are already lead bidder."
-                self.owner?.address != bidder.address : "You can not bid in your own auction."
+                self.validateBid(bidder: self.owner!.address, balance: amount.balance) : "You have made an invalid Bid."
+                self.leader != self.owner!.address         : "You are already lead bidder."
+                self.owner?.address != self.owner!.address : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
 
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
-            self.leader = bidder.address           // set new leader
-            self.updateAuctionLog(amount.balance)  // update logs with new balance
-            self.incrementminBid()                 // increment accordingly
+            self.leader = self.owner!.address           // set new leader
+            self.updateAuctionLog(amount.balance)       // update logs with new balance
+            self.incrementminBid()                      // increment accordingly
             self.auctionVault.deposit(from: <- amount)  // deposit FUSD into Vault
             self.extendAuction()                        // extendend auction if applicable
 
@@ -335,29 +335,29 @@ pub contract AuctionHouse {
         }
 
         // Allows bidder to withdraw their bid as long as they are not the lead bidder.
-        pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault {
+        pub fun withdrawBid(): @FungibleToken.Vault {
             pre {
-                self.leader! != bidder.address : "You have the Winning Bid. You can not withdraw."
+                self.leader! != self.owner!.address : "You have the Winning Bid. You can not withdraw."
                 self.updateStatus() != false   : "Auction has Ended."
-                self.auctionLog.containsKey(bidder.address) : "You have not made a Bid"
+                self.auctionLog.containsKey(self.owner!.address) : "You have not made a Bid"
                 self.minBid != nil : "This is a Buy It Now only purchase."
                 self.verifyAuctionLog() : "Internal Error!!"
             }
             post { self.verifyAuctionLog() }
 
-            let balance = self.auctionLog[bidder.address]! // Get balance from log
-            self.auctionLog.remove(key: bidder.address)!   // Remove from log
+            let balance = self.auctionLog[self.owner!.address]! // Get balance from log
+            self.auctionLog.remove(key: self.owner!.address)!   // Remove from log
             let amount <- self.auctionVault.withdraw(amount: balance)! // Withdraw balance from Vault
             log("Bid Withdrawn")
-            emit BidWithdrawn(bidder: bidder.address)    
+            emit BidWithdrawn(bidder: self.owner!.address)    
             return <- amount  // return bidders deposit amount
         }
 
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
-        pub fun winnerCollect(bidder: AuthAccount) {
+        pub fun winnerCollect() {
             pre{
                 self.updateStatus() == false  : "Auction has not Ended."
-                self.leader == bidder.address : "You do not have access to the selected Auction"
+                self.leader == self.owner!.address : "You do not have access to the selected Auction"
             }
             self.verifyReservePrice() // Verify Reserve price is met
         }
@@ -441,11 +441,11 @@ pub contract AuctionHouse {
         }          
 
         // To purchase the item directly. 
-        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
+        pub fun buyItNow(amount: @FungibleToken.Vault) {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
-                self.verifyBuyNowAmount(bidder: bidder.address, amount: amount.balance) : "Wrong Amount."
+                self.verifyBuyNowAmount(bidder: self.owner!.address, amount: amount.balance) : "Wrong Amount."
                 // Must be after the above line.
                 self.buyItNowStatus() : "Buy It Now option has expired."
             }
@@ -453,7 +453,7 @@ pub contract AuctionHouse {
 
             self.status = false          // ends the auction
             self.length = 0.0            // set length to 0; double end auction
-            self.leader = bidder.address // set new leader
+            self.leader = self.owner!.address // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
@@ -462,7 +462,7 @@ pub contract AuctionHouse {
             emit BuyItNow(winner: self.leader!, auction: self.auctionID, amount: self.buyNow)                         // pay royalities
 
             log(self.auctionLog)
-            self.winnerCollect(bidder: bidder) // Will receive NFT if reserve price is met
+            self.winnerCollect() // Will receive NFT if reserve price is met
         }    
 
         // returns BuyItNowStaus, true = active, false = inactive
@@ -492,12 +492,11 @@ pub contract AuctionHouse {
             emit FundsReturned()
         }
 
-        // Auctions can be cancelled if they have no bids. 
-        pub fun cancelAuction(auctioneer: AuthAccount) {
+        // Auctions can be cancelled if they have no bids. //TODO Protect with interface
+        pub fun cancelAuction() {
             pre {
                 self.updateStatus() == nil || true         : "Too late to cancel Auction."
                 self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
-                self.owner!.address == auctioneer.address : "You are not the auctioneer."
             }
             
             self.status = false
@@ -679,8 +678,8 @@ pub contract AuctionHouse {
     }
 
     // Create Auction Wallet which is used for storing Auctions.
-    pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
-        return <- create AuctionWallet(auctioneer: auctioneer) 
+    pub fun createAuctionWallet(): @AuctionWallet { 
+        return <- create AuctionWallet(auctioneer: self.owner!.address) 
     }
 
     init() {
