@@ -256,8 +256,8 @@ pub contract AuctionHouse {
                 self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: self.owner!.address, balance: amount.balance) : "You have made an invalid Bid."
-                self.leader != self.owner!.address         : "You are already lead bidder."
-                self.owner?.address != self.owner!.address : "You can not bid in your own auction."
+                self.leader != self.owner!.address    : "You are already lead bidder."
+                self.creator == self.owner!.address   : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds

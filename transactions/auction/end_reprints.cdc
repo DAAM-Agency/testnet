@@ -3,17 +3,17 @@
 
 import AuctionHouse from 0x045a1763c93006ca
 
-transaction(auctionID: UInt64) {
-    let auctionID    : UInt64
+transaction(aid: UInt64) {
+    let aid    : UInt64
     let auctionHouse : &AuctionHouse.AuctionWallet
 
     prepare(signer: AuthAccount) {
-        self.auctionID    = auctionID
+        self.aid          = aid
         self.auctionHouse = signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
     }
 
     execute {
-        self.auctionHouse.endReprints(auctionID: self.auctionID)
+        self.auctionHouse.endReprints(auctionID: self.aid)
         log("Ending Reprints")
     }
 }
