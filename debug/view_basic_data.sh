@@ -82,8 +82,8 @@ done
 
 # Verify Metadata
 echo "========= Verify Metadata ========="
-flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR --signer admin
-flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR2 --signer admin
+flow scripts execute ./scripts/view_metadata $CREATOR
+flow scripts execute ./scripts/view_metadata $CREATOR2
 
 # Verify TokenIDs
 echo "---------- Veriy TokenIDs ----------"
