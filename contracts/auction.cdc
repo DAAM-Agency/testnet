@@ -678,8 +678,8 @@ pub contract AuctionHouse {
     }
 
     // Create Auction Wallet which is used for storing Auctions.
-    pub fun createAuctionWallet(): @AuctionWallet { 
-        return <- create AuctionWallet(auctioneer: self.owner!.address) 
+    pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
+        return <- create AuctionWallet(auctioneer: auctioneer.address) 
     }
 
     init() {
