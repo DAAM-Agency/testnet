@@ -71,7 +71,7 @@ pub contract AuctionHouse {
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
-            let metadata <-! metadataRef.generateMetadata(minter: self.owner!, mid: mid)      // Create MetadataHolder
+            let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
 
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
@@ -625,7 +625,7 @@ pub contract AuctionHouse {
             if self.creator != self.owner!.address { return } // Verify Owner is Creator otherwise skip function
 
             let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            let metadata <- metadataGen.generateMetadata(minter: self.owner!, mid: self.mid)       // get Metadata from Metadata Generator
+            let metadata <- metadataGen.generateMetadata(mid: self.mid)       // get Metadata from Metadata Generator
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
 

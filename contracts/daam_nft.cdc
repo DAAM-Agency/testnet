@@ -188,11 +188,12 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @Metadata  // Used to generate a Metadata either new or one with an incremented counter
+    pub fun generateMetadata(mid: UInt64) : @Metadata  // Used to generate a Metadata either new or one with an incremented counter
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
+    pub fun viewMetadata(mid: UInt64): MetadataHolder?
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -257,9 +258,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         // Remove Metadata as Resource. Metadata + Request = NFT.
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @Metadata {
+        pub fun generateMetadata(mid: UInt64) : @Metadata {
             pre {
-                self.grantee == self.owner!.address            : "Permission Denied"
+                DAAM.minters[self.owner!.address]!             : "Permission Denied"
                 DAAM.creators.containsKey(self.owner!.address) : "You are not a Creator"
                 DAAM.creators[self.owner!.address]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
