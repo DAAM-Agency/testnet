@@ -251,24 +251,24 @@ pub contract AuctionHouse {
         }
 
         // Makes Bid, Bids are deposited into vault
-        pub fun depositToBid(amount: @FungibleToken.Vault) {
+        pub fun depositToBid(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {         
                 self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
-                self.validateBid(bidder: self.owner!.address, balance: amount.balance) : "You have made an invalid Bid."
-                self.leader != self.owner!.address    : "You are already lead bidder."
-                self.creator == self.owner!.address   : "You can not bid in your own auction."
+                self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
+                self.leader != bidder.address    : "You are already lead bidder."
+                self.creator == bidder.address   : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
 
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
-            self.leader = self.owner!.address           // set new leader
-            self.updateAuctionLog(amount.balance)       // update logs with new balance
-            self.incrementminBid()                      // increment accordingly
-            self.auctionVault.deposit(from: <- amount)  // deposit FUSD into Vault
-            self.extendAuction()                        // extendend auction if applicable
+            self.leader = bidder.address                // Set new leader
+            self.updateAuctionLog(amount.balance)       // Update logs with new balance
+            self.incrementminBid()                      // Increment accordingly
+            self.auctionVault.deposit(from: <- amount)  // Deposit FUSD into Vault
+            self.extendAuction()                        // Extendend auction if applicable
 
             log("Balance: ".concat(self.auctionLog[self.leader!]!.toString()) )
             log("Min Bid: ".concat(self.minBid!.toString()) )
@@ -354,10 +354,10 @@ pub contract AuctionHouse {
         }
 
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
-        pub fun winnerCollect() {
+        pub fun winnerCollect(bidder: AuthAccount) {
             pre{
                 self.updateStatus() == false  : "Auction has not Ended."
-                self.leader == self.owner!.address : "You do not have access to the selected Auction"
+                self.leader == bidder.address : "You do not have access to the selected Auction"
             }
             self.verifyReservePrice() // Verify Reserve price is met
         }
@@ -441,7 +441,7 @@ pub contract AuctionHouse {
         }          
 
         // To purchase the item directly. 
-        pub fun buyItNow(amount: @FungibleToken.Vault) {
+        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
@@ -462,7 +462,7 @@ pub contract AuctionHouse {
             emit BuyItNow(winner: self.leader!, auction: self.auctionID, amount: self.buyNow)                         // pay royalities
 
             log(self.auctionLog)
-            self.winnerCollect() // Will receive NFT if reserve price is met
+            self.winnerCollect(bidder: bidder) // Will receive NFT if reserve price is met
         }    
 
         // returns BuyItNowStaus, true = active, false = inactive

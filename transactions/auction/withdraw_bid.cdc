@@ -13,6 +13,7 @@ transaction(auction: Address, aid: UInt64)
     let vaultRef        : &FUSD.Vault{FungibleToken.Receiver}
     
     prepare(bidder: AuthAccount) {
+        self.bidder          = bidder
         self.aid             = aid
         self.fusdStoragePath = /storage/fusdVault
         self.auctionHouse    = getAccount(auction)
@@ -22,7 +23,7 @@ transaction(auction: Address, aid: UInt64)
     }
 
     execute {
-        let amount <- self.auctionHouse.item(self.aid)!.withdrawBid()!
+        let amount <- self.auctionHouse.item(self.aid)!.withdrawBid(bidder: self.bidder)!
         self.vaultRef.deposit(from: <- amount)
     }
 }

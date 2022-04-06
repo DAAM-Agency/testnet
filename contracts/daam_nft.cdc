@@ -117,7 +117,7 @@ pub resource RequestGenerator {
         }
 
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
-        royality.insert(key: self.owner!.address, (0.9 * percentage) ) // get Creator percentage
+        royality.insert(key: self.grantee, (0.9 * percentage) ) // get Creator percentage
 
         let request <-! create Request(mid: mid) // get request
         request.acceptDefault(royality: royality)          // append royality rate
@@ -233,8 +233,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun generateMetadata(minter: PublicAccount, mid: UInt64) : @MetadataHolder {
             pre {
                 self.grantee == self.owner!.address            : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You are not a Creator"
-                DAAM.creators[self.owner!.address]!            : "Your Creator account is Frozen."
+                DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
+                DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM.metadata[mid] != nil : "This already has been published."
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
@@ -573,7 +573,7 @@ pub resource Admin: Agent
             }
 
             let vote = 2 as Int // TODO change to 3
-            DAAM.remove.insert(key: self.owner!.address, admin) // Append removal list
+            DAAM.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
                 // Talley Votes
@@ -753,8 +753,8 @@ pub resource Admin: Agent
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You're not a Creator."
-                DAAM.creators[self.owner!.address] == true     : "This Creators' account is Frozen."
+                DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
+                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
             }
             return <- create MetadataGenerator(self.grantee) // return Metadata Generator
         }
@@ -763,8 +763,8 @@ pub resource Admin: Agent
         pub fun newRequestGenerator(): @RequestGenerator {
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You're not a Creator."
-                DAAM.creators[self.owner!.address] == true     : "This Creators' account is Frozen."
+                DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
+                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
             }
             return <- create RequestGenerator(self.grantee) // return Request Generator
         } 
