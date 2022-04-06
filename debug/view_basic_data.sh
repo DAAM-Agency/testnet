@@ -82,8 +82,8 @@ done
 
 # Verify Metadata
 echo "========= Verify Metadata ========="
-flow scripts execute ./scripts/view_metadata $CREATOR
-flow scripts execute ./scripts/view_metadata $CREATOR2
+flow scripts execute ./scripts/view_metadata.cdc $CREATOR
+flow scripts execute ./scripts/view_metadata.cdc $CREATOR2
 
 # Verify TokenIDs
 echo "---------- Veriy TokenIDs ----------"
