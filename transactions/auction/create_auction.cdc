@@ -12,6 +12,7 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   let auctionHouse : &AuctionHouse.AuctionWallet
   let nftCollection: &DAAM.Collection
 
+  let tokenID     : UInt64
   let start       : UFix64
   let length      : UFix64
   let isExtended  : Bool
@@ -21,7 +22,6 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   let startingBid : UFix64?
   let reserve     : UFix64
   let buyNow      : UFix64
-  let reprintSeries   : Bool  
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
@@ -37,7 +37,6 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
     self.startingBid      = startingBid
     self.reserve          = reserve
     self.buyNow           = buyNow
-    self.reprintSeries    = reprintSeries
   }
 
   execute {
@@ -45,7 +44,7 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
 
       self.auctionHouse.createAuction(nft: <-nft, start: self.start, length: self.length, isExtended: self.isExtended,
         extendedTime: self.extendedTime, incrementByPrice: self.incrementByPrice, incrementAmount: self.incrementAmount,
-        startingBid: self.startingBid, reserve: self.reserve, buyNow: self.`buyNow)
+        startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow)
 
       log("New Auction created.")
   }
