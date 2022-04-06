@@ -28,6 +28,6 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
 
     execute {
         let amount <- self.vaultRef.withdraw(amount: self.bid)!
-        self.auctionHouse.item(self.aid)!.depositToBid(amount: <-amount)!
+        self.auctionHouse.item(self.aid)!.depositToBid(bidder: self.bidder, amount: <-amount)!
     }
 }

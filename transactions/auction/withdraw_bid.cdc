@@ -7,6 +7,7 @@ import AuctionHouse  from 0x045a1763c93006ca
 
 transaction(auction: Address, aid: UInt64)
 {
+    let bidder          : AuthAccount
     let aid             : UInt64
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath

@@ -256,8 +256,8 @@ pub contract AuctionHouse {
                 self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
-                self.leader != bidder.address    : "You are already lead bidder."
-                self.creator == bidder.address   : "You can not bid in your own auction."
+                self.leader != bidder.address         : "You are already lead bidder."
+                self.owner!.address != bidder.address : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
@@ -335,21 +335,21 @@ pub contract AuctionHouse {
         }
 
         // Allows bidder to withdraw their bid as long as they are not the lead bidder.
-        pub fun withdrawBid(): @FungibleToken.Vault {
+        pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault {
             pre {
-                self.leader! != self.owner!.address : "You have the Winning Bid. You can not withdraw."
+                self.leader! != bidder.address : "You have the Winning Bid. You can not withdraw."
                 self.updateStatus() != false   : "Auction has Ended."
-                self.auctionLog.containsKey(self.owner!.address) : "You have not made a Bid"
+                self.auctionLog.containsKey(bidder.address) : "You have not made a Bid"
                 self.minBid != nil : "This is a Buy It Now only purchase."
                 self.verifyAuctionLog() : "Internal Error!!"
             }
             post { self.verifyAuctionLog() }
 
-            let balance = self.auctionLog[self.owner!.address]! // Get balance from log
-            self.auctionLog.remove(key: self.owner!.address)!   // Remove from log
+            let balance = self.auctionLog[bidder.address]! // Get balance from log
+            self.auctionLog.remove(key: bidder.address)!   // Remove from log
             let amount <- self.auctionVault.withdraw(amount: balance)! // Withdraw balance from Vault
             log("Bid Withdrawn")
-            emit BidWithdrawn(bidder: self.owner!.address)    
+            emit BidWithdrawn(bidder: bidder.address)    
             return <- amount  // return bidders deposit amount
         }
 
@@ -445,7 +445,7 @@ pub contract AuctionHouse {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
-                self.verifyBuyNowAmount(bidder: self.owner!.address, amount: amount.balance) : "Wrong Amount."
+                self.verifyBuyNowAmount(bidder: bidder.address, amount: amount.balance) : "Wrong Amount."
                 // Must be after the above line.
                 self.buyItNowStatus() : "Buy It Now option has expired."
             }
@@ -453,7 +453,7 @@ pub contract AuctionHouse {
 
             self.status = false          // ends the auction
             self.length = 0.0            // set length to 0; double end auction
-            self.leader = self.owner!.address // set new leader
+            self.leader = bidder.address // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault

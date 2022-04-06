@@ -8,6 +8,7 @@ import DAAM          from 0xfd43f9148d4b725d
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
+    let bidder          : AuthAccount
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath
     let collection      : &{DAAM.CollectionPublic}

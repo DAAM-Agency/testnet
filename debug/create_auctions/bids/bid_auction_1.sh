@@ -29,7 +29,7 @@ echo "---------- BID: Client :AID 1 : 11.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR $AID 11.0 --signer client #A
 echo "Client Address: "$CLIENT
 echo "Creator Address: "$CREATOR
-flow scripts execute ./scripts/get_auction_log.cdc $CREATOR $AID
+flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR $AID
 
 echo "CLIENT FUSD"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
