@@ -39,9 +39,9 @@ pub contract AuctionHouse {
         pub let titleholder  : Address  // owner of the wallet
         pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
 
-        init(auctioneer: AuthAccount) {
-            self.titleholder = auctioneer.address // Owner of the address
-            self.currentAuctions <- {}            // Auction Resources are stored here. The Auctions themselves.
+        init(auctioneer: Address) {
+            self.titleholder = auctioneer // Owner of the address
+            self.currentAuctions <- {}    // Auction Resources are stored here. The Auctions themselves.
         }
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
@@ -257,18 +257,18 @@ pub contract AuctionHouse {
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder.address, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder.address         : "You are already lead bidder."
-                self.owner?.address != bidder.address : "You can not bid in your own auction."
+                self.owner!.address != bidder.address : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
 
             log("self.minBid: ".concat(self.minBid!.toString()) )
 
-            self.leader = bidder.address           // set new leader
-            self.updateAuctionLog(amount.balance)  // update logs with new balance
-            self.incrementminBid()                 // increment accordingly
-            self.auctionVault.deposit(from: <- amount)  // deposit FUSD into Vault
-            self.extendAuction()                        // extendend auction if applicable
+            self.leader = bidder.address                // Set new leader
+            self.updateAuctionLog(amount.balance)       // Update logs with new balance
+            self.incrementminBid()                      // Increment accordingly
+            self.auctionVault.deposit(from: <- amount)  // Deposit FUSD into Vault
+            self.extendAuction()                        // Extendend auction if applicable
 
             log("Balance: ".concat(self.auctionLog[self.leader!]!.toString()) )
             log("Min Bid: ".concat(self.minBid!.toString()) )
@@ -492,12 +492,11 @@ pub contract AuctionHouse {
             emit FundsReturned()
         }
 
-        // Auctions can be cancelled if they have no bids. 
-        pub fun cancelAuction(auctioneer: AuthAccount) {
+        // Auctions can be cancelled if they have no bids. //TODO Protect with interface
+        pub fun cancelAuction() {
             pre {
                 self.updateStatus() == nil || true         : "Too late to cancel Auction."
                 self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
-                self.owner!.address == auctioneer.address : "You are not the auctioneer."
             }
             
             self.status = false
@@ -679,7 +678,7 @@ pub contract AuctionHouse {
 
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
-        return <- create AuctionWallet(auctioneer: auctioneer) 
+        return <- create AuctionWallet(auctioneer: auctioneer.address) 
     }
 
     init() {

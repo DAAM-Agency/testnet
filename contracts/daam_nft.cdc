@@ -117,7 +117,7 @@ pub resource RequestGenerator {
         }
 
         var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
-        royality.insert(key: self.owner!.address, (0.9 * percentage) ) // get Creator percentage
+        royality.insert(key: self.grantee, (0.9 * percentage) ) // get Creator percentage
 
         let request <-! create Request(mid: mid) // get request
         request.acceptDefault(royality: royality)          // append royality rate
@@ -260,9 +260,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(mid: UInt64) : @Metadata {
             pre {
-                DAAM.minters[self.owner!.address]!             : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You are not a Creator"
-                DAAM.creators[self.owner!.address]!            : "Your Creator account is Frozen."
+                self.grantee == self.owner!.address     : "Permission Denied"
+                //DAAM.minters[self.grantee]!             : "Permission Denied" TODO
+                DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
+                DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
+                
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM.metadata[mid] != nil : "This already has been published."
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
@@ -508,9 +510,9 @@ pub resource Admin: Agent
         pub var status: Bool       // The current status of the Admin
         priv let grantee: Address
 
-        init(_ admin: AuthAccount) {
+        init(_ admin: Address) {
             self.status  = true      // Default Admin status: True
-            self.grantee = admin.address
+            self.grantee = admin
         }
 
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
@@ -590,7 +592,7 @@ pub resource Admin: Agent
             }
 
             let vote = 2 as Int // TODO change to 3
-            DAAM.remove.insert(key: self.owner!.address, admin) // Append removal list
+            DAAM.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
                 // Talley Votes
@@ -740,17 +742,17 @@ pub resource Admin: Agent
         pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
         access (contract) let grantee: Address
 
-        init(_ creator: AuthAccount) {
+        init(_ creator: Address) {
             self.agent = {}
-            self.grantee = creator.address
+            self.grantee = creator
         }  // init Creators agent(s)
 
         // Used to create a Metadata Generator when initalizing Creator Storge
         pub fun newMetadataGenerator(): @MetadataGenerator {
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You're not a Creator."
-                DAAM.creators[self.owner!.address] == true     : "This Creators' account is Frozen."
+                DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
+                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
             }
             return <- create MetadataGenerator(self.grantee) // return Metadata Generator
         }
@@ -759,8 +761,8 @@ pub resource Admin: Agent
         pub fun newRequestGenerator(): @RequestGenerator {
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
-                DAAM.creators.containsKey(self.owner!.address) : "You're not a Creator."
-                DAAM.creators[self.owner!.address] == true     : "This Creators' account is Frozen."
+                DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
+                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
             }
             return <- create RequestGenerator(self.grantee) // return Request Generator
         } 
@@ -772,9 +774,9 @@ pub resource Admin: Agent
     {
         priv let grantee: Address
 
-        init(_ minter: AuthAccount) {
-            self.grantee = minter.address
-            DAAM.minters.insert(key: minter.address, true) // Insert new Minter in minter list.
+        init(_ minter: Address) {
+            self.grantee = minter
+            DAAM.minters.insert(key: minter, true) // Insert new Minter in minter list.
         }
 
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
@@ -838,8 +840,8 @@ pub resource Admin: Agent
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-            newAdmin.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Admin."
             DAAM.admins.containsKey(newAdmin.address)    : "You got no DAAM Admin invite."
+            !DAAM.admins[newAdmin.address]!              : "You Admin Access is Frozen."
             !DAAM.agents.containsKey(newAdmin.address)   : "A Admin can not use the same address as an Agent."
             !DAAM.creators.containsKey(newAdmin.address) : "A Admin can not use the same address as an Creator."
             Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
@@ -854,17 +856,17 @@ pub resource Admin: Agent
         DAAM.admins[newAdmin.address] = submit // Insert new Admin in admins list.
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin)!      // Accepted and returning Admin Resource
+        return <- create Admin(newAdmin.address)!      // Accepted and returning Admin Resource
     }
 
     // // The Agent potential can accept (True) or deny (False)
     pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
     {
         pre {
-            newAgent.borrow<&DAAM.Admin{DAAM.Agent}>(from: self.adminStoragePath) == nil : "You are aleady an Agent."
             !DAAM.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
             !DAAM.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
             DAAM.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
+            !DAAM.agents[newAgent.address]!              : "You Agent Access is Frozen."
             Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
@@ -876,16 +878,16 @@ pub resource Admin: Agent
         DAAM.agents[newAgent.address] = submit        // Add Agent & set Status (True)
         log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
         emit NewAgent(agent: newAgent.address)
-        return <- create Admin(newAgent)!             // Return Admin Resource as {Agent}
+        return <- create Admin(newAgent.address)!             // Return Admin Resource as {Agent}
     }
 
     // // The Creator potential can accept (True) or deny (False)
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
-            newCreator.borrow<&DAAM.Creator>(from: self.creatorStoragePath) == nil : "You are aleady a Creator."
             !DAAM.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
-            !DAAM.agents.containsKey(newCreator.address)    : "A Creator can not use the same address as an Agent."
+            !DAAM.agents.containsKey(newCreator.address)  : "A Creator can not use the same address as an Agent."
             DAAM.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
+            !DAAM.creators[newCreator.address]!           : "You Creator Access is Frozen."
             Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
@@ -897,23 +899,23 @@ pub resource Admin: Agent
         DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
-        return <- create Creator(newCreator)!                         // Return Creator Resource
+        return <- create Creator(newCreator.address)!                         // Return Creator Resource
     }
 
-    pub fun answerMinterInvite(minter: AuthAccount, submit: Bool): @Minter? {
+    pub fun answerMinterInvite(newMinter: AuthAccount, submit: Bool): @Minter? {
         pre {
-            minter.borrow<&DAAM.Minter>(from: self.minterStoragePath) == nil : "You are aleady a Minter."
-            DAAM.minters.containsKey(minter.address) : "You do not have a Minter Invitation"
+            DAAM.minters.containsKey(newMinter.address) : "You do not have a Minter Invitation"
+            !DAAM.minters[newMinter.address]!           : "You Minter Access is Frozen."
         }
 
-        if !submit {                                 // Refused invitation. 
-            DAAM.minters.remove(key: minter.address) // Remove potential from Agent list
-            return nil                               // Return and end function
+        if !submit {                                      // Refused invitation. 
+            DAAM.minters.remove(key: newMinter.address) // Remove potential from Agent list
+            return nil                                    // Return and end function
         }
         // Invitation accepted at this point
-        log("Minter: ".concat(minter.address.toString()) )
-        emit NewMinter(minter: minter.address)
-        return <- create Minter(minter)             // Return Minter (Key) Resource
+        log("Minter: ".concat(newMinter.address.toString()) )
+        emit NewMinter(minter: newMinter.address)
+        return <- create Minter(newMinter.address)             // Return Minter (Key) Resource
     }
     
     // Create an new Collection to store NFTs
