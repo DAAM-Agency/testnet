@@ -12,9 +12,14 @@ flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Imag
 flow transactions send ./transactions/creator/submit_all.cdc 4 '["Digital","Image"]' "data H" "thumbnail H" "file H" 0.15 --signer creator2 # Will be MID 8
 flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data I" "thumbnail I" "file I" 0.15 --signer creator2 # Will be MID 9
 
+# Verify Metadata
 echo "========= Verify Metadata ========="
-# verify metadata
-echo -n "Creator: "
-flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR --signer admin
-echo -n "Creator2: "
-flow transactions send ./transactions/admin/Get_metadatas_ref.cdc $CREATOR2 --signer admin
+for user in $CREATOR $CREATOR2
+do
+    METADATA=$(flow -o json scripts execute ./scripts/get_mids.cdc $user | jq ' .value' | grep value | awk '{print $2}' | tr -d '"')
+    #echo "Metadata: "$METADATA
+    for list in $METADATA
+    do
+        flow scripts execute ./scripts/view_metadata.cdc $user $list
+    done
+done
