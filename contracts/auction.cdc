@@ -523,7 +523,7 @@ pub contract AuctionHouse {
         }
 
         pub fun itemInfo(): DAAM.MetadataHolder? { // returns the metadata of the item NFT.
-            return self.auctionNFT?.metadata.getHolder()
+            return self.auctionNFT?.metadata
         }
 
         pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.
