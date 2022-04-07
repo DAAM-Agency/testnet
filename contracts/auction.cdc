@@ -71,7 +71,8 @@ pub contract AuctionHouse {
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
-            let metadata <-! metadataRef.generateMetadata(mid: mid)      // Create MetadataHolder
+            let minterAccess <- AuctionHouse.minterAccess()
+            let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
 
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
@@ -623,8 +624,9 @@ pub contract AuctionHouse {
             if !self.reprintSeries { return } // if reprint is set to false, skip function
             if self.creator != self.owner!.address { return } // Verify Owner is Creator otherwise skip function
 
-            let metadataGen = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            let metadata <- metadataGen.generateMetadata(mid: self.mid)       // get Metadata from Metadata Generator
+            let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
+            let minterAccess <- AuctionHouse.minterAccess()
+            let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: self.mid)
             let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
 
@@ -671,9 +673,16 @@ pub contract AuctionHouse {
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM.Metadata): @DAAM.NFT {
-        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
-        let nft <- minter.mintNFT(metadata: <-metadata)! // Mint NFT
+        let minterRef = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
+        let nft <- minterRef.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
+    }
+
+    // Requires Minter Key // Minter function to mint
+    access(contract) fun minterAccess(): @DAAM.MinterAccess {
+        let minterRef = self.account.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)! // get Minter Reference
+        let minter_access <- minterRef.createMinterAccess()
+        return <- minter_access                                  // Return NFT
     }
 
     // Create Auction Wallet which is used for storing Auctions.
