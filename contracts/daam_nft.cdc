@@ -163,8 +163,17 @@ pub resource RequestGenerator {
         
         init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, data: String?, thumbnail: String?, file: String?, counter: &Metadata?)
         {
-            // Init all NFT setting
-            // initializing Metadata ID, self.mid
+            pre {
+                // Increment Metadata Counter Arguments are correct
+                (creator==nil && series==nil && categories==nil && data==nil
+                && thumbnail==nil && file==nil && counter != nil)
+                || // or
+                // New Metadata (Counter = 1) Arguments are correct
+                (creator!=nil && series!=nil && categories!=nil && data!=nil
+                && thumbnail!=nil && file!=nil && counter == nil)
+            }
+
+            // initializing Metadata
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid       = DAAM.metadataCounterID // init MID with counter
@@ -196,8 +205,9 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
-    pub fun generateMetadata(mid: UInt64) : @Metadata  // Used to generate a Metadata either new or one with an incremented counter
-}
+    // Used to generate a Metadata either new or one with an incremented counter
+    // Requires a Minters Key to generate MinterAccess
+    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata}
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
@@ -266,10 +276,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         // Remove Metadata as Resource. Metadata + Request = NFT.
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(mid: UInt64) : @Metadata {
+        pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata {
             pre {
                 self.grantee == self.owner!.address     : "Permission Denied"
-                //DAAM.minters[self.grantee]!             : "Permission Denied" TODO
+                minter.validate() : "Permission Denied"  // TODO IS Minter
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
                 
@@ -277,6 +287,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.metadata[mid] != nil : "This already has been published."
                 DAAM.metadata[mid]!       : "Your Submission was Rejected."
             }
+            destroy minter
 
             // Create Metadata with incremented counter/print
             let mRef = &self.metadata[mid] as &Metadata
@@ -789,12 +800,12 @@ pub resource Admin: Agent
 
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
-                self.grantee == self.owner!.address : "Permission Denied"
                 metadata.counter <= metadata.series || metadata.series == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
             }
+
             let isLast = metadata.counter == metadata.series // Get print count
             let mid = metadata.mid               // Get MID
             let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
@@ -810,6 +821,10 @@ pub resource Admin: Agent
             emit MintedNFT(id: nft.id)
 
             return <- nft  // return NFT
+        }
+
+        pub fun createMinterAccess(): @MinterAccess {
+            return <- create MinterAccess(self.owner!.address)
         }
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
@@ -836,8 +851,20 @@ pub resource Admin: Agent
             pre  { !DAAM.newNFTs.contains(id) : "Token ID is already set to New." }
             post { DAAM.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
                 DAAM.newNFTs.append(id)       // Append 'new' list
-        }        
+        }      
     }
+/************************************************************************/
+pub resource MinterAccess
+{
+    priv let original_address: Address
+
+    init(_ user: Address) { self.original_address = user }
+
+    pub fun validate(): Bool {
+        pre { self.owner!.address == self.original_address }
+        return DAAM.minters[self.owner!.address]!
+    }
+}
 /************************************************************************/
     // Public DAAM functions
 
