@@ -167,18 +167,26 @@ pub resource RequestGenerator {
             // initializing Metadata ID, self.mid
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
-            } else if counter!.counter >= series! && series! != 0 {
-                panic("Metadata setting incorrect.")
+                self.mid       = DAAM.metadataCounterID // init MID with counter
+                self.creator   = creator!               // creator of NFT
+                self.series    = series!                // total prints
+                self.counter   = 1                      // current print of total prints
+                self.category  = categories!            // categories 
+                self.data      = data!                  // data,about,misc page
+                self.thumbnail = thumbnail!             // thumbnail are stored here
+                self.file      = file!                  // NFT data is stored here
+            } else {
+                self.mid       = counter!.mid          // init MID with counter
+                self.creator   = counter!.creator      // creator of NFT
+                self.series    = counter!.series       // total prints
+                self.counter   = counter!.counter + 1  // current print of total prints
+                self.category  = counter!.category     // categories 
+                self.data      = counter!.data         // data,about,misc page
+                self.thumbnail = counter!.thumbnail    // thumbnail are stored here
+                self.file      = counter!.file         // NFT data is stored here
+                // Error checking; Re-prints do not excede series limit or is Unlimited prints
+                if self.counter > self.series && self.series != 0 { panic("Metadata setting incorrect.") }
             }
-
-            self.mid       = counter == nil ? DAAM.metadataCounterID : counter!.mid // init MID with counter
-            self.creator   = counter == nil ? creator!    : counter!.creator   // creator of NFT
-            self.series    = counter == nil ? series!     : counter!.series    // total prints
-            self.counter   = counter == nil ? 1 : counter!.counter + 1         // current print of total prints
-            self.category  = counter == nil ? categories! : counter!.category  // categories 
-            self.data      = counter == nil ? data!       : counter!.data      // data,about,misc page
-            self.thumbnail = counter == nil ? thumbnail!  : counter!.thumbnail // thumbnail are stored here
-            self.file      = counter == nil ? file!       : counter!.file      // NFT data is stored here
         }
 
         pub fun getHolder(): MetadataHolder {
