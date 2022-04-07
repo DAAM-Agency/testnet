@@ -82,8 +82,15 @@ done
 
 # Verify Metadata
 echo "========= Verify Metadata ========="
-flow scripts execute ./scripts/view_metadata.cdc $CREATOR
-flow scripts execute ./scripts/view_metadata.cdc $CREATOR2
+for user in $CREATOR $CREATOR2
+do
+    METADATA=$(flow -o json scripts execute ./scripts/get_mids.cdc $user | jq ' .value' | grep value | awk '{print $2}' | tr -d '"')
+    #echo "Metadata: "$METADATA
+    for list in $METADATA
+    do
+        flow scripts execute ./scripts/view_metadata.cdc $user $list
+    done
+done
 
 # Verify TokenIDs
 echo "---------- Veriy TokenIDs ----------"
