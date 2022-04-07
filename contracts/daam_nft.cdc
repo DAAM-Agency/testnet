@@ -824,7 +824,7 @@ pub resource Admin: Agent
         }
 
         pub fun createMinterAccess(): @MinterAccess {
-            return <- create MinterAccess(self.owner!.address)
+            return <- create MinterAccess(self.grantee)
         }
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
@@ -861,8 +861,7 @@ pub resource MinterAccess
     init(_ user: Address) { self.original_address = user }
 
     pub fun validate(): Bool {
-        pre { self.owner!.address == self.original_address }
-        return DAAM.minters[self.owner!.address]!
+        return DAAM.minters[self.original_address]!
     }
 }
 /************************************************************************/
