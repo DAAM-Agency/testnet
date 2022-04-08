@@ -7,7 +7,7 @@ import AuctionHouse  from 0x045a1763c93006ca
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
-    let bidder          : AuthAccount
+    let bidder          : Address
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath
     let vaultRef        : &FUSD.Vault{FungibleToken.Provider}
@@ -15,7 +15,7 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
     let bid             : UFix64
     
     prepare(bidder: AuthAccount) {
-        self.bidder = bidder
+        self.bidder = bidder.address
         self.aid = aid
         self.bid = bid
         

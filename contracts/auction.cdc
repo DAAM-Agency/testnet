@@ -338,28 +338,25 @@ pub contract AuctionHouse {
         // Allows bidder to withdraw their bid as long as they are not the lead bidder.
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault {
             pre {
-                self.leader! != bidder : "You have the Winning Bid. You can not withdraw."
+                self.leader! != bidder.address : "You have the Winning Bid. You can not withdraw."
                 self.updateStatus() != false   : "Auction has Ended."
-                self.auctionLog.containsKey(bidder) : "You have not made a Bid"
+                self.auctionLog.containsKey(bidder.address) : "You have not made a Bid"
                 self.minBid != nil : "This is a Buy It Now only purchase."
                 self.verifyAuctionLog() : "Internal Error!!"
             }
             post { self.verifyAuctionLog() }
 
-            let balance = self.auctionLog[bidder]! // Get balance from log
-            self.auctionLog.remove(key: bidder)!   // Remove from log
+            let balance = self.auctionLog[bidder.address]! // Get balance from log
+            self.auctionLog.remove(key: bidder.address)!   // Remove from log
             let amount <- self.auctionVault.withdraw(amount: balance)! // Withdraw balance from Vault
             log("Bid Withdrawn")
-            emit BidWithdrawn(bidder: bidder)    
+            emit BidWithdrawn(bidder: bidder.address)    
             return <- amount  // return bidders deposit amount
         }
 
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
-        pub fun winnerCollect(bidder: AuthAccount) {
-            pre{
-                self.updateStatus() == false  : "Auction has not Ended."
-                self.leader == bidder : "You do not have access to the selected Auction"
-            }
+        pub fun winnerCollect() {
+            pre{ self.updateStatus() == false  : "Auction has not Ended." }
             self.verifyReservePrice() // Verify Reserve price is met
         }
 
@@ -463,7 +460,7 @@ pub contract AuctionHouse {
             emit BuyItNow(winner: self.leader!, auction: self.auctionID, amount: self.buyNow)                         // pay royalities
 
             log(self.auctionLog)
-            self.winnerCollect(bidder: bidder) // Will receive NFT if reserve price is met
+            self.winnerCollect() // Will receive NFT if reserve price is met
         }    
 
         // returns BuyItNowStaus, true = active, false = inactive

@@ -8,7 +8,7 @@ import DAAM          from 0xfd43f9148d4b725d
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
-    let bidder          : AuthAccount
+    let bidder          : Address
     let auctionHouse    : &{AuctionHouse.AuctionPublic}
     let fusdStoragePath : StoragePath
     let collection      : &{DAAM.CollectionPublic}
@@ -17,7 +17,7 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
     let bid             : UFix64
     
     prepare(bidder: AuthAccount) {
-        self.bidder = bidder
+        self.bidder = bidder.address
         self.fusdStoragePath = /storage/fusdVault
         self.vaultRef   = bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
         self.collection = bidder.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath)!

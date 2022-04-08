@@ -16,7 +16,6 @@ pub contract Categories {
     }
 
     // Variables
-    priv let grantee: Address
     priv var counter: UInt64            // A counter used as an incremental Category ID
     access(contract) var categories: {String : UInt64} // category list { category name : categoty counter (acts as ID)}
 
@@ -43,23 +42,20 @@ pub contract Categories {
 
     // management functions
     
-    pub fun addCategory(_ signer: AuthAccount, name: String) {
-        pre {
-            signer.address == self.grantee : "Not Authorized!"
-            !self.categories.containsKey(name) : "Category: ".concat(name).concat(" already exists.")
-        }
-        post{ self.categories.containsKey(name) : "Internal Error: Add Category" }
+    access(account) fun addCategory(name: String) {
+        pre  { !self.categories.containsKey(name) : "Category: ".concat(name).concat(" already exists.") }
+        post { self.categories.containsKey(name)  : "Internal Error: Add Category" }
 
         self.categories.insert(key: name, self.counter)
+
         log("Category Added: ".concat(name))
         emit CategoryAdded(name: name, id: self.counter)
 
         self.counter = self.counter + 1
     }
 
-    pub fun removeCategory(_ signer: AuthAccount, name: String) {
+    access(account) fun removeCategory(name: String) {
         pre {
-            signer.address == self.grantee : "Not Authorized!"
             self.categories.containsKey(name) : "Category: ".concat(name).concat(" does not exists.")
         }
         post{ !self.categories.containsKey(name) : "Internal Error: Remove Category" }
@@ -69,25 +65,24 @@ pub contract Categories {
         emit CategoryRemoved(name: name, id: self.counter)
     }
 
-    init(signer: AuthAccount) {
-        self.grantee = signer.address
+    init() {
         self.counter = 0
         self.categories = {}
 
         // initial categories
         
         // category types
-        self.addCategory(signer, name: "Digital")
-        self.addCategory(signer, name: "Physical")
+        self.addCategory(name:"Digital")
+        self.addCategory(name:"Physical")
         // detailed types
-        self.addCategory(signer, name: "Image")
-        self.addCategory(signer, name: "Audio")
-        self.addCategory(signer, name: "Video")
-        self.addCategory(signer, name: "Photography")
-        self.addCategory(signer, name: "Virtual Reality")
-        self.addCategory(signer, name: "Augmented Reality")
+        self.addCategory(name:"Image")
+        self.addCategory(name:"Audio")
+        self.addCategory(name:"Video")
+        self.addCategory(name:"Photography")
+        self.addCategory(name:"Virtual Reality")
+        self.addCategory(name:"Augmented Reality")
         // typically physical in nature
-        self.addCategory(signer, name: "Sculpture")
-        self.addCategory(signer, name: "Fashion")
+        self.addCategory(name:"Sculpture")
+        self.addCategory(name:"Fashion")
     }
 }
