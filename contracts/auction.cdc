@@ -442,7 +442,7 @@ pub contract AuctionHouse {
         }          
 
         // To purchase the item directly. 
-        pub fun buyItNow(bidder: AuthAccount, amount: @FungibleToken.Vault) {
+        pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
