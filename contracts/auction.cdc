@@ -187,7 +187,7 @@ pub contract AuctionHouse_V2 {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM_V8.NFT? // Store NFT for auction
-        pub var auctionVault : @FungibleToken.Vault // Vault, All funds are stored. //TODO make priv
+        priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time

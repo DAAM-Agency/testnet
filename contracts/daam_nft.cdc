@@ -71,7 +71,6 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
 // When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
-// Neogoation may not continue. V2 Featur TODO
 // Request manage the royality rate
 // Accept Default are auto agreements
 pub resource Request {
@@ -610,7 +609,7 @@ pub resource Admin: Agent
                 self.status: "You're no longer a have Access."
             }
 
-            let vote = 2 as Int // TODO change to 3
+            let vote = 4
             DAAM_V8.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM_V8.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
