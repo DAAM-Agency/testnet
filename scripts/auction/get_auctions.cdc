@@ -1,7 +1,7 @@
 // get_auctions.cdc
 // Return all auctions in Auction Wallet. Identified by TokenIDs
 
-import AuctionHouse  from 0x01837e15023c9249
+import AuctionHouse  from 0x045a1763c93006ca
 
 
 pub fun main(auction: Address): [UInt64] {    

@@ -1,12 +1,14 @@
-// submit_all.cdc
+// submit_and_auction.cdc
 // Creator uses to submit Metadata & Approve Rpyalty
+// Used to create an auction for a first-time sale.
 
-import DAAM_V7      from 0xa4ad5ea5c0bd2fba
-import AuctionHouse from 0x01837e15023c9249
+import Categories   from 0xa4ad5ea5c0bd2fba
+import DAAM_V8.V8.V8_V8..         from 0xa4ad5ea5c0bd2fba
+import AuctionHouse from 0x045a1763c93006ca
 
 transaction(
     // Metadata Arguments
-    series: UInt64, data: String,  thumbnail: String, file: String,
+    series: UInt64, categories: [String], data: String,  thumbnail: String, file: String,
     // Request Arguments
     percentage: UFix64, 
     // Auction Arguments
@@ -15,14 +17,14 @@ transaction(
 )
 
 {    
-    let creator     : AuthAccount
-    let requestGen  : &DAAM_V7.RequestGenerator
-    let metadataGen : &DAAM_V7.MetadataGenerator
-    let metadataCap : Capability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorMint}>
+    let requestGen  : &DAAM_V8.V8..RequestGenerator
+    let metadataGen : &DAAM_V8.V8..MetadataGenerator
+    let metadataCap : Capability<&DAAM_V8.V8..MetadataGenerator{DAAM_V8.V8..MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse.AuctionWallet
 
     let series      : UInt64
     let data        : String
+    var categories  : [Categories.Category]
     let thumbnail   : String
     let file        : String
 
@@ -40,11 +42,10 @@ transaction(
     let reprintSeries   : Bool
 
     prepare(creator: AuthAccount) {
-        self.creator      = creator
-        self.metadataGen  = self.creator.borrow<&DAAM_V7.MetadataGenerator>(from: DAAM_V7.metadataStoragePath)!
-        self.requestGen   = self.creator.borrow<&DAAM_V7.RequestGenerator>( from: DAAM_V7.requestStoragePath)!
-        self.auctionHouse = self.creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        self.metadataCap  = self.creator.getCapability<&DAAM_V7.MetadataGenerator{DAAM_V7.MetadataGeneratorMint}>(DAAM_V7.metadataPublicPath)!
+        self.metadataGen  = creator.borrow<&DAAM_V8.V8..MetadataGenerator>(from: DAAM_V8.V8..metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V8.V8..RequestGenerator>( from: DAAM_V8.V8..requestStoragePath)!
+        self.auctionHouse = creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V8.V8..MetadataGenerator{DAAM_V8.V8..MetadataGeneratorMint}>(DAAM_V8.V8..metadataPublicPath)!
 
         self.series     = series
         self.data       = data
@@ -62,15 +63,18 @@ transaction(
         self.reserve          = reserve
         self.buyNow           = buyNow
         self.reprintSeries    = reprintSeries
+
+        self.categories = []
+        for cat in categories {
+            self.categories.append(Categories.Category(cat))
+        }
     }
 
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, data: self.data, thumbnail: self.thumbnail, file: self.file)       
-        let metadata = self.metadataGen.getMetadataRef(mid: mid)
-        
-        self.requestGen.acceptDefault(creator: self.creator, metadata: metadata, percentage: self.percentage)
+        let mid = self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
 
         self.auctionHouse.createOriginalAuction(
             metadataGenerator: self.metadataCap, mid: mid, start: self.start, length: self.length, isExtended: self.isExtended,
