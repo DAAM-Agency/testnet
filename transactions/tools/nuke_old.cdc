@@ -1,28 +1,28 @@
 // delete_admin.cdc
 // Debugging Tool
-import DAAM_V8.V8.V8_V8..         from 0xa4ad5ea5c0bd2fba
+import DAAM         from 0xfd43f9148d4b725d
 import AuctionHouse from 0x045a1763c93006ca
 
 transaction() {
     prepare(signer: AuthAccount) {
-        let adminRes <- signer.load<@DAAM_V8.V8..Admin>(from: DAAM_V8.V8..adminStoragePath)!
-        let requestRes <- signer.load<@DAAM_V8.V8..RequestGenerator>(from: DAAM_V8.V8..requestStoragePath)!
+        let adminRes <- signer.load<@DAAM.Admin>(from: DAAM.adminStoragePath)!
+        let requestRes <- signer.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)!
         destroy adminRes
         destroy requestRes
-        signer.unlink(DAAM_V8.V8..adminPrivatePath)
-        signer.unlink(DAAM_V8.V8..requestPrivatePath)
+        signer.unlink(DAAM.adminPrivatePath)
+        signer.unlink(DAAM.requestPrivatePath)
         log("Admin Removed")
 
-        let agentRes  <- signer.load<@DAAM_V8.V8..Admin{DAAM_V8.V8..Agent}>(from: DAAM_V8.V8..adminStoragePath)
+        let agentRes  <- signer.load<@DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)
         destroy agentRes
         log("Agent Removed")
 
-        let creatorRes  <- signer.load<@DAAM_V8.V8..Creator>(from: DAAM_V8.V8..creatorStoragePath)
-        let metadataRes <- signer.load<@DAAM_V8.V8..MetadataGenerator>(from: DAAM_V8.V8..metadataStoragePath)
+        let creatorRes  <- signer.load<@DAAM.Creator>(from: DAAM.creatorStoragePath)
+        let metadataRes <- signer.load<@DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
         destroy creatorRes
         destroy metadataRes
-        signer.unlink(DAAM_V8.V8..creatorPrivatePath)
-        signer.unlink(DAAM_V8.V8..metadataPublicPath)
+        signer.unlink(DAAM.creatorPrivatePath)
+        signer.unlink(DAAM.metadataPublicPath)
         log("Creator Removed")
 
         let auctionRes  <- signer.load<@AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)
@@ -30,7 +30,7 @@ transaction() {
         signer.unlink(AuctionHouse.auctionPublicPath)
         log("AuctionHouse cleared.")
 
-        let collection = signer.borrow<&DAAM_V8.V8..Collection> (from: DAAM_V8.V8..collectionStoragePath)
+        let collection = signer.borrow<&DAAM.Collection> (from: DAAM.collectionStoragePath)
         let nfts = collection?.getIDs()!
         for token in nfts {
             let nft <- collection?.withdraw(withdrawID: token)
@@ -38,9 +38,9 @@ transaction() {
         }
         log("NFTs' cleared.")
 
-        let wallet <- signer.load<@DAAM_V8.V8..Collection> (from: DAAM_V8.V8..collectionStoragePath)
+        let wallet <- signer.load<@DAAM.Collection> (from: DAAM.collectionStoragePath)
         destroy wallet
-        signer.unlink(DAAM_V8.V8..collectionPublicPath)
+        signer.unlink(DAAM.collectionPublicPath)
         log("Wallet cleared.")
     } 
 }

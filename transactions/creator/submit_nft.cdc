@@ -2,11 +2,11 @@
 // Creator uses to submit Metadata
 
 import Categories from 0xa4ad5ea5c0bd2fba
-import DAAM_V8.V8.V8_V8..       from 0xa4ad5ea5c0bd2fba
+import DAAM_V8       from 0xa4ad5ea5c0bd2fba
 transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String)
 {    
     //let creator     : AuthAccount
-    let metadataGen : &DAAM_V8.V8..MetadataGenerator
+    let metadataGen : &DAAM_V8.MetadataGenerator
     let series      : UInt64
     let data        : String
     var categories  : [Categories.Category]
@@ -15,7 +15,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
 
     prepare(creator: AuthAccount) {
         //self.creator = creator
-        self.metadataGen = creator.borrow<&DAAM_V8.V8..MetadataGenerator>(from: DAAM_V8.V8..metadataStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V8.MetadataGenerator>(from: DAAM_V8.metadataStoragePath)!
 
         self.series     = series
         self.data       = data

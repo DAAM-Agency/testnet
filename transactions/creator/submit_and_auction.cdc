@@ -3,7 +3,7 @@
 // Used to create an auction for a first-time sale.
 
 import Categories   from 0xa4ad5ea5c0bd2fba
-import DAAM_V8.V8.V8_V8..         from 0xa4ad5ea5c0bd2fba
+import DAAM_V8         from 0xa4ad5ea5c0bd2fba
 import AuctionHouse from 0x045a1763c93006ca
 
 transaction(
@@ -17,9 +17,9 @@ transaction(
 )
 
 {    
-    let requestGen  : &DAAM_V8.V8..RequestGenerator
-    let metadataGen : &DAAM_V8.V8..MetadataGenerator
-    let metadataCap : Capability<&DAAM_V8.V8..MetadataGenerator{DAAM_V8.V8..MetadataGeneratorMint}>
+    let requestGen  : &DAAM_V8.RequestGenerator
+    let metadataGen : &DAAM_V8.MetadataGenerator
+    let metadataCap : Capability<&DAAM_V8.MetadataGenerator{DAAM_V8.MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse.AuctionWallet
 
     let series      : UInt64
@@ -42,10 +42,10 @@ transaction(
     let reprintSeries   : Bool
 
     prepare(creator: AuthAccount) {
-        self.metadataGen  = creator.borrow<&DAAM_V8.V8..MetadataGenerator>(from: DAAM_V8.V8..metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM_V8.V8..RequestGenerator>( from: DAAM_V8.V8..requestStoragePath)!
+        self.metadataGen  = creator.borrow<&DAAM_V8.MetadataGenerator>(from: DAAM_V8.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V8.RequestGenerator>( from: DAAM_V8.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM_V8.V8..MetadataGenerator{DAAM_V8.V8..MetadataGeneratorMint}>(DAAM_V8.V8..metadataPublicPath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V8.MetadataGenerator{DAAM_V8.MetadataGeneratorMint}>(DAAM_V8.metadataPublicPath)!
 
         self.series     = series
         self.data       = data
