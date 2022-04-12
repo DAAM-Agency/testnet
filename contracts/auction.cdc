@@ -1,12 +1,11 @@
 // auction.cdc
 // by Ami Rajpal, 2021 // DAAM_V8 Agency
+import FungibleToken    from 0x9a0766d93b6608b7
+import FUSD             from 0xe223d8a629e49c68
+import DAAM_V8         from 0xa4ad5ea5c0bd2fba
+import NonFungibleToken from 0x631e88ae7f1d7c20
 
-import FungibleToken    from 0xee82856bf20e2aa6
-import FUSD             from 0x192440c99cb17282
-import DAAM_V8             from 0xfd43f9148d4b725d
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-
-pub contract AuctionHouse {
+pub contract AuctionHouse_V2 {
     // Events
     pub event AuctionCreated(auctionID: UInt64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
@@ -69,12 +68,12 @@ pub contract AuctionHouse {
                 DAAM_V8.getCopyright(mid: mid) != DAAM_V8.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
-            AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
+            AuctionHouse_V2.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
             let metadataRef = metadataGenerator.borrow()! as &DAAM_V8.MetadataGenerator{DAAM_V8.MetadataGeneratorMint} // Get MetadataHolder
-            let minterAccess <- AuctionHouse.minterAccess()
+            let minterAccess <- AuctionHouse_V2.minterAccess()
             let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
 
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
+            let nft <- AuctionHouse_V2.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -83,7 +82,7 @@ pub contract AuctionHouse {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
 
-            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
+            AuctionHouse_V2.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
         }
@@ -106,7 +105,7 @@ pub contract AuctionHouse {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
             
-            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
+            AuctionHouse_V2.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
         }
@@ -136,10 +135,10 @@ pub contract AuctionHouse {
                     destroy auction                                              // end auction.
                     
                     // Update Current Auctions List
-                    if AuctionHouse.currentAuctions[self.titleholder]!.length == 0 {
-                        AuctionHouse.currentAuctions.remove(key:self.titleholder) // If auctioneer has no more auctions remove from list
+                    if AuctionHouse_V2.currentAuctions[self.titleholder]!.length == 0 {
+                        AuctionHouse_V2.currentAuctions.remove(key:self.titleholder) // If auctioneer has no more auctions remove from list
                     } else {
-                        AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // otherwise update list
+                        AuctionHouse_V2.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // otherwise update list
                     }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )
@@ -221,10 +220,10 @@ pub contract AuctionHouse {
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
 
-            AuctionHouse.auctionCounter = AuctionHouse.auctionCounter + 1 // increment Auction Counter
+            AuctionHouse_V2.auctionCounter = AuctionHouse_V2.auctionCounter + 1 // increment Auction Counter
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
-            self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
+            self.auctionID = AuctionHouse_V2.auctionCounter // Auction uinque ID number
             self.creator = nft.metadata.creator
             self.mid = nft.mid // Metadata ID
             self.start = start        // When auction start
@@ -567,7 +566,7 @@ pub contract AuctionHouse {
 
             // If 1st sale is 'new' remove from 'new list'
             if DAAM_V8.isNFTNew(id: tokenID) {
-                AuctionHouse.notNew(tokenID: tokenID)
+                AuctionHouse_V2.notNew(tokenID: tokenID)
             } else { // else no longer "new", Seller is only need on re-sales.
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let sellerPercentage = 1.0 as UFix64 - (agencyPercentage + creatorPercentage)  // Calculate Percentage left over
@@ -621,10 +620,10 @@ pub contract AuctionHouse {
             if !self.reprintSeries { return } // if reprint is set to false, skip function
             if self.creator != self.owner!.address { return } // Verify Owner is Creator otherwise skip function
 
-            let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            let minterAccess <- AuctionHouse.minterAccess()
+            let metadataRef = AuctionHouse_V2.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
+            let minterAccess <- AuctionHouse_V2.minterAccess()
             let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: self.mid)
-            let old <- self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
+            let old <- self.auctionNFT <- AuctionHouse_V2.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
 
             self.resetAuction() // reset variables for next auction
@@ -655,7 +654,7 @@ pub contract AuctionHouse {
         }
     }
 /************************************************************************/
-// AuctionHouse Functions & Constructor
+// AuctionHouse_V2 Functions & Constructor
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
