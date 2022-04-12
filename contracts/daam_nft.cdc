@@ -71,7 +71,6 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 // Used to make requests for royality. A resource for Neogoation of royalities.
 // When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
-// Neogoation may not continue. V2 Featur TODO
 // Request manage the royality rate
 // Accept Default are auto agreements
 pub resource Request {
@@ -241,7 +240,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
-            DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
+            // DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: self.grantee, mid: mid)
@@ -279,7 +278,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata {
             pre {
                 self.grantee == self.owner!.address     : "Permission Denied"
-                minter.validate() : "Permission Denied"  // TODO IS Minter
+                minter.validate()                       : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
                 
@@ -518,6 +517,7 @@ pub struct CollectionData {
         pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
+        pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
         pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
@@ -610,7 +610,7 @@ pub resource Admin: Agent
                 self.status: "You're no longer a have Access."
             }
 
-            let vote = 2 as Int // TODO change to 3
+            let vote = 3 as Int
             DAAM.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
@@ -719,7 +719,17 @@ pub resource Admin: Agent
             DAAM.minters[minter] = status // status changed
             log("Minter Status Changed")
             emit ChangeMinterStatus(minter: minter, status: status)
-        }         
+        }
+
+        // Admin or Agent can change a Metadata status.
+        pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
+            pre {
+                self.grantee == self.owner!.address : "Permission Denied"
+                self.status                          : "You're no longer a have Access."
+                DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
+            }            
+            DAAM.metadata[mid] = status // change to a new Metadata status
+        }      
 
         // Admin or Agent can change a MIDs copyright status.
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
@@ -742,17 +752,7 @@ pub resource Admin: Agent
                 self.status                          : "You're no longer a have Access."
             }
             return DAAM.metadata
-        }
-
-        // Admin or Agent can change a Metadata status.
-        pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
-            pre {
-                self.grantee == self.owner!.address : "Permission Denied"
-                self.status                          : "You're no longer a have Access."
-                DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
-            }            
-            DAAM.metadata[mid] = status // change to a new Metadata status
-        }
+        }        
 	}
 /************************************************************************/
 // The Creator Resource (like Admin/Agent) is a permissions Resource. This allows the Creator

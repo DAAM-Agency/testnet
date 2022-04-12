@@ -187,7 +187,7 @@ pub contract AuctionHouse {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
-        pub var auctionVault : @FungibleToken.Vault // Vault, All funds are stored. //TODO make priv
+        priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time
@@ -206,7 +206,7 @@ pub contract AuctionHouse {
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
-                length > 1.0                         : "Minimum is 1 min" // TODO Replace 1 with 60
+                length >= 60.0                       : "Minimum is 1 min"
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
                 isExtended && extendedTime >= 20.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 20 seconds."
@@ -490,7 +490,7 @@ pub contract AuctionHouse {
             emit FundsReturned()
         }
 
-        // Auctions can be cancelled if they have no bids. //TODO Protect with interface
+        // Auctions can be cancelled if they have no bids.
         pub fun cancelAuction() {
             pre {
                 self.updateStatus() == nil || true         : "Too late to cancel Auction."

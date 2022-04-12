@@ -1,9 +1,8 @@
 # Invite Admin & Accept
 echo "========= Invite Agents ========="
-
-echo "---------- Inviting Agents ----------"
-for user in $AGENT $AGENT2
+for user in $@
 do
-getAddressName $user
-flow transactions send ./transactions/admin/invite_agent.cdc $user --signer cto
+    echo "Inviting: "$user
+    flow transactions send ./transactions/admin/invite_agent.cdc $user --signer cto
 done
+flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
