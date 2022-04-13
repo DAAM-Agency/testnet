@@ -3,7 +3,7 @@
 // Used for Admin to give Minter access.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
 transaction(newAgent: Address, minterAccess: Bool)
 {
