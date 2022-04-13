@@ -18,6 +18,6 @@ transaction(exMinter: Address)
 
     execute {
         self.admin.removeMinter(minter: self.exMinter)
-        log("Removed Admin")
+        log("Removed Minter")
     }
 }
