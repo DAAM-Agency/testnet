@@ -20,8 +20,8 @@ transaction(exAgent: Address) {
         self.admin.removeAgent(agent: self.exAgent)
         log("Removed Agent")
 
-        if DAAM.isMinter(minter: self.exAgenct) {
-            self.admin.removeMinter(minter: self.exAgenct)
+        if DAAM.isMinter(self.exAgent) != nil {
+            self.admin.removeMinter(minter: self.exAgent)
             log("Removed Minter")
         }
     }
