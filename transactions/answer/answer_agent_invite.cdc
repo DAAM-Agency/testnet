@@ -23,14 +23,14 @@ transaction(submit: Bool) {
             self.signer.save<@DAAM_V8.RequestGenerator>(<- requestGen, to: DAAM_V8.requestStoragePath)!
             self.signer.link<&DAAM_V8.RequestGenerator>(DAAM_V8.requestPrivatePath, target: DAAM_V8.requestStoragePath)!
 
-            log("You are now a DAAM Agent: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V8.Agent: ".concat(self.signer.address.toString()) )
             
             // Minter
             if DAAM_V8.isMinter(self.signer.address) == false { // Received Minter Invitation
-                let minter  <- DAAM_V8.answerMinterInvite(minter: self.signer, submit: submit)
+                let minter  <- DAAM_V8.answerMinterInvite(newMinter: self.signer, submit: submit)
                 self.signer.save<@DAAM_V8.Minter>(<- minter!, to: DAAM_V8.minterStoragePath)!
                 self.signer.link<&DAAM_V8.Minter>(DAAM_V8.minterPrivatePath, target: DAAM_V8.minterStoragePath)!
-                log("You are now a DAAM Minter: ".concat(self.signer.address.toString()) )
+                log("You are now a DAAM_V8.Minter: ".concat(self.signer.address.toString()) )
             }
             
         } else {

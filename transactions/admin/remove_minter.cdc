@@ -14,7 +14,7 @@ transaction(exMinter: Address)
     }
 
     // Verify exMinter is an Admin
-    pre { DAAM_V8.isMinter(exMinter) != nil : admin.address.toString().concat(" does not have a Minters' Key.") }
+    pre { DAAM_V8.isMinter(exMinter) != nil : admin.address.toString().concat(" does not have Minter Key.") }
 
     execute {
         self.admin.removeMinter(minter: self.exMinter)
