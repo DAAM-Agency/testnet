@@ -1,5 +1,6 @@
 // answer_agent_invite.cdc
 // Answer the invitation to be an Agent.
+// Answer the invitation to be a Minter. Typically only for Auctions & Marketplaces
 
 import DAAM_V7 from 0xa4ad5ea5c0bd2fba
 
@@ -21,8 +22,17 @@ transaction(submit: Bool) {
             let requestGen <- agentRef.newRequestGenerator()!
             self.signer.save<@DAAM_V7.RequestGenerator>(<- requestGen, to: DAAM_V7.requestStoragePath)!
             self.signer.link<&DAAM_V7.RequestGenerator>(DAAM_V7.requestPrivatePath, target: DAAM_V7.requestStoragePath)!
+
+            log("You are now a DAAM Agent: ".concat(self.signer.address.toString()) )
             
-            log("You are now a DAAM_V7 Agent: ".concat(self.signer.address.toString()) )
+            // Minter
+            if DAAM_V7.isMinter(self.signer.address) == false { // Received Minter Invitation
+                let minter  <- DAAM_V7.answerMinterInvite(minter: self.signer, submit: submit)
+                self.signer.save<@DAAM_V7.Minter>(<- minter!, to: DAAM_V7.minterStoragePath)!
+                self.signer.link<&DAAM_V7.Minter>(DAAM_V7.minterPrivatePath, target: DAAM_V7.minterStoragePath)!
+                log("You are now a DAAM Minter: ".concat(self.signer.address.toString()) )
+            }
+            
         } else {
             destroy agent
         }
@@ -30,3 +40,16 @@ transaction(submit: Bool) {
         if !submit { log("Thank You for your consideration.") }
     }
 }
+
+    execute {
+
+        if minter != nil && submit {
+            
+        } else {
+            destroy minter
+        }
+
+        if !submit { log("Thank You for your consideration.") }
+    }
+}
+
