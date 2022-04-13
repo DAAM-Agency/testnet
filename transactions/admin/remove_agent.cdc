@@ -14,10 +14,7 @@ transaction(exAgent: Address) {
     }
 
     // Verify exAgent is an Agent
-    pre {
-        DAAM_V8.isAgent(exAgent) != nil : exAgent.toString().concat(" is not an Agent.") 
-        DAAM_V8.isAdmin(admin.address) == true : admin.address.toString().concat(" is not an Admin.")
-    }
+    pre { DAAM_V8.isAgent(exAgent) != nil : exAgent.toString().concat(" is not an Agent.") }
     
     execute {
         self.admin.removeAgent(agent: self.exAgent)

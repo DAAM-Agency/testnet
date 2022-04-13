@@ -40,16 +40,3 @@ transaction(submit: Bool) {
         if !submit { log("Thank You for your consideration.") }
     }
 }
-
-    execute {
-
-        if minter != nil && submit {
-            
-        } else {
-            destroy minter
-        }
-
-        if !submit { log("Thank You for your consideration.") }
-    }
-}
-
