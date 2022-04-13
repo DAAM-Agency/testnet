@@ -18,7 +18,7 @@ transaction(creator: Address)
     
     execute {
         self.admin.removeCreator(creator: self.creator)
-        log("Remove Creator")
+        log("Removed Creator")
     }
 
     post { DAAM_V7.isCreator(self.creator) == nil : self.creator.toString().concat(" has Not been removed.") } // Verify is not a Creator
