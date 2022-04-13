@@ -27,7 +27,7 @@ transaction(submit: Bool) {
             
             // Minter
             if DAAM.isMinter(self.signer.address) == false { // Received Minter Invitation
-                let minter  <- DAAM.answerMinterInvite(minter: self.signer, submit: submit)
+                let minter  <- DAAM.answerMinterInvite(newMinter: self.signer, submit: submit)
                 self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)!
                 self.signer.link<&DAAM.Minter>(DAAM.minterPrivatePath, target: DAAM.minterStoragePath)!
                 log("You are now a DAAM Minter: ".concat(self.signer.address.toString()) )
@@ -40,16 +40,3 @@ transaction(submit: Bool) {
         if !submit { log("Thank You for your consideration.") }
     }
 }
-
-    execute {
-
-        if minter != nil && submit {
-            
-        } else {
-            destroy minter
-        }
-
-        if !submit { log("Thank You for your consideration.") }
-    }
-}
-
