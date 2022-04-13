@@ -1,10 +1,11 @@
-// remove_minter.cdc
-// Admin can remove an Minter.
+// remove_admin.cdc
+// Two Admins can remove another Admin. Must be run by two Admins.
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
 
-transaction(exMinter: Address) {
-    let admin   : &DAAM.Admin
+transaction(exMinter: Address)
+{
+    let admin    : &DAAM.Admin
     let exMinter : Address
 
     prepare(admin: AuthAccount) {
@@ -12,15 +13,11 @@ transaction(exMinter: Address) {
 	    self.exMinter = exMinter
     }
 
-    // Verify exMinter is a Minter
-    pre { DAAM.isMinter(exMinter) == true : exMinter.toString().concat(" is not an Minter.") }
-    
+    // Verify exMinter is an Admin
+    pre { DAAM.isAdmin(admin.address) == true : admin.address.toString().concat(" is not an Admin.") }
+
     execute {
         self.admin.removeMinter(minter: self.exMinter)
-        log("Remove Minter.")
+        log("Removed Minter")
     }
-
-    // Verify is not an Minter
-    post { DAAM.isMinter(self.exMinter) == nil : self.exMinter.toString().concat(" is still an Minter.") }
-
 }
