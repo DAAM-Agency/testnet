@@ -19,7 +19,7 @@ transaction(newAgent: Address, minterAccess: Bool)
         DAAM_V7.isAdmin(newAgent) == nil   : newAgent.toString().concat(" is already an Admin.")
         DAAM_V7.isAgent(newAgent) == nil   : newAgent.toString().concat(" is already an Agent.")
         DAAM_V7.isCreator(newAgent) == nil : newAgent.toString().concat(" is already an Creator.")
-        DAAM_V7.isMinter(newMinter) == nil : newMinter.toString().concat(" is already a Minter.")
+        DAAM_V7.isMinter(newAgent) == nil : newAgent.toString().concat(" is already a Minter.")
     }
     
     execute {
