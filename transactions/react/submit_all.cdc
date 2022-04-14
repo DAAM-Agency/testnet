@@ -26,7 +26,7 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String, perce
         self.data        = data
         self.thumbnail   = thumbnail
         self.file        = file
-        self.percentrage = percentage
+        self.percentage = percentage
     }
 
     pre {
