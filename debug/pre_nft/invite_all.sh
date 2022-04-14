@@ -10,7 +10,7 @@ done
 echo "---------- Inviting Agents ----------"
 for user in $AGENT $AGENT2
 do
-flow transactions send ./transactions/admin/invite_agent.cdc $user --signer cto
+flow transactions send ./transactions/admin/invite_agent_minter.cdc $user true --signer cto
 done
 
 echo "---------- Inviting Creators ----------"

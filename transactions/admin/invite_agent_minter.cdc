@@ -16,14 +16,14 @@ transaction(newAgent: Address, minterAccess: Bool)
     }
 
     pre {
-        DAAM.isAdmin(newAgent) == nil   : newAgent.toString().concat(" is already an Admin.")
-        DAAM.isAgent(newAgent) == nil   : newAgent.toString().concat(" is already an Agent.")
-        DAAM.isCreator(newAgent) == nil : newAgent.toString().concat(" is already an Creator.")
-        DAAM.isMinter(newMinter) == nil : newMinter.toString().concat(" is already a Minter.")
+        DAAM.isAdmin(newAgent)   == nil : newAgent.toString().concat(" is already an Admin.")
+        DAAM.isAgent(newAgent)   == nil : newAgent.toString().concat(" is already an Agent.")
+        DAAM.isCreator(newAgent) == nil : newAgent.toString().concat(" is already a Creator.")
+        DAAM.isMinter(newAgent)  == nil : newAgent.toString().concat(" is already a Minter.")
     }
     
     execute {
-        self.admin.inviteAgent(newAgent: self.newAgent)
+        self.admin.inviteAgent(self.newAgent)
         log("Admin Invited")
 
         if(minterAccess) {
