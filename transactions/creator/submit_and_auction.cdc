@@ -64,7 +64,7 @@ transaction(
         self.reprintSeries    = reprintSeries
     }
 
-    pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
+    pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
         let mid = self.metadataGen.addMetadata(creator: self.creator, series: self.series, data: self.data, thumbnail: self.thumbnail, file: self.file)       

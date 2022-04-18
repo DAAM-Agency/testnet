@@ -111,7 +111,7 @@ pub resource RequestGenerator {
             self.grantee == creator.address            : "Permission Denied"
             DAAM_V7.creators.containsKey(creator.address) : "You are not a Creator"
             DAAM_V7.creators[creator.address]!            : "Your Creator account is Frozen."
-            percentage >= 0.1 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
+            percentage >= 0.01 && percentage <= 0.3 : "Percentage must be inbetween 10% to 30%."
         }
 
         let mid = metadata.mid                             // get MID

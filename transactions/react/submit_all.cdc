@@ -30,7 +30,7 @@ transaction(series: UInt64, data: String, thumbnail: String, file: String, perce
     }
 
     pre {
-        percentage >= 0.1 || percentage <= 0.3 : "Percentages must be inbetween 10% to 30%."
+        percentage >= 0.01 || percentage <= 0.3 : "Percentages must be inbetween 10% to 30%."
     }
 
     execute {
