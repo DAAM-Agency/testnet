@@ -113,7 +113,7 @@ pub resource RequestGenerator {
             metadataGen.getMIDs().contains(mid)  : "Wrong MID"
             DAAM_V8.creators.containsKey(self.grantee) : "You are not a Creator"
             DAAM_V8.creators[self.grantee]!            : "Your Creator account is Frozen."
-            percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
+            percentage >= 0.01 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
 
         var royality = {DAAM_V8.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
