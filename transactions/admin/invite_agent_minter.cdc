@@ -23,7 +23,7 @@ transaction(newAgent: Address, minterAccess: Bool)
     }
     
     execute {
-        self.admin.inviteAgent(newAgent: self.newAgent)
+        self.admin.inviteAgent(self.newAgent)
         log("Admin Invited")
 
         if(minterAccess) {
