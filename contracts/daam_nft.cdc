@@ -207,11 +207,13 @@ pub resource RequestGenerator {
 pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess
-    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata}
+    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata
+}
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
     pub fun viewMetadata(mid: UInt64): MetadataHolder?
+    pub fun viewMetadatas(): [MetadataHolder]
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -311,7 +313,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             pre { self.metadata[mid] != nil : "Invalid MID" }
             let mRef = &self.metadata[mid] as &Metadata
             return mRef.getHolder()
-        }  
+        }
+
+        pub fun viewMetadatas(): [MetadataHolder] {
+            var list: [MetadataHolder] = []
+            for m in self.metadata.keys {
+                let mRef = &self.metadata[m] as &Metadata
+                list.append(mRef.getHolder() )
+            } 
+            return list
+        }
 
         destroy() { destroy self.metadata } 
 }
