@@ -213,6 +213,7 @@ pub resource interface MetadataGeneratorMint {
 pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
     pub fun viewMetadata(mid: UInt64): MetadataHolder?
+    pub fun viewMetadatas(): [MetadataHolder]
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -319,7 +320,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             var list: [MetadataHolder]
             let mRef = &self.metadata as &Metadata
             return mRef.getHolder()
-        }  
+        }
+
+        pub fun viewMetadatas(): [MetadataHolder] {
+            var list: [MetadataHolder] = []
+            for m in self.metadata.keys {
+                let mRef = &self.metadata[m] as &Metadata
+                list.append(mRef.getHolder() )
+            } 
+            return list
+        }
 
         destroy() { destroy self.metadata } 
 }
