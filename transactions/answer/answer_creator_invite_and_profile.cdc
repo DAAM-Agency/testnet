@@ -2,7 +2,7 @@
 // Answer the invitation to be a Creator.
 
 import Profile from 0xe223d8a629e49c68
-import DAAM_V8    from 0xa4ad5ea5c0bd2fba
+import DAAM_V8 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
