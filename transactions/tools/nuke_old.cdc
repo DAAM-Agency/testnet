@@ -1,7 +1,7 @@
 // delete_admin.cdc
 // Debugging Tool
 import DAAM_V7      from 0xa4ad5ea5c0bd2fba
-import AuctionHouse from 0x045a1763c93006ca
+import AuctionHouse from 0x1837e15023c9249
 
 transaction() {
     prepare(signer: AuthAccount) {
