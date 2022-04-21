@@ -1,7 +1,7 @@
 // delete_auction_wallet.cdc
 // Debugging Tool
 
-import AuctionHouse_V2 from 0x045a1763c93006ca
+import AuctionHouse_V2 from 0x1837e15023c9249
 
 transaction() {
     let auction: AuthAccount
