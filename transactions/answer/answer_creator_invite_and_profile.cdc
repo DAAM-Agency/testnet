@@ -21,15 +21,21 @@ transaction(submit: Bool) {
 
         let creator <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: self.submit)
         if creator != nil {
+            let old_creator <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)!
             self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)
             let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+            destroy old_creator
 
+            let old_mg <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)!
             let metadataGen <- creatorRef.newMetadataGenerator()
             self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
             self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
+            destroy old_mg
 
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)!
             let requestGen  <- creatorRef.newRequestGenerator()
             self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
+            destroy old_request
 
             log("You are now a DAAM Creator." )        
         } else {
