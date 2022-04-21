@@ -5,8 +5,8 @@ import AuctionHouse from 0x1837e15023c9249
 
 transaction() {
     prepare(signer: AuthAccount) {
-        let adminRes <- signer.load<@DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)!
-        let requestRes <- signer.load<@DAAM_V7.RequestGenerator>(from: DAAM_V7.requestStoragePath)!
+        let adminRes <- signer.load<@DAAM_V7.Admin>(from: DAAM_V7.adminStoragePath)
+        let requestRes <- signer.load<@DAAM_V7.RequestGenerator>(from: DAAM_V7.requestStoragePath)
         destroy adminRes
         destroy requestRes
         signer.unlink(DAAM_V7.adminPrivatePath)
@@ -31,12 +31,14 @@ transaction() {
         log("AuctionHouse.cleared.")
 
         let collection = signer.borrow<&DAAM_V7.Collection> (from: DAAM_V7.collectionStoragePath)
-        let nfts = collection?.getIDs()!
-        for token in nfts {
-            let nft <- collection?.withdraw(withdrawID: token)
-            destroy nft
+        let nfts = collection?.getIDs()
+        if nfts != nil {
+            for token in nfts! {
+                let nft <- collection?.withdraw(withdrawID: token)
+                destroy nft
+            }
+            log("NFTs' cleared.")
         }
-        log("NFTs' cleared.")
 
         let wallet <- signer.load<@DAAM_V7.Collection> (from: DAAM_V7.collectionStoragePath)
         destroy wallet
