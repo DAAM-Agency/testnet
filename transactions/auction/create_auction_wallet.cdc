@@ -1,7 +1,7 @@
 // create_auction_wallet.cdc
 // Create an auction wallet. Used to store auctions.
 
-import AuctionHouse_V2.V2from 0x045a1763c93006ca
+import AuctionHouse_V2 from 0x045a1763c93006ca
 
 transaction() {
     let signer: AuthAccount

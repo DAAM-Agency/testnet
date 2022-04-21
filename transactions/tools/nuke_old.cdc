@@ -1,7 +1,7 @@
 // delete_admin.cdc
 // Debugging Tool
 import DAAM_V7      from 0xfd43f9148d4b725d
-import AuctionHouse_V2.V2from 0x045a1763c93006ca
+import AuctionHouse_V2 from 0x045a1763c93006ca
 
 transaction() {
     prepare(signer: AuthAccount) {
@@ -28,7 +28,7 @@ transaction() {
         let auctionRes  <- signer.load<@AuctionHouse_V2.AuctionWallet>(from: AuctionHouse_V2.auctionStoragePath)
         destroy auctionRes
         signer.unlink(AuctionHouse_V2.auctionPublicPath)
-        log("AuctionHouse_V2.V2cleared.")
+        log("AuctionHouse_V2.cleared.")
 
         let collection = signer.borrow<&DAAM_V7.Collection> (from: DAAM_V7.collectionStoragePath)
         let nfts = collection?.getIDs()!
