@@ -12,9 +12,11 @@ transaction() {
 
     execute {
         if self.signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath) == nil {
+            let old <- self.signer.load<@AnyResource>(from: AuctionHouse.auctionStoragePath)
             let auctionWallet <- AuctionHouse.createAuctionWallet(auctioneer: self.signer)
             self.signer.save<@AuctionHouse.AuctionWallet> (<- auctionWallet, to: AuctionHouse.auctionStoragePath)
             self.signer.link<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath, target: AuctionHouse.auctionStoragePath)
+            destroy old
             log("Auction House Created, you can now have Auctions.")
         }
         else {
