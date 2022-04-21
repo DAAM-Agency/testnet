@@ -15,11 +15,15 @@ transaction(submit: Bool) {
     execute {
         let admin <- DAAM_V8.answerAdminInvite(newAdmin: self.signer, submit: self.submit)
         if admin != nil {
+            let old_admin <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)!
             self.signer.save<@DAAM_V8.Admin>(<- admin!, to: DAAM_V8.adminStoragePath)
             let adminRef = self.signer.borrow<&DAAM_V8.Admin>(from: DAAM_V8.adminStoragePath)!
+            destroy old_admin
 
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V8.requestStoragePath)!
             let requestGen <-! adminRef.newRequestGenerator()
             self.signer.save<@DAAM_V8.RequestGenerator>(<- requestGen, to: DAAM_V8.requestStoragePath)
+            destroy old_request
             
             log("You are now a DAAM_V8.Admin: ".concat(self.signer.address.toString()) )
         } else {
