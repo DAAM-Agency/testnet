@@ -6,22 +6,24 @@ import DAAM_V8             from 0xa4ad5ea5c0bd2fba
 
 transaction(public: Bool)
 {
-    var msg: String
+    let public: Bool
 
     prepare(acct: AuthAccount) {
-        if acct.borrow<&DAAM_V8.Collection> (from: DAAM_V8.collectionStoragePath) != nil { panic("You already have a DAAM_V8.Collection.") }
-        
-        self.msg = ""
-        let collection <- DAAM_V8.createDAAM_V8.ollection()    // Create a new empty collection
-        
+        if acct.borrow<&DAAM_V8.Collection>(from: DAAM_V8.collectionStoragePath) != nil {
+            panic("You already have a DAAM Collection.")
+        }
+        self.public = public
+    }
+
+    execute {
+        let collection <- DAAM_V8.createDAAMCollection()    // Create a new empty collection
         acct.save<@DAAM_V8.Collection>(<-collection, to: DAAM_V8.collectionStoragePath) // save the new account
         
-        if public {
+        if self.public {
             acct.link<&DAAM_V8.Collection{DAAM_V8.CollectionPublic, NonFungibleToken.CollectionPublic}>(DAAM_V8.collectionPublicPath, target: DAAM_V8.collectionStoragePath)
+            log("DAAM Account Created. You have a DAAM Collection (Public) to store NFTs'"))
         } else {
-            self.msg = "Non-"
+            log("DAAM Account Created. You have a DAAM Collection (Non-Public) to store NFTs'"))
         }
-        
-        log("DAAM_V8.Account Created. You have a ".concat(self.msg).concat("Public DAAM_V8.Collection to store NFTs'"))
     }
 }
