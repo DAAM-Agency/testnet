@@ -15,7 +15,7 @@ transaction(submit: Bool) {
     execute {
         let minter <- DAAM_V8.answerMinterInvite(newMinter: self.signer, submit: self.submit)
         if minter != nil {
-            let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)!
+            let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)
             self.signer.save<@DAAM_V8.Minter>(<- minter!, to: DAAM_V8.minterStoragePath)
             destroy old_minter
             log("You are now a DAAM_V8.Minter")
