@@ -23,9 +23,9 @@ transaction(public: Bool)
         
         if self.public {
             self.acct.link<&DAAM_V8.Collection{DAAM_V8.CollectionPublic, NonFungibleToken.CollectionPublic}>(DAAM_V8.collectionPublicPath, target: DAAM_V8.collectionStoragePath)
-            log("DAAM Account Created. You have a DAAM Collection (Public) to store NFTs'"))
+            log("DAAM Account Created. You have a DAAM Collection (Public) to store NFTs'")
         } else {
-            log("DAAM Account Created. You have a DAAM Collection (Non-Public) to store NFTs'"))
+            log("DAAM Account Created. You have a DAAM Collection (Non-Public) to store NFTs'")
         }
     }
 }
