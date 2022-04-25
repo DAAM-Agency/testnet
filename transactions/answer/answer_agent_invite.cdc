@@ -20,7 +20,7 @@ transaction(submit: Bool) {
             let agentRef = self.signer.borrow<&{DAAM_V8.Agent}>(from: DAAM_V8.adminStoragePath)!
             destroy old_admin
 
-            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V8.adminStoragePath)
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V8.requestStoragePath)
             let requestGen <- agentRef.newRequestGenerator()!
             self.signer.save<@DAAM_V8.RequestGenerator>(<- requestGen, to: DAAM_V8.requestStoragePath)!
             destroy old_request
