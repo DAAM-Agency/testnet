@@ -1,4 +1,4 @@
-// get_all_auctions.cdc
+// get_current_auctions.cdc
 // Return all auctions
 
 import AuctionHouse_V2 from 0x1837e15023c9249
