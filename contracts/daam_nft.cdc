@@ -201,7 +201,7 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creator: self.creator, mid: self.mid, UInt64, series: self.series, categories: self.category,
+            return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
             data: self.data, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
         }
     }
