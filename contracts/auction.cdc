@@ -691,12 +691,16 @@ pub contract AuctionHouse {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
 
-    access(account) fun addFee(mid: UInt64, fee: UFix64) {
+    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+        pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.fee[mid] = fee
     }
 
-    access(account) fun removeFee(mid: UInt64) {
-        pre { self.fee.containsKey(mid) }
+    pub fun removeFee(mid: UInt64, permission: &DAAM.Admin) {
+        pre {
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" 
+            self.fee.containsKey(mid) : "Mid does not exist."
+        }
         self.fee.remove(key: mid)
     }
 
