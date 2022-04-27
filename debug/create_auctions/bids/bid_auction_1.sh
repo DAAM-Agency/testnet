@@ -17,8 +17,8 @@ echo "CTO FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CTO| jq -c ' .value | .value'
 
 echo -n "--------------  AID: "$AID
-echo " Creator: "$CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo " Creator: "$CREATOR
 flow scripts execute ./scripts/auction/item_info.cdc $CREATOR $AID
 
 echo "FAIL TEST: BID: Client, AID 1 : 10.99 too low"
@@ -31,15 +31,15 @@ echo "Client Address: "$CLIENT
 echo "Creator Address: "$CREATOR
 flow scripts execute ./scripts/auction/get_auction_log.cdc $CREATOR $AID
 
-echo "CLIENT FUSD"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "CLIENT FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'
 
 echo "---------- BID: Nobody :AID 1 : 30.1 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR $AID 30.1 --signer nobody #A
 
-echo "NOBODY FUSD"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "NOBODY FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
 
 echo "FAIL TEST: Nobody bids twice. Already leader AID: 1."

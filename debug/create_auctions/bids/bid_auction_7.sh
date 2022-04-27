@@ -39,8 +39,8 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "---------- Bid: Nobody ID:7 9.0 ----------"
 flow transactions send ./transactions/auction/deposit_bid.cdc $CREATOR2 7 9.0 --signer nobody #E // total 29
 
-echo "NOBODY FUSD"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
+echo "NOBODY FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .value | .value'
 
 echo "========= Buy It Now: Client ID: 7 ========="
