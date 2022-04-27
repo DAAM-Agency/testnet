@@ -557,21 +557,21 @@ pub resource Admin: Agent
             return <- create RequestGenerator(self.grantee) // return new Request
         }
 
-        pub fun inviteAdmin(_ newAdmin: Address) {     // Admin invite a new Admin
+        pub fun inviteAdmin(_ admin: Address) {     // Admin invite a new Admin
             pre {
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                    : "You're no longer a have Access."
-                DAAM.creators[newAdmin] == nil : "A Admin can not use the same address as an Creator."
-                DAAM.agents[newAdmin] == nil   : "A Admin can not use the same address as an Agent."
-                DAAM.admins[newAdmin] == nil   : "They're already sa DAAM Admin!!!"
-                Profile.check(newAdmin) : "You can't be a DAAM Admin without a Profile! Go make one Fool!!"
+                DAAM.creators[admin] == nil : "A Admin can not use the same address as an Creator."
+                DAAM.agents[admin] == nil   : "A Admin can not use the same address as an Agent."
+                DAAM.admins[admin] == nil   : "They're already sa DAAM Admin!!!"
+                Profile.check(admin) : "You can't be a DAAM Admin without a Profile! Go make one Fool!!"
             }
-            post { DAAM.admins[newAdmin] == false : "Illegal Operaion: inviteAdmin" }
+            post { DAAM.admins[admin] == false : "Illegal Operaion: inviteAdmin" }
 
-            DAAM.admins.insert(key: newAdmin, false) // Admin account is setup but not active untill accepted.
-            log("Sent Admin Invitation: ".concat(newAdmin.toString()) )
-            emit AdminInvited(admin: newAdmin)                        
+            DAAM.admins.insert(key: admin, false) // Admin account is setup but not active untill accepted.
+            log("Sent Admin Invitation: ".concat(admin.toString()) )
+            emit AdminInvited(admin: admin)                        
         }
 
         pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
