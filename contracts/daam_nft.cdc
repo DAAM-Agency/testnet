@@ -69,27 +69,27 @@ pub enum CopyrightStatus: UInt8 {
             pub case VERIFIED   // 3 as UInt8
 }
 /***********************************************************************/
-// Used to make requests for royality. A resource for Neogoation of royalities.
-// When both parties agree on 'royality' the Request is considered valid aka isValid() = true and
-// Request manage the royality rate
+// Used to make requests for royalty. A resource for Neogoation of royalities.
+// When both parties agree on 'royalty' the Request is considered valid aka isValid() = true and
+// Request manage the royalty rate
 // Accept Default are auto agreements
 pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royality  : {Address : UFix64}    // current royality neogoation.
+    access(contract) var royalty  : {Address : UFix64}    // current royalty neogoation.
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
         self.mid       = mid             // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royality  = {}              // royality is initialized
+        self.royalty  = {}              // royalty is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
     
-    // Accept Default royality. Skip Neogations.
-    access(contract) fun acceptDefault(royality: {Address:UFix64} ) {
-        self.royality = royality        // get royality
+    // Accept Default royalty. Skip Neogations.
+    access(contract) fun acceptDefault(royalty: {Address:UFix64} ) {
+        self.royalty = royalty        // get royalty
         self.agreement = [true, true]   // set agreement status to Both parties Agreed
     }
 
@@ -115,11 +115,11 @@ pub resource RequestGenerator {
             percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
 
-        var royality = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
-        royality.insert(key: self.grantee, (0.9 * percentage) ) // get Creator percentage
+        var royalty = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
+        royalty.insert(key: self.grantee, (0.9 * percentage) ) // get Creator percentage
 
         let request <-! create Request(mid: mid) // get request
-        request.acceptDefault(royality: royality)          // append royality rate
+        request.acceptDefault(royalty: royalty)          // append royalty rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old // destroy place holder
@@ -332,14 +332,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let mid      : UInt64   // Token ID, A unique serialized number
         pub let metadata : MetadataHolder // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalities
+        pub let royalty : {Address : UFix64} // Where all royalities
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let mid      : UInt64   // Metadata ID, A unique serialized number
         pub let metadata : MetadataHolder // Metadata of NFT
-        pub let royality : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let royalty : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
         init(metadata: @Metadata, request: &Request) {
             pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
@@ -347,7 +347,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id          = DAAM.totalSupply     // Set Token ID with total supply
             self.mid         = metadata.mid         // Set Metadata ID
-            self.royality    = request.royality     // Save Request which are the royalities.  
+            self.royalty    = request.royalty     // Save Request which are the royalities.  
             self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }

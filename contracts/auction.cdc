@@ -27,6 +27,7 @@ pub contract AuctionHouse {
     access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -183,7 +184,9 @@ pub contract AuctionHouse {
         priv let increment    : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
         pub let startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
-        pub let buyNow        : UFix64   // buy now price
+        pub let fee           : UFix64   // the fee
+        pub let price         : UFix64   // original price
+        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
@@ -238,7 +241,9 @@ pub contract AuctionHouse {
             
             self.startingBid = startingBid 
             self.reserve = reserve
-            self.buyNow = buyNow
+            self.fee = AuctionHouse.getFee(mid: self.mid)
+            self.price = buyNow
+            self.buyNow = self.price * (self.fee + 1.0)
             // if last in series don't reprint.
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
@@ -362,7 +367,7 @@ pub contract AuctionHouse {
 
         // This is a key function where are all the action happens.
         // Verifies the Reserve Price is met. 
-        // Calls royality() & ReturnFunds() and manages all royalities and funds are returned
+        // Calls royalty() & ReturnFunds() and manages all royalities and funds are returned
         // Sends the item (NFT)
         access(contract) fun verifyReservePrice() {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
@@ -384,7 +389,7 @@ pub contract AuctionHouse {
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // return funds to all bidders
-                self.royality()     // pay royality
+                self.royalty()     // pay royalty
                 log("Item: Won")
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
@@ -545,7 +550,7 @@ pub contract AuctionHouse {
         }
 
         // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
-        priv fun royality()
+        priv fun royalty()
         {
             post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
@@ -553,10 +558,10 @@ pub contract AuctionHouse {
 
             let price = self.auctionVault.balance                           // get price of NFT
             let tokenID = self.auctionNFT?.id!                              // get TokenID
-            let royality = self.getRoyality()                               // get all royalities percentages
+            let royalty = self.getRoyality()                               // get all royalities percentages
             
-            let agencyPercentage  = royality[DAAM.agency]!          // extract Agency percentage
-            let creatorPercentage = royality[self.creator]!  // extract creators percentage using Metadata Reference
+            let agencyPercentage  = royalty[DAAM.agency]!          // extract Agency percentage
+            let creatorPercentage = royalty[self.creator]!  // extract creators percentage using Metadata Reference
             
             let agencyRoyality  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
             let creatorRoyality = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
@@ -594,10 +599,10 @@ pub contract AuctionHouse {
             return total == self.auctionVault.balance    // compare total to Vault
         }
 
-        // return royality information
+        // return royalty information
         priv fun getRoyality(): {Address : UFix64} {
-            let royality = self.auctionNFT?.royality! // get Royality data
-            return royality                           // return Royalty
+            let royalty = self.auctionNFT?.royalty! // get Royality data
+            return royalty                           // return Royalty
         }
         
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
@@ -648,7 +653,7 @@ pub contract AuctionHouse {
             }
 
             self.returnFunds()
-            self.royality()
+            self.royalty()
 
             destroy self.auctionVault
             destroy self.auctionNFT
@@ -682,6 +687,19 @@ pub contract AuctionHouse {
         return <- minter_access                                  // Return NFT
     }
 
+    pub fun getFee(mid: UInt64): UFix64 {
+        return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
+    }
+
+    access(account) fun addFee(mid: UInt64, fee: UFix64) {
+        self.fee[mid] = fee
+    }
+
+    access(account) fun removeFee(mid: UInt64) {
+        pre { self.fee.containsKey(mid) }
+        self.fee.remove(key: mid)
+    }
+
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
         return <- create AuctionWallet(auctioneer: auctioneer.address) 
@@ -690,6 +708,7 @@ pub contract AuctionHouse {
     init() {
         self.metadataGen     = {}
         self.currentAuctions = {}
+        self.fee             = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
