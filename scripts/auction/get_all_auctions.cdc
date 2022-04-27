@@ -1,7 +1,7 @@
 // get_all_auctions.cdc
 // Return all auctions
 
-import DAAM_V9         from 0xa4ad5ea5c0bd2fba
+import DAAM_V10         from 0xa4ad5ea5c0bd2fba
 import AuctionHouse_V2 from 0x01837e15023c9249
 
 pub struct Data {
@@ -19,9 +19,9 @@ pub struct Data {
         pub(set) var reprintSeries : Bool     // Active Series Minter (if series)
         pub(set) var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         pub(set) var timeLeft      : UFix64?
-        pub let metadata           : DAAM_V9.MetadataHolder?
+        pub let metadata           : DAAM_V10.MetadataHolder?
 
-        init(metadata: DAAM_V9.MetadataHolder?) {
+        init(metadata: DAAM_V10.MetadataHolder?) {
             self.auctionID = 0
             self.mid = 0
             self.start = 0.0
@@ -40,7 +40,7 @@ pub struct Data {
         }
 }
 
-pub fun getData(auction: &AuctionHouse_V2.Auction, metadata: DAAM_V9.MetadataHolder?): Data {
+pub fun getData(auction: &AuctionHouse_V2.Auction, metadata: DAAM_V10.MetadataHolder?): Data {
     var data = Data(metadata: metadata)
     data.auctionID = auction.auctionID
     data.mid = auction.mid

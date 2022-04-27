@@ -1,8 +1,9 @@
 // auction.cdc
-// by Ami Rajpal, 2021 // DAAM_V9 Agency
+// by Ami Rajpal, 2021 // DAAM Agency
+
 import FungibleToken    from 0x9a0766d93b6608b7
 import FUSD             from 0xe223d8a629e49c68
-import DAAM_V9          from 0xa4ad5ea5c0bd2fba
+import DAAM_V10          from 0xa4ad5ea5c0bd2fba
 import NonFungibleToken from 0x631e88ae7f1d7c20
 
 pub contract AuctionHouse_V2 {
@@ -22,10 +23,11 @@ pub contract AuctionHouse_V2 {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-                                       // { MID   : Capability<&DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint}> }
-    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint}> }
+                                       // { MID   : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
+    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -45,7 +47,7 @@ pub contract AuctionHouse_V2 {
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
         // MetadataGenerator: Reference to Metadata
-        // mid: DAAM_V9 Metadata ID
+        // mid: DAAM Metadata ID
         // start: Enter UNIX Flow Blockchain Time
         // length: Length of auction
         // isExtended: if the auction lenght is to be an Extended Auction
@@ -58,18 +60,18 @@ pub contract AuctionHouse_V2 {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint}>, mid: UInt64, start: UFix64, length: UFix64,
+        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}>, mid: UInt64, start: UFix64, length: UFix64,
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 self.titleholder == self.owner!.address : "You are not the owner of this Auction"
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
-                DAAM_V9.getCopyright(mid: mid) != DAAM_V9.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
-                DAAM_V9.getCopyright(mid: mid) != DAAM_V9.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                DAAM_V10.getCopyright(mid: mid) != DAAM_V10.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
+                DAAM_V10.getCopyright(mid: mid) != DAAM_V10.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
             AuctionHouse_V2.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
-            let metadataRef = metadataGenerator.borrow()! as &DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint} // Get MetadataHolder
+            let metadataRef = metadataGenerator.borrow()! as &DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint} // Get MetadataHolder
             let minterAccess <- AuctionHouse_V2.minterAccess()
             let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
 
@@ -89,13 +91,13 @@ pub contract AuctionHouse_V2 {
 
         // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
         // same arguments as createOriginalAuction except for reprintSeries
-        pub fun createAuction(nft: @DAAM_V9.NFT, start: UFix64, length: UFix64, isExtended: Bool,
+        pub fun createAuction(nft: @DAAM_V10.NFT, start: UFix64, length: UFix64, isExtended: Bool,
             extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
         {
             pre {
                 self.titleholder == self.owner!.address : "You are not the owner of this Auction" 
-                DAAM_V9.getCopyright(mid: nft.mid) != DAAM_V9.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
-                DAAM_V9.getCopyright(mid: nft.mid) != DAAM_V9.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                DAAM_V10.getCopyright(mid: nft.mid) != DAAM_V10.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
+                DAAM_V10.getCopyright(mid: nft.mid) != DAAM_V10.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
@@ -182,10 +184,12 @@ pub contract AuctionHouse_V2 {
         priv let increment    : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
         pub let startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
-        pub let buyNow        : UFix64   // buy now price
+        pub let fee           : UFix64   // the fee
+        pub let price         : UFix64   // original price
+        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse_V2.fee)
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
-        access(contract) var auctionNFT : @DAAM_V9.NFT? // Store NFT for auction
+        access(contract) var auctionNFT : @DAAM_V10.NFT? // Store NFT for auction
         priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
     
         // Auction: A resource containg the auction itself.
@@ -201,7 +205,7 @@ pub contract AuctionHouse_V2 {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        init(nft: @DAAM_V9.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+        init(nft: @DAAM_V10.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
@@ -237,7 +241,9 @@ pub contract AuctionHouse_V2 {
             
             self.startingBid = startingBid 
             self.reserve = reserve
-            self.buyNow = buyNow
+            self.fee = AuctionHouse_V2.getFee(mid: self.mid)
+            self.price = buyNow
+            self.buyNow = self.price * (self.fee + 1.0)
             // if last in series don't reprint.
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
@@ -361,7 +367,7 @@ pub contract AuctionHouse_V2 {
 
         // This is a key function where are all the action happens.
         // Verifies the Reserve Price is met. 
-        // Calls royality() & ReturnFunds() and manages all royalities and funds are returned
+        // Calls royalty() & ReturnFunds() and manages all royalities and funds are returned
         // Sends the item (NFT)
         access(contract) fun verifyReservePrice() {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
@@ -383,7 +389,7 @@ pub contract AuctionHouse_V2 {
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // return funds to all bidders
-                self.royality()     // pay royality
+                self.royalty()     // pay royalty
                 log("Item: Won")
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
@@ -393,7 +399,7 @@ pub contract AuctionHouse_V2 {
                 emit ItemReturned(auctionID: self.auctionID)    
             }
             log("receiver: ".concat(receiver!.toString()) )   
-            let collectionRef = getAccount(receiver!).getCapability<&{DAAM_V9.CollectionPublic}>(DAAM_V9.collectionPublicPath).borrow()!
+            let collectionRef = getAccount(receiver!).getCapability<&{DAAM_V10.CollectionPublic}>(DAAM_V10.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil     // remove nft
             let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
@@ -519,7 +525,7 @@ pub contract AuctionHouse_V2 {
             return self.updateStatus()
         }
 
-        pub fun itemInfo(): DAAM_V9.MetadataHolder? { // returns the metadata of the item NFT.
+        pub fun itemInfo(): DAAM_V10.MetadataHolder? { // returns the metadata of the item NFT.
             return self.auctionNFT?.metadata
         }
 
@@ -543,29 +549,29 @@ pub contract AuctionHouse_V2 {
             return 0.0 as UFix64 // return no time left
         }
 
-        // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
-        priv fun royality()
+        // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
+        priv fun royalty()
         {
-            post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
+            post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance                           // get price of NFT
             let tokenID = self.auctionNFT?.id!                              // get TokenID
-            let royality = self.getRoyality()                               // get all royalities percentages
+            let royalty = self.getRoyalty()                               // get all royalities percentages
             
-            let agencyPercentage  = royality[DAAM_V9.agency]!          // extract Agency percentage
-            let creatorPercentage = royality[self.creator]!  // extract creators percentage using Metadata Reference
+            let agencyPercentage  = royalty[DAAM_V10.agency]!          // extract Agency percentage
+            let creatorPercentage = royalty[self.creator]!  // extract creators percentage using Metadata Reference
             
-            let agencyRoyality  = DAAM_V9.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyality = DAAM_V9.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            let agencyRoyalty  = DAAM_V10.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyalty = DAAM_V10.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency FUSD share
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator FUSD share
             // get FUSD Receivers for Agency & Creator
 
             // If 1st sale is 'new' remove from 'new list'
-            if DAAM_V9.isNFTNew(id: tokenID) {
+            if DAAM_V10.isNFTNew(id: tokenID) {
                 AuctionHouse_V2.notNew(tokenID: tokenID)
             } else { // else no longer "new", Seller is only need on re-sales.
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
@@ -574,7 +580,7 @@ pub contract AuctionHouse_V2 {
                 seller.deposit(from: <-sellerCut ) // deposit amount
             }
             
-            let agencyPay  = getAccount(DAAM_V9.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+            let agencyPay  = getAccount(DAAM_V10.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             let creatorPay = getAccount(self.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
             
             agencyPay.deposit(from: <-agencyCut)   // Deposit Agency Cut
@@ -593,10 +599,10 @@ pub contract AuctionHouse_V2 {
             return total == self.auctionVault.balance    // compare total to Vault
         }
 
-        // return royality information
-        priv fun getRoyality(): {Address : UFix64} {
-            let royality = self.auctionNFT?.royality! // get Royality data
-            return royality                           // return Royalty
+        // return royalty information
+        priv fun getRoyalty(): {Address : UFix64} {
+            let royalty = self.auctionNFT?.royalty! // get Royalty data
+            return royalty                           // return Royalty
         }
         
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
@@ -647,7 +653,7 @@ pub contract AuctionHouse_V2 {
             }
 
             self.returnFunds()
-            self.royality()
+            self.royalty()
 
             destroy self.auctionVault
             destroy self.auctionNFT
@@ -658,7 +664,7 @@ pub contract AuctionHouse_V2 {
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
-        let minter = self.account.borrow<&DAAM_V9.Minter>(from: DAAM_V9.minterStoragePath)!
+        let minter = self.account.borrow<&DAAM_V10.Minter>(from: DAAM_V10.minterStoragePath)!
         minter.notNew(tokenID: tokenID) // Set to not new
     }
 
@@ -668,17 +674,34 @@ pub contract AuctionHouse_V2 {
     }
 
     // Requires Minter Key // Minter function to mint
-    access(contract) fun mintNFT(metadata: @DAAM_V9.Metadata): @DAAM_V9.NFT {
-        let minterRef = self.account.borrow<&DAAM_V9.Minter>(from: DAAM_V9.minterStoragePath)! // get Minter Reference
+    access(contract) fun mintNFT(metadata: @DAAM_V10.Metadata): @DAAM_V10.NFT {
+        let minterRef = self.account.borrow<&DAAM_V10.Minter>(from: DAAM_V10.minterStoragePath)! // get Minter Reference
         let nft <- minterRef.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 
     // Requires Minter Key // Minter function to mint
-    access(contract) fun minterAccess(): @DAAM_V9.MinterAccess {
-        let minterRef = self.account.borrow<&DAAM_V9.Minter>(from: DAAM_V9.minterStoragePath)! // get Minter Reference
+    access(contract) fun minterAccess(): @DAAM_V10.MinterAccess {
+        let minterRef = self.account.borrow<&DAAM_V10.Minter>(from: DAAM_V10.minterStoragePath)! // get Minter Reference
         let minter_access <- minterRef.createMinterAccess()
         return <- minter_access                                  // Return NFT
+    }
+
+    pub fun getFee(mid: UInt64): UFix64 {
+        return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
+    }
+
+    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM_V10.Admin) {
+        pre { DAAM_V10.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        self.fee[mid] = fee
+    }
+
+    pub fun removeFee(mid: UInt64, permission: &DAAM_V10.Admin) {
+        pre {
+            DAAM_V10.isAdmin(permission.owner!.address) == true : "Permission Denied" 
+            self.fee.containsKey(mid) : "Mid does not exist."
+        }
+        self.fee.remove(key: mid)
     }
 
     // Create Auction Wallet which is used for storing Auctions.
@@ -689,6 +712,7 @@ pub contract AuctionHouse_V2 {
     init() {
         self.metadataGen     = {}
         self.currentAuctions = {}
+        self.fee             = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
