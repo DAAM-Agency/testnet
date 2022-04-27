@@ -550,14 +550,16 @@ pub resource Admin: Agent
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
         pub fun newRequestGenerator(): @RequestGenerator {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status : "You're no longer a have Access."
             }
             return <- create RequestGenerator(self.grantee) // return new Request
         }
 
-        pub fun inviteAdmin(newAdmin: Address) {     // Admin invite a new Admin
+        pub fun inviteAdmin(_ newAdmin: Address) {     // Admin invite a new Admin
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                    : "You're no longer a have Access."
                 DAAM.creators[newAdmin] == nil : "A Admin can not use the same address as an Creator."
@@ -574,6 +576,7 @@ pub resource Admin: Agent
 
         pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                 : "You're no longer a have Access."
                 DAAM.admins[agent] == nil   : "A Agent can not use the same address as an Admin."
@@ -581,15 +584,22 @@ pub resource Admin: Agent
                 DAAM.agents[agent] == nil   : "They're already a DAAM Agent!!!"
                 Profile.check(agent) : "You can't be a DAAM Admin without a Profile! Go make one Fool!!"
             }
-            post { DAAM.agents[agent] == false : "Illegal Operaion: inviteAdmin" }
 
-            DAAM.agents.insert(key: agent, false ) // Agent account is setup but not active untill accepted.
+            post {
+                DAAM.agents[agent] == false : "Illegal Operaion: invite Agent"
+                DAAM.admins[agent] == false : "Illegal Operaion: invite Agent"
+            }
+
+            DAAM.admins.insert(key: agent, false) // Admin account is setup but not active untill accepted.
+            DAAM.agents.insert(key: agent, false )     // Agent account is setup but not active untill accepted.
+
             log("Sent Agent Invitation: ".concat(agent.toString()) )
             emit AgentInvited(agent: agent)         
         }
 
         pub fun inviteCreator(_ creator: Address) {    // Admin or Agent invite a new creator
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                   : "You're no longer a have Access."
                 DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
@@ -607,6 +617,7 @@ pub resource Admin: Agent
 
         pub fun inviteMinter(_ minter: Address) {   // Admin invites a new Minter (Key)
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status : "You're no longer a have Access."
             }
@@ -619,11 +630,12 @@ pub resource Admin: Agent
 
         pub fun removeAdmin(admin: Address) { // Two Admin to Remove Admin
             pre  {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status: "You're no longer a have Access."
             }
 
-            let vote = 3 as Int
+            let vote = 3 as Int // TODO change to x
             DAAM.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}
@@ -652,12 +664,17 @@ pub resource Admin: Agent
 
         pub fun removeAgent(agent: Address) { // Admin removes selected Agent by Address
             pre  {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                    : "You're no longer a have Access."
                 DAAM.agents.containsKey(agent) : "This is not a Agent Address."
             }
-            post { !DAAM.agents.containsKey(agent) : "Illegal operation: removeAgent" } // Unreachable
+            post {
+                !DAAM.admins.containsKey(agent) : "Illegal operation: removeAgent"
+                !DAAM.agents.containsKey(agent) : "Illegal operation: removeAgent"
+            } // Unreachable
 
+            DAAM.admins.remove(key: agent)    // Remove Agent from list
             DAAM.agents.remove(key: agent)    // Remove Agent from list
             log("Removed Agent")
             emit AgentRemoved(agent: agent)
@@ -665,6 +682,7 @@ pub resource Admin: Agent
 
         pub fun removeCreator(creator: Address) { // Admin removes selected Creator by Address
             pre {  
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                        : "You're no longer a have Access."
                 DAAM.creators.containsKey(creator) : "This is not a Creator address."
@@ -679,6 +697,7 @@ pub resource Admin: Agent
 
         pub fun removeMinter(minter: Address) { // Admin removes selected Agent by Address
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                      : "You're no longer a have Access."
                 DAAM.minters.containsKey(minter) : "This is not a Minter Address."
@@ -692,6 +711,7 @@ pub resource Admin: Agent
         // Admin can Change Agent status 
         pub fun changeAgentStatus(agent: Address, status: Bool) {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                     : "You're no longer a have Access."
                 DAAM.agents.containsKey(agent)  : "Wrong Address. This is not an Agent."
@@ -707,6 +727,7 @@ pub resource Admin: Agent
         // Admin or Agent can Change Creator status 
         pub fun changeCreatorStatus(creator: Address, status: Bool) {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                         : "You're no longer a have Access."
                 DAAM.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
@@ -722,6 +743,7 @@ pub resource Admin: Agent
         // Admin can Change Minter status 
         pub fun changeMinterStatus(minter: Address, status: Bool) {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                       : "You're no longer a have Access."
                 DAAM.minters.containsKey(minter)  : "Wrong Address. This is not a Minter."
@@ -737,6 +759,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
@@ -747,6 +770,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a MIDs copyright status.
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
@@ -761,6 +785,7 @@ pub resource Admin: Agent
         // Get all MIDs & their Status
         pub fun getMetadataStatus(): {UInt64:Bool} { // { MID : Status}
             pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
             }
@@ -887,10 +912,9 @@ pub resource MinterAccess
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-            DAAM.admins.containsKey(newAdmin.address)    : "You got no DAAM Admin invite."
-            !DAAM.admins[newAdmin.address]!              : "You Admin Access is Frozen."
-            !DAAM.agents.containsKey(newAdmin.address)   : "A Admin can not use the same address as an Agent."
-            !DAAM.creators.containsKey(newAdmin.address) : "A Admin can not use the same address as an Creator."
+            self.isAgent(newAdmin.address)   == nil : "A Admin can not use the same address as an Agent."
+            self.isCreator(newAdmin.address) == nil : "A Admin can not use the same address as an Creator."
+            self.isAdmin(newAdmin.address) == false : "You got no DAAM Admin invite."
             Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
 
@@ -907,22 +931,24 @@ pub resource MinterAccess
     }
 
     // // The Agent potential can accept (True) or deny (False)
-    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
+    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @{Agent}?
     {
         pre {
-            !DAAM.admins.containsKey(newAgent.address)   : "A Agent can not use the same address as an Admin."
-            !DAAM.creators.containsKey(newAgent.address) : "A Agent can not use the same address as an Creator."
-            DAAM.agents.containsKey(newAgent.address)    : "You got no DAAM Agent invite."
-            !DAAM.agents[newAgent.address]!              : "You Agent Access is Frozen."
-            Profile.check(newAgent.address)  : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
+            self.isAdmin(newAgent.address)   == false : "A Agent can not use the same address as an Admin."
+            self.isCreator(newAgent.address) == nil   : "A Agent can not use the same address as an Creator."
+            self.isAgent(newAgent.address)   == false : "You got no DAAM Agent invite."
+            Profile.check(newAgent.address) : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                  // Refused invitation. 
+            DAAM.admins.remove(key: newAgent.address) // Remove potential from Agent list
             DAAM.agents.remove(key: newAgent.address) // Remove potential from Agent list
             return nil                                // Return and end function
         }
         // Invitation accepted at this point
+        DAAM.admins[newAgent.address] = submit        // Add Agent & set Status (True)
         DAAM.agents[newAgent.address] = submit        // Add Agent & set Status (True)
+
         log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
         emit NewAgent(agent: newAgent.address)
         return <- create Admin(newAgent.address)!             // Return Admin Resource as {Agent}
@@ -931,11 +957,10 @@ pub resource MinterAccess
     // // The Creator potential can accept (True) or deny (False)
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
-            !DAAM.admins.containsKey(newCreator.address)  : "A Creator can not use the same address as an Admin."
-            !DAAM.agents.containsKey(newCreator.address)  : "A Creator can not use the same address as an Agent."
-            DAAM.creators.containsKey(newCreator.address) : "You got no DAAM Creator invite."
-            !DAAM.creators[newCreator.address]!           : "You Creator Access is Frozen."
-            Profile.check(newCreator.address)  : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
+            self.isAdmin(newCreator.address) == nil : "A Creator can not use the same address as an Admin."
+            self.isAgent(newCreator.address) == nil : "A Creator can not use the same address as an Agent."
+            self.isCreator(newCreator.address) == false : "You got no DAAM Creator invite."
+            Profile.check(newCreator.address) : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
         if !submit {                                       // Refused invitation.
@@ -950,10 +975,7 @@ pub resource MinterAccess
     }
 
     pub fun answerMinterInvite(newMinter: AuthAccount, submit: Bool): @Minter? {
-        pre {
-            DAAM.minters.containsKey(newMinter.address) : "You do not have a Minter Invitation"
-            !DAAM.minters[newMinter.address]!           : "You Minter Access is Frozen."
-        }
+        pre { self.isMinter(newMinter.address) == false : "You do not have a Minter Invitation" }
 
         if !submit {                                      // Refused invitation. 
             DAAM.minters.remove(key: newMinter.address) // Remove potential from Agent list
@@ -996,7 +1018,9 @@ pub resource MinterAccess
     }
 
     pub fun isAdmin(_ admin: Address): Bool? { // Returns Admin Status
-        return self.admins[admin]
+        if self.admins[admin] == nil { return nil }
+        let agent = (self.agents[admin] == true) ? true : false
+        return self.admins[admin]! && !agent
     }
 
     pub fun isAgent(_ agent: Address): Bool? { // Returns Agent status
