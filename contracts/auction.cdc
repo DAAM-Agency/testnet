@@ -549,25 +549,25 @@ pub contract AuctionHouse {
             return 0.0 as UFix64 // return no time left
         }
 
-        // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
+        // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
         priv fun royalty()
         {
-            post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
+            post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance                           // get price of NFT
             let tokenID = self.auctionNFT?.id!                              // get TokenID
-            let royalty = self.getRoyality()                               // get all royalities percentages
+            let royalty = self.getRoyalty()                               // get all royalities percentages
             
             let agencyPercentage  = royalty[DAAM.agency]!          // extract Agency percentage
             let creatorPercentage = royalty[self.creator]!  // extract creators percentage using Metadata Reference
             
-            let agencyRoyality  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyality = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            let agencyRoyalty  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyalty = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency FUSD share
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator FUSD share
             // get FUSD Receivers for Agency & Creator
 
             // If 1st sale is 'new' remove from 'new list'
@@ -600,8 +600,8 @@ pub contract AuctionHouse {
         }
 
         // return royalty information
-        priv fun getRoyality(): {Address : UFix64} {
-            let royalty = self.auctionNFT?.royalty! // get Royality data
+        priv fun getRoyalty(): {Address : UFix64} {
+            let royalty = self.auctionNFT?.royalty! // get Royalty data
             return royalty                           // return Royalty
         }
         
