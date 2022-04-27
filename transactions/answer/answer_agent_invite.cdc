@@ -29,7 +29,7 @@ transaction(submit: Bool) {
             
             // Minter
             if DAAM.isMinter(self.signer.address) == false { // Received Minter Invitation
-                let old_minter <- self.signer.load<@AnyResource>(from: DAAM.adminStoragePath)
+                let old_minter <- self.signer.load<@AnyResource>(from: DAAM.minterStoragePath)
                 let minter  <- DAAM.answerMinterInvite(newMinter: self.signer, submit: submit)
                 self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)
                 log("You are now a DAAM.Minter: ".concat(self.signer.address.toString()) )
