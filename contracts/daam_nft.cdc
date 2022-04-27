@@ -130,6 +130,7 @@ pub resource RequestGenerator {
 }
 /************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
+        pub let mid       : UInt64
         pub let creator   : Address  // Creator of NFT
         pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
@@ -138,9 +139,10 @@ pub resource RequestGenerator {
         pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
         pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: UInt64)
+        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: UInt64)
         {
             self.creator   = creator   // creator of NFT
+            self.mid       = mid
             self.series    = series    // total prints
             self.counter   = counter   // current print of total prints
             self.category  = categories
@@ -198,7 +200,7 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creator: self.creator, series: self.series, categories: self.category,
+            return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
             data: self.data, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
         }
     }
@@ -206,7 +208,8 @@ pub resource RequestGenerator {
 pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess
-    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata}
+    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata
+}
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
@@ -241,7 +244,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
-            // DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
+            DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: self.grantee, mid: mid)
@@ -311,7 +314,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             pre { self.metadata[mid] != nil : "Invalid MID" }
             let mRef = &self.metadata[mid] as &Metadata
             return mRef.getHolder()
-        }  
+        }
 
         pub fun viewMetadatas(): [MetadataHolder] {
             var list: [MetadataHolder] = []

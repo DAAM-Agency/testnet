@@ -28,5 +28,4 @@ transaction(exAgent: Address) {
 
     // Verify is not an Agent
     post { DAAM.isAgent(self.exAgent) == nil : self.exAgent.toString().concat(" is still an Agent.") }
-
 }
