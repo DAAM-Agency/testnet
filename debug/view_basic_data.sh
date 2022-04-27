@@ -58,7 +58,7 @@ getAddressName() {
 
 # Get Accounts FUSD total
 echo "---------- FUSD ----------"
-for user in $AGENCY $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2
+for user in $AGENCY $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
     flow -o json scripts execute ./scripts/get_fusd_balance.cdc $user | jq ' .value | .value'
