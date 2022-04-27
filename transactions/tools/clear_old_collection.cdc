@@ -4,7 +4,7 @@ import DAAM_V8 from 0xa4ad5ea5c0bd2fba
 
 transaction() {
     prepare(signer: AuthAccount) {
-        let collection = signer.borrow<&AnyResource> (from: DAAM_V8.collectionStoragePath)
+        let collection = signer.borrow<&DAAM_V8> (from: DAAM_V8.collectionStoragePath)
         let nfts = collection?.getIDs()
         if nfts != nil {
             for token in nfts! {
