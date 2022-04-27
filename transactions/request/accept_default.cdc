@@ -1,5 +1,5 @@
 // accept_default.cdc
-// Creator selects Royality between 10% to 30%
+// Creator selects Royalty between 10% to 30%
 
 import DAAM_V9 from 0xa4ad5ea5c0bd2fba
 

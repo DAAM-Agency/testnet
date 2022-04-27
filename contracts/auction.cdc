@@ -1,5 +1,6 @@
 // auction.cdc
-// by Ami Rajpal, 2021 // DAAM_V9 Agency
+// by Ami Rajpal, 2021 // DAAM Agency
+
 import FungibleToken    from 0x9a0766d93b6608b7
 import FUSD             from 0xe223d8a629e49c68
 import DAAM_V9          from 0xa4ad5ea5c0bd2fba
@@ -22,10 +23,11 @@ pub contract AuctionHouse_V2 {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-                                       // { MID   : Capability<&DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint}> }
+                                       // { MID   : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var metadataGen    : {UInt64 : Capability<&DAAM_V9.MetadataGenerator{DAAM_V9.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -45,7 +47,7 @@ pub contract AuctionHouse_V2 {
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
         // MetadataGenerator: Reference to Metadata
-        // mid: DAAM_V9 Metadata ID
+        // mid: DAAM Metadata ID
         // start: Enter UNIX Flow Blockchain Time
         // length: Length of auction
         // isExtended: if the auction lenght is to be an Extended Auction
@@ -182,7 +184,9 @@ pub contract AuctionHouse_V2 {
         priv let increment    : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
         pub let startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
-        pub let buyNow        : UFix64   // buy now price
+        pub let fee           : UFix64   // the fee
+        pub let price         : UFix64   // original price
+        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse_V2.fee)
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM_V9.NFT? // Store NFT for auction
@@ -237,7 +241,9 @@ pub contract AuctionHouse_V2 {
             
             self.startingBid = startingBid 
             self.reserve = reserve
-            self.buyNow = buyNow
+            self.fee = AuctionHouse_V2.getFee(mid: self.mid)
+            self.price = buyNow
+            self.buyNow = self.price * (self.fee + 1.0)
             // if last in series don't reprint.
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
@@ -361,7 +367,7 @@ pub contract AuctionHouse_V2 {
 
         // This is a key function where are all the action happens.
         // Verifies the Reserve Price is met. 
-        // Calls royality() & ReturnFunds() and manages all royalities and funds are returned
+        // Calls royalty() & ReturnFunds() and manages all royalities and funds are returned
         // Sends the item (NFT)
         access(contract) fun verifyReservePrice() {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
@@ -383,7 +389,7 @@ pub contract AuctionHouse_V2 {
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // return funds to all bidders
-                self.royality()     // pay royality
+                self.royalty()     // pay royalty
                 log("Item: Won")
                 emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
             } else {                
@@ -543,25 +549,25 @@ pub contract AuctionHouse_V2 {
             return 0.0 as UFix64 // return no time left
         }
 
-        // Royality rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
-        priv fun royality()
+        // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
+        priv fun royalty()
         {
-            post { self.auctionVault.balance == 0.0 : "Royality Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
+            post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
             let price = self.auctionVault.balance                           // get price of NFT
             let tokenID = self.auctionNFT?.id!                              // get TokenID
-            let royality = self.getRoyality()                               // get all royalities percentages
+            let royalty = self.getRoyalty()                               // get all royalities percentages
             
-            let agencyPercentage  = royality[DAAM_V9.agency]!          // extract Agency percentage
-            let creatorPercentage = royality[self.creator]!  // extract creators percentage using Metadata Reference
+            let agencyPercentage  = royalty[DAAM_V9.agency]!          // extract Agency percentage
+            let creatorPercentage = royalty[self.creator]!  // extract creators percentage using Metadata Reference
             
-            let agencyRoyality  = DAAM_V9.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyality = DAAM_V9.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
+            let agencyRoyalty  = DAAM_V9.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
+            let creatorRoyalty = DAAM_V9.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyality)  // Calculate Agency FUSD share
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyality) // Calculate Creator FUSD share
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency FUSD share
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator FUSD share
             // get FUSD Receivers for Agency & Creator
 
             // If 1st sale is 'new' remove from 'new list'
@@ -593,10 +599,10 @@ pub contract AuctionHouse_V2 {
             return total == self.auctionVault.balance    // compare total to Vault
         }
 
-        // return royality information
-        priv fun getRoyality(): {Address : UFix64} {
-            let royality = self.auctionNFT?.royality! // get Royality data
-            return royality                           // return Royalty
+        // return royalty information
+        priv fun getRoyalty(): {Address : UFix64} {
+            let royalty = self.auctionNFT?.royalty! // get Royalty data
+            return royalty                           // return Royalty
         }
         
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
@@ -647,7 +653,7 @@ pub contract AuctionHouse_V2 {
             }
 
             self.returnFunds()
-            self.royality()
+            self.royalty()
 
             destroy self.auctionVault
             destroy self.auctionNFT
@@ -681,6 +687,23 @@ pub contract AuctionHouse_V2 {
         return <- minter_access                                  // Return NFT
     }
 
+    pub fun getFee(mid: UInt64): UFix64 {
+        return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
+    }
+
+    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM_V9.Admin) {
+        pre { DAAM_V9.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        self.fee[mid] = fee
+    }
+
+    pub fun removeFee(mid: UInt64, permission: &DAAM_V9.Admin) {
+        pre {
+            DAAM_V9.isAdmin(permission.owner!.address) == true : "Permission Denied" 
+            self.fee.containsKey(mid) : "Mid does not exist."
+        }
+        self.fee.remove(key: mid)
+    }
+
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
         return <- create AuctionWallet(auctioneer: auctioneer.address) 
@@ -689,6 +712,7 @@ pub contract AuctionHouse_V2 {
     init() {
         self.metadataGen     = {}
         self.currentAuctions = {}
+        self.fee             = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
