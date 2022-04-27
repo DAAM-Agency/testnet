@@ -2,13 +2,13 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 
 import Categories from 0xa4ad5ea5c0bd2fba
-import DAAM_V8    from 0xa4ad5ea5c0bd2fba
+import DAAM_V9    from 0xa4ad5ea5c0bd2fba
 
 transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String, percentage: UFix64)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM_V8.RequestGenerator
-    let metadataGen : &DAAM_V8.MetadataGenerator
+    let requestGen  : &DAAM_V9.RequestGenerator
+    let metadataGen : &DAAM_V9.MetadataGenerator
 
     let series      : UInt64
     let data        : String
@@ -19,8 +19,8 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen = creator.borrow<&DAAM_V8.MetadataGenerator>(from: DAAM_V8.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V8.RequestGenerator>( from: DAAM_V8.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V9.MetadataGenerator>(from: DAAM_V9.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V9.RequestGenerator>( from: DAAM_V9.requestStoragePath)!
 
         self.series     = series
         self.data       = data
