@@ -24,7 +24,7 @@ transaction(newAgent: Address, minterAccess: Bool)
     
     execute {
         self.admin.inviteAgent(self.newAgent)
-        log("Admin Invited")
+        log("Agent Invited")
 
         if(minterAccess) {
             self.admin.inviteMinter(self.newAgent)

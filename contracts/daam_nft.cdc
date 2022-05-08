@@ -932,7 +932,7 @@ pub resource MinterAccess
     }
 
     // // The Agent potential can accept (True) or deny (False)
-    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @{Agent}?
+    pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
     {
         pre {
             self.isAdmin(newAgent.address)   == false : "A Agent can not use the same address as an Admin."
