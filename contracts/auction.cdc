@@ -39,9 +39,7 @@ pub contract AuctionHouse {
     pub resource AuctionWallet: AuctionWalletPublic {
         priv var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
 
-        init() {
-            self.currentAuctions <- {}    // Auction Resources are stored here. The Auctions themselves.
-        }
+        init() { self.currentAuctions <- {} }  // Auction Resources are stored here. The Auctions themselves.
 
         // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
         // MetadataGenerator: Reference to Metadata
@@ -143,9 +141,9 @@ pub contract AuctionHouse {
         }
 
         // item(Auction ID) return a reference of the auctionID Auction
-        pub fun item(_ aid: UInt64): &Auction { 
+        pub fun item(_ aid: UInt64): &Auction{AuctionPublic} { 
             pre { self.currentAuctions.containsKey(aid) }
-            return &self.currentAuctions[aid] as &Auction
+            return &self.currentAuctions[aid] as &Auction{AuctionPublic}
         }
         
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
@@ -162,7 +160,16 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
     pub resource interface AuctionPublic {
-
+        pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault)
+        pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault
+        pub fun winnerCollect()
+        pub fun getBuyNowAmount(bidder: Address): UFix64
+        pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault)
+        pub fun buyItNowStatus(): Bool
+        pub fun getAuctionLog(): {Address:UFix64}
+        pub fun getStatus(): Bool?
+        pub fun itemInfo(): DAAM.MetadataHolder?
+        pub fun timeLeft(): UFix64?
     }
 /************************************************************************/
     pub resource Auction: AuctionPublic {

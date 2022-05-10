@@ -133,7 +133,7 @@ echo "FAIL TEST: Buy It Now: Wrong Amount."
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 1 30.0 --signer client #A 
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $CLIENT | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $CLIENT | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 1 $BUYITNOW --signer client #A
 

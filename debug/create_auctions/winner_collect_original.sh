@@ -2,8 +2,8 @@
 echo "========= Winner Tests ========="
 
 echo "Script: timeLeft.cdc Auction #F, AID: 6"
-sleep $(flow scripts execute ./scripts/auction/time_left.cdc $1 $2 | tail -3 | awk '{print $2}')
-sleep 10
+sleep $(flow -o json scripts execute ./scripts/auction/time_left.cdc $CREATOR 2 | jq -r ' .value | .value ')
+sleep 20
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 

@@ -36,7 +36,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 
 echo "========= Buy It Now: Client2 AID: 9 ========="
 
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CLIENT 9 $CLIENT2 | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CLIENT 9 $CLIENT2 | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 9 $BUYITNOW --signer client2
 

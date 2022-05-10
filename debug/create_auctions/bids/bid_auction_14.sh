@@ -45,7 +45,7 @@ flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .v
 
 echo "========= Buy It Now: CLIENT2 ID: 14 ========="
 
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $NOBODY 14 $CLIENT2 | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $NOBODY 14 $CLIENT2 | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $NOBODY 14 $BUYITNOW --signer client2 # total 30.7
 

@@ -1,5 +1,5 @@
 echo "---------- buyItNow (1): Nobody 30.2, AID: 2 ----------"
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer nobody #E
 
@@ -12,7 +12,7 @@ flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 
 echo "---------- BuyItNow (2) Nobody, AID: 2 ----------"
 
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer nobody #E
 
@@ -21,7 +21,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
 echo "FAIL TEST: No more reprints. AID: 12"
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer nobody #E
 

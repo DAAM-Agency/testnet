@@ -5,7 +5,7 @@ echo "========== Testing Serial Minter AID: "$aid" =========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "---------- BuyItNow Count: 1, Bidder: Nobody, AID: "$aid" ----------"
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 $aid $NOBODY | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 $aid $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 $aid $BUYITNOW --signer nobody #H
 
@@ -21,7 +21,7 @@ flow transactions send ./transactions/auction/end_reprints.cdc $aid --signer cre
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "---------- BuyItNow Count: 2, Bidder: Nobody, AID: "$aid" ----------"
-BUYITNOW=$(flow scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 $aid $NOBODY | awk '{print $2}')
+BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 $aid $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
 flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 $aid $BUYITNOW --signer nobody #H
 
