@@ -262,6 +262,7 @@ pub contract AuctionHouse {
 
             self.auctionLog = {} // Maintain record of FUSD // {Address : FUSD}
             self.auctionVault <- FUSD.createEmptyVault() // ALL FUSD is stored
+            log(self.auctionVault.getType() )
 
             self.requiredCurrency = requiredCurrency
             //self.paymentReceiver

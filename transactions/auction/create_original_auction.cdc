@@ -34,7 +34,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
       self.length           = length
       self.isExtended       = isExtended
       self.extendedTime     = extendedTime
-      self.requiredCurrency = FUSD.getType() //requiredCurrency
+      self.requiredCurrency = Type<@FUSD.Vault>() //requiredCurrency
       self.incrementByPrice = incrementByPrice
       self.incrementAmount  = incrementAmount
       self.startingBid      = startingBid
@@ -44,6 +44,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
   }
   
   execute {
+      log(self.requiredCurrency)
       self.auctionHouse.createOriginalAuction(
         metadataGenerator: self.metadataCap!, mid: self.mid, start: self.start, length: self.length,
         isExtended: self.isExtended, extendedTime: self.extendedTime, requiredCurrency: self.requiredCurrency,

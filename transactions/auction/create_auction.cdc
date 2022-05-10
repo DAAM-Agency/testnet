@@ -34,7 +34,7 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
     self.length           = length
     self.isExtended       = isExtended
     self.extendedTime     = extendedTime
-    self.requiredCurrency = FUSD.getType() //requiredCurrency
+    self.requiredCurrency = Type<FUSD.Vault>() //requiredCurrency
     self.incrementByPrice = incrementByPrice
     self.incrementAmount  = incrementAmount
     self.startingBid      = startingBid
