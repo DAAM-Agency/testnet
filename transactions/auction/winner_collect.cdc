@@ -5,12 +5,12 @@ import AuctionHouse  from 0x045a1763c93006ca
 transaction(auction: Address, aid: UInt64)
 { 
     let aid          : UInt64
-    let auctionHouse : &{AuctionHouse.AuctionPublic}
+    let auctionHouse : &{AuctionHouse.AuctionWalletPublic}
     
     prepare(bidder: AuthAccount) {
         self.aid          = aid
         self.auctionHouse = getAccount(auction)
-            .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
+            .getCapability<&{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
     }
 

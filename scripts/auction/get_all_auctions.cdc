@@ -66,7 +66,7 @@ pub fun main(): {Address : [Data] } {
         var convertAuctionList: [Data] = []        // converted data
         for aid in auctionList[auctionieer]! {
             let AuctionHouse = getAccount(auctionieer)
-            .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
+            .getCapability<&{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
 
             let metadata = AuctionHouse.item(aid).itemInfo() 

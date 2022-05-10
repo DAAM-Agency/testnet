@@ -9,7 +9,7 @@ transaction(auction: Address, aid: UInt64)
 {
     let bidder          : AuthAccount
     let aid             : UInt64
-    let auctionHouse    : &{AuctionHouse.AuctionPublic}
+    let auctionHouse    : &{AuctionHouse.AuctionWalletPublic}
     let fusdStoragePath : StoragePath
     let vaultRef        : &FUSD.Vault{FungibleToken.Receiver}
     
@@ -18,7 +18,7 @@ transaction(auction: Address, aid: UInt64)
         self.aid             = aid
         self.fusdStoragePath = /storage/fusdVault
         self.auctionHouse    = getAccount(auction)
-            .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
+            .getCapability<&{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
             .borrow()!
         self.vaultRef = bidder.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: self.fusdStoragePath)!
     }

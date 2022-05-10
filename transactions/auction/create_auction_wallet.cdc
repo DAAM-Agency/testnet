@@ -15,7 +15,8 @@ transaction() {
             let old <- self.signer.load<@AnyResource>(from: AuctionHouse.auctionStoragePath)
             let auctionWallet <- AuctionHouse.createAuctionWallet()
             self.signer.save<@AuctionHouse.AuctionWallet> (<- auctionWallet, to: AuctionHouse.auctionStoragePath)
-            self.signer.link<&AuctionHouse{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath, target: AuctionHouse.auctionStoragePath)
+            self.signer.link<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
+                (AuctionHouse.auctionPublicPath, target: AuctionHouse.auctionStoragePath)
             destroy old
             log("Auction House Created, you can now have Auctions.")
         }
