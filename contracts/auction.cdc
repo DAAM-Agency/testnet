@@ -2,9 +2,9 @@
 // by Ami Rajpal, 2021 // DAAM Agency
 
 import FungibleToken    from 0xee82856bf20e2aa6
-import FUSD             from 0x192440c99cb17282
 import DAAM             from 0xfd43f9148d4b725d
 import NonFungibleToken from 0xf8d6e0586b0a20c7
+import FUSD             from 0x192440c99cb17282
 
 pub contract AuctionHouse {
     // Events
@@ -56,8 +56,9 @@ pub contract AuctionHouse {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64, length: UFix64,
-        isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+            length: UFix64, isExtended: Bool, extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64,
+            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
@@ -72,7 +73,7 @@ pub contract AuctionHouse {
 
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, requiredCurrency: requiredCurrency,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
             // Add Auction
             let aid = auction.auctionID // Auction ID
@@ -87,14 +88,14 @@ pub contract AuctionHouse {
         // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
         // same arguments as createOriginalAuction except for reprintSeries
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
+            extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
         {
             pre {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime,
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, requiredCurrency: requiredCurrency,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: false)
             // Add Auction
             let aid = auction.auctionID // Auction ID
@@ -145,6 +146,11 @@ pub contract AuctionHouse {
             pre { self.currentAuctions.containsKey(aid) }
             return &self.currentAuctions[aid] as &Auction{AuctionPublic}
         }
+
+        pub fun setting(_ aid: UInt64): &Auction { 
+            pre { self.currentAuctions.containsKey(aid) }
+            return &self.currentAuctions[aid] as &Auction
+        }
         
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
 
@@ -160,7 +166,7 @@ pub contract AuctionHouse {
     }
 /************************************************************************/
     pub resource interface AuctionPublic {
-        pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault)
+        pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault) // @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance}
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault
         pub fun winnerCollect()
         pub fun getBuyNowAmount(bidder: Address): UFix64
@@ -194,7 +200,10 @@ pub contract AuctionHouse {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
-        priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
+        priv var auctionVault : @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance} // Vault, All funds are stored.
+        // TODO update auction LOG
+        priv let requiredCurrency: Type
+        //priv let paymentReceiver: Capability<&{FungibleToken.Receiver}>
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time
@@ -209,7 +218,7 @@ pub contract AuctionHouse {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, requiredCurrency: Type,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
@@ -254,6 +263,9 @@ pub contract AuctionHouse {
             self.auctionLog = {} // Maintain record of FUSD // {Address : FUSD}
             self.auctionVault <- FUSD.createEmptyVault() // ALL FUSD is stored
 
+            self.requiredCurrency = requiredCurrency
+            //self.paymentReceiver
+
             self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
@@ -262,7 +274,8 @@ pub contract AuctionHouse {
 
         // Makes Bid, Bids are deposited into vault
         pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault) {
-            pre {         
+            pre {
+                amount.isInstance(self.requiredCurrency) : "Incorrect payment currency"    
                 self.minBid != nil                    : "No Bidding. Direct Purchase Only."     
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder, balance: amount.balance) : "You have made an invalid Bid."
@@ -357,7 +370,7 @@ pub contract AuctionHouse {
 
             let balance = self.auctionLog[bidder.address]! // Get balance from log
             self.auctionLog.remove(key: bidder.address)!   // Remove from log
-            let amount <- self.auctionVault.withdraw(amount: balance)! // Withdraw balance from Vault
+            let amount <- self.auctionVault.withdraw(amount: balance) // Withdraw balance from Vault
             log("Bid Withdrawn")
             emit BidWithdrawn(bidder: bidder.address)    
             return <- amount  // return bidders deposit amount
@@ -450,6 +463,7 @@ pub contract AuctionHouse {
         // To purchase the item directly. 
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
+                amount.isInstance(self.requiredCurrency) : "Incorrect payment currency" 
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.verifyBuyNowAmount(bidder: bidder, amount: amount.balance) : "Wrong Amount."
