@@ -30,18 +30,16 @@ pub contract AuctionHouse {
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 
 /************************************************************************/
-    pub resource interface AuctionPublic {
+    pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
         pub fun getAuctions(): [UInt64] // MIDs in Auctions
-        pub fun item(_ id: UInt64): &Auction // item(Token ID) will return the apporiate auction.
+        pub fun item(_ id: UInt64): &Auction{AuctionPublic} // item(Token ID) will return the apporiate auction.
     }
 /************************************************************************/
-    pub resource AuctionWallet: AuctionPublic {
-        pub let titleholder  : Address  // owner of the wallet
-        pub var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
+    pub resource AuctionWallet: AuctionWalletPublic {
+        priv var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
 
-        init(auctioneer: Address) {
-            self.titleholder = auctioneer // Owner of the address
+        init() {
             self.currentAuctions <- {}    // Auction Resources are stored here. The Auctions themselves.
         }
 
@@ -64,7 +62,6 @@ pub contract AuctionHouse {
         isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
         {
             pre {
-                self.titleholder == self.owner!.address : "You are not the owner of this Auction"
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
@@ -84,7 +81,7 @@ pub contract AuctionHouse {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
 
-            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
+            AuctionHouse.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
         }
@@ -95,7 +92,6 @@ pub contract AuctionHouse {
             extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
         {
             pre {
-                self.titleholder == self.owner!.address : "You are not the owner of this Auction" 
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
@@ -107,7 +103,7 @@ pub contract AuctionHouse {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
             destroy oldAuction // destroy placeholder
             
-            AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // Update Current Auctions
+            AuctionHouse.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
         }
@@ -115,11 +111,8 @@ pub contract AuctionHouse {
         // Resolves all Auctions. Closes ones that have been ended or restarts them due to being a reprintSeries auctions.
         // This allows the auctioneer to close auctions to auctions that have ended, returning funds and appropriating items accordingly
         // even in instances where the Winner has not claimed their item.
-        pub fun closeAuctions() {
-            pre {
-                self.titleholder == self.owner!.address : "You are not the owner of this Auction"
-            }
-
+        pub fun closeAuctions()
+        {
             for act in self.currentAuctions.keys {                
                 let current_status = self.currentAuctions[act]?.updateStatus() // status may be changed in verifyReservePrive() by seriesMinter()
                 if current_status == false { // Check to see if auction has ended. A false value.
@@ -137,10 +130,10 @@ pub contract AuctionHouse {
                     destroy auction                                              // end auction.
                     
                     // Update Current Auctions List
-                    if AuctionHouse.currentAuctions[self.titleholder]!.length == 0 {
-                        AuctionHouse.currentAuctions.remove(key:self.titleholder) // If auctioneer has no more auctions remove from list
+                    if AuctionHouse.currentAuctions[self.owner!.address]!.length == 0 {
+                        AuctionHouse.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
                     } else {
-                        AuctionHouse.currentAuctions.insert(key:self.titleholder, self.currentAuctions.keys) // otherwise update list
+                        AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list
                     }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )
@@ -154,6 +147,8 @@ pub contract AuctionHouse {
             pre { self.currentAuctions.containsKey(aid) }
             return &self.currentAuctions[aid] as &Auction
         }
+        
+        pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
 
         pub fun endReprints(auctionID: UInt64) { // Toggles the reprint to OFF. Note: This is not a toggle
             pre {
@@ -163,12 +158,14 @@ pub contract AuctionHouse {
             self.currentAuctions[auctionID]?.endReprints()
         }
 
-        pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
-
         destroy() { destroy self.currentAuctions }
     }
 /************************************************************************/
-    pub resource Auction {
+    pub resource interface AuctionPublic {
+
+    }
+/************************************************************************/
+    pub resource Auction: AuctionPublic {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
@@ -495,20 +492,6 @@ pub contract AuctionHouse {
             emit FundsReturned()
         }
 
-        // Auctions can be cancelled if they have no bids.
-        pub fun cancelAuction() {
-            pre {
-                self.updateStatus() == nil || true         : "Too late to cancel Auction."
-                self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
-            }
-            
-            self.status = false
-            self.length = 0.0 as UFix64
-
-            log("Auction Cancelled: ".concat(self.auctionID.toString()) )
-            emit AuctionCancelled(auctionID: self.auctionID)
-        }
-
         pub fun getAuctionLog(): {Address:UFix64} {
             return self.auctionLog
         }
@@ -643,15 +626,29 @@ pub contract AuctionHouse {
                 //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
            }
            self.reprintSeries = false
+        }
+
+        // Auctions can be cancelled if they have no bids.
+        pub fun cancelAuction() {
+            pre {
+                self.updateStatus() == nil || true         : "Too late to cancel Auction."
+                self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
+            }
+            
+            self.status = false
+            self.length = 0.0 as UFix64
+
+            log("Auction Cancelled: ".concat(self.auctionID.toString()) )
+            emit AuctionCancelled(auctionID: self.auctionID)
         } 
 
-        destroy() { // Verify no Funds, NFT are in storage
+        destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
                 self.auctionNFT == nil
                 self.status == false
                 self.auctionVault.balance == 0.0
             }
-
+            // Re-Verify Funds Allocated Properly, since it's empty it should just pass
             self.returnFunds()
             self.royalty()
 
@@ -705,8 +702,8 @@ pub contract AuctionHouse {
     }
 
     // Create Auction Wallet which is used for storing Auctions.
-    pub fun createAuctionWallet(auctioneer: AuthAccount): @AuctionWallet { 
-        return <- create AuctionWallet(auctioneer: auctioneer.address) 
+    pub fun createAuctionWallet(): @AuctionWallet { 
+        return <- create AuctionWallet() 
     }
 
     init() {
