@@ -145,6 +145,11 @@ pub contract AuctionHouse {
             pre { self.currentAuctions.containsKey(aid) }
             return &self.currentAuctions[aid] as &Auction{AuctionPublic}
         }
+
+        pub fun setting(_ aid: UInt64): &Auction { 
+            pre { self.currentAuctions.containsKey(aid) }
+            return &self.currentAuctions[aid] as &Auction
+        }
         
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
 
