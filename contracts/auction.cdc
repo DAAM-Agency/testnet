@@ -200,10 +200,9 @@ pub contract AuctionHouse {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
-        priv var auctionVault : @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance} // Vault, All funds are stored.
+        priv var auctionVault : @AnyResource{FungibleToken.Receiver, FungibleToken.Provider, FungibleToken.Balance} // Vault, All funds are stored.
         // TODO update auction LOG
         priv let requiredCurrency: Type
-        //priv let paymentReceiver: Capability<&{FungibleToken.Receiver}>
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time
@@ -262,7 +261,6 @@ pub contract AuctionHouse {
 
             self.auctionLog = {} // Maintain record of FUSD // {Address : FUSD}
             self.auctionVault <- FUSD.createEmptyVault() // ALL FUSD is stored
-            log(self.auctionVault.getType() )
 
             self.requiredCurrency = requiredCurrency
             //self.paymentReceiver
