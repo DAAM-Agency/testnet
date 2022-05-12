@@ -533,7 +533,6 @@ pub struct CollectionData {
         pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
         pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
         pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
-        pub fun getMetadataStatus(): {UInt64:Bool}                  // Returns the Metadata status {MID : Status}
     }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -781,16 +780,6 @@ pub resource Admin: Agent
             log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
-
-        // Get all MIDs & their Status
-        pub fun getMetadataStatus(): {UInt64:Bool} { // { MID : Status}
-            pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
-                self.status                          : "You're no longer a have Access."
-            }
-            return DAAM.metadata
-        }        
 	}
 /************************************************************************/
 // The Creator Resource (like Admin/Agent) is a permissions Resource. This allows the Creator
