@@ -881,15 +881,11 @@ pub resource Admin: Agent
         }      
     }
 /************************************************************************/
-pub resource MinterAccess
+pub resource MinterAccess 
 {
     priv let original_address: Address
-
     init(_ user: Address) { self.original_address = user }
-
-    pub fun validate(): Bool {
-        return DAAM.minters[self.original_address]!
-    }
+    pub fun validate(): Bool { return DAAM.minters[self.original_address]! }
 }
 /************************************************************************/
     // Public DAAM functions

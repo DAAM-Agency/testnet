@@ -2,9 +2,11 @@
 // by Ami Rajpal, 2021 // DAAM Agency
 
 import FungibleToken    from 0xee82856bf20e2aa6
-import DAAM             from 0xfd43f9148d4b725d
 import NonFungibleToken from 0xf8d6e0586b0a20c7
+import DAAM             from 0xfd43f9148d4b725d
 import FUSD             from 0x192440c99cb17282
+//import FlowToken        from 0x0ae53cb6e3f42a79
+
 
 pub contract AuctionHouse {
     // Events
@@ -28,8 +30,55 @@ pub contract AuctionHouse {
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
+/**********************`**************************************************/
+pub struct AuctionInfo {
+        pub let status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
+        pub let auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
+        pub let creator     : Address
+        pub let mid         : UInt64       // collect Metadata ID
+        pub let start       : UFix64       // timestamp
+        pub let length        : UFix64   // post{!isExtended && length == before(length)}
+        pub let isExtended    : Bool     // true = Auction extends with every bid.
+        pub let extendedTime  : UFix64   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
+        pub let leader        : Address? // leading bidder
+        pub let minBid        : UFix64?  // minimum bid
+        pub let startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
+        pub let reserve       : UFix64   // the reserve. must be sold at min price.
+        pub let fee           : UFix64   // the fee
+        pub let price         : UFix64   // original price
+        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
+        pub let reprintSeries : Bool     // Active Series Minter (if series)
+        pub let auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+        pub let requiredCurrency: Type
 
-/************************************************************************/
+        init(
+            _ status:Bool?, _ auctionID:UInt64, _ creator: Address, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
+            _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
+            _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: Bool,
+            _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
+            )
+            {
+                self.status = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
+                self.auctionID = auctionID       // Auction ID number. Note: Series auctions keep the same number. 
+                self.creator     = creator
+                self.mid         = mid       // collect Metadata ID
+                self.start       = start       // timestamp
+                self.length        = length   // post{!isExtended && length == before(length)}
+                self.isExtended    = isExtended     // true = Auction extends with every bid.
+                self.extendedTime  = extendedTime   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
+                self.leader        = leader // leading bidder
+                self.minBid        = minBid  // minimum bid
+                self.startingBid   = startingBid // the starting bid od an auction. Nil = No Bidding. Direct Purchase
+                self.reserve       = reserve   // the reserve. must be sold at min price.
+                self.fee           = fee   // the fee
+                self.price         = price   // original price
+                self.buyNow        = buyNow   // buy now price (original price + AuctionHouse.fee)
+                self.reprintSeries = reprintSeries     // Active Series Minter (if series)
+                self.auctionLog    = auctionLog    // {Bidders, Amount} // Log of the Auction
+                self.requiredCurrency = requiredCurrency
+            }
+}
+/**********************`**************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
         pub fun getAuctions(): [UInt64] // MIDs in Auctions
@@ -168,6 +217,7 @@ pub contract AuctionHouse {
     pub resource interface AuctionPublic {
         pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault) // @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance}
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault
+        pub fun auctionInfo(): AuctionInfo?
         pub fun winnerCollect()
         pub fun getBuyNowAmount(bidder: Address): UFix64
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault)
@@ -200,9 +250,8 @@ pub contract AuctionHouse {
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
-        priv var auctionVault : @AnyResource{FungibleToken.Receiver, FungibleToken.Provider, FungibleToken.Balance} // Vault, All funds are stored.
-        // TODO update auction LOG
-        priv let requiredCurrency: Type
+        priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
+        pub let requiredCurrency: Type
     
         // Auction: A resource containg the auction itself.
         // start: Enter UNIX Flow Blockchain Time
@@ -234,7 +283,7 @@ pub contract AuctionHouse {
             // Manage incrementByPrice
             if incrementByPrice == false && incrementAmount < 0.01  { panic("The minimum increment is 1.0%.")   }
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
-            if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 FUSD.") }
+            if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 Crypto.") }
 
             AuctionHouse.auctionCounter = AuctionHouse.auctionCounter + 1 // increment Auction Counter
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
@@ -259,8 +308,8 @@ pub contract AuctionHouse {
             // if last in series don't reprint.
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
-            self.auctionLog = {} // Maintain record of FUSD // {Address : FUSD}
-            self.auctionVault <- FUSD.createEmptyVault() // ALL FUSD is stored
+            self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
+            self.auctionVault <- FUSD.createEmptyVault()  // ALL Crypto is stored
 
             self.requiredCurrency = requiredCurrency
             //self.paymentReceiver
@@ -289,7 +338,7 @@ pub contract AuctionHouse {
             self.leader = bidder                        // Set new leader
             self.updateAuctionLog(amount.balance)       // Update logs with new balance
             self.incrementminBid()                      // Increment accordingly
-            self.auctionVault.deposit(from: <- amount)  // Deposit FUSD into Vault
+            self.auctionVault.deposit(from: <- amount)  // Deposit Crypto into Vault
             self.extendAuction()                        // Extendend auction if applicable
 
             log("Balance: ".concat(self.auctionLog[self.leader!]!.toString()) )
@@ -375,6 +424,15 @@ pub contract AuctionHouse {
             return <- amount  // return bidders deposit amount
         }
 
+        pub fun auctionInfo(): AuctionInfo {
+            let info = AuctionInfo(
+                self.status, self.auctionID, self.creator, self.mid, self.start, self.length, self.isExtended,
+                self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
+                self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
+            )
+            return info
+        }
+
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
         pub fun winnerCollect() {
             pre{ self.updateStatus() == false  : "Auction has not Ended." }
@@ -449,7 +507,7 @@ pub contract AuctionHouse {
             return (self.auctionLog[bidder]==nil) ? self.buyNow : (self.buyNow-self.auctionLog[bidder]!)
         }
 
-        // Record total amount of FUSD a bidder has deposited. Manages Log of that total.
+        // Record total amount of Crypto a bidder has deposited. Manages Log of that total.
         priv fun updateAuctionLog(_ amount: UFix64) {
             if !self.auctionLog.containsKey(self.leader!) {        // First bid by user
                 self.auctionLog.insert(key: self.leader!, amount)  // append log for new bidder and log amount
@@ -502,7 +560,7 @@ pub contract AuctionHouse {
         priv fun returnFunds() {
             post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
             for bidder in self.auctionLog.keys {
-                // get FUSD Wallet capability
+                // get Crypto Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
@@ -569,15 +627,15 @@ pub contract AuctionHouse {
             let agencyRoyalty  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
             let creatorRoyalty = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
             
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency FUSD share
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator FUSD share
-            // get FUSD Receivers for Agency & Creator
+            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency Crypto share
+            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator Crypto share
+            // get Crypto Receivers for Agency & Creator
 
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
                 AuctionHouse.notNew(tokenID: tokenID)
             } else { // else no longer "new", Seller is only need on re-sales.
-                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller Crypto Wallet Capability
                 let sellerPercentage = 1.0 as UFix64 - (agencyPercentage + creatorPercentage)  // Calculate Percentage left over
                 let sellerCut <-! self.auctionVault.withdraw(amount: price * sellerPercentage) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
