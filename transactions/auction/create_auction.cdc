@@ -45,10 +45,10 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   execute {
       let nft <- self.nftCollection.withdraw(withdrawID: self.tokenID) as! @DAAM.NFT
 
-      self.auctionHouse.createAuction(nft: <-nft, start: self.start, length: self.length, isExtended: self.isExtended,
+      let aid = self.auctionHouse.createAuction(nft: <-nft, start: self.start, length: self.length, isExtended: self.isExtended,
         extendedTime: self.extendedTime, requiredCurrency: self.requiredCurrency, incrementByPrice: self.incrementByPrice,
         incrementAmount: self.incrementAmount, startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow)
 
-      log("New Auction created.")
+      log("New Auction has been created. AID: ".concat(aid.toString() ))
   }
 }

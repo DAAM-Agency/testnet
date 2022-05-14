@@ -45,13 +45,13 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
   
   execute {
       log(self.requiredCurrency)
-      self.auctionHouse.createOriginalAuction(
+      let aid = self.auctionHouse.createOriginalAuction(
         metadataGenerator: self.metadataCap!, mid: self.mid, start: self.start, length: self.length,
         isExtended: self.isExtended, extendedTime: self.extendedTime, requiredCurrency: self.requiredCurrency,
         incrementByPrice: self.incrementByPrice,incrementAmount: self.incrementAmount, startingBid: self.startingBid,
         reserve: self.reserve, buyNow: self.buyNow, reprintSeries: self.reprintSeries
         )
 
-      log("New Auction has been created.")
+      log("New Auction has been created. AID: ".concat(aid.toString() ))
   }
 }

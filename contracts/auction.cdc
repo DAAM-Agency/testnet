@@ -107,7 +107,7 @@ pub struct AuctionInfo {
         // *** new is defines as "never sold", age is not a consideration. ***
         pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64,
-            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
+            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool): UInt64
         {
             pre {
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
@@ -132,12 +132,13 @@ pub struct AuctionInfo {
             AuctionHouse.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
+            return aid
         }
 
         // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
         // same arguments as createOriginalAuction except for reprintSeries
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64)
+            extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64): UInt64
         {
             pre {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
@@ -154,6 +155,8 @@ pub struct AuctionInfo {
             AuctionHouse.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             log("Auction Created. Start: ".concat(start.toString()) )
             emit AuctionCreated(auctionID: aid)
+
+            return aid
         }
 
         // Resolves all Auctions. Closes ones that have been ended or restarts them due to being a reprintSeries auctions.
@@ -277,9 +280,11 @@ pub struct AuctionInfo {
                 reprintSeries && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
                 startingBid == nil && buyNow != 0.0 || startingBid != nil : "Direct Purchase requires BuyItNow amount"
             }
+
             if startingBid != nil { // Verify starting bid is lower then the reserve price
                 if reserve < startingBid! { panic("The Reserve must be greater then your Starting Bid") }
-            }            
+            }
+                     
             // Manage incrementByPrice
             if incrementByPrice == false && incrementAmount < 0.01  { panic("The minimum increment is 1.0%.")   }
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
