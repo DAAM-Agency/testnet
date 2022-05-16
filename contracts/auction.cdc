@@ -5,7 +5,6 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 import FUSD             from 0x192440c99cb17282
-//import FlowToken        from 0x0ae53cb6e3f42a79
 
 
 pub contract AuctionHouse {
@@ -510,6 +509,12 @@ pub struct AuctionInfo {
         pub fun getBuyNowAmount(bidder: Address): UFix64 {
             // If no bid had been made return buynow price, else return the difference
             return (self.auctionLog[bidder]==nil) ? self.buyNow : (self.buyNow-self.auctionLog[bidder]!)
+        }
+        
+        // Return the amount needed to make the correct bid
+        pub fun getMinBidAmount(bidder: Address): UFix64 {
+            // If no bid had been made return minimum bid, else return the difference
+            return (self.auctionLog[bidder]==nil) ? self.minBid : (self.minBid-self.auctionLog[bidder]!)
         }
 
         // Record total amount of Crypto a bidder has deposited. Manages Log of that total.
