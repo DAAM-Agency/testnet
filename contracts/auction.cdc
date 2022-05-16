@@ -222,6 +222,7 @@ pub struct AuctionInfo {
         pub fun auctionInfo(): AuctionInfo?
         pub fun winnerCollect()
         pub fun getBuyNowAmount(bidder: Address): UFix64
+        pub fun getMinBidAmount(bidder: Address): UFix64?
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault)
         pub fun buyItNowStatus(): Bool
         pub fun getAuctionLog(): {Address:UFix64}
