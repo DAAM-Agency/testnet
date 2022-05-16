@@ -65,14 +65,15 @@ pub fun main(): {Address : [Data] } {
     for auctionieer in auctionList.keys {
         var convertAuctionList: [Data] = []        // converted data
         for aid in auctionList[auctionieer]! {
-            let AuctionHouse = getAccount(auctionieer)
-            .getCapability<&{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
-            .borrow()!
+            let auctionHouse = getAccount(auction)
+                .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
+                (AuctionHouse.auctionPublicPath)
+                .borrow()!
 
-            let metadata = AuctionHouse.item(aid).itemInfo() 
+            let metadata = auctionHouse.item(aid).itemInfo() 
 
             convertAuctionList.append(
-                getData(auction: AuctionHouse.item(aid), metadata: metadata)
+                getData(auction: auctionHouse.item(aid), metadata: metadata)
             ) // Save converted data
         }
         detailedList.insert(key: auctionieer, convertAuctionList)  // Append auctionieer with Data

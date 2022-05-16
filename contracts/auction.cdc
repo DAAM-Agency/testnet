@@ -512,9 +512,10 @@ pub struct AuctionInfo {
         }
         
         // Return the amount needed to make the correct bid
-        pub fun getMinBidAmount(bidder: Address): UFix64 {
+        pub fun getMinBidAmount(bidder: Address): UFix64? {
             // If no bid had been made return minimum bid, else return the difference
-            return (self.auctionLog[bidder]==nil) ? self.minBid : (self.minBid-self.auctionLog[bidder]!)
+            if self.minBid == nil { return nil } // Buy Now Only, return nil
+            return (self.auctionLog[bidder]==nil) ? self.minBid : (self.minBid! - self.auctionLog[bidder]!)
         }
 
         // Record total amount of Crypto a bidder has deposited. Manages Log of that total.

@@ -6,7 +6,8 @@ import AuctionHouse  from 0x045a1763c93006ca
 
 pub fun main(auction: Address, aid: UInt64): DAAM.MetadataHolder? {    
     let auctionHouse = getAccount(auction)
-        .getCapability<&{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
+        .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
+        (AuctionHouse.auctionPublicPath)
         .borrow()!
 
     let metadata = auctionHouse.item(aid).itemInfo()
