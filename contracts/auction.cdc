@@ -4,7 +4,6 @@
 import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
-import FUSD             from 0x192440c99cb17282
 
 
 pub contract AuctionHouse {
@@ -105,7 +104,7 @@ pub struct AuctionInfo {
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
         pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
-            length: UFix64, isExtended: Bool, extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64,
+            length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool): UInt64
         {
             pre {
@@ -137,7 +136,7 @@ pub struct AuctionInfo {
         // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
         // same arguments as createOriginalAuction except for reprintSeries
         pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, requiredCurrency: Type, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64): UInt64
+            extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64): UInt64
         {
             pre {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
@@ -269,7 +268,7 @@ pub struct AuctionInfo {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, requiredCurrency: Type,
+        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
                 start >= getCurrentBlock().timestamp : "Time has already past."
@@ -314,11 +313,8 @@ pub struct AuctionInfo {
             self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
-            self.auctionVault <- FUSD.createEmptyVault()  // ALL Crypto is stored
-
-            self.requiredCurrency = requiredCurrency
-            //self.paymentReceiver
-
+            self.auctionVault <- vault  // ALL Crypto is stored
+            self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
@@ -406,7 +402,6 @@ pub struct AuctionInfo {
                 log("Status: Auction Ongoing")
                 self.status = true // true = Auction is ongoing
             }
-
             return self.status
         }
 
