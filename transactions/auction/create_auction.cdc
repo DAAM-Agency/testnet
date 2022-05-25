@@ -18,7 +18,6 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   let start       : UFix64
   let length      : UFix64
   let isExtended  : Bool
-  let requiredCurrency: Type
   let extendedTime: UFix64
   let incrementByPrice: Bool
   let incrementAmount : UFix64
@@ -35,7 +34,6 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
     self.length           = length
     self.isExtended       = isExtended
     self.extendedTime     = extendedTime
-    self.requiredCurrency = Type<FUSD.Vault>() //requiredCurrency
     self.incrementByPrice = incrementByPrice
     self.incrementAmount  = incrementAmount
     self.startingBid      = startingBid
@@ -45,9 +43,10 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
 
   execute {
       let nft <- self.nftCollection.withdraw(withdrawID: self.tokenID) as! @DAAM.NFT
+      let vault <- FUSD.createEmptyVault()
 
       let aid = self.auctionHouse.createAuction(nft: <-nft, start: self.start, length: self.length, isExtended: self.isExtended,
-        extendedTime: self.extendedTime, requiredCurrency: self.requiredCurrency, incrementByPrice: self.incrementByPrice,
+        extendedTime: self.extendedTime, vault: <-vault, incrementByPrice: self.incrementByPrice,
         incrementAmount: self.incrementAmount, startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow)
 
       log("New Auction has been created. AID: ".concat(aid.toString() ))

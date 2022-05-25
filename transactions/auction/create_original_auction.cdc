@@ -44,10 +44,10 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
   }
   
   execute {
-      log(self.requiredCurrency)
+      let vault <- FUSD.createEmptyVault()
       let aid = self.auctionHouse.createOriginalAuction(
         metadataGenerator: self.metadataCap!, mid: self.mid, start: self.start, length: self.length,
-        isExtended: self.isExtended, extendedTime: self.extendedTime, requiredCurrency: self.requiredCurrency,
+        isExtended: self.isExtended, extendedTime: self.extendedTime, vault: <-vault,
         incrementByPrice: self.incrementByPrice,incrementAmount: self.incrementAmount, startingBid: self.startingBid,
         reserve: self.reserve, buyNow: self.buyNow, reprintSeries: self.reprintSeries
         )
