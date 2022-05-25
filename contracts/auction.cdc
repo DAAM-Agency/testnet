@@ -120,7 +120,7 @@ pub struct AuctionInfo {
 
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
             // Create Auctions
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, requiredCurrency: requiredCurrency,
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
             // Add Auction
             let aid = auction.auctionID // Auction ID
@@ -143,7 +143,7 @@ pub struct AuctionInfo {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
             }
 
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, requiredCurrency: requiredCurrency,
+            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: false)
             // Add Auction
             let aid = auction.auctionID // Auction ID
