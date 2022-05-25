@@ -5,7 +5,6 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 
-
 pub contract AuctionHouse {
     // Events
     pub event AuctionCreated(auctionID: UInt64)   // Auction has been created. 
@@ -111,6 +110,7 @@ pub struct AuctionInfo {
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                self.verifyToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
@@ -141,6 +141,7 @@ pub struct AuctionInfo {
             pre {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
+                self.verifyToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
@@ -210,6 +211,16 @@ pub struct AuctionInfo {
                 self.currentAuctions[auctionID]?.reprintSeries! : "Reprint is already set to Off."
             }
             self.currentAuctions[auctionID]?.endReprints()
+        }
+
+        priv fun verifyToken(vault: &FungibleToken.Vault): Bool {
+            let type = vault.getType()
+            let identifier = type.identifier
+            log("vault identifier")
+            switch identifier {
+                case "A.192440c99cb17282.FUSD.Vault": return true
+            }
+            return false
         }
 
         destroy() { destroy self.currentAuctions }
