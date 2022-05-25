@@ -131,70 +131,70 @@ pub resource RequestGenerator {
 }
 /************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
-        pub let mid       : UInt64
-        pub let creator   : Address  // Creator of NFT
-        pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let category  : [Categories.Category]
-        pub let data      : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
-        pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
+        pub let mid         : UInt64
+        pub let creator     : Address  // Creator of NFT
+        pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let category    : [Categories.Category]
+        pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
+        pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String, counter: UInt64)
+        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], description: String, thumbnail: String, file: String, counter: UInt64)
         {
-            self.creator   = creator   // creator of NFT
-            self.mid       = mid
-            self.series    = series    // total prints
-            self.counter   = counter   // current print of total prints
-            self.category  = categories
-            self.data      = data      // data,about,misc page
-            self.thumbnail = thumbnail // thumbnail are stored here
-            self.file      = file      // NFT data is sto            
+            self.creator     = creator   // creator of NFT
+            self.mid         = mid
+            self.series      = series    // total prints
+            self.counter     = counter   // current print of total prints
+            self.category    = categories
+            self.description = description     // data,about,misc page
+            self.thumbnail   = thumbnail // thumbnail are stored here
+            self.file        = file      // NFT data is sto            
         }
     }
 /************************************************************************/
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
-        pub let mid       : UInt64   // Metadata ID number
-        pub let creator   : Address  // Creator of NFT
-        pub let series    : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let counter   : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let category  : [Categories.Category]
-        pub let data      : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail : String   // JSON see metadata.json all thumbnails are stored here
-        pub let file      : String   // JSON see metadata.json all NFT file formats are stored here
+        pub let mid         : UInt64   // Metadata ID number
+        pub let creator     : Address  // Creator of NFT
+        pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let category    : [Categories.Category]
+        pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
+        pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, data: String?, thumbnail: String?, file: String?, counter: &Metadata?)
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, description: String?, thumbnail: String?, file: String?, counter: &Metadata?)
         {
             pre {
                 // Increment Metadata Counter Arguments are correct
-                (creator==nil && series==nil && categories==nil && data==nil
+                (creator==nil && series==nil && categories==nil && description==nil
                 && thumbnail==nil && file==nil && counter != nil)
                 || // or
                 // New Metadata (Counter = 1) Arguments are correct
-                (creator!=nil && series!=nil && categories!=nil && data!=nil
+                (creator!=nil && series!=nil && categories!=nil && description!=nil
                 && thumbnail!=nil && file!=nil && counter == nil)
             }
 
             // initializing Metadata
             if counter == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
-                self.mid       = DAAM.metadataCounterID // init MID with counter
-                self.creator   = creator!               // creator of NFT
-                self.series    = series!                // total prints
-                self.counter   = 1                      // current print of total prints
-                self.category  = categories!            // categories 
-                self.data      = data!                  // data,about,misc page
-                self.thumbnail = thumbnail!             // thumbnail are stored here
-                self.file      = file!                  // NFT data is stored here
+                self.mid         = DAAM.metadataCounterID // init MID with counter
+                self.creator     = creator!               // creator of NFT
+                self.series      = series!                // total prints
+                self.counter     = 1                      // current print of total prints
+                self.category    = categories!            // categories 
+                self.description = description!           // data,about,misc page
+                self.thumbnail   = thumbnail!             // thumbnail are stored here
+                self.file        = file!                  // NFT data is stored here
             } else {
-                self.mid       = counter!.mid          // init MID with counter
-                self.creator   = counter!.creator      // creator of NFT
-                self.series    = counter!.series       // total prints
-                self.counter   = counter!.counter + 1  // current print of total prints
-                self.category  = counter!.category     // categories 
-                self.data      = counter!.data         // data,about,misc page
-                self.thumbnail = counter!.thumbnail    // thumbnail are stored here
-                self.file      = counter!.file         // NFT data is stored here
+                self.mid         = counter!.mid          // init MID with counter
+                self.creator     = counter!.creator      // creator of NFT
+                self.series      = counter!.series       // total prints
+                self.counter     = counter!.counter + 1  // current print of total prints
+                self.category    = counter!.category     // categories 
+                self.description = counter!.description  // data,about,misc page
+                self.thumbnail   = counter!.thumbnail    // thumbnail are stored here
+                self.file        = counter!.file         // NFT data is stored here
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
                 if self.counter > self.series && self.series != 0 { panic("Metadata setting incorrect.") }
             }
@@ -202,7 +202,7 @@ pub resource RequestGenerator {
 
         pub fun getHolder(): MetadataHolder {
             return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
-            data: self.data, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
+            description: self.description, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
         }
     }
 /************************************************************************/
@@ -231,13 +231,13 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(series: UInt64, categories: [Categories.Category], data: String, thumbnail: String, file: String): UInt64 {
+        pub fun addMetadata(series: UInt64, categories: [Categories.Category], description: String, thumbnail: String, file: String): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
             }
-            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, data: data, thumbnail: thumbnail,
+            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, description: description, thumbnail: thumbnail,
                 file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
