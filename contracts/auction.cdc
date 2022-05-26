@@ -484,7 +484,7 @@ pub struct AuctionInfo {
                 emit ItemReturned(auctionID: self.auctionID)    
             }
             log("receiver: ".concat(receiver!.toString()) )   
-            let collectionRef = getAccount(receiver!).getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
+            let collectionRef = getAccount(receiver!).getCapability<&{NonFungibleToken.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil     // remove nft
             let isLast = nft?.metadata?.counter! == nft?.metadata?.series!

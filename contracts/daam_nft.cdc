@@ -403,23 +403,24 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
+    //pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
     pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
-    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
+    //pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
 
-    pub fun getAlbum(): {String: CollectionData}      // Get collections
+    //pub fun getAlbum(): {String: CollectionData}      // Get collections
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT         // Get NFT as DAAM.NFT
-    pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
+    //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
 }
 /************************************************************************/
 // Structure to store collection data
 pub struct CollectionData {
-    pub var ids : [UInt64]  // List of TokenIDs in collection
-    pub var sub_collection: [String] // List of sub-collections
+    pub let name: String
+    pub var collection : [UInt64]  // List of TokenIDs in collection
+    //pub var sub_collection: [String] // List of sub-collections
 
-    init() {
-        self.ids  = []
-        self.sub_collection = []
+    init(name: String) {
+        self.name = name
+        self.collection = []
     }
 }
 /************************************************************************/
@@ -436,7 +437,7 @@ pub struct CollectionData {
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            self.removeFromCollections(tokenID: withdrawID)
+            //self.removeFromCollections(tokenID: withdrawID)
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
@@ -459,12 +460,13 @@ pub struct CollectionData {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
-        // borrowDAAM gets a reference to an DAAM.NFT in the album.
+        //borrowDAAM gets a reference to an DAAM.NFT in the album.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
+        /* 
         // Create an album name
         pub fun createCollection(name: String) {
             pre  { !self.album.containsKey(name) : "Collection already exist." }
@@ -561,7 +563,7 @@ pub struct CollectionData {
                 counter = counter + 1
             }
             return nil       
-        }              
+        }       */       
 
         destroy() { destroy self.ownedNFTs } // Destructor
     }
