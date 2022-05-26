@@ -168,12 +168,13 @@ pub resource RequestGenerator {
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
+        pub var collection  : CollectionData?
         pub let name        : String
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : {MetadataViews.File}   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?,
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?, collection: 
             description: String?, thumbnail: {MetadataViews.File}?, file: {MetadataViews.File}?, counter: &Metadata?)
         {
             pre {
