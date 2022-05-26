@@ -130,22 +130,31 @@ pub resource RequestGenerator {
     }
 }
 /************************************************************************/
+    pub struct OnChain: MetadataViews.File {
+        pub let url: String
+        init(url: String) { self.url = url }
+        pub fun uri(): String { return self.url }
+    }
+/************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
         pub let creator     : Address  // Creator of NFT
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
+        pub let name        : String   // Name of piece
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
         pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], description: String, thumbnail: String, file: String, counter: UInt64)
+        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category],
+            name: String, description: String, thumbnail: String, file: String, counter: UInt64)
         {
             self.creator     = creator   // creator of NFT
             self.mid         = mid
             self.series      = series    // total prints
             self.counter     = counter   // current print of total prints
+            self.name        = name
             self.category    = categories
             self.description = description     // data,about,misc page
             self.thumbnail   = thumbnail // thumbnail are stored here
@@ -159,20 +168,22 @@ pub resource RequestGenerator {
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
+        pub let name        : String
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
-        pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
+        pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
+        pub let file        : {MetadataViews.File}   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, description: String?, thumbnail: String?, file: String?, counter: &Metadata?)
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?,
+            description: String?, thumbnail: {MetadataViews.File}?, file: {MetadataViews.File}?, counter: &Metadata?)
         {
             pre {
                 // Increment Metadata Counter Arguments are correct
-                (creator==nil && series==nil && categories==nil && description==nil
-                && thumbnail==nil && file==nil && counter != nil)
+                (creator==nil && series==nil && categories==nil && name==nil &&
+                description==nil && thumbnail==nil && file==nil && counter != nil)
                 || // or
                 // New Metadata (Counter = 1) Arguments are correct
-                (creator!=nil && series!=nil && categories!=nil && description!=nil
-                && thumbnail!=nil && file!=nil && counter == nil)
+                (creator!=nil && series!=nil && categories!=nil && name==nil &&
+                description!=nil && thumbnail!=nil && file!=nil && counter == nil)
             }
 
             // initializing Metadata
@@ -183,6 +194,7 @@ pub resource RequestGenerator {
                 self.series      = series!                // total prints
                 self.counter     = 1                      // current print of total prints
                 self.category    = categories!            // categories 
+                self.name        = name!
                 self.description = description!           // data,about,misc page
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
                 self.file        = file!                  // NFT data is stored here
@@ -192,6 +204,7 @@ pub resource RequestGenerator {
                 self.series      = counter!.series       // total prints
                 self.counter     = counter!.counter + 1  // current print of total prints
                 self.category    = counter!.category     // categories 
+                self.name        = counter!.name
                 self.description = counter!.description  // data,about,misc page
                 self.thumbnail   = counter!.thumbnail    // thumbnail are stored here
                 self.file        = counter!.file         // NFT data is stored here
@@ -202,8 +215,17 @@ pub resource RequestGenerator {
 
         pub fun getHolder(): MetadataHolder {
             return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
-            description: self.description, thumbnail: self.thumbnail, file: self.file, counter: self.counter)
+            name: self.name, description: self.description, thumbnail: self.thumbnail.uri(), file: self.file.uri(), counter: self.counter)
         }
+        
+        // MetadataViews
+        pub fun getDisplay(): MetadataViews.Display {
+            let display = MetadataViews.Display(name: self.name, description: self.description, thumbnail: self.thumbnail)
+            return display
+        }
+
+        //pub fun getViews(): [Type] {}
+        //pub fun resolveView(_ view: Type): AnyStruct?
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
@@ -216,6 +238,8 @@ pub resource interface MetadataGeneratorPublic {
     pub fun getMIDs(): [UInt64]
     pub fun viewMetadata(mid: UInt64): MetadataHolder?
     pub fun viewMetadatas(): [MetadataHolder]
+    pub fun viewDisplay(mid: UInt64): MetadataViews.Display?
+    pub fun viewDisplays(): [MetadataViews.Display]
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -230,18 +254,22 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
         }
 
+
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(series: UInt64, categories: [Categories.Category], description: String, thumbnail: String, file: String): UInt64 {
+        pub fun addMetadata(series: UInt64, categories: [Categories.Category], name: String, description: String,
+            thumbnail: {MetadataViews.File}, file: {MetadataViews.File}): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
             }
-            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, description: description, thumbnail: thumbnail,
-                file: file, counter: nil) // Create Metadata
+
+            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, name: name,
+                description: description, thumbnail: thumbnail, file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
             destroy old
+
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
@@ -297,8 +325,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             let mRef = &self.metadata[mid] as &Metadata
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
-            if mRef.counter < mRef.series! && mRef.series! != 0 {            
-                let new_metadata <- create Metadata(creator: nil,series: nil,categories: nil,data: nil,thumbnail: nil,file: nil, counter: mRef!)
+            if mRef.counter < mRef.series && mRef.series != 0 {            
+                let new_metadata <- create Metadata(creator: nil,series: nil,categories: nil, name: nil, description: nil,thumbnail: nil,file: nil, counter: mRef!)
                 let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                 return <- orig_metadata! // Return current Metadata                 
             } else { // if not last, print
@@ -322,6 +350,21 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             for m in self.metadata.keys {
                 let mRef = &self.metadata[m] as &Metadata
                 list.append(mRef.getHolder() )
+            } 
+            return list
+        }
+
+        pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
+            pre { self.metadata[mid] != nil : "Invalid MID" }
+            let mRef = &self.metadata[mid] as &Metadata
+            return mRef.getDisplay()
+        }
+
+        pub fun viewDisplays(): [MetadataViews.Display] {
+            var list: [MetadataViews.Display] = []
+            for m in self.metadata.keys {
+                let mRef = &self.metadata[m] as &Metadata
+                list.append(mRef.getDisplay() )
             } 
             return list
         }
