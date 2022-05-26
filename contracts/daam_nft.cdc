@@ -76,22 +76,24 @@ pub enum CopyrightStatus: UInt8 {
 // Accept Default are auto agreements
 pub resource Request {
     access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royalty  : {Address : UFix64}    // current royalty neogoation.
+    access(contract) var royalty   : {Address : MetadataViews.Royalties}    // current royalty neogoation.
     access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
         self.mid       = mid             // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royalty  = {}              // royalty is initialized
+        self.royalty  = {}               // royalty is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
     
+    // Neogatator Removed, Re-Add Here, if re-implimented.
+
     // Accept Default royalty. Skip Neogations.
-    access(contract) fun acceptDefault(royalty: {Address:UFix64} ) {
+    access(contract) fun acceptDefault(royalty: {Address : MetadataViews.Royalty} ) {
         self.royalty = royalty        // get royalty
-        self.agreement = [true, true]   // set agreement status to Both parties Agreed
+        self.agreement = [true, true] // set agreement status to Both parties Agreed
     }
 
     // If both parties agree (Creator & Admin) return true
@@ -107,20 +109,32 @@ pub resource RequestGenerator {
 
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
+    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalty: MetadataViews.Royalty) {
         pre {
             self.grantee == self.owner!.address     : "Permission Denied"
             metadataGen.getMIDs().contains(mid)  : "Wrong MID"
             DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
             DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
-            percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
+            royalty.cut >= 0.1 && royalty.cut <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
+        // Getting Agency royalties
+        let agencyRoyalty = MetadataView.Royalty(
+            recepient: getAccount(self.agency).Capability<&AnyResource{FungibleToken.Receiver}> as &AnyResource{FungibleToken.Receiver},
+            cut: (0.1 * royalty.cut),
+            description: "Default Royalty Protocol"
+        )
+        // Getting Creators royalties
+        let creatorRoyalty = MetadataView.Royalty(
+            recepient: royalty.receipient,
+            cut: (0.9 * royalty.cut),
+            description: royalty.description
+        )
 
-        var royalty = {DAAM.agency: (0.1 * percentage) }  // get Agency percentage, Agency takes 10% of Creator
-        royalty.insert(key: self.grantee, (0.9 * percentage) ) // get Creator percentage
+        var holders = {DAAM.agency: agencyRoyalty }        // Add Agency percentage, Agency takes 10% of Creator
+        holders.insert(key: self.grantee, creatorRoyalty ) // Add Creator percentage
 
         let request <-! create Request(mid: mid) // get request
-        request.acceptDefault(royalty: royalty)          // append royalty rate
+        request.acceptDefault(royalty: holders)  // append royalty rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old // destroy place holder
@@ -142,18 +156,20 @@ pub resource RequestGenerator {
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
+        pub let collection  : CollectionData?
         pub let name        : String   // Name of piece
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
         //pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category],
-            name: String, description: String, thumbnail: String, /*file: String,*/ counter: UInt64)
+        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], collection: CollectionData?,
+            name: String, description: String, thumbnail: String, counter: UInt64)
         {
             self.creator     = creator   // creator of NFT
             self.mid         = mid
             self.series      = series    // total prints
             self.counter     = counter   // current print of total prints
+            self.collection  = collection
             self.name        = name
             self.category    = categories
             self.description = description     // data,about,misc page
@@ -172,10 +188,10 @@ pub resource RequestGenerator {
         pub let name        : String
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
-        pub let file        : {MetadataViews.File}   // JSON see metadata.json all NFT file formats are stored here
+        pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
         
         init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?, collection: CollectionData?,
-            description: String?, thumbnail: {MetadataViews.File}?, file: {MetadataViews.File}?, counter: &Metadata?)
+            description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, counter: &Metadata?)
         {
             pre {
                 // Increment Metadata Counter Arguments are correct excluding collection (is not const)
@@ -217,7 +233,7 @@ pub resource RequestGenerator {
 
         pub fun getHolder(): MetadataHolder {
             return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
-            name: self.name, description: self.description, thumbnail: self.thumbnail.uri(), /*file: self.file.uri()*,*/ counter: self.counter)
+            collection: self.collection, name: self.name, description: self.description, thumbnail: self.thumbnail.uri(), counter: self.counter)
         }
         
         // MetadataViews
@@ -385,7 +401,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let mid      : UInt64   // Metadata ID, A unique serialized number
         pub let metadata : MetadataHolder // Metadata of NFT
-        pub let royalty : {Address : UFix64} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let royalty  : {Address : MetadataViews.Royalties} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
         init(metadata: @Metadata, request: &Request) {
             pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
@@ -393,7 +409,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id          = DAAM.totalSupply     // Set Token ID with total supply
             self.mid         = metadata.mid         // Set Metadata ID
-            self.royalty    = request.royalty     // Save Request which are the royalities.  
+            self.royalty     = request.royalty     // Save Request which are the royalities.  
             self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
@@ -405,24 +421,21 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    //pub fun deposit(token: @NonFungibleToken.NFT) // Used to deposit NFT
-    pub fun getIDs(): [UInt64]                    // Get NFT Token IDs
-    //pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as NonFungibleToken.NFT
-
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
+    pub fun getIDs(): [UInt64]                // Get NFT Token IDs
     //pub fun getAlbum(): {String: CollectionData}      // Get collections
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT         // Get NFT as DAAM.NFT
     //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
 }
 /************************************************************************/
 // Structure to store collection data
 pub struct CollectionData {
     pub let name: String
-    pub var collection : [UInt64]  // List of TokenIDs in collection
+    pub var ids : [UInt64]  // List of TokenIDs in collection
     //pub var sub_collection: [String] // List of sub-collections
 
     init(name: String) {
         self.name = name
-        self.collection = []
+        self.ids = []
     }
 }
 /************************************************************************/
@@ -449,6 +462,16 @@ pub struct CollectionData {
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
             let id: UInt64 = token.id        // Save Token ID
+            // update album with new collection
+            if token.metadata.collection != nil {
+                let collection = self.album[token.metadata.collection!.name]
+                if collection != nil {
+                    // append collection
+                    //for t in 
+                } else {
+                    self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
+                }
+            }
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
             emit Deposit(id: id, to: self.owner?.address) 
@@ -1070,7 +1093,7 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(agency: Address, founder: Address)
+    init(agency: MetadataViews.Royalties, cto: Address)
     {
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection

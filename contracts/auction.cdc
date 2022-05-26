@@ -110,7 +110,7 @@ pub struct AuctionInfo {
                 metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
-                self.verifyToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
+                self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
 
             AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
@@ -141,7 +141,7 @@ pub struct AuctionInfo {
             pre {
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
-                self.verifyToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
+                self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
 
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
@@ -213,10 +213,10 @@ pub struct AuctionInfo {
             self.currentAuctions[auctionID]?.endReprints()
         }
 
-        priv fun verifyToken(vault: &FungibleToken.Vault): Bool {
+        priv fun validToken(vault: &FungibleToken.Vault): Bool {
             let type = vault.getType()
             let identifier = type.identifier
-            log("vault identifier")
+            // Accepted Tokens, Will be adding others here TODO
             switch identifier {
                 case "A.192440c99cb17282.FUSD.Vault": return true
             }
