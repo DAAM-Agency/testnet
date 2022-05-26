@@ -60,7 +60,7 @@ pub contract DAAM: NonFungibleToken {
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
-    pub let agency : Address     // DAAM Ageny Address
+    pub let agency : MetadataViews.Royalties  // DAAM Ageny Address
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -75,14 +75,14 @@ pub enum CopyrightStatus: UInt8 {
 // Request manage the royalty rate
 // Accept Default are auto agreements
 pub resource Request {
-    access(contract) let mid       : UInt64                // Metadata ID number is stored
-    access(contract) var royalty   : {Address : MetadataViews.Royalties}    // current royalty neogoation.
-    access(contract) var agreement : [Bool; 2]             // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
+    access(contract) let mid       : UInt64                  // Metadata ID number is stored
+    access(contract) var royalty   : MetadataViews.Royalties? // current royalty neogoation.
+    access(contract) var agreement : [Bool; 2]               // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
         self.mid       = mid             // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royalty  = {}               // royalty is initialized
+        self.royalty  = nil               // royalty is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
@@ -91,7 +91,7 @@ pub resource Request {
     // Neogatator Removed, Re-Add Here, if re-implimented.
 
     // Accept Default royalty. Skip Neogations.
-    access(contract) fun acceptDefault(royalty: {Address : MetadataViews.Royalty} ) {
+    access(contract) fun acceptDefault(royalty: MetadataViews.Royalties ) {
         self.royalty = royalty        // get royalty
         self.agreement = [true, true] // set agreement status to Both parties Agreed
     }
@@ -109,32 +109,44 @@ pub resource RequestGenerator {
 
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalty: MetadataViews.Royalty) {
+    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalty: MetadataViews.Royalties, percentage: UFix64) {
         pre {
             self.grantee == self.owner!.address     : "Permission Denied"
             metadataGen.getMIDs().contains(mid)  : "Wrong MID"
             DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
             DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
-            royalty.cut >= 0.1 && royalty.cut <= 0.3  : "Percentage must be inbetween 10% to 30%."
+            percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
-        let agencyRoyalty = MetadataView.Royalty(
-            recepient: getAccount(self.agency).Capability<&AnyResource{FungibleToken.Receiver}> as &AnyResource{FungibleToken.Receiver},
-            cut: (0.1 * royalty.cut),
-            description: "Default Royalty Protocol"
-        )
-        // Getting Creators royalties
-        let creatorRoyalty = MetadataView.Royalty(
-            recepient: royalty.receipient,
-            cut: (0.9 * royalty.cut),
-            description: royalty.description
-        )
+        let agency   = DAAM.agency.getRoyalties()
+        let creators = royalty.getRoyalties()
+        let agencyCut  = percentage // Add Agency percentage, Agency takes 10% of Creator
+        let creatorCut = 1.0 - percentage // Add Creator percentage
+        let royalty_list: [MetadataViews.Royalty] = []
 
-        var holders = {DAAM.agency: agencyRoyalty }        // Add Agency percentage, Agency takes 10% of Creator
-        holders.insert(key: self.grantee, creatorRoyalty ) // Add Creator percentage
+        for founder in agency {
+            royalty_list.append(
+                MetadataViews.Royalty(recepient: founder!.receiver,
+                cut: agencyCut * founder!.cut,
+                description: "Founder Royalty: ".concat(
+                    founder!.cut.toString()).concat("MID: ").concat(mid.toString())
+                ) // end Royalty
+            ) // end append   
+        }
+
+        for creator in creators {
+            royalty_list.append(
+                MetadataViews.Royalty(recepient: creator!.receiver,
+                cut: creatorCut * creator!.cut,
+                description: "Creator Royalty: ".concat(
+                    creator!.cut.toString()).concat("MID: ").concat(mid.toString())
+                ) // end Royalty
+            ) // end append   
+        }        
 
         let request <-! create Request(mid: mid) // get request
-        request.acceptDefault(royalty: holders)  // append royalty rate
+        let royalties = MetadataViews.Royalties(royalty_list)
+        request.acceptDefault(royalty: royalties)  // append royalty rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old // destroy place holder
@@ -275,7 +287,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
         pub fun addMetadata(series: UInt64, categories: [Categories.Category], name: String, description: String,
-            collection: CollectionData, thumbnail: {MetadataViews.File}, file: {MetadataViews.File}): UInt64 {
+            collection: CollectionData, thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
@@ -391,17 +403,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 }
 /************************************************************************/
     pub resource interface INFT {
-        pub let id       : UInt64   // Token ID, A unique serialized number
-        pub let mid      : UInt64   // Token ID, A unique serialized number
-        pub let metadata : MetadataHolder // Metadata of NFT
-        pub let royalty : {Address : UFix64} // Where all royalities
+        pub let mid      : UInt64                   // Metadata ID, A unique serialized number
+        pub let metadata : MetadataHolder           // Metadata of NFT
+        pub let royalty  : MetadataViews.Royalties // All royalities percentages
     }
 /************************************************************************/
     pub resource NFT: NonFungibleToken.INFT, INFT {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let mid      : UInt64   // Metadata ID, A unique serialized number
-        pub let metadata : MetadataHolder // Metadata of NFT
-        pub let royalty  : {Address : MetadataViews.Royalties} // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let metadata : MetadataHolder          // Metadata of NFT
+        pub let royalty  : MetadataViews.Royalties // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
         init(metadata: @Metadata, request: &Request) {
             pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
@@ -409,7 +420,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id          = DAAM.totalSupply     // Set Token ID with total supply
             self.mid         = metadata.mid         // Set Metadata ID
-            self.royalty     = request.royalty     // Save Request which are the royalities.  
+            self.royalty     = request.royalty!     // Save Request which are the royalities.  
             self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
@@ -1125,7 +1136,7 @@ pub resource MinterAccess
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
-        self.admins.insert(key: founder, false)
+        self.admins.insert(key: cto, false)
 
         emit ContractInitialized()
 	}
