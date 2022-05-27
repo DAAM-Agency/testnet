@@ -459,12 +459,38 @@ pub struct CollectionData {
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
             self.album = {}
-        } 
+        }
+
+        priv fun updateAlbum(_ token: &DAAM.NFT) { // update album
+            pre { token.metadata.collection != nil : "No Collection Data" }
+                let collectionRef = &self.album[token.metadata.collection!.name] as &CollectionData
+                if collectionRef != nil { // append to existing collection
+                    collectionRef.ids.append(token.id)
+                } else { // add new collection
+                    self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
+                }
+            } 
+        }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            //self.removeFromCollections(tokenID: withdrawID)
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT") // Get NFT
+            let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT //?? panic("missing NFT") // Get NFT
+            // update album
+            if token.metadata.collection != nil {
+                let collection = self.album[token.metadata.collection!.name]
+                if collection != nil {
+                    var elm = 0
+                    for id in collection {
+                        if id == withdrawID {
+                            self.album[token.metadata.collection!.name].remove(at: elm)
+                            break
+                        }
+                        elm = elm + 1
+                    }
+                } else {
+                    self.album.removeKey(key: token.metadata.collection!.name)
+                }
+            }
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -473,16 +499,7 @@ pub struct CollectionData {
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
             let id: UInt64 = token.id        // Save Token ID
-            // update album with new collection
-            if token.metadata.collection != nil {
-                let collection = self.album[token.metadata.collection!.name]
-                if collection != nil {
-                    // append collection
-                    //for t in 
-                } else {
-                    self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
-                }
-            }
+            
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
             emit Deposit(id: id, to: self.owner?.address) 

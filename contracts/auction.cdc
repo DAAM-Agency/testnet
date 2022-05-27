@@ -12,10 +12,10 @@ pub contract AuctionHouse {
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address ) // Bid has been made on an Item
-    pub event BidWithdrawn(bidder: Address)                // Bidder has withdrawn their bid
-    pub event ItemWon(winner: Address, auctionID: UInt64)  // Item has been Won in an auction
-    pub event BuyItNow(winner: Address, auction: UInt64, amount: UFix64) // Buy It Now has been completed
-    pub event FundsReturned()   // Funds have been returned accordingly
+    pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
+    pub event ItemWon(auctionID: UInt64, winner: Address)  // Item has been Won in an auction
+    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
+    pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
     // Path for Auction Wallet
     pub let auctionStoragePath: StoragePath
@@ -119,6 +119,7 @@ pub struct AuctionInfo {
             let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
 
             let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
+
             // Create Auctions
             let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
               incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -128,8 +129,6 @@ pub struct AuctionInfo {
             destroy oldAuction // destroy placeholder
 
             AuctionHouse.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
-            log("Auction Created. Start: ".concat(start.toString()) )
-            emit AuctionCreated(auctionID: aid)
             return aid
         }
 
@@ -152,9 +151,6 @@ pub struct AuctionInfo {
             destroy oldAuction // destroy placeholder
             
             AuctionHouse.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
-            log("Auction Created. Start: ".concat(start.toString()) )
-            emit AuctionCreated(auctionID: aid)
-
             return aid
         }
 
@@ -329,7 +325,7 @@ pub struct AuctionInfo {
             self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
-            emit AuctionCreated(auctionID: self.auctionID)
+            emit AuctionCreated(auctionID: self.auctionID, address: self.owner.address! )
         }
 
         // Makes Bid, Bids are deposited into vault
@@ -431,7 +427,7 @@ pub struct AuctionInfo {
             self.auctionLog.remove(key: bidder.address)!   // Remove from log
             let amount <- self.auctionVault.withdraw(amount: balance) // Withdraw balance from Vault
             log("Bid Withdrawn")
-            emit BidWithdrawn(bidder: bidder.address)    
+            emit BidWithdrawn(auctionID: self.auctionID, bidder: bidder.address)    
             return <- amount  // return bidders deposit amount
         }
 
@@ -476,7 +472,7 @@ pub struct AuctionInfo {
                 self.returnFunds()  // return funds to all bidders
                 self.royalty()     // pay royalty
                 log("Item: Won")
-                emit ItemWon(winner: self.leader!, auctionID: self.auctionID) // Auction Ended, but Item not delivered yet.
+                emit ItemWon(auctionID: self.auctionID, winner: self.leader!) // Auction Ended, but Item not delivered yet.
             } else {                
                 receiver = self.owner!.address // set receiver from leader to auctioneer
                 self.returnFunds()              // return funds to all bidders
@@ -555,7 +551,7 @@ pub struct AuctionInfo {
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
             log("Buy It Now")
-            emit BuyItNow(winner: self.leader!, auction: self.auctionID, amount: self.buyNow)                         // pay royalities
+            emit BuyItNow(auctionID: self.auctionID, winner: self.leader!, amount: self.buyNow)                         // pay royalities
 
             log(self.auctionLog)
             self.winnerCollect() // Will receive NFT if reserve price is met
@@ -585,7 +581,7 @@ pub struct AuctionInfo {
                 bidderRef.deposit(from: <- amount)  // Deposit amount to bidder
             }
             log("Funds Returned")
-            emit FundsReturned()
+            emit FundsReturned(auctionID: self.auctionID)
         }
 
         pub fun getAuctionLog(): {Address:UFix64} {
