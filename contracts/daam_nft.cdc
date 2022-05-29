@@ -5,6 +5,7 @@ import FungibleToken    from 0xee82856bf20e2aa6
 import MetadataViews    from 0xf8d6e0586b0a20c7
 import Profile          from 0x192440c99cb17282
 import Categories       from 0xfd43f9148d4b725d
+
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {
     // Events
@@ -168,13 +169,13 @@ pub resource RequestGenerator {
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub let collection  : CollectionData?
+        pub let collection  : MetadataViews.NFTCollectionData?
         pub let name        : String   // Name of piece
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
         //pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], collection: CollectionData?,
+        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], collection: MetadataViews.NFTCollectionData?,
             name: String, description: String, thumbnail: String, counter: UInt64)
         {
             self.creator     = creator   // creator of NFT
@@ -196,13 +197,13 @@ pub resource RequestGenerator {
         pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var collection  : CollectionData?
+        pub var collection  : MetadataViews.NFTCollectionData?
         pub let name        : String
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?, collection: CollectionData?,
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?, collection: MetadataViews.NFTCollectionData?,
             description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, counter: &Metadata?)
         {
             pre {
@@ -287,7 +288,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
         pub fun addMetadata(series: UInt64, categories: [Categories.Category], name: String, description: String,
-            collection: CollectionData, thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
+            collection: MetadataViews.NFTCollectionData, thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
@@ -431,30 +432,18 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
     }
 /************************************************************************/
 // Wallet Public standards. For Public access only
-pub resource interface CollectionPublic {
+pub resource CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getIDs(): [UInt64]                // Get NFT Token IDs
-    //pub fun getAlbum(): {String: CollectionData}      // Get collections
+    //pub fun getIDs(): [UInt64]                // Get NFT Token IDs
+    //pub fun getAlbum(): {String: MetadataViews.NFTCollectionData}      // Get collections
     //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
-}
-/************************************************************************/
-// Structure to store collection data
-pub struct CollectionData {
-    pub let name: String
-    pub var ids : [UInt64]  // List of TokenIDs in collection
-    //pub var sub_collection: [String] // List of sub-collections
-
-    init(name: String) {
-        self.name = name
-        self.ids = []
-    }
 }
 /************************************************************************/
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs  : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-        pub var album : {String: CollectionData } // {name : CollectionData }
+        pub var album : {String: MetadataViews.NFTCollectionData } // {name : MetadataViews.NFTCollectionData }
                         
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
@@ -463,7 +452,7 @@ pub struct CollectionData {
 
         priv fun updateAlbum(_ token: &DAAM.NFT) { // update album
             pre { token.metadata.collection != nil : "No Collection Data" }
-                let collectionRef = &self.album[token.metadata.collection!.name] as &CollectionData
+                let collectionRef = &self.album[token.metadata.collection!.name] as &MetadataViews.NFTCollectionData
                 if collectionRef != nil { // append to existing collection
                     collectionRef.ids.append(token.id)
                 } else { // add new collection
@@ -524,7 +513,7 @@ pub struct CollectionData {
         pub fun createCollection(name: String) {
             pre  { !self.album.containsKey(name) : "Collection already exist." }
             post { self.album.containsKey(name)  : "Internal Error: Create Collection" }
-            self.album.insert(key: name, CollectionData() )
+            self.album.insert(key: name, MetadataViews.NFTCollectionData() )
             log("Collection Created: ".concat(name))
             log(self.album)
         } 
@@ -603,7 +592,7 @@ pub struct CollectionData {
         }
 
         // Get all collections
-        pub fun getAlbum(): {String: CollectionData} {
+        pub fun getAlbum(): {String: MetadataViews.NFTCollectionData} {
             log(self.album)
             return self.album
         }
