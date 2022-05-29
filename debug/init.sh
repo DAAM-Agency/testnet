@@ -32,6 +32,12 @@ export AGENT2_PUBKEY=$(tail -1 ./keys/agent2_keys       | awk '{print $3}' | tr 
 export CREATOR2_PUBKEY=$(tail -1 ./keys/creator2_keys   | awk '{print $3}' | tr -d '\n')
 export CLIENT2_PUBKEY=$(tail -1 ./keys/client2_keys     | awk '{print $3}' | tr -d '\n')
 
+export FOUNDER1_PUBKEY=$(tail -1 ./keys/founder1_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder2_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder3_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder4_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder5_keys   | awk '{print $3}' | tr -d '\n')
+
 echo "---------- Setup: Priavte Keys ----------"
 export CREATOR_PRIVKEY=$(tail -2 ./keys/creator_keys     | awk '{print $3}' | tr -d '\n')
 export ADMIN_PRIVKEY=$(tail -2 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
@@ -175,7 +181,7 @@ flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_n
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE $AGENCY $CTO --signer daam_nft
+flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE '[$CTO, $FOUNDER1, $FOUNDER2, $FOUNDER3, $FOUNDER4, $FOUNDER5]' '[$CTO, $FOUNDER1, $FOUNDER2, $FOUNDER3, $FOUNDER4, $FOUNDER5]' --signer daam_nft
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction

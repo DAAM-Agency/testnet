@@ -123,7 +123,7 @@ pub resource RequestGenerator {
         let creators = royalty.getRoyalties()
         let agencyCut  = percentage // Add Agency percentage, Agency takes 10% of Creator
         let creatorCut = 1.0 - percentage // Add Creator percentage
-        let royalty_list: [MetadataViews.Royalty] = []
+        var royalty_list: [MetadataViews.Royalty] = []
 
         for founder in agency {
             royalty_list.append(
@@ -1110,7 +1110,7 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(agency: MetadataViews.Royalties, cto: Address)
+    init(agency: {Address: UFix64}, defaultAdmins: [Address])
     {
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
@@ -1125,8 +1125,20 @@ pub resource MinterAccess
         self.creatorStoragePath    = /storage/DAAM_Creator
         self.requestPrivatePath    = /private/DAAM_Request
         self.requestStoragePath    = /storage/DAAM_Request
-        // Internal  variables
-        self.agency = agency
+
+        // Setup Up Founders
+        var royalty_list: [MetadataViews.Royalty] = []
+        for founder in agency.keys {
+            royalty_list.append(
+                MetadataViews.Royalty(recepient: founder,
+                cut: agency[founder],
+                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(agency[founder].toString())
+                ) // end royalty_list
+            ) // end append
+            
+        }
+        self.agency = MetadataViews.Royalties(royalty_list)
+
         // Initialize variables
         self.admins    = {}
         self.remove    = {}
@@ -1142,8 +1154,11 @@ pub resource MinterAccess
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
-        self.admins.insert(key: cto, false)
-
+        // Setup Up Default Admins
+        for admin in defaultAdmins {
+            self.admins.insert(key: admin, false)
+        }
+        
         emit ContractInitialized()
 	}
 }
