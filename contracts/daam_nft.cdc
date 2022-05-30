@@ -1110,7 +1110,7 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(agency: {Address: UFix64}, defaultAdmins: [Address])
+    init(founders: {Address:UFix64}, defaultAdmins: [Address])
     {
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
@@ -1128,11 +1128,11 @@ pub resource MinterAccess
 
         // Setup Up Founders
         var royalty_list: [MetadataViews.Royalty] = []
-        for founder in agency.keys {
+        for founder in founders.keys {
             royalty_list.append(
                 MetadataViews.Royalty(recepient: founder,
                 cut: agency[founder],
-                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(agency[founder].toString())
+                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder].toString())
                 ) // end royalty_list
             ) // end append
             
@@ -1162,3 +1162,4 @@ pub resource MinterAccess
         emit ContractInitialized()
 	}
 }
+ 
