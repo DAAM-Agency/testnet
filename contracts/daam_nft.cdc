@@ -166,85 +166,79 @@ pub resource RequestGenerator {
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
         pub let creator     : Address  // Creator of NFT
-        pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub let collection  : MetadataViews.NFTCollectionData?
-        pub let name        : String   // Name of piece
+        pub let editions    : MetadataViews.Editions?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail   : String   // JSON see metadata.json all thumbnails are stored here
-        //pub let file        : String   // JSON see metadata.json all NFT file formats are stored here
+        pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         
-        init(creator: Address, mid: UInt64, series: UInt64, categories: [Categories.Category], collection: MetadataViews.NFTCollectionData?,
-            name: String, description: String, thumbnail: String, counter: UInt64)
+        init(creator: Address, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], editions: MetadataViews.Editions?,
+            description: String, thumbnail: {MetadataViews.File})
         {
-            self.creator     = creator   // creator of NFT
             self.mid         = mid
-            self.series      = series    // total prints
-            self.counter     = counter   // current print of total prints
-            self.collection  = collection
-            self.name        = name
+            self.creator     = creator   // creator of NFT
+            self.edition     = edition    // total prints
             self.category    = categories
+            self.editions    = editions   // total prints
             self.description = description     // data,about,misc page
             self.thumbnail   = thumbnail // thumbnail are stored here
-            //self.file        = file      // NFT data is sto            
         }
     }
 /************************************************************************/
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64   // Metadata ID number
         pub let creator     : Address  // Creator of NFT
-        pub let max         : UInt64?   // series total, number of prints. nil = Unlimited [counter, total]
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
         pub var editions    : MetadataViews.Editions?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
-        
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, collection: MetadataViews.NFTCollectionData?,
-            description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, counter: &Metadata?)
-        {
+
+       init(creator: Address?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
+            description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, metadata: &Metadata?)
+        {            
             pre {
-                // Increment Metadata Counter Arguments are correct excluding collection (is not const)
-                (creator==nil && series==nil && categories==nil && name==nil &&
-                description==nil && thumbnail==nil && file==nil && counter != nil)
+                max != 0 : "Max has an incorrect value of 0."
+                // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
+                (creator==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
+                metadata != nil)
                 || // or
-                // New Metadata (Counter = 1) Arguments are correct  excluding collection (is not const)
-                (creator!=nil && series!=nil && categories!=nil && name==nil &&
-                description!=nil && thumbnail!=nil && file!=nil && counter == nil)
+                // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
+                (creator!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
-            // initializing Metadata
-            if counter == nil {
+            if metadata == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid         = DAAM.metadataCounterID // init MID with counter
                 self.creator     = creator!               // creator of NFT
-                self.series      = series!                // total prints
-                self.counter     = 1                      // current print of total prints
+                self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
                 self.category    = categories!            // categories 
-                self.name        = name!
                 self.description = description!           // data,about,misc page
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
-                self.file        = file!                  // NFT data is stored here
+                self.file        = file!                  // NFT data is stored hereere
+                // is not Constant or Optional
+                self.editions = editions 
             } else {
-                self.mid         = counter!.mid          // init MID with counter
-                self.creator     = counter!.creator      // creator of NFT
-                self.series      = counter!.series       // total prints
-                self.counter     = counter!.counter + 1  // current print of total prints
-                self.category    = counter!.category     // categories 
-                self.name        = counter!.name
-                self.description = counter!.description  // data,about,misc page
-                self.thumbnail   = counter!.thumbnail    // thumbnail are stored here
-                self.file        = counter!.file         // NFT data is stored here
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
-                if self.counter > self.series && self.series != 0 { panic("Metadata setting incorrect.") }
+                if(metadata!.edition.max != nil) {
+                    if (metadata!.edition.number >= metadata!.edition.max!) { panic("Metadata prints are finished.")}
+                }
+                self.mid         = metadata!.mid // init MID with counter
+                self.creator     = metadata!.creator                 // creator of NFT
+                self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
+                self.category    = metadata!.categories             // categories 
+                self.description = metadata!.description            // data,about,misc page
+                self.thumbnail   = metadata!.thumbnail              // thumbnail are stored here
+                self.file        = metadata!.file
+                self.editions    = metadata!.editions
             }
-            self.collection = collection // is not constant
+            
         }
 
+
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creator: self.creator, mid: self.mid, series: self.series, categories: self.category,
+            return MetadataHolder(creator: self.creator, mid: self.mid, edition: self.edition, categories: self.category,
             collection: self.collection, name: self.name, description: self.description, thumbnail: self.thumbnail.uri(), counter: self.counter)
         }
         
@@ -286,7 +280,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(series: UInt64, categories: [Categories.Category], name: String, description: String,
+        pub fun addMetadata(edition: UInt64, categories: [Categories.Category], name: String, description: String,
             collection: MetadataViews.NFTCollectionData, thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
@@ -294,7 +288,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
             }
 
-            let metadata <- create Metadata(creator: self.grantee, series: series, categories: categories, name: name,
+            let metadata <- create Metadata(creator: self.grantee, edition: edition, categories: categories, name: name,
                 collection: collection, description: description, thumbnail: thumbnail, file: file, counter: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
@@ -334,7 +328,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             log("Destroyed Metadata")
             emit RemovedMetadata(mid: mid)
 
-            return <- self.metadata.remove(key: mid)! // Metadata removed. Metadata Template has reached its max count (series)
+            return <- self.metadata.remove(key: mid)! // Metadata removed. Metadata Template has reached its max count (edition)
         }
         // Remove Metadata as Resource. Metadata + Request = NFT.
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
@@ -355,8 +349,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             let mRef = &self.metadata[mid] as &Metadata
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
-            if mRef.counter < mRef.series && mRef.series != 0 {            
-                let new_metadata <- create Metadata(creator: nil,series: nil,categories: nil, name: nil, collection: nil, description: nil,thumbnail: nil,file: nil, counter: mRef)
+            if mRef.counter < mRef.edition && mRef.edition != 0 {            
+                let new_metadata <- create Metadata(creator: nil,edition: nil,categories: nil, name: nil, collection: nil, description: nil,thumbnail: nil,file: nil, counter: mRef)
                 let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                 return <- orig_metadata! // Return current Metadata                 
             } else { // if not last, print
@@ -509,6 +503,9 @@ pub resource interface CollectionPublic {
             let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
+
+        // MetadataViews.NFTCollectionData TODO 
+
         /* 
         // Create an album name
         pub fun createCollection(name: String) {
@@ -916,13 +913,13 @@ pub resource Admin: Agent
 
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
-                metadata.counter <= metadata.series || metadata.series == 0 : "Internal Error: Mint Counter"
+                metadata.counter <= metadata.edition || metadata.edition == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
             }
 
-            let isLast = metadata.counter == metadata.series // Get print count
+            let isLast = metadata.counter == metadata.edition // Get print count
             let mid = metadata.mid               // Get MID
             let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
 
