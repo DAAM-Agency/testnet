@@ -22,7 +22,7 @@ pub contract DAAM: NonFungibleToken {
     pub event CreatorInvited(creator: Address)   // Creator has been invited
     pub event MinterSetup(minter: Address)       // Minter has been invited
     pub event AddMetadata(creator: Address, mid: UInt64) // Metadata Added
-    pub event MintedNFT(id: UInt64)              // Minted NFT
+    pub event MintedNFT(creator: Address, id: UInt64)              // Minted NFT
     pub event ChangedCopyright(metadataID: UInt64) // Copyright has been changed to a MID 
     pub event ChangeAgentStatus(agent: Address, status: Bool)     // Agent Status has been changed by Admin
     pub event ChangeCreatorStatus(creator: Address, status: Bool) // Creator Status has been changed by Admin/Agemnt
@@ -33,7 +33,7 @@ pub contract DAAM: NonFungibleToken {
     pub event MinterRemoved(minter: Address)     // Minter has been removed by Admin
     pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
-    pub event RemovedAdminInvite()               // Admin invitation has been rescinded
+    pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -194,16 +194,15 @@ pub resource RequestGenerator {
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64   // Metadata ID number
         pub let creator     : Address  // Creator of NFT
-        pub let series      : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let counter     : UInt64   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let max         : UInt64?   // series total, number of prints. nil = Unlimited [counter, total]
+        pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var collection  : MetadataViews.NFTCollectionData?
-        pub let name        : String
+        pub var editions    : MetadataViews.Editions?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
         
-        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, name: String?, collection: MetadataViews.NFTCollectionData?,
+        init(creator: Address?, series: UInt64?, categories: [Categories.Category]?, collection: MetadataViews.NFTCollectionData?,
             description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, counter: &Metadata?)
         {
             pre {
@@ -432,8 +431,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
     }
 /************************************************************************/
 // Wallet Public standards. For Public access only
-pub resource CollectionPublic {
+pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
+    //pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as DAAM.NFT
     //pub fun getIDs(): [UInt64]                // Get NFT Token IDs
     //pub fun getAlbum(): {String: MetadataViews.NFTCollectionData}      // Get collections
     //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
@@ -458,8 +458,8 @@ pub resource CollectionPublic {
                 } else { // add new collection
                     self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
                 }
-            } 
-        }
+        } 
+        
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -502,6 +502,7 @@ pub resource CollectionPublic {
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
             return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
         }
+
         //borrowDAAM gets a reference to an DAAM.NFT in the album.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
@@ -1110,8 +1111,11 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(founders: {Address:UFix64}, defaultAdmins: [Address])
+    init()
+    ///*founders: {Address:UFix64}, defaultAdmins: [Address]*/ TODO
     {
+        let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
+        let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -1127,15 +1131,15 @@ pub resource MinterAccess
         self.requestStoragePath    = /storage/DAAM_Request
 
         // Setup Up Founders
+        //
         var royalty_list: [MetadataViews.Royalty] = []
         for founder in founders.keys {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: founder,
-                cut: agency[founder],
-                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder].toString())
+                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver), // TODO remove /public/fusdReceiver
+                cut: founders[founder]!,
+                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
             ) // end append
-            
         }
         self.agency = MetadataViews.Royalties(royalty_list)
 
