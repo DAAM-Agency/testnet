@@ -219,32 +219,31 @@ pub resource RequestGenerator {
                 self.file        = file!                  // NFT data is stored hereere
                 // is not Constant or Optional
                 self.editions = editions 
-            } else {
-                // Error checking; Re-prints do not excede series limit or is Unlimited prints
-                if(metadata!.edition.max != nil) {
-                    if (metadata!.edition.number >= metadata!.edition.max!) { panic("Metadata prints are finished.")}
-                }
+            } else {                
                 self.mid         = metadata!.mid // init MID with counter
                 self.creator     = metadata!.creator                 // creator of NFT
                 self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
-                self.category    = metadata!.categories             // categories 
+                self.category    = metadata!.category             // categories 
                 self.description = metadata!.description            // data,about,misc page
                 self.thumbnail   = metadata!.thumbnail              // thumbnail are stored here
                 self.file        = metadata!.file
                 self.editions    = metadata!.editions
+                // Error checking; Re-prints do not excede series limit or is Unlimited prints
+                if(metadata!.edition.max != nil) {
+                    if (metadata!.edition.number > metadata!.edition.max!) { panic("Metadata prints are finished.")}
+                }
             }
             
         }
 
-
         pub fun getHolder(): MetadataHolder {
             return MetadataHolder(creator: self.creator, mid: self.mid, edition: self.edition, categories: self.category,
-            collection: self.collection, name: self.name, description: self.description, thumbnail: self.thumbnail.uri(), counter: self.counter)
+                editions: self.editions, description: self.description, thumbnail: self.thumbnail )
         }
         
         // MetadataViews
         pub fun getDisplay(): MetadataViews.Display {
-            let display = MetadataViews.Display(name: self.name, description: self.description, thumbnail: self.thumbnail)
+            let display = MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail)
             return display
         }
 
@@ -280,16 +279,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(edition: UInt64, categories: [Categories.Category], name: String, description: String,
-            collection: MetadataViews.NFTCollectionData, thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
+        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], editions: MetadataViews.Editions?, description: String,
+            thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
             pre{
                 self.grantee == self.owner!.address            : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
             }
 
-            let metadata <- create Metadata(creator: self.grantee, edition: edition, categories: categories, name: name,
-                collection: collection, description: description, thumbnail: thumbnail, file: file, counter: nil) // Create Metadata
+            let metadata <- create Metadata(creator: self.grantee, name: name, max: max, categories: categories, editions: editions,
+                description: description, thumbnail: thumbnail, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
             destroy old
@@ -349,14 +348,17 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             let mRef = &self.metadata[mid] as &Metadata
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
-            if mRef.counter < mRef.edition && mRef.edition != 0 {            
-                let new_metadata <- create Metadata(creator: nil,edition: nil,categories: nil, name: nil, collection: nil, description: nil,thumbnail: nil,file: nil, counter: mRef)
-                let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
-                return <- orig_metadata! // Return current Metadata                 
-            } else { // if not last, print
-                let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
-                return <- orig_metadata! // Return current Metadata  
-            }
+            if mRef.edition.max != nil {
+                if mRef.edition.number < mRef.edition.max! {            
+                    let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, editions:nil,
+                        description:nil, thumbnail:nil, file:nil, metadata: mRef)
+                    let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
+                    return <- orig_metadata! // Return current Metadata
+                }
+                panic("Metadata Prints Finished.")
+            } // if not last, print
+            let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
+            return <- orig_metadata! // Return current Metadata  
         }
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
@@ -444,7 +446,7 @@ pub resource interface CollectionPublic {
             self.album = {}
         }
 
-        priv fun updateAlbum(_ token: &DAAM.NFT) { // update album
+        /*priv fun updateAlbum(_ token: &DAAM.NFT) { // update album
             pre { token.metadata.collection != nil : "No Collection Data" }
                 let collectionRef = &self.album[token.metadata.collection!.name] as &MetadataViews.NFTCollectionData
                 if collectionRef != nil { // append to existing collection
@@ -452,28 +454,12 @@ pub resource interface CollectionPublic {
                 } else { // add new collection
                     self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
                 }
-        } 
+        } */
         
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT //?? panic("missing NFT") // Get NFT
-            // update album
-            if token.metadata.collection != nil {
-                let collection = self.album[token.metadata.collection!.name]
-                if collection != nil {
-                    var elm = 0
-                    for id in collection {
-                        if id == withdrawID {
-                            self.album[token.metadata.collection!.name].remove(at: elm)
-                            break
-                        }
-                        elm = elm + 1
-                    }
-                } else {
-                    self.album.removeKey(key: token.metadata.collection!.name)
-                }
-            }
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -482,7 +468,6 @@ pub resource interface CollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
             let id: UInt64 = token.id        // Save Token ID
-            
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
             emit Deposit(id: id, to: self.owner?.address) 
@@ -913,13 +898,16 @@ pub resource Admin: Agent
 
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
-                metadata.counter <= metadata.edition || metadata.edition == 0 : "Internal Error: Mint Counter"
+                //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
                 DAAM.creators[metadata.creator] == true     : "This Creators' account is Frozen."
                 DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
             }
+            var isLast = false
+            if metadata.edition.max != nil { 
+                isLast = (metadata.edition.number <= metadata.edition.max!)
+            }
 
-            let isLast = metadata.counter == metadata.edition // Get print count
             let mid = metadata.mid               // Get MID
             let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
 
@@ -931,7 +919,7 @@ pub resource Admin: Agent
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
-            emit MintedNFT(id: nft.id)
+            emit MintedNFT(creator: nft.metadata.creator, id: nft.id)
 
             return <- nft  // return NFT
         }
