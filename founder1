@@ -1,0 +1,16 @@
+Address	 0x1beecc6fef95b62e
+Balance	 0.00100000
+Keys	 1
+
+Key 0	Public Key		 599290c039b590280634909280406a42fbb15769bc1ee8be636bfdc18ab652e687d4a9152e851e8698885aa55324319fb77b45461d0bf679bafda8f9316f40ee
+	Weight			 1000
+	Signature Algorithm	 ECDSA_P256
+	Hash Algorithm		 SHA3_256
+	Revoked 		 false
+	Sequence Number 	 0
+	Index 			 0
+
+Contracts Deployed: 0
+
+
+Contracts (hidden, use --include contracts)

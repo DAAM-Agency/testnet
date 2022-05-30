@@ -34,9 +34,9 @@ export CLIENT2_PUBKEY=$(tail -1 ./keys/client2_keys     | awk '{print $3}' | tr 
 
 export FOUNDER1_PUBKEY=$(tail -1 ./keys/founder1_keys   | awk '{print $3}' | tr -d '\n')
 export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder2_keys   | awk '{print $3}' | tr -d '\n')
-export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder3_keys   | awk '{print $3}' | tr -d '\n')
-export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder4_keys   | awk '{print $3}' | tr -d '\n')
-export FOUNDER2_PUBKEY=$(tail -1 ./keys/founder5_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER3_PUBKEY=$(tail -1 ./keys/founder3_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER4_PUBKEY=$(tail -1 ./keys/founder4_keys   | awk '{print $3}' | tr -d '\n')
+export FOUNDER5_PUBKEY=$(tail -1 ./keys/founder5_keys   | awk '{print $3}' | tr -d '\n')
 
 echo "---------- Setup: Priavte Keys ----------"
 export CREATOR_PRIVKEY=$(tail -2 ./keys/creator_keys     | awk '{print $3}' | tr -d '\n')
@@ -75,6 +75,12 @@ flow accounts create --key $AGENT2_PUBKEY --save agent2
 flow accounts create --key $CREATOR2_PUBKEY --save creator2
 flow accounts create --key $CLIENT2_PUBKEY --save client2
 
+flow accounts create --key $FOUNDER1_PUBKEY --save founder1
+flow accounts create --key $FOUNDER2_PUBKEY --save founder2
+flow accounts create --key $FOUNDER3_PUBKEY --save founder3
+flow accounts create --key $FOUNDER4_PUBKEY --save founder4
+flow accounts create --key $FOUNDER5_PUBKEY --save founder5
+
 # Get & print Address
 export CREATOR=$(head -1 creator | awk '{print $2}')
 echo Creator: $CREATOR
@@ -104,8 +110,19 @@ export DAAM_NFT=$(head -1 daam_nft | awk '{print $2}')
 echo DAAM NFT: $DAAM_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
+
 export CTO=$(head -1 cto | awk '{print $2}')
 echo CTO: $CTO
+export SFOUNDER1=$(head -1 founder1 | awk '{print $2}')
+echo FOUNDER1: $FOUNDER1
+export SFOUNDER2=$(head -1 founder2 | awk '{print $2}')
+echo FOUNDER2: $FOUNDER2
+export SFOUNDER3=$(head -1 founder3 | awk '{print $2}')
+echo FOUNDER3: $FOUNDER3
+export SFOUNDER4=$(head -1 founder4 | awk '{print $2}')
+echo FOUNDER4: $FOUNDER4
+export SFOUNDER5=$(head -1 founder5 | awk '{print $2}')
+echo FOUNDER5: $FOUNDER5
 
 echo "---------- Sending Flow for basic transactions -----------"
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR
@@ -125,6 +142,12 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR2
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT2
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT2
+
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER1
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER2
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER3
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER4
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER5
 
 # Init Contracts
 
@@ -153,6 +176,12 @@ flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agent2
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer creator2
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer client2
 
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder1
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder2
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder3
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder4
+flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder5
+
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR --signer cto
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN --signer cto
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $NOBODY --signer cto
@@ -179,9 +208,31 @@ echo "========= Publish DAAM Contracts =========="
 export CODE=$(cat ../dev/hex_categories_enum)
 flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
 
+flow transactions send ./transactions/send_flow_em.cdc --args-json \
+'[{"type": "UFix64", "value": "11.0"}, {"type": "Address", "value": "0x0f7025fa05b578e3"}]'
+
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ../testnet_keys/init_DAAM_Agency.cdc "DAAM" $CODE '[$CTO, $FOUNDER1, $FOUNDER2, $FOUNDER3, $FOUNDER4, $FOUNDER5]' '[$CTO, $FOUNDER1, $FOUNDER2, $FOUNDER3, $FOUNDER4, $FOUNDER5]' --signer daam_nft
+flow transactions send ../testnet_keys/init_DAAM_Agency.cdc --args-json '[{"type": "String", "value": "DAAM"}, {"type": "String", "value": $CODE}, {"type": "Dictionary", "value": [ {"key": {"type": "Address", "value": $CTO}, "value": {"type": "UFix64", "value": "0.1666"}} \
+{"key": {"type": "Address", "value": $FOUNDER1}, \
+"value": {"type": "UFix64", "value": "0.1666"}} \
+{"key": {"type": "Address", "value": $FOUNDER2}, \
+"value": {"type": "UFix64", "value": "0.1666"}} \
+{"key": {"type": "Address", "value": $FOUNDER3}, \
+"value": {"type": "UFix64", "value": "0.1666"}} \
+{"key": {"type": "Address", "value": $FOUNDER4}, \
+"value": {"type": "UFix64", "value": "0.1666"}} \
+{"key": {"type": "Address", "value": $FOUNDER5}, \
+]}, \                                             
+{"type": "Array", "value": [ \                                             
+{"type": "Address", "value": $CTO}, \                                             
+{"type": "Address", "value": $FOUNDER1}, \                                             
+{"type": "Address", "value": $FOUNDER2}, \
+{"type": "Address", "value": $FOUNDER3}, \
+{"type": "Address", "value": $FOUNDER4}, \
+{"type": "Address", "value": $FOUNDER5}, \
+]} \                                      
+]' --signer daam_nft
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction

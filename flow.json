@@ -99,7 +99,27 @@
 		"cto": {
 			"address": "0xf7025fa05b578e3",
 			"keys": "3dee459c2f6e644c14dcce6511ed0c679c6651eb205a6d689eab2e16c80ee369"
-		} 
+		},
+		"founder1": {
+			"address": "0x1beecc6fef95b62e",
+			"keys": "51fdf8bd68cf899f46598a906558b285af3f2caece562605db13a9b6588af697"
+		},  
+		"founder2": {
+			"address": "0xff8975b2fe6fb6f1",
+			"keys": "a5b3c683d00d2dac476d22855ef6913e6890dd15cdd43f67982b90d415437e5c"
+		},  
+		"founder3": {
+			"address": "0xe9dd1081676bbc90",
+			"keys": "345270b05c625527fb31e817f094e8f7351f1ea4d311f20e3acd2a2812950714"
+		},  
+		"founder4": {
+			"address": "0x0dbaa95c7691bc4f",
+			"keys": "2fa1583fa3e361ea377e2ab70b52ea14420bce26c773776043dc8554b623e9f4"
+		},  
+		"founder5": {
+			"address": "0x1e7bd52309d4e4b4",
+			"keys": "9bc18a070ace16803b1ec6815b8e2f84433fbe339014038d50404c18a14cf00a"
+		}  
 	},
 	"deployments": {
 		"emulator": {
