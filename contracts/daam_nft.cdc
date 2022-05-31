@@ -73,24 +73,33 @@ pub enum CopyrightStatus: UInt8 {
 /***********************************************************************/
 pub struct RoyaltyEntity
 {
-    pub let soleRoyalty: MetadataViews.Royalties? 
+    pub let soleRoyalty: UFix64? 
     pub let groupRoyalty: MetadataViews.Royalties?
     //MetadataViews.Royalties TODO
 
-    init(soleRoyalty: MetadataViews.Royalties?, groupRoyalty: [RoyaltyEntity]?)
+    init(soleRoyalty: UFix64?, groupRoyalty: [RoyaltyEntity]?)
     {
-        pre {
-            !(soleRoyalty == nil && groupRoyalty == nil) : "Must enter at leat 1 argument."
-        }
-        if soleRoyalty != nil {
-            assert(soleRoyalty!.getRoyalties().length==1, message: "Must be only one Royalty in this Royalties Container.")
-        }
+        pre { !(soleRoyalty == nil && groupRoyalty == nil) : "Must enter at leat 1 argument." }
+        //if soleRoyalty != nil { assert(soleRoyalty!.getRoyalties().length==1, message: "Must be only one Royalty in this Royalties Container.") }
         
         self.soleRoyalty = soleRoyalty
-        for re in groupRoyalty! {
-            re.soleRoyalty.getRoyalties()
+
+        let royalties: [MetadataViews.Royalty] = []
+        if groupRoyalty != nil {
+            for re in groupRoyalty! {
+                royalties.append(re.groupRoyalty!.getRoyalties()[0] ) // Getting first and only Royalty
+            }
         }
-        self.groupRoyalty = groupRoyalty
+
+        if groupRoyalty != nil {
+            self.groupRoyalty = MetadataViews.Royalties(royalties)
+        } else {
+            self.groupRoyalty = nil
+        }
+    }
+
+    pub fun createPercentage(_ percentage: UFix64): RoyaltyEntity {
+        return RoyaltyEntity(soleRoyalty: percentage, groupRoyalty: [self] )
     }
 }
 /***********************************************************************/
