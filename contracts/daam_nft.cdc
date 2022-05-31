@@ -435,90 +435,88 @@ pub resource interface CollectionPublic {
     //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
 }
 /************************************************************************/
-struct PersonalCollection {
+pub struct PersonalCollection {
     pub var id: [UInt64]
     pub var personalCollections: [String]
 
-    init() { 
-        self.id = []
-        self.collections = []
+    init(id: UInt64) {
+        post { self.id.length == 1 }
+        self.id = [id]
+        self.personalCollections = []
     }
 }
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-        pub var collection  : {String, PersonalCollection}
+        pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+        pub var collections : {String: PersonalCollection}
         
         // {name : MetadataViews.NFTCollectionData } // TODO
                         
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
-            self.editions = []
+            self.collections = {}
         }
 
         // adds to a personal collection, has no actual bearing on nfts. The same NFTs can be added to multiple personal collections
         pub fun addToPersonalCollection(name: String, id: UInt64) {
-            pre { self.ownedNFTs.contains(id) : "Can not add an NFT you do not have into a Personal Collection" } 
-            if metadata.editions != nil { 
+            pre { self.ownedNFTs.containsKey(id) : "Can not add an NFT you do not have into a Personal Collection." } 
                 if self.collections.containsKey(name) {
-                    //append
-                    if !self.collections[name].id.append(id) }
+                    if !self.collections[name]!.id.contains(id) { self.collections[name]!.id.append(id) }
                 } else {
-                    self.collections.insert(key:name, id)
+                    self.collections.insert(key:name, PersonalCollection(id: id))
                 }
-            }
         }
 
         // remvoves NFT from ALL person collection when name is nill, otherwise the specific Personal Collection.
         pub fun removeFromPersonalCollection(name: String?, id: UInt64) {
-            pre {
-                self.ownedNFTs.contains(id) : "Can not remove an NFT you do not have from any Personal Collection"
-                name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.")
-            }
+            pre { self.ownedNFTs.containsKey(id) : "Can not remove an NFT you do not have from any Personal Collection." }
 
             if name == nil { // remove from all 
                 for collection in self.collections.keys {
                     var counter = 0
-                    for value in self.collections[collection].id {
+                    for value in self.collections[collection]!.id {
                         if value == id {
-                            self.collections[collection].id.remove(at:counter)
+                            self.collections[collection]!.id.remove(at:counter)
                             break
                         }
                         counter = counter + 1
                     }
                 } // end 1st for
-            } else {
-                var counter = 0
-                for value in self.collections[name].id {
-                    if value == id {
-                        self.collections[collection].id.remove(at:counter)
-                        break
+            } else { 
+                if self.collections.containsKey(name!) {
+                    var counter = 0
+                    for value in self.collections[name!]!.id {
+                        if value == id {
+                            self.collections[name!]!.id.remove(at:counter)
+                            break
+                        }
+                        counter = counter + 1
                     }
-                    counter = counter + 1
                 }
             } // end else
-        } //end removeFromPersonalCollection  
+        } //end removeFromPersonalCollection
+
 
         // Add a Personal Collection to a Personal Collection
         pub fun addPersonalCollection(name: String, collection: String) {
             pre {
                 self.collections.containsKey(name)       : "Personal Collection: ".concat(name).concat(" does not exist.")
                 self.collections.containsKey(collection) : "Personal Collection: ".concat(collection).concat(" does not exist.")
-                !self.collections[name].personalCollections.contains(collection) : "Already added."
+                !self.collections[name]!.personalCollections.contains(collection) : "Already added."
             }
-            self.collections[name].personalCollections.append(collection)
+            self.collections[name]!.personalCollections.append(collection)
         }
 
         pub fun removePersonalCollection(name: String?, collection: String) {
-            pre { name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.") }
-            
+            //pre { name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.") }
+
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT //?? panic("missing NFT") // Get NFT
-            self.removeFromPersonalCollection(&token.metadata, id: id)
+            self.removeFromPersonalCollection(name: nil, id: withdrawID)
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -527,7 +525,7 @@ struct PersonalCollection {
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
             let id: UInt64 = token.id        // Save Token ID
-            let name = token.metadata.edition.name
+            let name = token.metadata.edition.name!
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
             self.addToPersonalCollection(name: name, id: id)
