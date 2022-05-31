@@ -53,7 +53,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var admins  : {Address: Bool}    // {Admin Address : status}  Admin address are stored here
     access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
-    access(contract) var creators: {Address: Bool}    // {Creator Address : status} Creator address are stored here
+    access(contract) var creators: {Address: CreatorInfo}    // {Creator Address : status} Creator address are stored here
     access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var metadataCap: {Address : Capability<&MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
@@ -69,6 +69,17 @@ pub enum CopyrightStatus: UInt8 {
             pub case CLAIM      // 1 as UInt8
             pub case UNVERIFIED // 2 as UInt8
             pub case VERIFIED   // 3 as UInt8
+}
+/***********************************************************************/
+pub struct CreatorInfo {
+    pub(set) var status: Bool?
+    pub(set) var agent: [Address]
+
+    init(status: Bool) {
+        self.status = status
+        self.agent = []
+    }
+    // TODO add/removeAgent, update status scripts
 }
 /***********************************************************************/
 pub struct RoyaltyEntity
@@ -145,9 +156,9 @@ pub resource RequestGenerator {
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalty: MetadataViews.Royalties, percentage: UFix64) {
         pre {
             self.grantee == self.owner!.address     : "Permission Denied"
-            metadataGen.getMIDs().contains(mid)  : "Wrong MID"
+            metadataGen.getMIDs().contains(mid)     : "Wrong MID"
             DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-            DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
+            DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
@@ -189,12 +200,6 @@ pub resource RequestGenerator {
     }
 }
 /************************************************************************/
-    pub struct OnChain: MetadataViews.File {
-        pub let url: String
-        init(url: String) { self.url = url }
-        pub fun uri(): String { return self.url }
-    }
-/************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
         pub let creator     : Address  // Creator of NFT
@@ -227,7 +232,7 @@ pub resource RequestGenerator {
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
 
-       init(creator: Address?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
+        init(creator: Address?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
             description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, metadata: &Metadata?)
         {            
             pre {
@@ -311,9 +316,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], editions: MetadataViews.Editions?, description: String,
             thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
             pre{
-                self.grantee == self.owner!.address            : "Permission Denied"
+                self.grantee == self.owner!.address     : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
+                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
 
             let metadata <- create Metadata(creator: self.grantee, name: name, max: max, categories: categories, editions: editions,
@@ -336,10 +341,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                self.grantee == self.owner!.address       : "Permission Denied"
+                self.grantee == self.owner!.address     : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
-                self.metadata[mid] != nil : "No Metadata entered"
+                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
+                self.metadata[mid] != nil               : "No Metadata entered"
             }
             let old_meta <- self.clearMetadata(mid: mid)  // Delete Metadata
             destroy old_meta
@@ -365,7 +370,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 self.grantee == self.owner!.address     : "Permission Denied"
                 minter.validate()                       : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.creators[self.grantee]!            : "Your Creator account is Frozen."
+                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
                 
                 self.metadata[mid] != nil : "No Metadata entered"
                 DAAM.metadata[mid] != nil : "This already has been published."
@@ -685,9 +690,12 @@ pub resource Admin: Agent
                 DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
                 Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
-            post { DAAM.creators[creator] == false : "Illegal Operaion: inviteCreator" }
+            post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
 
-            DAAM.creators.insert(key: creator, false ) // Creator account is setup but not active untill accepted.
+            // If Creator is invited by Agent, attach Agent to Creator Info
+            let creatorInfo = CreatorInfo(status: false) // Store Creator status, false = invited, not yet answered
+            if DAAM.isAgent(self.owner!.address) != nil { creatorInfo.agent.append(self.owner!.address) } // Add Agent to Creator Info
+            DAAM.creators.insert(key: creator, creatorInfo ) // Creator account is setup but not active untill accepted.
 
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
@@ -809,11 +817,12 @@ pub resource Admin: Agent
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                         : "You're no longer a have Access."
                 DAAM.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
-                DAAM.creators[creator] != status    : "Agent already has this Status."
+                DAAM.isCreator(creator) != status    : "Agent already has this Status."
             }
-            post { DAAM.creators[creator] == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
+            post { DAAM.isCreator(creator) == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            DAAM.creators[creator] = status // status changed
+            let creatorInfo = &DAAM.creators[creator] as &CreatorInfo
+            creatorInfo.status = status // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
@@ -877,7 +886,7 @@ pub resource Admin: Agent
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
-                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
+                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
             return <- create MetadataGenerator(self.grantee) // return Metadata Generator
         }
@@ -887,7 +896,7 @@ pub resource Admin: Agent
             pre{
                 self.grantee == self.owner!.address : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
-                DAAM.creators[self.grantee] == true     : "This Creators' account is Frozen."
+                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
             return <- create RequestGenerator(self.grantee) // return Request Generator
         } 
@@ -908,7 +917,7 @@ pub resource Admin: Agent
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
                 DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
-                DAAM.creators[metadata.creator] == true     : "This Creators' account is Frozen."
+                DAAM.isCreator(self.grantee) == true        : "Your Creator account is Frozen."
                 DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
             }
             var isLast = false
@@ -1035,7 +1044,9 @@ pub resource MinterAccess
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.creators[newCreator.address] = submit         // Add Creator & set Status (True)
+        //DAAM.creators[newCreator.address].status = submit         // Add Creator & set Status (True)
+        let creatorInfo = &DAAM.creators[newCreator.address] as &CreatorInfo
+        creatorInfo.status = submit         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
         return <- create Creator(newCreator.address)!                         // Return Creator Resource
@@ -1099,7 +1110,8 @@ pub resource MinterAccess
     }
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
-        return self.creators[creator] // nil = not a creator, false = invited to be a creator, true = is a creator
+        let creatorInfo = &DAAM.creators[creator] as &CreatorInfo
+        return creatorInfo.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 /************************************************************************/
 // Init DAAM Contract variables

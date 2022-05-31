@@ -630,6 +630,14 @@ pub struct AuctionInfo {
             return 0.0 as UFix64 // return no time left
         }
 
+        // return royalty information
+        /*
+        priv fun getRoyalty(): {Address : UFix64} {
+            let royalty = self.auctionNFT?.royalty! // get Royalty data
+            return royalty                           // return Royalty
+        }
+        */
+
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
         priv fun royalty()
         {
