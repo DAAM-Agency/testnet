@@ -71,6 +71,29 @@ pub enum CopyrightStatus: UInt8 {
             pub case VERIFIED   // 3 as UInt8
 }
 /***********************************************************************/
+pub struct RoyaltyEntity
+{
+    pub let soleRoyalty: MetadataViews.Royalties? 
+    pub let groupRoyalty: MetadataViews.Royalties?
+    //MetadataViews.Royalties TODO
+
+    init(soleRoyalty: MetadataViews.Royalties?, groupRoyalty: [RoyaltyEntity]?)
+    {
+        pre {
+            !(soleRoyalty == nil && groupRoyalty == nil) : "Must enter at leat 1 argument."
+        }
+        if soleRoyalty != nil {
+            assert(soleRoyalty!.getRoyalties().length==1, message: "Must be only one Royalty in this Royalties Container.")
+        }
+        
+        self.soleRoyalty = soleRoyalty
+        for re in groupRoyalty! {
+            re.soleRoyalty.getRoyalties()
+        }
+        self.groupRoyalty = groupRoyalty
+    }
+}
+/***********************************************************************/
 // Used to make requests for royalty. A resource for Neogoation of royalities.
 // When both parties agree on 'royalty' the Request is considered valid aka isValid() = true and
 // Request manage the royalty rate
@@ -229,11 +252,8 @@ pub resource RequestGenerator {
                 self.file        = metadata!.file
                 self.editions    = metadata!.editions
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
-                if(metadata!.edition.max != nil) {
-                    if (metadata!.edition.number > metadata!.edition.max!) { panic("Metadata prints are finished.")}
-                }
+                if(metadata!.edition.max != nil) { assert(metadata!.edition.number <= metadata!.edition.max!, message: "Metadata prints are finished.") }
             }
-            
         }
 
         pub fun getHolder(): MetadataHolder {
@@ -534,7 +554,7 @@ pub struct PersonalCollection {
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT //?? panic("missing NFT") // Get NFT
+            let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT // Get NFT
             self.removeFromPersonalCollection(name: nil, id: withdrawID)
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
