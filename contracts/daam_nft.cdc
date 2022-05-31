@@ -509,8 +509,27 @@ pub struct PersonalCollection {
         }
 
         pub fun removePersonalCollection(name: String?, collection: String) {
-            //pre { name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.") }
-
+            if name == nil {
+                for key in self.collections.keys {
+                    var counter = 0
+                    for check in self.collections[key]!.personalCollections {
+                        if check == collection {
+                        self.collections[name!]!.personalCollections.remove(at: counter)
+                        break
+                    }
+                    counter = counter + 1
+                    }
+                }
+            } else {
+                var counter = 0
+                for check in self.collections[name!]!.personalCollections {
+                    if check == collection {
+                        self.collections[name!]!.personalCollections.remove(at: counter)
+                        break
+                    }
+                    counter = counter + 1
+                }
+            } // end if
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -524,7 +543,7 @@ pub struct PersonalCollection {
         // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
-            let id: UInt64 = token.id        // Save Token ID
+            let id = token.id        // Save Token ID
             let name = token.metadata.edition.name!
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
