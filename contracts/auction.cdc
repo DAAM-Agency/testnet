@@ -7,7 +7,7 @@ import DAAM             from 0xfd43f9148d4b725d
 
 pub contract AuctionHouse {
     // Events
-    pub event AuctionCreated(auctionID: UInt64)   // Auction has been created. 
+    pub event AuctionCreated(auctionID: UInt64, address: Address)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not met.
@@ -283,7 +283,7 @@ pub struct AuctionInfo {
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
                 isExtended && extendedTime >= 20.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 20 seconds."
-                reprintSeries && nft.metadata.series != 1 || !reprintSeries : "This can not be reprinted."
+                reprintSeries && nft.metadata.edition.max != 1 || !reprintSeries : "This can not be reprinted."
                 startingBid == nil && buyNow != 0.0 || startingBid != nil : "Direct Purchase requires BuyItNow amount"
             }
 
@@ -317,7 +317,7 @@ pub struct AuctionInfo {
             self.price = buyNow
             self.buyNow = self.price * (self.fee + 1.0)
             // if last in series don't reprint.
-            self.reprintSeries = nft.metadata.series == nft.metadata.counter ? false : reprintSeries
+            self.reprintSeries = nft.metadata.edition.max == nft.metadata.edition.number ? false : reprintSeries
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
             self.auctionVault <- vault  // ALL Crypto is stored
@@ -325,7 +325,7 @@ pub struct AuctionInfo {
             self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
-            emit AuctionCreated(auctionID: self.auctionID, address: self.owner.address! )
+            emit AuctionCreated(auctionID: self.auctionID, address: self.owner!.address)
         }
 
         // Makes Bid, Bids are deposited into vault
@@ -466,7 +466,7 @@ pub struct AuctionInfo {
                 }
             }
 
-            if pass { // leader meet the reserve price
+            if pass { // leader met the reserve price
                 // remove leader from log before returnFunds()!!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // return funds to all bidders
@@ -483,10 +483,16 @@ pub struct AuctionInfo {
             let collectionRef = getAccount(receiver!).getCapability<&{NonFungibleToken.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
             // NFT Deposot Must be LAST !!! *except for seriesMinter
             let nft <- self.auctionNFT <- nil     // remove nft
-            let isLast = nft?.metadata?.counter! == nft?.metadata?.series!
+
+            var isLast = false
+            if nft?.metadata!.edition.max != nil { 
+                isLast = (nft?.metadata!.edition.number <= nft?.metadata!.edition.max!)
+            }
             
-            log("vrp(); pre seriesMinter; counter: ".concat(nft?.metadata?.counter!.toString()) )
-            log("vrp(); series: ".concat(nft?.metadata?.series!.toString()) )
+            log("vrp(); Print Number: ")
+            log(nft?.metadata!.edition.number)
+            log("vrp(); Max: ")
+            log(nft?.metadata!.edition.max)
 
             collectionRef.deposit(token: <- nft!) // deposit nft
 
@@ -674,12 +680,6 @@ pub struct AuctionInfo {
             return total == self.auctionVault.balance    // compare total to Vault
         }
 
-        // return royalty information
-        priv fun getRoyalty(): {Address : UFix64} {
-            let royalty = self.auctionNFT?.royalty! // get Royalty data
-            return royalty                           // return Royalty
-        }
-        
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
         priv fun resetAuction() {
             //pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }  // already called by SerialMinter          
