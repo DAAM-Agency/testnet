@@ -435,31 +435,90 @@ pub resource interface CollectionPublic {
     //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
 }
 /************************************************************************/
+struct PersonalCollection {
+    pub var id: [UInt64]
+    pub var personalCollections: [String]
+
+    init() { 
+        self.id = []
+        self.collections = []
+    }
+}
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs  : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-        pub var album : {String: MetadataViews.NFTCollectionData } // {name : MetadataViews.NFTCollectionData }
+        pub var ownedNFTs : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+        pub var collection  : {String, PersonalCollection}
+        
+        // {name : MetadataViews.NFTCollectionData } // TODO
                         
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
-            self.album = {}
+            self.editions = []
         }
 
-        /*priv fun updateAlbum(_ token: &DAAM.NFT) { // update album
-            pre { token.metadata.collection != nil : "No Collection Data" }
-                let collectionRef = &self.album[token.metadata.collection!.name] as &MetadataViews.NFTCollectionData
-                if collectionRef != nil { // append to existing collection
-                    collectionRef.ids.append(token.id)
-                } else { // add new collection
-                    self.album.insert(key: token.metadata.collection!.name, token.metadata.collection!)
+        // adds to a personal collection, has no actual bearing on nfts. The same NFTs can be added to multiple personal collections
+        pub fun addToPersonalCollection(name: String, id: UInt64) {
+            pre { self.ownedNFTs.contains(id) : "Can not add an NFT you do not have into a Personal Collection" } 
+            if metadata.editions != nil { 
+                if self.collections.containsKey(name) {
+                    //append
+                    if !self.collections[name].id.append(id) }
+                } else {
+                    self.collections.insert(key:name, id)
                 }
-        } */
-        
+            }
+        }
+
+        // remvoves NFT from ALL person collection when name is nill, otherwise the specific Personal Collection.
+        pub fun removeFromPersonalCollection(name: String?, id: UInt64) {
+            pre {
+                self.ownedNFTs.contains(id) : "Can not remove an NFT you do not have from any Personal Collection"
+                name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.")
+            }
+
+            if name == nil { // remove from all 
+                for collection in self.collections.keys {
+                    var counter = 0
+                    for value in self.collections[collection].id {
+                        if value == id {
+                            self.collections[collection].id.remove(at:counter)
+                            break
+                        }
+                        counter = counter + 1
+                    }
+                } // end 1st for
+            } else {
+                var counter = 0
+                for value in self.collections[name].id {
+                    if value == id {
+                        self.collections[collection].id.remove(at:counter)
+                        break
+                    }
+                    counter = counter + 1
+                }
+            } // end else
+        } //end removeFromPersonalCollection  
+
+        // Add a Personal Collection to a Personal Collection
+        pub fun addPersonalCollection(name: String, collection: String) {
+            pre {
+                self.collections.containsKey(name)       : "Personal Collection: ".concat(name).concat(" does not exist.")
+                self.collections.containsKey(collection) : "Personal Collection: ".concat(collection).concat(" does not exist.")
+                !self.collections[name].personalCollections.contains(collection) : "Already added."
+            }
+            self.collections[name].personalCollections.append(collection)
+        }
+
+        pub fun removePersonalCollection(name: String?, collection: String) {
+            pre { name != nil && self.collections.containsKey(name) || name == nil : "Personal Collection: ".concat(name).concat(" does not exist.") }
+            
+        }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT //?? panic("missing NFT") // Get NFT
+            self.removeFromPersonalCollection(&token.metadata, id: id)
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
@@ -468,8 +527,10 @@ pub resource interface CollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT) {
             let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
             let id: UInt64 = token.id        // Save Token ID
+            let name = token.metadata.edition.name
             // add the new token to the dictionary which removes the old one
             let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
+            self.addToPersonalCollection(name: name, id: id)
             emit Deposit(id: id, to: self.owner?.address) 
             destroy oldToken                              // destroy place holder
         }
@@ -490,105 +551,6 @@ pub resource interface CollectionPublic {
         }
 
         // MetadataViews.NFTCollectionData TODO 
-
-        /* 
-        // Create an album name
-        pub fun createCollection(name: String) {
-            pre  { !self.album.containsKey(name) : "Collection already exist." }
-            post { self.album.containsKey(name)  : "Internal Error: Create Collection" }
-            self.album.insert(key: name, MetadataViews.NFTCollectionData() )
-            log("Collection Created: ".concat(name))
-            log(self.album)
-        } 
-        // Remove a album name
-        pub fun removeCollection(name: String) {
-            pre  { self.album.containsKey(name) : "Collection: ".concat(name).concat(" does not exist.") }
-            post { !self.album.containsKey(name)  : "Internal Error: Remove Collection" }
-            self.album.remove(key: name)
-            log("Collection Removed")
-        }
-
-        // Add a tokenID to collection
-        pub fun addToCollection(name: String, tokenID: UInt64) {
-            pre  {
-                self.album.containsKey(name)            : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID)     : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
-                !self.album[name]!.ids.contains(tokenID): "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
-            }
-            self.album[name]!.ids.append(tokenID)
-        }
-
-        // Remove a tokenID from a collection
-        pub fun removeFromCollection(name: String, tokenID: UInt64) {
-            pre  {
-                self.album.containsKey(name)            : "Collection: ".concat(name).concat(" does not exist.")
-                self.ownedNFTs.containsKey(tokenID)     : "Token ID: ".concat(tokenID.toString()).concat(" is nor part of your Collection(s).")
-                self.album[name]!.ids.contains(tokenID) : "Token ID: ".concat(tokenID.toString()).concat(" already in Collection: ").concat(name)
-            }            
-            var elm = self.findIndex(name: name, tokenID: tokenID)
-            self.album[name]!.ids.remove(at: elm!)
-        }
-
-        // Add a sub-collection to collection
-        pub fun addSubCollection(name: String, collection: String) {
-            pre  {
-                self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
-                self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
-                !self.album[name]!.sub_collection.contains(collection) : "Collection: ".concat(collection).concat(" already in this Collection.")
-            }
-            self.album[name]!.sub_collection.append(name)
-        }
-
-        // Remove a sub-collection from a collection
-        pub fun removeSubCollection(name: String, collection: String) {
-            pre  {
-                self.album.containsKey(name)       : "Collection: ".concat(name).concat(" does not exist.")
-                self.album.containsKey(collection) : "Collection: ".concat(collection).concat(" does not exist.")
-                self.album[name]!.sub_collection.contains(collection) : "Collection: ".concat(collection).concat(" does not exist in this Collection.")
-            }
-            var counter = 0
-            for c in self.album[name]!.sub_collection {
-                if c == collection { break }
-                counter = counter + 1
-            }  
-            self.album[name]!.sub_collection.remove(at: counter)
-        }
-
-        // Find collection(s) with selected TokenID
-        pub fun findCollection(tokenID: UInt64): [String] {
-            pre { self.ownedNFTs[tokenID] != nil : "Token ID: ".concat(tokenID.toString()).concat(" is not part of your Collection(s).") }
-            var list: [String] = []
-            for name in self.album.keys {
-                if self.findIndex(name: name, tokenID: tokenID) != nil {
-                    list.append(name)                 
-                }
-            }
-            return list
-        }
-
-        // Remove a tokenID from all collection
-        pub fun removeFromCollections(tokenID: UInt64) {            
-            let list = self.findCollection(tokenID: tokenID)
-            for name in list {
-                self.removeFromCollection(name: name, tokenID: tokenID)
-            }            
-        }
-
-        // Get all collections
-        pub fun getAlbum(): {String: MetadataViews.NFTCollectionData} {
-            log(self.album)
-            return self.album
-        }
-
-        // Find index of TokenID in collection
-        priv fun findIndex(name: String, tokenID: UInt64): UInt64? {
-            var counter = 0 as UInt64
-            for id in self.album[name]!.ids {                
-                if id == tokenID { return counter }
-                counter = counter + 1
-            }
-            return nil       
-        }       */       
 
         destroy() { destroy self.ownedNFTs } // Destructor
     }
@@ -1096,11 +1058,10 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init()
-    ///*founders: {Address:UFix64}, defaultAdmins: [Address]*/ TODO
+    init(founders: {Address:UFix64}, defaultAdmins: [Address])
     {
-        let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
-        let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
+        //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
+        //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -1144,9 +1105,7 @@ pub resource MinterAccess
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
 
         // Setup Up Default Admins
-        for admin in defaultAdmins {
-            self.admins.insert(key: admin, false)
-        }
+        for admin in defaultAdmins { self.admins.insert(key: admin, false) }
         
         emit ContractInitialized()
 	}
