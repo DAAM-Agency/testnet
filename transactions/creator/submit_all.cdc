@@ -35,7 +35,7 @@ transaction(series: UInt64, categories: [String], data: String,  thumbnail: Stri
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
+        let mid = self.metadataGen.addMetadata(name: self,name, max: self.max, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
         self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
 
         log("Metadata Submitted: ".concat(mid.toString()).concat(" with a Royalty Percentage: ".concat((self.percentage*100.0).toString()).concat(" Accepted.")))

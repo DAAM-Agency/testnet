@@ -271,8 +271,14 @@ flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer
 flow transactions send ./transactions/auction/create_auction_wallet.cdc --signer nobody
 
 # Answer Default Admin / CTO
-echo "Answer default Admin Invite created by contract creation."
+echo "Answer default Admin Invite created by contract creation. CTO"
 flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer cto
+echo "Answer default Admin Invite created by contract creation. Founders"
+flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder1
+flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder2
+flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder3
+flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder4
+flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder5 
 
 # Setup AuctionHouse Minter Key
 echo "Verify Minter Status: nil"
