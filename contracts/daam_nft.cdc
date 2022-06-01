@@ -983,7 +983,7 @@ pub resource MinterAccess
         DAAM.admins[newAdmin.address] = submit // Insert new Admin in admins list.
         log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
         emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin.address)!      // Accepted and returning Admin Resource
+        return <- create Admin(newAdmin.address)      // Accepted and returning Admin Resource
     }
 
     // // The Agent potential can accept (True) or deny (False)
@@ -1002,7 +1002,7 @@ pub resource MinterAccess
             return nil                                // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.admins[newAgent.address] = submit        // Add Agent & set Status (True)
+        DAAM.admins[newAgent.address] = submit        // Add Admin & set Status (True)
         DAAM.agents[newAgent.address] = submit        // Add Agent & set Status (True)
 
         log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
@@ -1089,6 +1089,7 @@ pub resource MinterAccess
     }
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
+        if self.creators[creator] == nil { return nil }
         let creatorInfo = &DAAM.creators[creator] as &CreatorInfo
         return creatorInfo.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
