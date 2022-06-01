@@ -178,7 +178,7 @@ pub resource RequestGenerator {
 /************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
-        pub let creators    : CreatorInfo  // Creator of NFT
+        pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
         pub let editions    : MetadataViews.Editions?
@@ -189,7 +189,7 @@ pub resource RequestGenerator {
             description: String, thumbnail: {MetadataViews.File})
         {
             self.mid         = mid
-            self.creators    = creators     // creator of NFT
+            self.creatorInfo = creators     // creator of NFT
             self.edition     = edition      // total prints
             self.category    = categories
             self.editions    = editions     // total prints
@@ -200,7 +200,7 @@ pub resource RequestGenerator {
 /************************************************************************/
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64   // Metadata ID number
-        pub let creators    : CreatorInfo  // Creator of NFT
+        pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
         pub var editions    : MetadataViews.Editions?
@@ -224,7 +224,7 @@ pub resource RequestGenerator {
             if metadata == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid         = DAAM.metadataCounterID // init MID with counter
-                self.creators    = creators!               // creator of NFT
+                self.creatorInfo = creators!               // creator of NFT
                 self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
                 self.category    = categories!            // categories 
                 self.description = description!           // data,about,misc page
@@ -234,7 +234,7 @@ pub resource RequestGenerator {
                 self.editions = editions 
             } else {                
                 self.mid         = metadata!.mid         // init MID with counter
-                self.creators    = metadata!.creators    // creator of NFT
+                self.creatorInfo = metadata!.creatorInfo // creator of NFT
                 self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
                 self.category    = metadata!.category    // categories 
                 self.description = metadata!.description // data,about,misc page
@@ -247,7 +247,7 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creators: self.creators, mid: self.mid, edition: self.edition, categories: self.category,
+            return MetadataHolder(creators: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
                 editions: self.editions, description: self.description, thumbnail: self.thumbnail )
         }
         
@@ -896,7 +896,7 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
-                DAAM.isCreator(metadata.creators.creator[0]) == true : "You're not a Creator."
+                DAAM.isCreator(metadata.creatorInfo.creator[0]) == true : "You're not a Creator."
                 DAAM.isCreator(self.grantee) == true     : "Your Creator account is Frozen."
                 DAAM.request.containsKey(metadata.mid)   : "Invalid Request"
             }
@@ -916,7 +916,7 @@ pub resource Admin: Agent
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
-            emit MintedNFT(creator: nft.metadata.creators.creator[0], id: nft.id)
+            emit MintedNFT(creator: nft.metadata.creatorInfo.creator[0], id: nft.id)
 
             return <- nft  // return NFT
         }
@@ -1024,7 +1024,6 @@ pub resource MinterAccess
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        //DAAM.creators[newCreator.address].status = submit         // Add Creator & set Status (True)
         let creatorInfo = &DAAM.creators[newCreator.address] as &CreatorInfo
         creatorInfo.status = submit         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )

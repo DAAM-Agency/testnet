@@ -30,11 +30,11 @@ pub contract AuctionHouse {
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 /**********************`**************************************************/
 pub struct AuctionInfo {
-        pub let status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
-        pub let auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creator     : Address
-        pub let mid         : UInt64       // collect Metadata ID
-        pub let start       : UFix64       // timestamp
+        pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
+        pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
+        pub let creators      : [Address]
+        pub let mid           : UInt64       // collect Metadata ID
+        pub let start         : UFix64       // timestamp
         pub let length        : UFix64   // post{!isExtended && length == before(length)}
         pub let isExtended    : Bool     // true = Auction extends with every bid.
         pub let extendedTime  : UFix64   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
@@ -50,17 +50,17 @@ pub struct AuctionInfo {
         pub let requiredCurrency: Type
 
         init(
-            _ status:Bool?, _ auctionID:UInt64, _ creator: Address, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
+            _ status:Bool?, _ auctionID:UInt64, _ creators: [Address], _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
             _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: Bool,
             _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
             )
             {
-                self.status = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
-                self.auctionID = auctionID       // Auction ID number. Note: Series auctions keep the same number. 
-                self.creator     = creator
-                self.mid         = mid       // collect Metadata ID
-                self.start       = start       // timestamp
+                self.status        = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
+                self.auctionID     = auctionID       // Auction ID number. Note: Series auctions keep the same number. 
+                self.creators      = creators
+                self.mid           = mid       // collect Metadata ID
+                self.start         = start       // timestamp
                 self.length        = length   // post{!isExtended && length == before(length)}
                 self.isExtended    = isExtended     // true = Auction extends with every bid.
                 self.extendedTime  = extendedTime   // when isExtended=true and extendedTime = 0.0. This is equal to a direct Purchase. // Time of Extension.
@@ -242,7 +242,7 @@ pub struct AuctionInfo {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creator     : Address
+        pub let creators    : [Address]
         pub let mid         : UInt64       // collect Metadata ID
         pub var start       : UFix64       // timestamp
         priv let origLength   : UFix64   // original length of auction, needed to reset if Series
@@ -301,7 +301,7 @@ pub struct AuctionInfo {
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
             self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
-            self.creator = nft.metadata.creator
+            self.creators = nft.metadata.creatorInfo.creator
             self.mid = nft.mid // Metadata ID
             self.start = start        // When auction start
             self.length = length      // Length of auction
@@ -434,7 +434,7 @@ pub struct AuctionInfo {
 
         pub fun auctionInfo(): AuctionInfo {
             let info = AuctionInfo(
-                self.status, self.auctionID, self.creator, self.mid, self.start, self.length, self.isExtended,
+                self.status, self.auctionID, self.creators, self.mid, self.start, self.length, self.isExtended,
                 self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
                 self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
             )
@@ -643,12 +643,11 @@ pub struct AuctionInfo {
         priv fun payFirstSale(royalties: [MetadataViews.Royalty]) {
             let price = self.auctionVault.balance 
             for royalty in royalties {
-                let amount = price * (royalty.description=="Agency") ? 0.2 : 0.8
+                let amount = price * ((royalty.description=="Agency") ? 0.2 : 0.8)
                 let cut <-! self.auctionVault.withdraw(amount: amount * royalty.cut)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
             }
-            return MetadataViews.Royalties
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
@@ -669,13 +668,6 @@ pub struct AuctionInfo {
                 self.pay(royalties: royalties, amount: price)
             }
         }
-        
-        
-    }
-
-
-
-
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
         priv fun verifyAuctionLog(): Bool {
@@ -708,7 +700,7 @@ pub struct AuctionInfo {
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
             if !self.reprintSeries { return } // if reprint is set to false, skip function
-            if self.creator != self.owner!.address { return } // Verify Owner is Creator otherwise skip function
+            if self.creators[0] != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
             let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let minterAccess <- AuctionHouse.minterAccess()
@@ -723,7 +715,7 @@ pub struct AuctionInfo {
         access(contract) fun endReprints() {
            pre {
                 self.reprintSeries : "Reprints is already off."
-                self.auctionNFT?.metadata!.creator == self.owner!.address : "You are not the Creator of this NFT"
+                self.auctionNFT?.metadata!.creatorInfo.creator[0] == self.owner!.address : "You are not the Creator of this NFT"
                 //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
            }
            self.reprintSeries = false
