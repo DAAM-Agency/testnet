@@ -3,12 +3,14 @@
 
 import AuctionHouse from 0x045a1763c93006ca
 
-transaction()
-{
-    let auctionHouse : &AuctionHouse.AuctionWallet
+transaction(auction: Address) {
+    let auctionHouse : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
 
-    prepare(signer: AuthAccount) {
-        self.auctionHouse = signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+    prepare() {
+        self.auctionHouse = getAccount(auction)
+            .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
+            (AuctionHouse.auctionPublicPath)
+            .borrow()!
     }
 
     execute {
