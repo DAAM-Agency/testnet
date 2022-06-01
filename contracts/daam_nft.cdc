@@ -1095,10 +1095,10 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(/*founders: {Address:UFix64}, defaultAdmins: [Address]*/)
+    init(founders: {Address:UFix64}, defaultAdmins: [Address])
     {
-        let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
-        let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
+        //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
+        //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -1114,7 +1114,6 @@ pub resource MinterAccess
         self.requestStoragePath    = /storage/DAAM_Request
 
         // Setup Up Founders
-        //
         var royalty_list: [MetadataViews.Royalty] = []
         for founder in founders.keys {
             royalty_list.append(

@@ -235,6 +235,12 @@ flow transactions send ./transactions/create_profile.cdc --signer client
 flow transactions send ./transactions/create_profile.cdc --signer client2
 flow transactions send ./transactions/create_profile.cdc --signer nobody
 
+flow transactions send ./transactions/create_profile.cdc --signer founder1
+flow transactions send ./transactions/create_profile.cdc --signer founder2
+flow transactions send ./transactions/create_profile.cdc --signer founder3
+flow transactions send ./transactions/create_profile.cdc --signer founder4
+flow transactions send ./transactions/create_profile.cdc --signer founder5
+
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
 # Non-Public Accounts
