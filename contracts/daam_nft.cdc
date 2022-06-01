@@ -577,8 +577,6 @@ pub struct PersonalCollection {
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
 
-        // MetadataViews.NFTCollectionData TODO 
-
         destroy() { destroy self.ownedNFTs } // Destructor
     }
 /************************************************************************/
@@ -701,7 +699,7 @@ pub resource Admin: Agent
                 self.status: "You're no longer a have Access."
             }
 
-            let vote = 3 as Int // TODO change to x
+            let vote = 5 as Int // TODO change to x
             DAAM.remove.insert(key: self.grantee, admin) // Append removal list
             if DAAM.remove.length >= vote {                      // If votes is 3 or greater
                 var counter: {Address: Int} = {} // {To Remove : Total Votes}

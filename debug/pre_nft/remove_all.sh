@@ -4,24 +4,28 @@ flow scripts execute ./scripts/is_admin.cdc $ADMIN
 echo -n "Verify Admin2 Status: "
 flow scripts execute ./scripts/is_admin.cdc $ADMIN2
 
-echo "---------- Get 1 of 3 Admin Votes ----------"
-flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer admin
+echo "---------- Get 1 of 5 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer founder1
 
 echo "FAIL TEST: Removing Admin: Not Admin"
 flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer client
 
-echo "---------- Get 2 of 3 Admin Votes ----------"
-flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer admin2
+echo "---------- Get 2 of 5 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer founder2
 
-echo "---------- Get 3 of 3 CTO Votes ----------"
-flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer cto
+echo "---------- Get 3 of 5 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer founder3
+
+echo "---------- Get 4 of 5 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer founder4
+
+echo "---------- Get 5 of 5 Admin Votes ----------"
+flow transactions send ./transactions/admin/remove_admin.cdc $ADMIN --signer founder5
 
 echo -n "Verify Admin Status: "
 flow scripts execute ./scripts/is_admin.cdc $ADMIN
 echo -n "Verify Admin2 Status: "
 flow scripts execute ./scripts/is_admin.cdc $ADMIN2
-
-flow transactions send ./transactions/tools/delete_admin.cdc --signer admin
 
 # Remove Creator
 echo -n "Verify Creator Status: "
@@ -42,10 +46,6 @@ echo -n "Verify Creator Status: "
 flow scripts execute ./scripts/is_creator.cdc $CREATOR
 echo -n "Verify Creator2 Status: "
 flow scripts execute ./scripts/is_creator.cdc $CREATOR2
-
-# Delete / Reset Addresses
-flow transactions send ./transactions/tools/delete_creator.cdc --signer creator
-flow transactions send ./transactions/tools/delete_creator.cdc --signer creator2
 
 # Remove Agent
 echo -n "Verify Agent Status: "

@@ -213,7 +213,6 @@ pub struct AuctionInfo {
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
             let type = vault.getType()
             let identifier = type.identifier
-            // Accepted Tokens, Will be adding others here TODO
             switch identifier {
                 case "A.192440c99cb17282.FUSD.Vault": return true
             }
