@@ -76,12 +76,8 @@ pub struct CreatorInfo {
     pub(set) var status: Bool?
     pub(set) var agent: [Address] // Agent & Percentage
 
-    init(creator: Address, collborators: [Address]?, agent: [Address]?, status: Bool) {
-        pre {
-            DAAM.creators.containsKey(creator) : "You are not a Creator"
-            DAAM.isCreator(creator) == true    : "Your Creator account is Frozen."
-        }
-
+    init(creator: Address, collborators: [Address]?, agent: [Address]?, status: Bool)
+    {
         self.creator = [creator] // element 0 is reserved for Creator
         self.status = status
         self.agent = (agent!=nil) ? agent! : []
