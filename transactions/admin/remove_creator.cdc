@@ -3,18 +3,18 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(creator: Address)
+transaction(exCreator: Address)
 {
     let admin   : &DAAM.Admin{DAAM.Agent}
     let creator : Address
 
     prepare(agent: AuthAccount) {
-        self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
-        self.creator = creator
+        self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath) ?? panic(exCreator.toString().concat(" is not a Creator."))
+        self.creator = exCreator
     }
 
     // Verify is Creator
-    pre { DAAM.isCreator(creator) != nil : creator.toString().concat(" is not a Creator. Can not remove.") }
+    pre { DAAM.isCreator(exCreator) != nil : exCreator.toString().concat(" is not a Creator. Can not remove.") }
     
     execute {
         self.admin.removeCreator(creator: self.creator)

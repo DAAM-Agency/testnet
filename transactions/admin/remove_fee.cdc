@@ -11,7 +11,7 @@ transaction(mid: UInt64)
 
     prepare(admin: AuthAccount) {
         self.mid = mid
-        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath) ?? panic("You are not an Admin.")
     }
 
     execute {

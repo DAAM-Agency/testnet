@@ -9,7 +9,7 @@ transaction(exMinter: Address)
     let exMinter : Address
 
     prepare(admin: AuthAccount) {
-        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath) ?? panic(exMinter.toString().concat(" is not a Minter."))
 	    self.exMinter = exMinter
     }
 

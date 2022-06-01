@@ -9,7 +9,7 @@ transaction(exAgent: Address) {
     let exAgent : Address
 
     prepare(admin: AuthAccount) {
-        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath) ?? panic(exAgent.toString().concat(" is not an Agent."))
 	    self.exAgent = exAgent
     }
 
