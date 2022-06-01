@@ -3,6 +3,7 @@
 
 import FungibleToken    from 0xee82856bf20e2aa6
 import NonFungibleToken from 0xf8d6e0586b0a20c7
+import MetadataViews    from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 
 pub contract AuctionHouse {
@@ -255,7 +256,7 @@ pub struct AuctionInfo {
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
         pub let fee           : UFix64   // the fee
         pub let price         : UFix64   // original price
-        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
+        pub let buyNow        : UFix64   // buy now price original price
         pub var reprintSeries : Bool     // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
@@ -630,51 +631,51 @@ pub struct AuctionInfo {
             return 0.0 as UFix64 // return no time left
         }
 
-        // return royalty information
-        /*
-        priv fun getRoyalty(): {Address : UFix64} {
-            let royalty = self.auctionNFT?.royalty! // get Royalty data
-            return royalty                           // return Royalty
+        priv fun pay(royalties: [MetadataViews.Royalty], amount: UFix64) {
+            for royalty in royalties {
+                let cut <-! self.auctionVault.withdraw(amount: amount * royalty.cut)  // Calculate Agency Crypto share
+                let cap = royalty.receiver.borrow()!
+                cap.deposit(from: <-cut ) //deposit royalty share
+            }
         }
-        */
 
-        // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly. 
+        // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
+        priv fun payFirstSale(royalties: [MetadataViews.Royalty]) {
+            let price = self.auctionVault.balance 
+            for royalty in royalties {
+                let amount = price * (royalty.description=="Agency") ? 0.2 : 0.8
+                let cut <-! self.auctionVault.withdraw(amount: amount * royalty.cut)  // Calculate Agency Crypto share
+                let cap = royalty.receiver.borrow()!
+                cap.deposit(from: <-cut ) //deposit royalty share
+            }
+            return MetadataViews.Royalties
+        }
+
+        // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
         priv fun royalty()
         {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
 
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
 
-            let price = self.auctionVault.balance                           // get price of NFT
-            let tokenID = self.auctionNFT?.id!                              // get TokenID
-            let royalty = self.getRoyalty()                               // get all royalities percentages
+            let price = self.auctionVault.balance   // get price of NFT
+            let tokenID = self.auctionNFT?.id!      // get TokenID
+            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             
-            let agencyPercentage  = royalty[DAAM.agency]!          // extract Agency percentage
-            let creatorPercentage = royalty[self.creator]!  // extract creators percentage using Metadata Reference
-            
-            let agencyRoyalty  = DAAM.isNFTNew(id: tokenID) ? 0.20 : agencyPercentage  // If 'new' use default 15% for Agency.  First Sale Only.
-            let creatorRoyalty = DAAM.isNFTNew(id: tokenID) ? 0.80 : creatorPercentage // If 'new' use default 85% for Creator. First Sale Only.
-            
-            let agencyCut  <-! self.auctionVault.withdraw(amount: price * agencyRoyalty)  // Calculate Agency Crypto share
-            let creatorCut <-! self.auctionVault.withdraw(amount: price * creatorRoyalty) // Calculate Creator Crypto share
-            // get Crypto Receivers for Agency & Creator
-
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
-                AuctionHouse.notNew(tokenID: tokenID)
-            } else { // else no longer "new", Seller is only need on re-sales.
-                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller Crypto Wallet Capability
-                let sellerPercentage = 1.0 as UFix64 - (agencyPercentage + creatorPercentage)  // Calculate Percentage left over
-                let sellerCut <-! self.auctionVault.withdraw(amount: price * sellerPercentage) // Calcuate actual amount
-                seller.deposit(from: <-sellerCut ) // deposit amount
+                self.payFirstSale(royalties: royalties)
+            } else {
+                self.pay(royalties: royalties, amount: price)
             }
-            
-            let agencyPay  = getAccount(DAAM.agency).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
-            let creatorPay = getAccount(self.creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
-            
-            agencyPay.deposit(from: <-agencyCut)   // Deposit Agency Cut
-            creatorPay.deposit(from: <-creatorCut) // Deposit Creators' Cut
         }
+        
+        
+    }
+
+
+
+
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
         priv fun verifyAuctionLog(): Bool {

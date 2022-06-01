@@ -72,45 +72,23 @@ pub enum CopyrightStatus: UInt8 {
 }
 /***********************************************************************/
 pub struct CreatorInfo {
+    pub let creator: [Address] 
     pub(set) var status: Bool?
-    pub(set) var agent: [Address]
+    pub(set) var agent: [Address] // Agent & Percentage
 
-    init(status: Bool) {
+    init(creator: Address, collborators: [Address]?, agent: [Address]?, status: Bool) {
+        pre {
+            DAAM.creators.containsKey(creator) : "You are not a Creator"
+            DAAM.isCreator(creator) == true    : "Your Creator account is Frozen."
+        }
+
+        self.creator = [creator] // element 0 is reserved for Creator
         self.status = status
-        self.agent = []
-    }
-    // TODO add/removeAgent, update status scripts
-}
-/***********************************************************************/
-pub struct RoyaltyEntity
-{
-    pub let soleRoyalty: UFix64? 
-    pub let groupRoyalty: MetadataViews.Royalties?
-    //MetadataViews.Royalties TODO
+        self.agent = (agent!=nil) ? agent! : []
 
-    init(soleRoyalty: UFix64?, groupRoyalty: [RoyaltyEntity]?)
-    {
-        pre { !(soleRoyalty == nil && groupRoyalty == nil) : "Must enter at leat 1 argument." }
-        //if soleRoyalty != nil { assert(soleRoyalty!.getRoyalties().length==1, message: "Must be only one Royalty in this Royalties Container.") }
-        
-        self.soleRoyalty = soleRoyalty
-
-        let royalties: [MetadataViews.Royalty] = []
-        if groupRoyalty != nil {
-            for re in groupRoyalty! {
-                royalties.append(re.groupRoyalty!.getRoyalties()[0] ) // Getting first and only Royalty
-            }
+        if collborators != nil {
+            for collborator in collborators! { self.creator.append(collborator) }
         }
-
-        if groupRoyalty != nil {
-            self.groupRoyalty = MetadataViews.Royalties(royalties)
-        } else {
-            self.groupRoyalty = nil
-        }
-    }
-
-    pub fun createPercentage(_ percentage: UFix64): RoyaltyEntity {
-        return RoyaltyEntity(soleRoyalty: percentage, groupRoyalty: [self] )
     }
 }
 /***********************************************************************/
@@ -170,21 +148,19 @@ pub resource RequestGenerator {
 
         for founder in agency {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: founder!.receiver,
-                cut: agencyCut * founder!.cut,
-                description: "Founder Royalty: ".concat(
-                    founder!.cut.toString()).concat("MID: ").concat(mid.toString())
-                ) // end Royalty
+                MetadataViews.Royalty(
+                    recepient: founder!.receiver,
+                    cut: agencyCut * founder!.cut,
+                    description: "Agency")
             ) // end append   
         }
 
         for creator in creators {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: creator!.receiver,
-                cut: creatorCut * creator!.cut,
-                description: "Creator Royalty: ".concat(
-                    creator!.cut.toString()).concat("MID: ").concat(mid.toString())
-                ) // end Royalty
+                MetadataViews.Royalty(
+                    recepient: creator!.receiver,
+                    cut: creatorCut * creator!.cut,
+                    description: "Creator")
             ) // end append   
         }        
 
@@ -202,29 +178,29 @@ pub resource RequestGenerator {
 /************************************************************************/
     pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
-        pub let creator     : Address  // Creator of NFT
+        pub let creators    : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
         pub let editions    : MetadataViews.Editions?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         
-        init(creator: Address, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], editions: MetadataViews.Editions?,
+        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], editions: MetadataViews.Editions?,
             description: String, thumbnail: {MetadataViews.File})
         {
             self.mid         = mid
-            self.creator     = creator   // creator of NFT
-            self.edition     = edition    // total prints
+            self.creators    = creators     // creator of NFT
+            self.edition     = edition      // total prints
             self.category    = categories
-            self.editions    = editions   // total prints
-            self.description = description     // data,about,misc page
-            self.thumbnail   = thumbnail // thumbnail are stored here
+            self.editions    = editions     // total prints
+            self.description = description  // data,about,misc page
+            self.thumbnail   = thumbnail    // thumbnail are stored here
         }
     }
 /************************************************************************/
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64   // Metadata ID number
-        pub let creator     : Address  // Creator of NFT
+        pub let creators    : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
         pub var editions    : MetadataViews.Editions?
@@ -232,23 +208,23 @@ pub resource RequestGenerator {
         pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creator: Address?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
+        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
             description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, metadata: &Metadata?)
         {            
             pre {
                 max != 0 : "Max has an incorrect value of 0."
                 // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
-                (creator==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
+                (creators==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
                 metadata != nil)
                 || // or
                 // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
-                (creator!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
+                (creators!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
             if metadata == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid         = DAAM.metadataCounterID // init MID with counter
-                self.creator     = creator!               // creator of NFT
+                self.creators    = creators!               // creator of NFT
                 self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
                 self.category    = categories!            // categories 
                 self.description = description!           // data,about,misc page
@@ -257,12 +233,12 @@ pub resource RequestGenerator {
                 // is not Constant or Optional
                 self.editions = editions 
             } else {                
-                self.mid         = metadata!.mid // init MID with counter
-                self.creator     = metadata!.creator                 // creator of NFT
+                self.mid         = metadata!.mid         // init MID with counter
+                self.creators    = metadata!.creators    // creator of NFT
                 self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
-                self.category    = metadata!.category             // categories 
-                self.description = metadata!.description            // data,about,misc page
-                self.thumbnail   = metadata!.thumbnail              // thumbnail are stored here
+                self.category    = metadata!.category    // categories 
+                self.description = metadata!.description // data,about,misc page
+                self.thumbnail   = metadata!.thumbnail   // thumbnail are stored here
                 self.file        = metadata!.file
                 self.editions    = metadata!.editions
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
@@ -271,7 +247,7 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creator: self.creator, mid: self.mid, edition: self.edition, categories: self.category,
+            return MetadataHolder(creators: self.creators, mid: self.mid, edition: self.edition, categories: self.category,
                 editions: self.editions, description: self.description, thumbnail: self.thumbnail )
         }
         
@@ -321,7 +297,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
 
-            let metadata <- create Metadata(creator: self.grantee, name: name, max: max, categories: categories, editions: editions,
+            let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, editions: editions,
                 description: description, thumbnail: thumbnail, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
@@ -384,7 +360,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             // Verify Metadata Counter (print) is not last, if so delete Metadata
             if mRef.edition.max != nil {
                 if mRef.edition.number < mRef.edition.max! {            
-                    let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, editions:nil,
+                    let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, editions:nil,
                         description:nil, thumbnail:nil, file:nil, metadata: mRef)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
@@ -693,8 +669,12 @@ pub resource Admin: Agent
             post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
 
             // If Creator is invited by Agent, attach Agent to Creator Info
-            let creatorInfo = CreatorInfo(status: false) // Store Creator status, false = invited, not yet answered
-            if DAAM.isAgent(self.owner!.address) != nil { creatorInfo.agent.append(self.owner!.address) } // Add Agent to Creator Info
+            let agent: [Address] = DAAM.isAgent(self.owner!.address) != nil ? [self.owner!.address] : []
+            let creatorInfo = CreatorInfo(
+                creator: creator,
+                collborators: nil,
+                agent: agent ,
+                status: false) // Store Creator status, false = invited, not yet answered
             DAAM.creators.insert(key: creator, creatorInfo ) // Creator account is setup but not active untill accepted.
 
             log("Sent Creator Invitation: ".concat(creator.toString()) )
@@ -916,9 +896,9 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
-                DAAM.creators.containsKey(metadata.creator) : "You're not a Creator."
-                DAAM.isCreator(self.grantee) == true        : "Your Creator account is Frozen."
-                DAAM.request.containsKey(metadata.mid)      : "Invalid Request"
+                DAAM.isCreator(metadata.creators.creator[0]) == true : "You're not a Creator."
+                DAAM.isCreator(self.grantee) == true     : "Your Creator account is Frozen."
+                DAAM.request.containsKey(metadata.mid)   : "Invalid Request"
             }
             var isLast = false
             if metadata.edition.max != nil { 
@@ -936,7 +916,7 @@ pub resource Admin: Agent
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
-            emit MintedNFT(creator: nft.metadata.creator, id: nft.id)
+            emit MintedNFT(creator: nft.metadata.creators.creator[0], id: nft.id)
 
             return <- nft  // return NFT
         }
@@ -1116,10 +1096,10 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(founders: {Address:UFix64}, defaultAdmins: [Address])
+    init(/*founders: {Address:UFix64}, defaultAdmins: [Address]*/)
     {
-        //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
-        //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
+        let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
+        let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection

@@ -136,18 +136,18 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN2
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $PROFILE
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $CTO
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $CTO     # A.R
 
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR2
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT2
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $AGENT2
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER1
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER2
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER3
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER4
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER5
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER1 # J.Y
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER2 # M.R
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER3 # G.P
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER4 # A.K
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER5 # M.H
 
 # Init Contracts
 
@@ -213,7 +213,7 @@ flow transactions send ./transactions/send_flow_em.cdc --args-json \
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ./transactions/init_DAAM_Agency.cdc --args-json '[{"type": "String", "value": "DAAM"}, {"type": "String", "value": "'$CODE'"}, {"type": "Dictionary", "value": [ {"key": {"type": "Address", "value": "'$CTO'"}, "value": {"type": "UFix64", "value": "0.1666"}}, {"key": {"type": "Address", "value": "'$FOUNDER1'"}, "value": {"type": "UFix64", "value": "0.1666"}}, {"key": {"type": "Address", "value": "'$FOUNDER2'"}, "value": {"type": "UFix64", "value": "0.1666"}}, {"key": {"type": "Address", "value": "'$FOUNDER3'"}, "value": {"type": "UFix64", "value": "0.1666"}}, {"key": {"type": "Address", "value": "'$FOUNDER4'"}, "value": {"type": "UFix64", "value": "0.1666"}}, {"key": {"type": "Address", "value": "'$FOUNDER5'"}, "value": {"type": "UFix64", "value": "0.1666"}} ]}, {"type": "Array", "value": [{"type": "Address", "value": "'$CTO'"}, {"type": "Address", "value": "'$FOUNDER1'"}, {"type": "Address", "value": "'$FOUNDER2'"}, {"type": "Address", "value": "'$FOUNDER3'"}, {"type": "Address", "value": "'$FOUNDER4'"}, {"type": "Address", "value": "'$FOUNDER5'"} ]} ]' --signer daam_nft
+flow transactions send ./transactions/init_DAAM_Agency.cdc --args-json '[{"type": "String", "value": "DAAM"}, {"type": "String", "value": "'$CODE'"}, {"type": "Dictionary", "value": [ {"key": {"type": "Address", "value": "'$CTO'"}, "value": {"type": "UFix64", "value": "0.19"}}, {"key": {"type": "Address", "value": "'$FOUNDER1'"}, "value": {"type": "UFix64", "value": "0.23"}}, {"key": {"type": "Address", "value": "'$FOUNDER2'"}, "value": {"type": "UFix64", "value": "0.11"}}, {"key": {"type": "Address", "value": "'$FOUNDER3'"}, "value": {"type": "UFix64", "value": "0.11"}}, {"key": {"type": "Address", "value": "'$FOUNDER4'"}, "value": {"type": "UFix64", "value": "0.19"}}, {"key": {"type": "Address", "value": "'$FOUNDER5'"}, "value": {"type": "UFix64", "value": "0.17"}} ]}, {"type": "Array", "value": [{"type": "Address", "value": "'$CTO'"}, {"type": "Address", "value": "'$FOUNDER1'"}, {"type": "Address", "value": "'$FOUNDER2'"}, {"type": "Address", "value": "'$FOUNDER3'"}, {"type": "Address", "value": "'$FOUNDER4'"}, {"type": "Address", "value": "'$FOUNDER5'"} ]} ]' --signer daam_nft
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
