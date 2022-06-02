@@ -174,18 +174,18 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub let editions    : MetadataViews.Editions?
+        pub let inCollection    : [UInt64]?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
+        pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         
-        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], editions: MetadataViews.Editions?,
-            description: String, thumbnail: {MetadataViews.File})
+        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: [UInt64]?,
+            description: String, thumbnail: {String : {MetadataViews.File}})
         {
             self.mid         = mid
             self.creatorInfo = creators     // creator of NFT
             self.edition     = edition      // total prints
             self.category    = categories
-            self.editions    = editions     // total prints
+            self.inCollection    = inCollection     // total prints
             self.description = description  // data,about,misc page
             self.thumbnail   = thumbnail    // thumbnail are stored here
         }
@@ -196,13 +196,13 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var editions    : MetadataViews.Editions?
+        pub var inCollection    : [UInt64]?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
-        pub let thumbnail   : {MetadataViews.File}   // JSON see metadata.json all thumbnails are stored here
-        pub let file        : MetadataViews.Media   // JSON see metadata.json all NFT file formats are stored here
+        pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
+        pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, editions: MetadataViews.Editions?,
-            description: String?, thumbnail: {MetadataViews.File}?, file: MetadataViews.Media?, metadata: &Metadata?)
+        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: [UInt64]?, description: String?,
+            thumbnail: {String:{MetadataViews.File}}?, file: {String:MetadataViews.Media}?, metadata: &Metadata?)
         {            
             pre {
                 max != 0 : "Max has an incorrect value of 0."
@@ -224,7 +224,7 @@ pub resource RequestGenerator {
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
                 self.file        = file!                  // NFT data is stored hereere
                 // is not Constant or Optional
-                self.editions = editions 
+                self.inCollection = inCollection 
             } else {                
                 self.mid         = metadata!.mid         // init MID with counter
                 self.creatorInfo = metadata!.creatorInfo // creator of NFT
@@ -233,7 +233,7 @@ pub resource RequestGenerator {
                 self.description = metadata!.description // data,about,misc page
                 self.thumbnail   = metadata!.thumbnail   // thumbnail are stored here
                 self.file        = metadata!.file
-                self.editions    = metadata!.editions
+                self.inCollection = metadata!.inCollection
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
                 if(metadata!.edition.max != nil) { assert(metadata!.edition.number <= metadata!.edition.max!, message: "Metadata prints are finished.") }
             }
@@ -241,12 +241,12 @@ pub resource RequestGenerator {
 
         pub fun getHolder(): MetadataHolder {
             return MetadataHolder(creators: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
-                editions: self.editions, description: self.description, thumbnail: self.thumbnail )
+                inCollection: self.inCollection, description: self.description, thumbnail: self.thumbnail )
         }
         
         // MetadataViews
         pub fun getDisplay(): MetadataViews.Display {
-            let display = MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail)
+            let display = MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail[self.thumbnail.keys[0]]!)
             return display
         }
 
@@ -288,15 +288,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], editions: MetadataViews.Editions?, description: String,
-            thumbnail: {MetadataViews.File}, file: MetadataViews.Media): UInt64 {
+        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], inCollection: [UInt64]?, description: String,
+            thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media} ): UInt64
+        {
             pre{
                 self.grantee == self.owner!.address     : "Permission Denied"
                 DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
                 DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
 
-            let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, editions: editions,
+            let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, inCollection: inCollection,
                 description: description, thumbnail: thumbnail, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
@@ -305,7 +306,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
-            DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPEMNT
+            DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPMENT
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: self.grantee, mid: mid)
@@ -359,7 +360,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             // Verify Metadata Counter (print) is not last, if so delete Metadata
             if mRef.edition.max != nil {
                 if mRef.edition.number < mRef.edition.max! {            
-                    let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, editions:nil,
+                    let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
                         description:nil, thumbnail:nil, file:nil, metadata: mRef)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
