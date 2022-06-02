@@ -73,6 +73,7 @@ do
 done
 
 # Verify Collection
+
 echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
