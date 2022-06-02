@@ -5,8 +5,23 @@ import Categories    from 0xfd43f9148d4b725d
 import MetadataViews from 0xf8d6e0586b0a20c7
 import DAAM          from 0xfd43f9148d4b725d
 
-transaction(name: String, max: UInt64, categories: [String], editions: MetadataViews.Editions?, description: String,  
-    thumbnail: {MetadataViews.File}, file: MetadataViews.Media, percentage: UFix64)
+// argument have two modes:
+// when ipfs = true; first arument is cid, second argument is path 
+// when ipfs = false; first arument thumbnail String, second argument is thumbnailType and can not be nil
+pub fun setFile(ipfs: Bool, string_cid: String, file_path: String?): {MetadataViews.File} {
+    pre { ipfs || !ipfs && file_path != nil }
+    if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: file_path) }
+    switch file_path {
+        case "file": return DAAM.OnChain(file: string_cid)
+        case "http": return MetadataViews.HTTPFile(url: string_cid)
+        default: panic("Thumbnail Type is invalid")
+    }
+}
+
+transaction(name: String, max: UInt64, categories: [String], editions: MetadataViews.Editions?, description: String, // Metadata information
+    ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
+    ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
+    percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
@@ -29,9 +44,10 @@ transaction(name: String, max: UInt64, categories: [String], editions: MetadataV
         self.name        = name
         self.max         = max
         self.description = description
-        self.editions    = editions
-        self.thumbnail   = thumbnail
-        self.file        = file
+        self.editions    = editions // TODO
+        self.thumbnail   = setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, file_path: file_path)
+        let fileType     = setFile(ipfs: ipfs_file, string_cid: file_cid, file_path: file_path)
+        self.file        = MetadataViews.Media(file: fileType, mediaType: ipfs ? "ipfs" : fileType_path)
         self.categories  = []
         for cat in categories {
             self.categories.append(Categories.Category(cat))

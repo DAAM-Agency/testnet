@@ -254,6 +254,12 @@ pub resource RequestGenerator {
         //pub fun resolveView(_ view: Type): AnyStruct?
     }
 /************************************************************************/
+pub struct OnChain: MetadataViews.File {
+    priv let data: String
+    init(file: String) { self.data = file }
+    pub fun uri(): String {return self.data }
+}
+/************************************************************************/
 pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess

@@ -2,15 +2,15 @@
 # Tests: #A 1-Shot, #B Series(of 7), #C to be deleted by Creator. #D Disapproved by Admin, #E False Copyright,
 #F Unlimited Print, #G 10 series
 echo "========= Submit NFTs ========="
-flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data A" "thumbnail A" "file A" 0.15 --signer creator # Will be MID 1
-flow transactions send ./transactions/creator/submit_all.cdc 7 '["Digital","Image"]' "data B" "thumbnail B" "file B" 0.15 --signer creator # Will be MID 2
-flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data C" "thumbnail C" "file C" 0.15 --signer creator # Will be MID 3
-flow transactions send ./transactions/creator/submit_all.cdc 0 '["Digital","Image"]' "data D" "thumbnail D" "file D" 0.15 --signer creator # Will be MID 4
-flow transactions send ./transactions/creator/submit_all.cdc 3 '["Digital","Image"]' "data E" "thumbnail E" "file E" 0.15 --signer creator # Will be MID 5
-flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data F" "thumbnail F" "file F" 0.15 --signer creator2 # Will be MID 6
-flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data G" "thumbnail G" "file G" 0.15 --signer creator2 # Will be MID 7
-flow transactions send ./transactions/creator/submit_all.cdc 4 '["Digital","Image"]' "data H" "thumbnail H" "file H" 0.15 --signer creator2 # Will be MID 8
-flow transactions send ./transactions/creator/submit_all.cdc 2 '["Digital","Image"]' "data I" "thumbnail I" "file I" 0.15 --signer creator2 # Will be MID 9
+flow transactions send ./transactions/creator/submit_all.cdc "Name A" 2 '["Digital","Image"]' nil "description A" "String" "thumbnail A" "String" "file A" "String" 0.10 --signer creator # Will be MID 1
+flow transactions send ./transactions/creator/submit_all.cdc "Name B" 7 '["Digital","Image"]' nil "description B" "String" "thumbnail B" "String" "file B" "String" 0.12 --signer creator # Will be MID 2
+flow transactions send ./transactions/creator/submit_all.cdc "Name C" 2 '["Digital","Image"]' nil "description C" "String" "thumbnail C" "String" "file C" "String" 0.13 --signer creator # Will be MID 3
+flow transactions send ./transactions/creator/submit_all.cdc "Name D" 0 '["Digital","Image"]' nil "description D" "String" "thumbnail D" "String" "file D" "String" 0.14 --signer creator # Will be MID 4
+flow transactions send ./transactions/creator/submit_all.cdc "Name E" 3 '["Digital","Image"]' nil "description E" "String" "thumbnail E" "String" "file E" "String" 0.15 --signer creator # Will be MID 5
+flow transactions send ./transactions/creator/submit_all.cdc "Name F" 2 '["Digital","Image"]' nil "description F" "String" "thumbnail F" "String" "file F" "String" 0.16 --signer creator2 # Will be MID 6
+flow transactions send ./transactions/creator/submit_all.cdc "Name G" 2 '["Digital","Image"]' nil "description G" "String" "thumbnail G" "String" "file G" "String" 0.17 --signer creator2 # Will be MID 7
+flow transactions send ./transactions/creator/submit_all.cdc "Name H" 4 '["Digital","Image"]' nil "description H" "String" "thumbnail H" "String" "file H" "String" 0.18 --signer creator2 # Will be MID 8
+flow transactions send ./transactions/creator/submit_all.cdc "Name I" 2 '["Digital","Image"]' nil "description I" "String" "thumbnail I" "String" "file I" "String" 0.19 --signer creator2 # Will be MID 9
 
 # Verify Metadata
 echo "========= Verify Metadata ========="
