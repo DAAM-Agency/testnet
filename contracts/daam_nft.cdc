@@ -469,77 +469,48 @@ pub struct PersonalCollection {
         }
 
         // adds to a personal collection, has no actual bearing on nfts. The same NFTs can be added to multiple personal collections
-        pub fun addToPersonalCollection(name: String, id: UInt64) {
-            pre { self.ownedNFTs.containsKey(id) : "Can not add an NFT you do not have into a Personal Collection." } 
-                if self.collections.containsKey(name) {
-                    if !self.collections[name]!.id.contains(id) { self.collections[name]!.id.append(id) }
+        pub fun addToPersonalCollection(collectionName: String, tokenID: UInt64) {
+            pre { self.ownedNFTs.containsKey(tokenID) : "Can not add an NFT you do not have into a Personal Collection." } 
+                if self.collections.containsKey(collectionName) {
+                    if !self.collections[collectionName]!.id.contains(tokenID) { self.collections[collectionName]!.id.append(tokenID) }
                 } else {
-                    self.collections.insert(key:name, PersonalCollection(id: id))
+                    self.collections.insert(key:collectionName, PersonalCollection(id: tokenID))
                 }
         }
 
         // remvoves NFT from ALL person collection when name is nill, otherwise the specific Personal Collection.
-        pub fun removeFromPersonalCollection(name: String?, id: UInt64) {
-            pre { self.ownedNFTs.containsKey(id) : "Can not remove an NFT you do not have from any Personal Collection." }
+        pub fun removeFromPersonalCollection(collectionName: String?, tokenID: UInt64) {
+            pre { self.ownedNFTs.containsKey(tokenID) : "Can not remove an NFT you do not have from any Personal Collection." }
 
-            if name == nil { // remove from all 
-                for collection in self.collections.keys {
-                    var counter = 0
-                    for value in self.collections[collection]!.id {
-                        if value == id {
-                            self.collections[collection]!.id.remove(at:counter)
-                            break
-                        }
-                        counter = counter + 1
-                    }
-                } // end 1st for
-            } else { 
-                if self.collections.containsKey(name!) {
-                    var counter = 0
-                    for value in self.collections[name!]!.id {
-                        if value == id {
-                            self.collections[name!]!.id.remove(at:counter)
-                            break
-                        }
-                        counter = counter + 1
-                    }
+            if collectionName == nil {
+                for key in self.collections.keys {
+                    self.collections[key]!.id.remove(key: tokenID)
                 }
-            } // end else
-        } //end removeFromPersonalCollection
-
+            }else {
+                self.collections[collectionName!].id.remove(key: tokenID)
+            }
+        } 
 
         // Add a Personal Collection to a Personal Collection
-        pub fun addPersonalCollection(name: String, collection: String) {
+        pub fun addPersonalCollection(addCollection: String, collectionName: String) {
             pre {
-                self.collections.containsKey(name)       : "Personal Collection: ".concat(name).concat(" does not exist.")
-                self.collections.containsKey(collection) : "Personal Collection: ".concat(collection).concat(" does not exist.")
-                !self.collections[name]!.personalCollections.contains(collection) : "Already added."
+                self.collections.containsKey(addCollection)       : "Personal Collection: ".concat(addCollection).concat(" does not exist.")
+                self.collections.containsKey(collectionName) : "Personal Collection: ".concat(collectionName).concat(" does not exist.")
+                !self.collections[addCollection]!.personalCollections.contains(collectionName) : "Already added."
             }
-            self.collections[name]!.personalCollections.append(collection)
+            self.collections[addCollection]!.personalCollections.append(collectionName)
         }
 
-        pub fun removePersonalCollection(name: String?, collection: String) {
-            if name == nil {
+        pub fun removePersonalCollection(remove: String, collectionName: String?) {
+            pre { collectionName == nil || self.collections.containsKey(collectionName) : "This Personal Collection does not exist." }
+        
+            if collectionName == nil {
                 for key in self.collections.keys {
-                    var counter = 0
-                    for check in self.collections[key]!.personalCollections {
-                        if check == collection {
-                        self.collections[name!]!.personalCollections.remove(at: counter)
-                        break
-                    }
-                    counter = counter + 1
-                    }
+                    self.collections[key]!.personalCollections.remove(key: remove)
                 }
-            } else {
-                var counter = 0
-                for check in self.collections[name!]!.personalCollections {
-                    if check == collection {
-                        self.collections[name!]!.personalCollections.remove(at: counter)
-                        break
-                    }
-                    counter = counter + 1
-                }
-            } // end if
+            }else {
+                self.collections[collectionName!].personalCollections.remove(key: remove)
+            }
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
