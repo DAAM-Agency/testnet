@@ -500,6 +500,7 @@ pub struct PersonalCollection {
                     }
                     self.collections[collectionName!]!.id.remove(at: counter)
                 }
+
             }
         } 
 
