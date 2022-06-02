@@ -72,19 +72,15 @@ pub enum CopyrightStatus: UInt8 {
 }
 /***********************************************************************/
 pub struct CreatorInfo {
-    pub let creator: [Address] 
+    pub let creator: {Address: MetadataViews.Royalty}
     pub(set) var status: Bool?
-    pub(set) var agent: [Address] // Agent & Percentage
+    pub(set) var agent: {Address: MetadataViews.Royalty} // Agent & Percentage
 
-    init(creator: Address, collborators: [Address]?, agent: [Address]?, status: Bool)
+    init(creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?, status: Bool)
     {
-        self.creator = [creator] // element 0 is reserved for Creator
+        self.creator = creator // element 0 is reserved for Creator
         self.status = status
-        self.agent = (agent!=nil) ? agent! : []
-
-        if collborators != nil {
-            for collborator in collborators! { self.creator.append(collborator) }
-        }
+        self.agent = (agent!=nil) ? agent! : {}
     }
 }
 /***********************************************************************/
@@ -98,9 +94,9 @@ pub resource Request {
     access(contract) var agreement : [Bool; 2]               // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
-        self.mid       = mid             // Get Metadata ID
+        self.mid = mid          // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
-        self.royalty  = nil               // royalty is initialized
+        self.royalty = nil               // royalty is initialized
         self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
     }
 
@@ -127,7 +123,7 @@ pub resource RequestGenerator {
 
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalty: MetadataViews.Royalties, percentage: UFix64) {
+    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
         pre {
             self.grantee == self.owner!.address     : "Permission Denied"
             metadataGen.getMIDs().contains(mid)     : "Wrong MID"
@@ -136,26 +132,27 @@ pub resource RequestGenerator {
             percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
-        let agency   = DAAM.agency.getRoyalties()
-        let creators = royalty.getRoyalties()
-        let agencyCut  = percentage // Add Agency percentage, Agency takes 10% of Creator
-        let creatorCut = 1.0 - percentage // Add Creator percentage
+        //let agency   = DAAM.agency.getRoyalties()
+        let creators = metadataGen.viewMetadata(mid: mid)!.creatorInfo.creator // creatorInfo.creators[0]
+        let fee = 0.025
+        let creatorCut = percentage / (1.0 + fee)// Add Creator percentage
+        //let agencyCut  = percentage - creatorCut // Add Agency percentage, Agency takes 10% of Creator
         var royalty_list: [MetadataViews.Royalty] = []
 
-        for founder in agency {
+        /*for founder in agency {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: founder!.receiver,
-                    cut: agencyCut * founder!.cut,
+                    recepient: founder.receiver,
+                    cut: agencyCut * founder.cut,
                     description: "Agency")
             ) // end append   
-        }
+        }*/
 
-        for creator in creators {
+        for creator in creators.keys {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: creator!.receiver,
-                    cut: creatorCut * creator!.cut,
+                    recepient: getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver),//creator!.receiver,
+                    cut: creatorCut * creators[creator]!.cut,
                     description: "Creator")
             ) // end append   
         }        
@@ -658,16 +655,21 @@ pub resource Admin: Agent
                 DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
                 DAAM.creators[creator] == nil : "They're already a DAAM Creator!!!"
-                Profile.check(creator) : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
+                Profile.check(creator)        : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
             post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
 
             // If Creator is invited by Agent, attach Agent to Creator Info
-            let agent: [Address] = DAAM.isAgent(self.owner!.address) != nil ? [self.owner!.address] : []
+            let creatorCap = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
+            let agencyCap  = getAccount(self.owner!.address).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
+            let creatorRoyalty = MetadataViews.Royalty(recepient: creatorCap, cut: 0.0, description: "Invited by ".concat(self.owner!.address.toString()) )
+            let agencyRoyalty  = MetadataViews.Royalty(recepient: agencyCap, cut: 0.0, description: "Agency Invite")
+            let creatorArg: {Address: MetadataViews.Royalty}  = {creator : creatorRoyalty}
+            let agentArg  : {Address: MetadataViews.Royalty}? = 
+                DAAM.isAgent(self.owner!.address) != nil ? {self.owner!.address: agencyRoyalty} : {}
             let creatorInfo = CreatorInfo(
-                creator: creator,
-                collborators: nil,
-                agent: agent ,
+                creator: creatorArg,
+                agent: agentArg ,
                 status: false) // Store Creator status, false = invited, not yet answered
             DAAM.creators.insert(key: creator, creatorInfo ) // Creator account is setup but not active untill accepted.
 
@@ -890,7 +892,7 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
-                DAAM.isCreator(metadata.creatorInfo.creator[0]) == true : "You're not a Creator."
+                DAAM.isCreator(metadata.creatorInfo.creator.keys[0]) == true : "This is not our Creator."
                 DAAM.isCreator(self.grantee) == true     : "Your Creator account is Frozen."
                 DAAM.request.containsKey(metadata.mid)   : "Invalid Request"
             }
@@ -910,7 +912,7 @@ pub resource Admin: Agent
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
-            emit MintedNFT(creator: nft.metadata.creatorInfo.creator[0], id: nft.id)
+            emit MintedNFT(creator: nft.metadata.creatorInfo.creator.keys[0], id: nft.id)
 
             return <- nft  // return NFT
         }

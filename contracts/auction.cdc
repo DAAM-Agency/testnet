@@ -301,7 +301,9 @@ pub struct AuctionInfo {
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
             self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
-            self.creators = nft.metadata.creatorInfo.creator
+            var creators: [Address] = []
+            for c in nft.metadata.creatorInfo.creator.keys { creators.append(c) }
+            self.creators = creators
             self.mid = nft.mid // Metadata ID
             self.start = start        // When auction start
             self.length = length      // Length of auction
@@ -715,7 +717,7 @@ pub struct AuctionInfo {
         access(contract) fun endReprints() {
            pre {
                 self.reprintSeries : "Reprints is already off."
-                self.auctionNFT?.metadata!.creatorInfo.creator[0] == self.owner!.address : "You are not the Creator of this NFT"
+                self.auctionNFT?.metadata!.creatorInfo.creator.keys[0] == self.owner!.address : "You are not the Creator of this NFT"
                 //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
            }
            self.reprintSeries = false
