@@ -1,4 +1,4 @@
-// submit_all.cdc
+// submit_accept.cdc
 // Creator uses to submit Metadata & Approve Rpyalty
 
 import Categories    from 0xfd43f9148d4b725d
