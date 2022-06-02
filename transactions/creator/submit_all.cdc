@@ -11,11 +11,11 @@ import DAAM          from 0xfd43f9148d4b725d
 pub fun setFile(ipfs: Bool, string_cid: String, file_path: String?): {MetadataViews.File} {
     pre { ipfs || !ipfs && file_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: file_path) }
-    switch file_path {
+    switch file_path! {
         case "file": return DAAM.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: panic("Thumbnail Type is invalid")
     }
+    panic("Thumbnail Type is invalid")
 }
 
 transaction(name: String, max: UInt64, categories: [String], editions: MetadataViews.Editions?, description: String, // Metadata information
@@ -45,9 +45,9 @@ transaction(name: String, max: UInt64, categories: [String], editions: MetadataV
         self.max         = max
         self.description = description
         self.editions    = editions // TODO
-        self.thumbnail   = setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, file_path: file_path)
-        let fileType     = setFile(ipfs: ipfs_file, string_cid: file_cid, file_path: file_path)
-        self.file        = MetadataViews.Media(file: fileType, mediaType: ipfs ? "ipfs" : fileType_path)
+        self.thumbnail   = setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, file_path: fileType_path)
+        let fileType     = setFile(ipfs: ipfs_file, string_cid: file_cid, file_path: fileType_path)
+        self.file        = MetadataViews.Media(file: fileType, mediaType: ipfs_file ? "ipfs" : fileType_path)
         self.categories  = []
         for cat in categories {
             self.categories.append(Categories.Category(cat))
