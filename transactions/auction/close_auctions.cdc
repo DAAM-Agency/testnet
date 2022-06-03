@@ -6,7 +6,7 @@ import AuctionHouse from 0x045a1763c93006ca
 transaction(auction: Address) {
     let auctionHouse : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
 
-    prepare() {
+    prepare(signer: AuthAccount) {
         self.auctionHouse = getAccount(auction)
             .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
             (AuctionHouse.auctionPublicPath)

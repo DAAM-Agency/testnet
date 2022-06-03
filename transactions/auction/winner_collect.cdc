@@ -7,7 +7,7 @@ transaction(auction: Address, aid: UInt64)
     let aid          : UInt64
     let auctionHouse : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
     
-    prepare() {
+    prepare(signer: AuthAccount) {
         self.aid          = aid
         self.auctionHouse = getAccount(auction)
             .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
