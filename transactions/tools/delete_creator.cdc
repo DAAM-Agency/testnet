@@ -1,18 +1,18 @@
 // delete_creator.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xfd43f9148d4b725d
 
 transaction() {
     prepare(creator: AuthAccount) {
-        let creatorRes  <- creator.load<@DAAM.Creator>(from: DAAM.creatorStoragePath)
-        let requestRes  <- creator.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
-        let metadataRes <- creator.load<@DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)
+        let creatorRes  <- creator.load<@DAAM_V11.Creator>(from: DAAM_V11.creatorStoragePath)
+        let requestRes  <- creator.load<@DAAM_V11.RequestGenerator>(from: DAAM_V11.requestStoragePath)
+        let metadataRes <- creator.load<@DAAM_V11.MetadataGenerator>(from: DAAM_V11.metadataStoragePath)
         destroy creatorRes
         destroy requestRes
         destroy metadataRes
-        creator.unlink(DAAM.creatorPrivatePath)
-        creator.unlink(DAAM.requestPrivatePath)
-        creator.unlink(DAAM.metadataPublicPath)
+        creator.unlink(DAAM_V11.creatorPrivatePath)
+        creator.unlink(DAAM_V11.requestPrivatePath)
+        creator.unlink(DAAM_V11.metadataPublicPath)
         log("Creator Removed")
     } 
 }

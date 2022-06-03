@@ -1,20 +1,20 @@
 // change_minter_status.cdc
 // Used for Admin to change Minter status. True = active, False = frozen
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xfd43f9148d4b725d
 
 transaction(minter: Address, status: Bool) {
-    let admin   : &DAAM.Admin
+    let admin   : &DAAM_V11.Admin
     let minter : Address
     let status  : Bool
 
     prepare(agent: AuthAccount) {
         self.minter = minter  
         self.status  = status
-        self.admin = agent.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin = agent.borrow<&DAAM_V11.Admin>(from: DAAM_V11.adminStoragePath)!
     }
 
-    pre { DAAM.isMinter(minter) != nil : minter.toString().concat(" is not a Minter.") }
+    pre { DAAM_V11.isMinter(minter) != nil : minter.toString().concat(" is not a Minter.") }
 
     execute {
         self.admin.changeMinterStatus(minter: self.minter, status: self.status)

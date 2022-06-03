@@ -1,8 +1,8 @@
 // setup_daam_account.cdc
-// Create A DAAM Wallet to store DAAM NFTs
+// Create A DAAM_V11 Wallet to store DAAM_V11 NFTs
 
 import NonFungibleToken from 0xf8d6e0586b0a20c7
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM_V11             from 0xfd43f9148d4b725d
 
 transaction(public: Bool)
 {
@@ -10,22 +10,22 @@ transaction(public: Bool)
     let acct: AuthAccount
 
     prepare(acct: AuthAccount) {
-        if acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath) != nil {
-            panic("You already have a DAAM Collection.")
+        if acct.borrow<&DAAM_V11.Collection>(from: DAAM_V11.collectionStoragePath) != nil {
+            panic("You already have a DAAM_V11 Collection.")
         }
         self.public = public
         self.acct   = acct
     }
 
     execute {
-        let collection <- DAAM.createDAAMCollection()    // Create a new empty collection
-        self.acct.save<@DAAM.Collection>(<-collection, to: DAAM.collectionStoragePath) // save the new account
+        let collection <- DAAM_V11.createDAAM_V11Collection()    // Create a new empty collection
+        self.acct.save<@DAAM_V11.Collection>(<-collection, to: DAAM_V11.collectionStoragePath) // save the new account
         
         if self.public {
-            self.acct.link<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)
-            log("DAAM Account Created. You have a DAAM Collection (Public) to store NFTs'")
+            self.acct.link<&DAAM_V11.Collection{DAAM_V11.CollectionPublic, NonFungibleToken.CollectionPublic}>(DAAM_V11.collectionPublicPath, target: DAAM_V11.collectionStoragePath)
+            log("DAAM_V11 Account Created. You have a DAAM_V11 Collection (Public) to store NFTs'")
         } else {
-            log("DAAM Account Created. You have a DAAM Collection (Non-Public) to store NFTs'")
+            log("DAAM_V11 Account Created. You have a DAAM_V11 Collection (Non-Public) to store NFTs'")
         }
     }
 }
