@@ -8,6 +8,7 @@ pub fun main(auction: Address, aid: UInt64, bidder: Address): UFix64? {
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
         .borrow()!
-        
-    return auctionHouse.item(aid).getMinBidAmount(bidder: bidder)
+
+    let mRef = auctionHouse.item(aid) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?  
+    return mRef!.getMinBidAmount(bidder: bidder)
 }

@@ -7,6 +7,9 @@ pub fun main(auction: Address, auctionID: UInt64): {Address:UFix64}? {
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
         .borrow()!
-        
-    return auctionHouse.item(auctionID).getAuctionLog()
+
+    let mRef = auctionHouse.item(auctionID) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?
+    let metadata = mRef!.getAuctionLog()
+    
+    return metadata
 }

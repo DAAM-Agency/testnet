@@ -8,6 +8,6 @@ pub fun main(auction: Address): [UInt64] {
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
         .borrow()!
-
+    
     return auctionHouse.getAuctions()
 }

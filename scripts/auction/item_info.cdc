@@ -10,7 +10,8 @@ pub fun main(auction: Address, aid: UInt64): DAAM.MetadataHolder? {
         (AuctionHouse.auctionPublicPath)
         .borrow()!
 
-    let metadata = auctionHouse.item(aid).itemInfo()
+    let mRef = auctionHouse.item(aid) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?
+    let metadata = mRef!.itemInfo()
 
     return metadata
 }

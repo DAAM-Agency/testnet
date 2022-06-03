@@ -7,14 +7,15 @@ import AuctionHouse from 0x045a1763c93006ca
 pub fun main(auction: Address): {UInt64 : DAAM.MetadataHolder?}
 {    
     let auctionHouse = getAccount(auction)
-        .getCapability<&{AuctionHouse.AuctionPublic}>(AuctionHouse.auctionPublicPath)
+        .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
 
     let auctions =  auctionHouse.getAuctions()
     var data: {UInt64 : DAAM.MetadataHolder?} = {}
 
     for aid in auctions {
-        data.insert(key: aid, auctionHouse.item(aid).itemInfo() )
+        let mRef = auctionHouse.item(aid) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?
+        data.insert(key: aid, mRef!.itemInfo() )
     }
     return data
 }
