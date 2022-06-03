@@ -3,7 +3,7 @@
 // Used to create an auction for a first-time sale.
 
 import Categories    from 0xfd43f9148d4b725d
-import MetadataViews from 0xf8d6e0586b0a20c7
+import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V11          from 0xfd43f9148d4b725d
 import AuctionHouse  from 0x045a1763c93006ca
 

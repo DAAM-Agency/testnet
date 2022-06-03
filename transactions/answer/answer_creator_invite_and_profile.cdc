@@ -1,7 +1,7 @@
 // answer_creator_invite.cdc
 // Answer the invitation to be a Creator.
 
-import Profile from 0x192440c99cb17282
+import Profile from 0xba1132bc08f82fe2
 import DAAM_V11    from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {

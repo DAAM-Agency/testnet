@@ -1,7 +1,7 @@
 // setup_daam_account.cdc
 // Create A DAAM_V11 Wallet to store DAAM_V11 NFTs
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V11             from 0xfd43f9148d4b725d
 
 transaction(public: Bool)

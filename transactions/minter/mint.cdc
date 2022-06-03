@@ -1,7 +1,7 @@
 // change_creator_status.cdc
 // Used for Admin / minters to change Creator status. True = active, False = frozen
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V11             from 0xfd43f9148d4b725d
 
 transaction(creator: Address, mid: UInt64, receiver: Address) {
