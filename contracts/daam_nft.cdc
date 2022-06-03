@@ -11,7 +11,7 @@ pub contract DAAM: NonFungibleToken {
     // Events
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?) // Collection Wallet, used to withdraw NFT
-    pub event Deposit(id: UInt64,   to: Address?)  // Collection Wallet, used to deposit NFT
+    pub event Deposit(id: UInt64, to: Address?)  // Collection Wallet, used to deposit NFT
     // Events
     pub event NewAdmin(admin  : Address)         // A new Admin has been added. Accepted Invite
     pub event NewAgent(agent  : Address)         // A new Agent has been added. Accepted Invite
@@ -355,11 +355,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             destroy minter
 
             // Create Metadata with incremented counter/print
-            let mRef = &self.metadata[mid] as &Metadata
+            let mRef = &self.metadata[mid] as &Metadata?
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
-            if mRef.edition.max != nil {
-                if mRef.edition.number < mRef.edition.max! {            
+            if mRef!.edition.max != nil {
+                if mRef!.edition.number < mRef!.edition.max! {            
                     let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
                         description:nil, thumbnail:nil, file:nil, metadata: mRef)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
@@ -377,30 +377,31 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun viewMetadata(mid: UInt64): MetadataHolder? {
             pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
-            let mRef = &self.metadata[mid] as &Metadata
-            return mRef.getHolder()
+            let mRef = &self.metadata[mid] as &Metadata?
+            let data: MetadataHolder? = mRef!.getHolder() // as MetadataHolder// as &Metadata
+            return data
         }
 
         pub fun viewMetadatas(): [MetadataHolder] {
             var list: [MetadataHolder] = []
             for m in self.metadata.keys {
-                let mRef = &self.metadata[m] as &Metadata
-                list.append(mRef.getHolder() )
+                let mRef = &self.metadata[m] as &Metadata?
+                list.append(mRef!.getHolder() )
             } 
             return list
         }
 
         pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
             pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
-            let mRef = &self.metadata[mid] as &Metadata
-            return mRef.getDisplay()
+            let mRef = &self.metadata[mid] as &Metadata?
+            return mRef!.getDisplay()
         }
 
         pub fun viewDisplays(): [MetadataViews.Display] {
             var list: [MetadataViews.Display] = []
             for m in self.metadata.keys {
-                let mRef = &self.metadata[m] as &Metadata
-                list.append(mRef.getDisplay() )
+                let mRef = &self.metadata[m] as &Metadata?
+                list.append(mRef!.getDisplay() )
             } 
             return list
         }
@@ -420,13 +421,13 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let metadata : MetadataHolder          // Metadata of NFT
         pub let royalty  : MetadataViews.Royalties // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
 
-        init(metadata: @Metadata, request: &Request) {
-            pre { metadata.mid == request.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+        init(metadata: @Metadata, request: &Request?) {
+            pre { metadata.mid == request!.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
             
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id          = DAAM.totalSupply     // Set Token ID with total supply
             self.mid         = metadata.mid         // Set Metadata ID
-            self.royalty     = request.royalty!     // Save Request which are the royalities.  
+            self.royalty     = request!.royalty!     // Save Request which are the royalities.  
             self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
@@ -438,7 +439,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT? // Get NFT as DAAM.NFT
     pub fun getPersonalCollection(): {String: PersonalCollection}
 }
 /************************************************************************/
@@ -451,6 +452,12 @@ pub struct PersonalCollection {
         self.id = [id]
         self.personalCollections = []
     }
+
+    pub fun appendID(_ id: UInt64) { self.id.append(id) }
+    pub fun removeID(at: UInt64) { self.id.remove(at: at) }
+
+    pub fun appendCollection(_ collection: String) { self.personalCollections.append(collection) }
+    pub fun removeCollection(at: UInt64) { self.personalCollections.remove(at: at) }
 }
 // Standand Flow Collection Wallet
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
@@ -469,7 +476,7 @@ pub struct PersonalCollection {
         pub fun addToPersonalCollection(collectionName: String, tokenID: UInt64) {
             pre { self.ownedNFTs.containsKey(tokenID) : "Can not add an NFT you do not have into a Personal Collection." } 
                 if self.collections.containsKey(collectionName) {
-                    if !self.collections[collectionName]!.id.contains(tokenID) { self.collections[collectionName]!.id.append(tokenID) }
+                    if !self.collections[collectionName]!.id.contains(tokenID) { self.collections[collectionName]!.appendID(tokenID) }
                 } else {
                     self.collections.insert(key:collectionName, PersonalCollection(id: tokenID))
                 }
@@ -480,17 +487,17 @@ pub struct PersonalCollection {
             pre { self.ownedNFTs.containsKey(tokenID) : "Can not remove an NFT you do not have from any Personal Collection." }
             assert(collectionName == nil || self.collections.containsKey(collectionName!), message: "This Personal Collection does not exist.")
 
-            var counter = 0
+            var counter: UInt64 = 0
             if collectionName == nil {
                 for key in self.collections.keys {
                     if !self.collections[key]!.id.contains(tokenID) { continue }
-                    self.collections[key]!.id.remove(at: counter)
+                    self.collections[key]!.removeID(at: counter)
                     counter = counter + 1
                 }
             }else {
                 for key in self.collections[collectionName!]!.id { 
                     if key != tokenID { continue }
-                    self.collections[collectionName!]!.id.remove(at: counter)
+                    self.collections[collectionName!]!.removeID(at: counter)
                     counter = counter + 1
                 }
 
@@ -504,22 +511,22 @@ pub struct PersonalCollection {
                 self.collections.containsKey(collectionName) : "Personal Collection: ".concat(collectionName).concat(" does not exist.")
                 !self.collections[addCollection]!.personalCollections.contains(collectionName) : "Already added."
             }
-            self.collections[addCollection]!.personalCollections.append(collectionName)
+            self.collections[addCollection]!.appendCollection(collectionName)
         }
 
         pub fun removePersonalCollection(remove: String, collectionName: String?) {
             assert(collectionName == nil || self.collections.containsKey(collectionName!), message: "This Personal Collection does not exist.")
-            var counter = 0 
+            var counter: UInt64 = 0 
             if collectionName == nil {
                 for key in self.collections.keys {
                     if !self.collections[key]!.personalCollections.contains(remove) { continue }
-                    self.collections[key]!.personalCollections.remove(at: counter) 
+                    self.collections[key]!.removeCollection(at: counter) 
                     counter = counter + 1
                 }
             }else {
                 for key in self.collections[collectionName!]!.personalCollections {
                     if key != remove { continue }
-                    self.collections[collectionName!]!.personalCollections.remove(at: counter)
+                    self.collections[collectionName!]!.removeCollection(at: counter)
                     counter = counter + 1
                 }
             }
@@ -551,15 +558,12 @@ pub struct PersonalCollection {
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
 
         // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-        }
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)! }
 
         //borrowDAAM gets a reference to an DAAM.NFT in the album.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
-            pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
-            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
-            return ref as! &DAAM.NFT                                    // return NFT Reference
+            let tokenRef = &self.ownedNFTs[id] as &DAAM.NFT?
+            return tokenRef 
         }
 
         destroy() { destroy self.ownedNFTs } // Destructor
@@ -789,7 +793,7 @@ pub resource Admin: Agent
             }
             post { DAAM.isCreator(creator) == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            let creatorInfo = &DAAM.creators[creator] as &CreatorInfo
+            let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
             creatorInfo.status = status // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
@@ -895,7 +899,7 @@ pub resource Admin: Agent
             }
 
             let mid = metadata.mid               // Get MID
-            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request?) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
@@ -922,7 +926,7 @@ pub resource Admin: Agent
             }
             post { !DAAM.newNFTs.contains(tokenID) : "Illegal Operation: notNew" } // Unreachable
 
-            var counter = 0 as UInt64              // start the conter
+            var counter: UInt64 = 0 as UInt64              // start the conter
             for nft in DAAM.newNFTs {              // cycle through 'new' list
                 if nft == tokenID {                // if Token ID is found
                     DAAM.newNFTs.remove(at: counter) // remove from 'new' list
@@ -1013,7 +1017,7 @@ pub resource MinterAccess
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        let creatorInfo = &DAAM.creators[newCreator.address] as &CreatorInfo
+        let creatorInfo = &DAAM.creators[newCreator.address]! as &CreatorInfo
         creatorInfo.status = submit         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
@@ -1079,7 +1083,7 @@ pub resource MinterAccess
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
         if self.creators[creator] == nil { return nil }
-        let creatorInfo = &DAAM.creators[creator] as &CreatorInfo
+        let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
         return creatorInfo.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 /************************************************************************/
