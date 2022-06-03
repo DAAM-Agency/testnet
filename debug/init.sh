@@ -213,7 +213,8 @@ flow transactions send ./transactions/send_flow_em.cdc --args-json \
 
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ./transactions/init_DAAM_Agency.cdc --args-json '[{"type": "String", "value": "DAAM"}, {"type": "String", "value": "'$CODE'"}, {"type": "Dictionary", "value": [ {"key": {"type": "Address", "value": "'$CTO'"}, "value": {"type": "UFix64", "value": "0.19"}}, {"key": {"type": "Address", "value": "'$FOUNDER1'"}, "value": {"type": "UFix64", "value": "0.23"}}, {"key": {"type": "Address", "value": "'$FOUNDER2'"}, "value": {"type": "UFix64", "value": "0.11"}}, {"key": {"type": "Address", "value": "'$FOUNDER3'"}, "value": {"type": "UFix64", "value": "0.11"}}, {"key": {"type": "Address", "value": "'$FOUNDER4'"}, "value": {"type": "UFix64", "value": "0.19"}}, {"key": {"type": "Address", "value": "'$FOUNDER5'"}, "value": {"type": "UFix64", "value": "0.17"}} ]}, {"type": "Array", "value": [{"type": "Address", "value": "'$CTO'"}, {"type": "Address", "value": "'$FOUNDER1'"}, {"type": "Address", "value": "'$FOUNDER2'"}, {"type": "Address", "value": "'$FOUNDER3'"}, {"type": "Address", "value": "'$FOUNDER4'"}, {"type": "Address", "value": "'$FOUNDER5'"} ]} ]' --signer daam_nft
+ARGUMENTS=$(echo "'{$CTO:0.19,$FOUNDER1:0.23,$FOUNDER2:0.11,$FOUNDER3:0.11,$FOUNDER4:0.19,$FOUNDER5:0.17}' '[$CTO,$FOUNDER1,$FOUNDER2,$FOUNDER3,$FOUNDER4,$FOUNDER5]'")
+flow transactions send ./transactions/init_DAAM_Agency.cdc "DAAM" $CODE $ARGUMENTS
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
