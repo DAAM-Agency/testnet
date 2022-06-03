@@ -214,7 +214,9 @@ flow transactions send ./transactions/send_flow_em.cdc --args-json \
 # NFT
 export CODE=$(cat ../dev/hex_nft_enum)
 ARGUMENTS=$(echo "'{$CTO:0.19,$FOUNDER1:0.23,$FOUNDER2:0.11,$FOUNDER3:0.11,$FOUNDER4:0.19,$FOUNDER5:0.17}' '[$CTO,$FOUNDER1,$FOUNDER2,$FOUNDER3,$FOUNDER4,$FOUNDER5]'")
-flow transactions send ./transactions/init_DAAM_Agency.cdc "DAAM" $CODE $ARGUMENTS
+COMMAND='flow transactions send ./transactions/init_DAAM_Agency.cdc "DAAM" $CODE '$ARGUMENTS' --signer daam_nft'
+eval $COMMAND
+#flow transactions send ./transactions/init_DAAM_Agency.cdc "DAAM" $CODE $ARGUMENTS --signer
 flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
