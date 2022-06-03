@@ -3,7 +3,7 @@
 
 import FungibleToken    from 0x9a0766d93b6608b7
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import MetadataViews    from 0x631e88ae7f1d7c20
+import MetadataViews    from 0x1784abd15a9f29a8
 import DAAM_V11         from 0xa4ad5ea5c0bd2fba
 
 pub contract AuctionHouse {

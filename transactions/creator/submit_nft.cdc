@@ -2,8 +2,8 @@
 // Creator uses to submit Metadata
 
 import Categories    from 0xa4ad5ea5c0bd2fba
-import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V11          from 0xa4ad5ea5c0bd2fba
+import MetadataViews from 0x1784abd15a9f29a8
+import DAAM_V11      from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
