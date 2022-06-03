@@ -530,7 +530,7 @@ pub struct PersonalCollection {
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
             self.removeFromPersonalCollection(collectionName: nil, tokenID: withdrawID)
-            let token <-! self.ownedNFTs.remove(key: withdrawID) //as! @DAAM.NFT // Get NFT
+            let token <- self.ownedNFTs.remove(key: withdrawID)! as! @DAAM.NFT // Get NFT
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
