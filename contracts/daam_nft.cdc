@@ -125,10 +125,10 @@ pub resource RequestGenerator {
     // Percentages are between 10% - 30%
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
         pre {
-            self.grantee == self.owner!.address     : "Permission Denied"
-            metadataGen.getMIDs().contains(mid)     : "Wrong MID"
-            DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-            DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
+            self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+            metadataGen.getMIDs().contains(mid)     : "MID: ".concat(mid.toString()).concat(" is Incorrect")
+            DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
+            DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
@@ -292,9 +292,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media} ): UInt64
         {
             pre{
-                self.grantee == self.owner!.address     : "Permission Denied"
-                DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
+                self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
+                DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             }
 
             let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, inCollection: inCollection,
@@ -317,10 +317,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
-                self.grantee == self.owner!.address     : "Permission Denied"
-                DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
-                self.metadata[mid] != nil               : "No Metadata entered"
+                self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
+                DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
+                self.metadata[mid] != nil               : "MetadataID: ".concat(mid.toString()).concat(" does not exist.")
             }
             let old_meta <- self.clearMetadata(mid: mid)  // Delete Metadata
             destroy old_meta
@@ -343,14 +343,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
         pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata {
             pre {
-                self.grantee == self.owner!.address     : "Permission Denied"
-                minter.validate()                       : "Permission Denied"
-                DAAM.creators.containsKey(self.grantee) : "You are not a Creator"
-                DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
+                self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                minter.validate(self.owner!.address)    : "Account: ".concat(self.owner!.address.toString()).concat("Minter Access Denied")
+                DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
+                DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
                 
-                self.metadata[mid] != nil : "No Metadata entered"
-                DAAM.metadata[mid] != nil : "This already has been published."
-                DAAM.metadata[mid]!       : "Your Submission was Rejected."
+                self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" does not exist.")
+                DAAM.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" This already has been published.")
+                DAAM.metadata[mid]!       : "MetadataID: ".concat(mid.toString()).concat(" Submission has been Disapproved.")
             }
             destroy minter
 
@@ -376,7 +376,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun viewMetadata(mid: UInt64): MetadataHolder? {
-            pre { self.metadata[mid] != nil : "Invalid MID" }
+            pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
             let mRef = &self.metadata[mid] as &Metadata
             return mRef.getHolder()
         }
@@ -391,7 +391,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
-            pre { self.metadata[mid] != nil : "Invalid MID" }
+            pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
             let mRef = &self.metadata[mid] as &Metadata
             return mRef.getDisplay()
         }
@@ -600,17 +600,17 @@ pub resource Admin: Agent
         // Used only when genreating a new Admin. Creates a Resource Generator for Negoiations.
         pub fun newRequestGenerator(): @RequestGenerator {
             pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
-                self.status : "You're no longer a have Access."
+                DAAM.admins[self.owner!.address] == true  : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied. No proper Admin Status")
+                self.grantee == self.owner!.address       : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                self.status : "Account: ".concat(self.owner!.address.toString()).concat(" Access has been Frozen.") // status variable may be Depreicated // TODO check 
             }
             return <- create RequestGenerator(self.grantee) // return new Request
         }
 
         pub fun inviteAdmin(_ admin: Address) {     // Admin invite a new Admin
             pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                DAAM.admins[self.owner!.address] == true  : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                self.grantee == self.owner!.address : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
                 self.status                    : "You're no longer a have Access."
                 DAAM.creators[admin] == nil : "A Admin can not use the same address as an Creator."
                 DAAM.agents[admin] == nil   : "A Admin can not use the same address as an Agent."
@@ -626,8 +626,8 @@ pub resource Admin: Agent
 
         pub fun inviteAgent(_ agent: Address) {    // Admin ivites new Agent
             pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                DAAM.admins[self.owner!.address] == true  : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
+                self.grantee == self.owner!.address : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
                 self.status                 : "You're no longer a have Access."
                 DAAM.admins[agent] == nil   : "A Agent can not use the same address as an Admin."
                 DAAM.creators[agent] == nil : "A Agent can not use the same address as an Creator."
@@ -892,9 +892,10 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
-                DAAM.isCreator(metadata.creatorInfo.creator.keys[0]) == true : "This is not our Creator."
-                DAAM.isCreator(self.grantee) == true     : "Your Creator account is Frozen."
-                DAAM.request.containsKey(metadata.mid)   : "Invalid Request"
+                DAAM.isCreator(metadata.creatorInfo.creator.keys[0]) == true :
+                    "Account: ".concat(metadata.creatorInfo.creator.keys[0].toString()).concat(" This is not our Creator.")
+                DAAM.isMinter(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
+                DAAM.request.containsKey(metadata.mid) : "Invalid Request"
             }
             var isLast = false
             if metadata.edition.max != nil { 
@@ -918,14 +919,14 @@ pub resource Admin: Agent
         }
 
         pub fun createMinterAccess(): @MinterAccess {
-            return <- create MinterAccess(self.grantee)
+            return <- create MinterAccess()
         }
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
         pub fun notNew(tokenID: UInt64) {
             pre  {
                 self.grantee == self.owner!.address : "Permission Denied"
-                DAAM.newNFTs.contains(tokenID)  : "This NFT is not a new NFT"
+                DAAM.newNFTs.contains(tokenID)      : "Token ID: ".concat(tokenID.toString()).concat(" is Not New.")
             }
             post { !DAAM.newNFTs.contains(tokenID) : "Illegal Operation: notNew" } // Unreachable
 
@@ -942,7 +943,7 @@ pub resource Admin: Agent
 
         // Add NFT to 'new' list
         priv fun newNFT(id: UInt64) {
-            pre  { !DAAM.newNFTs.contains(id) : "Token ID is already set to New." }
+            pre  { !DAAM.newNFTs.contains(id) : "Token ID: ".concat(id.toString()).concat(" is already set to New.") }
             post { DAAM.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
                 DAAM.newNFTs.append(id)       // Append 'new' list
         }      
@@ -950,9 +951,8 @@ pub resource Admin: Agent
 /************************************************************************/
 pub resource MinterAccess 
 {
-    priv let original_address: Address
-    init(_ user: Address) { self.original_address = user }
-    pub fun validate(): Bool { return DAAM.minters[self.original_address]! }
+    init() {}
+    pub fun validate(_ minter: Address): Bool { return DAAM.minters[minter]! }
 }
 /************************************************************************/
     // Public DAAM functions
@@ -964,9 +964,9 @@ pub resource MinterAccess
     // The Admin potential can accept (True) or deny (False)
     pub fun answerAdminInvite(newAdmin: AuthAccount, submit: Bool): @Admin? {
         pre {
-            self.isAgent(newAdmin.address)   == nil : "A Admin can not use the same address as an Agent."
-            self.isCreator(newAdmin.address) == nil : "A Admin can not use the same address as an Creator."
-            self.isAdmin(newAdmin.address) == false : "You got no DAAM Admin invite."
+            self.isAgent(newAdmin.address)   == nil : "Account: ".concat(newAdmin.address.toString()).concat(" A Admin can not use the same address as an Agent.")
+            self.isCreator(newAdmin.address) == nil : "Account: ".concat(newAdmin.address.toString()).concat(" A Admin can not use the same address as an Creator.")
+            self.isAdmin(newAdmin.address) == false : "Account: ".concat(newAdmin.address.toString()).concat(" You got no DAAM Admin invite.")
             Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
 
@@ -986,9 +986,9 @@ pub resource MinterAccess
     pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
     {
         pre {
-            self.isAdmin(newAgent.address)   == false : "A Agent can not use the same address as an Admin."
-            self.isCreator(newAgent.address) == nil   : "A Agent can not use the same address as an Creator."
-            self.isAgent(newAgent.address)   == false : "You got no DAAM Agent invite."
+            self.isAdmin(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" An Agent can not use the same address as an Admin.")
+            self.isCreator(newAgent.address) == nil   : "Account: ".concat(newAgent.address.toString()).concat("A Agent can not use the same address as an Creator.")
+            self.isAgent(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" You got no DAAM Agent invite.")
             Profile.check(newAgent.address) : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
 
@@ -1009,9 +1009,9 @@ pub resource MinterAccess
     // // The Creator potential can accept (True) or deny (False)
     pub fun answerCreatorInvite(newCreator: AuthAccount, submit: Bool): @Creator? {
         pre {
-            self.isAdmin(newCreator.address) == nil : "A Creator can not use the same address as an Admin."
-            self.isAgent(newCreator.address) == nil : "A Creator can not use the same address as an Agent."
-            self.isCreator(newCreator.address) == false : "You got no DAAM Creator invite."
+            self.isAdmin(newCreator.address) == nil : "Account: ".concat(newCreator.address.toString()).concat(" A Creator can not use the same address as an Admin.")
+            self.isAgent(newCreator.address) == nil : "Account: ".concat(newCreator.address.toString()).concat(" A Creator can not use the same address as an Agent.")
+            self.isCreator(newCreator.address) == false : "Account: ".concat(newCreator.address.toString()).concat(" You got no DAAM Creator invite.")
             Profile.check(newCreator.address) : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
 
@@ -1028,7 +1028,7 @@ pub resource MinterAccess
     }
 
     pub fun answerMinterInvite(newMinter: AuthAccount, submit: Bool): @Minter? {
-        pre { self.isMinter(newMinter.address) == false : "You do not have a Minter Invitation" }
+        pre { self.isMinter(newMinter.address) == false : "Account: ".concat(newMinter.address.toString()).concat(" You do not have a Minter Invitation") }
 
         if !submit {                                      // Refused invitation. 
             DAAM.minters.remove(key: newMinter.address) // Remove potential from Agent list
