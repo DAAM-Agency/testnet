@@ -80,7 +80,7 @@ pub struct AuctionInfo {
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
         pub fun getAuctions(): [UInt64] // MIDs in Auctions
-        pub fun item(_ id: UInt64): &Auction{AuctionPublic} // item(Token ID) will return the apporiate auction.
+        pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
         pub fun closeAuctions()
     }
 /************************************************************************/
@@ -191,14 +191,14 @@ pub struct AuctionInfo {
         }
 
         // item(Auction ID) return a reference of the auctionID Auction
-        pub fun item(_ aid: UInt64): &Auction{AuctionPublic} { 
+        pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? { 
             pre { self.currentAuctions.containsKey(aid) }
-            return &self.currentAuctions[aid] as &Auction{AuctionPublic}
+            return &self.currentAuctions[aid] as &Auction{AuctionPublic}?
         }
 
-        pub fun setting(_ aid: UInt64): &Auction { 
+        pub fun setting(_ aid: UInt64): &Auction? { 
             pre { self.currentAuctions.containsKey(aid) }
-            return &self.currentAuctions[aid] as &Auction
+            return &self.currentAuctions[aid] as &Auction?
         }
         
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
