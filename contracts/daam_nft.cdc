@@ -439,10 +439,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    //pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT // Get NFT as DAAM.NFT
-    //pub fun getIDs(): [UInt64]                // Get NFT Token IDs
-    //pub fun getAlbum(): {String: MetadataViews.NFTCollectionData}      // Get collections
-    //pub fun findCollection(tokenID: UInt64): [String] // Find collections containing TokenID
+    pub fun getPersonalCollection(): {String: PersonalCollection}
 }
 /************************************************************************/
 pub struct PersonalCollection {
@@ -535,6 +532,8 @@ pub struct PersonalCollection {
                 }
             }
         }
+
+        pub fun getPersonalCollection(): {String: PersonalCollection} { return self.collections }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {

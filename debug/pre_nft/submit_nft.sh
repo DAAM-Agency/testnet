@@ -11,6 +11,7 @@ flow transactions send ./transactions/creator/submit_accept.cdc "Name F" 2 '["Di
 flow transactions send ./transactions/creator/submit_accept.cdc "Name G" 2 '["Digital","Image"]' nil "description G" false  "thumbnail G" "file" false  "file G" "file" 0.17 --signer creator2 # Will be MID 7
 flow transactions send ./transactions/creator/submit_accept.cdc "Name H" 4 '["Digital","Image"]' nil "description H" false  "thumbnail H" "file" false  "file H" "file" 0.18 --signer creator2 # Will be MID 8
 flow transactions send ./transactions/creator/submit_accept.cdc "Name I" 2 '["Digital","Image"]' nil "description I" false  "thumbnail I" "file" false  "file I" "file" 0.19 --signer creator2 # Will be MID 9
+flow transactions send ./transactions/creator/submit_accept.cdc "Name J" nil '["Digital","Image"]' nil "description J" false  "thumbnail J" "file" false  "file J" "file" 0.20 --signer creator2 # Will be MID 10
 
 # Verify Metadata
 echo "========= Verify Metadata ========="

@@ -20,7 +20,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, file_path: String?): {MetadataVi
     panic("Thumbnail Type is invalid")
 }
 
-transaction(name: String, max: UInt64, categories: [String], inCollection: [UInt64]?, description: String, // Metadata information
+transaction(name: String, max: UInt64?, categories: [String], inCollection: [UInt64]?, description: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
     percentage: UFix64)                                                      // Royalty percentage for Creator(s)
@@ -32,7 +32,7 @@ transaction(name: String, max: UInt64, categories: [String], inCollection: [UInt
     let auctionHouse: &AuctionHouse.AuctionWallet
 
     let name        : String
-    let max         : UInt64
+    let max         : UInt64?
     var categories  : [Categories.Category]
     let inCollection: [UInt64]?
     let description : String
