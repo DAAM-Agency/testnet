@@ -8,7 +8,7 @@ import DAAM             from 0xfd43f9148d4b725d
 
 pub contract AuctionHouse {
     // Events
-    pub event AuctionCreated(auctionID: UInt64, address: Address)   // Auction has been created. 
+    pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not met.
@@ -328,7 +328,7 @@ pub struct AuctionInfo {
             self.auctionNFT <- nft // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
-            emit AuctionCreated(auctionID: self.auctionID, address: self.owner!.address)
+            emit AuctionCreated(auctionID: self.auctionID, start: self.start)
         }
 
         // Makes Bid, Bids are deposited into vault
@@ -543,7 +543,7 @@ pub struct AuctionInfo {
         // To purchase the item directly. 
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
-                amount.isInstance(self.requiredCurrency) : "Incorrect payment currency" 
+                amount.isInstance(self.requiredCurrency) : "Incorrect Crypto." 
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.verifyBuyNowAmount(bidder: bidder, amount: amount.balance) : "Wrong Amount."
@@ -633,20 +633,23 @@ pub struct AuctionInfo {
             return 0.0 as UFix64 // return no time left
         }
 
-        priv fun pay(royalties: [MetadataViews.Royalty], amount: UFix64) {
+        priv fun pay() {
+            let price = self.auctionVault.balance   // get price of NFT
+            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             for royalty in royalties {
-                let cut <-! self.auctionVault.withdraw(amount: amount * royalty.cut)  // Calculate Agency Crypto share
+                let cut <-! self.auctionVault.withdraw(amount: price * royalty.cut)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
             }
         }
 
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
-        priv fun payFirstSale(royalties: [MetadataViews.Royalty]) {
+        priv fun payFirstSale() {
+            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             let price = self.auctionVault.balance 
             for royalty in royalties {
-                let amount = price * ((royalty.description=="Agency") ? 0.2 : 0.8)
-                let cut <-! self.auctionVault.withdraw(amount: amount * royalty.cut)  // Calculate Agency Crypto share
+                let amount = price * royalty.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
+                let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
             }
@@ -656,19 +659,19 @@ pub struct AuctionInfo {
         priv fun royalty()
         {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
-
             if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
-
-            let price = self.auctionVault.balance   // get price of NFT
             let tokenID = self.auctionNFT?.id!      // get TokenID
-            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
-                self.payFirstSale(royalties: royalties)
+                //self.payFirstSale()
+                AuctionHouse.notNew(tokenID: tokenID) 
             } else {
-                self.pay(royalties: royalties, amount: price)
+                //self.pay(amount: price)
             }
+            let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+            let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
+            seller.deposit(from: <-sellerCut ) // deposit amount
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!

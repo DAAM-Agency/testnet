@@ -344,7 +344,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata {
             pre {
                 self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
-                minter.validate(self.owner!.address)    : "Account: ".concat(self.owner!.address.toString()).concat("Minter Access Denied")
+                minter.validate()                       : "Account: ".concat(self.owner!.address.toString()).concat("Minter Access Denied")
                 DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
                 
@@ -919,7 +919,7 @@ pub resource Admin: Agent
         }
 
         pub fun createMinterAccess(): @MinterAccess {
-            return <- create MinterAccess()
+            return <- create MinterAccess(self.grantee)
         }
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
@@ -951,8 +951,9 @@ pub resource Admin: Agent
 /************************************************************************/
 pub resource MinterAccess 
 {
-    init() {}
-    pub fun validate(_ minter: Address): Bool { return DAAM.minters[minter]! }
+    pub let minter: Address
+    init(_ minter : Address) { self.minter = minter }
+    pub fun validate(): Bool { return DAAM.minters[self.minter]==true ? true : false }
 }
 /************************************************************************/
     // Public DAAM functions
