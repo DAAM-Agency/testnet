@@ -1,7 +1,7 @@
 // setup_fusd.cdc
 
 import FungibleToken    from 0x9a0766d93b6608b7
-import FUSD from 0xba1132bc08f82fe2
+import FUSD from 0xe223d8a629e49c68
 
 transaction(amount: UFix64, recipient: Address)
 {

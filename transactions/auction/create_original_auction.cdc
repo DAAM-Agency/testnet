@@ -3,7 +3,7 @@
 
 import AuctionHouse from 0x045a1763c93006ca
 import DAAM_V11         from 0xa4ad5ea5c0bd2fba
-import FUSD         from 0xba1132bc08f82fe2
+import FUSD         from 0xe223d8a629e49c68
 
 transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, 
   /*requiredCurrency: Type,*/ incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?,
