@@ -483,19 +483,15 @@ pub struct PersonalCollection {
             var counter = 0
             if collectionName == nil {
                 for key in self.collections.keys {
-                    if !self.collections[key]!.id.contains(tokenID) {
-                        counter = counter + 1
-                        continue
-                    }
+                    if !self.collections[key]!.id.contains(tokenID) { continue }
                     self.collections[key]!.id.remove(at: counter)
+                    counter = counter + 1
                 }
             }else {
-                for key in self.collections[collectionName!]!.id {
-                    if key != tokenID {
-                        counter = counter + 1
-                        continue
-                    }
+                for key in self.collections[collectionName!]!.id { 
+                    if key != tokenID { continue }
                     self.collections[collectionName!]!.id.remove(at: counter)
+                    counter = counter + 1
                 }
 
             }
@@ -516,19 +512,15 @@ pub struct PersonalCollection {
             var counter = 0 
             if collectionName == nil {
                 for key in self.collections.keys {
-                   if !self.collections[key]!.personalCollections.contains(remove) {
-                        counter = counter + 1
-                        continue
-                    }
+                    if !self.collections[key]!.personalCollections.contains(remove) { continue }
                     self.collections[key]!.personalCollections.remove(at: counter) 
+                    counter = counter + 1
                 }
             }else {
                 for key in self.collections[collectionName!]!.personalCollections {
-                    if key != remove {
-                        counter = counter + 1
-                        continue
-                    }
+                    if key != remove { continue }
                     self.collections[collectionName!]!.personalCollections.remove(at: counter)
+                    counter = counter + 1
                 }
             }
         }
@@ -537,8 +529,8 @@ pub struct PersonalCollection {
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <-! self.ownedNFTs.remove(key: withdrawID) as! @DAAM.NFT // Get NFT
             self.removeFromPersonalCollection(collectionName: nil, tokenID: withdrawID)
+            let token <-! self.ownedNFTs.remove(key: withdrawID) //as! @DAAM.NFT // Get NFT
             emit Withdraw(id: token.id, from: self.owner?.address)
             return <-token
         }
