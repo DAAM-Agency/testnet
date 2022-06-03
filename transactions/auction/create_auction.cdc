@@ -3,7 +3,7 @@
 
 import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V11             from 0xfd43f9148d4b725d
+import DAAM_V11             from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xba1132bc08f82fe2
 
 transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,

@@ -1,7 +1,7 @@
 // remove_admin.cdc
 // Two Admins can remove another Admin. Must be run by two Admins.
 
-import DAAM_V11 from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xa4ad5ea5c0bd2fba
 
 transaction(exAdmin: Address)
 {

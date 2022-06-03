@@ -4,7 +4,7 @@
 import FungibleToken from 0x9a0766d93b6608b7
 import FUSD          from 0xba1132bc08f82fe2
 import AuctionHouse  from 0x045a1763c93006ca
-import DAAM_V11          from 0xfd43f9148d4b725d
+import DAAM_V11          from 0xa4ad5ea5c0bd2fba
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {

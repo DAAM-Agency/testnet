@@ -1,7 +1,7 @@
 // invite_minter.cdc
 // Used for Admin to give Minter access.
 
-import DAAM_V11 from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xa4ad5ea5c0bd2fba
 
 transaction(newMinter: Address) {
     let admin     : &DAAM_V11.Admin

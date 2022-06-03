@@ -1,7 +1,7 @@
 // change_minter_status.cdc
 // Used for Admin to change Minter status. True = active, False = frozen
 
-import DAAM_V11 from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xa4ad5ea5c0bd2fba
 
 transaction(minter: Address, status: Bool) {
     let admin   : &DAAM_V11.Admin

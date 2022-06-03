@@ -2,9 +2,9 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 // Used to create an auction for a first-time sale.
 
-import Categories    from 0xfd43f9148d4b725d
+import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V11          from 0xfd43f9148d4b725d
+import DAAM_V11          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse  from 0x045a1763c93006ca
 
 // argument have two modes:

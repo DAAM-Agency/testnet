@@ -1,7 +1,7 @@
 // daam_account_make_non_public.cdc
 // Make DAAM_V11 Wallet Non-Public
 
-import DAAM_V11 from 0xfd43f9148d4b725d
+import DAAM_V11 from 0xa4ad5ea5c0bd2fba
 
 transaction()
 {
