@@ -560,10 +560,11 @@ pub struct PersonalCollection {
         // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)! }
 
-        //borrowDAAM gets a reference to an DAAM.NFT in the album.
+        // borrowDAAM gets a reference to an DAAM.NFT in the album.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
-            let tokenRef = &self.ownedNFTs[id] as &DAAM.NFT?
-            return tokenRef 
+            pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
+            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? // Get reference to NFT
+            return ref as! &DAAM.NFT                                    // return NFT Reference
         }
 
         destroy() { destroy self.ownedNFTs } // Destructor
