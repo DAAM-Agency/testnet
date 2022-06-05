@@ -10,10 +10,10 @@ import AuctionHouse  from 0x045a1763c93006ca
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
 // when ipfs = false; first arument thumbnail String, second argument is thumbnailType and can not be nil
-pub fun setFile(ipfs: Bool, string_cid: String, file_path: String?): {MetadataViews.File} {
-    pre { ipfs || !ipfs && file_path != nil }
-    if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: file_path) }
-    switch file_path! {
+pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataViews.File} {
+    pre { ipfs || !ipfs && type_path != nil }
+    if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
+    switch type_path! {
         case "file": return DAAM.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
@@ -51,8 +51,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: [UIn
         self.max          = max
         self.description  = description
         self.inCollection = inCollection
-        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, file_path: fileType_path)}
-        let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, file_path: fileType_path)
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
+        let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
         self.percentage   = percentage

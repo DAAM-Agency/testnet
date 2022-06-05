@@ -169,25 +169,26 @@ pub resource RequestGenerator {
     }
 }
 /************************************************************************/
-    pub struct MetadataHolder {  // Metadata struct for NFT, will be transfered to the NFT.
+    pub struct MetadataHolder
+    {   // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
-        pub let creatorInfo : CreatorInfo  // Creator of NFT
-        pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let creatorInfo : CreatorInfo           // Creator of NFT
+        pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub let inCollection    : [UInt64]?
-        pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub var inCollection: [UInt64]?
+        pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         
         init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: [UInt64]?,
             description: String, thumbnail: {String : {MetadataViews.File}})
         {
-            self.mid         = mid
-            self.creatorInfo = creators     // creator of NFT
-            self.edition     = edition      // total prints
-            self.category    = categories
-            self.inCollection    = inCollection     // total prints
-            self.description = description  // data,about,misc page
-            self.thumbnail   = thumbnail    // thumbnail are stored here
+            self.mid          = mid
+            self.creatorInfo  = creators     // creator of NFT
+            self.edition      = edition      // total prints
+            self.category     = categories
+            self.inCollection = inCollection // total prints
+            self.description  = description  // data,about,misc page
+            self.thumbnail    = thumbnail    // thumbnail are stored here
         }
     }
 /************************************************************************/
@@ -196,7 +197,7 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var inCollection    : [UInt64]?
+        pub var inCollection: [UInt64]? 
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
@@ -243,22 +244,11 @@ pub resource RequestGenerator {
             return MetadataHolder(creators: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
                 inCollection: self.inCollection, description: self.description, thumbnail: self.thumbnail )
         }
-        
-        // MetadataViews
-        pub fun getDisplay(): MetadataViews.Display {
-            let display = MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail[self.thumbnail.keys[0]]!)
-            return display
-        }
 
-        //pub fun getViews(): [Type] {}
-        //pub fun resolveView(_ view: Type): AnyStruct?
+        pub fun getDisplay(): MetadataViews.Display {
+            return MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail[self.thumbnail.keys[0]]!)
+        }
     }
-/************************************************************************/
-pub struct OnChain: MetadataViews.File {
-    priv let data: String
-    init(file: String) { self.data = file }
-    pub fun uri(): String {return self.data }
-}
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
@@ -415,7 +405,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let royalty  : MetadataViews.Royalties // All royalities percentages
     }
 /************************************************************************/
-    pub resource NFT: NonFungibleToken.INFT, INFT {
+    pub resource NFT: NonFungibleToken.INFT, INFT, MetadataViews.Resolver {
         pub let id       : UInt64   // Token ID, A unique serialized number
         pub let mid      : UInt64   // Metadata ID, A unique serialized number
         pub let metadata : MetadataHolder          // Metadata of NFT
@@ -435,7 +425,25 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun getCopyright(): CopyrightStatus { // Get current NFT Copyright status
             return DAAM.copyright[self.id]! // return copyright status
         }
+
+        pub fun getViews(): [Type] { return [Type<MetadataHolder>(), Type<MetadataViews.Display>()]}
+
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                case Type<MetadataHolder>()        : return self.metadata
+                case Type<MetadataViews.Display>() :return MetadataViews.Display(
+                    name: self.metadata.edition.name!, description: self.metadata.description, thumbnail: self.metadata.thumbnail[self.metadata.thumbnail.keys[0]]!)
+                //case Type<MetadataViews.NFTCollectionDisplay>() : return MetadataViews.NFTCollectionDisplay() TODO UPGRADE
+                default: return nil
+            }
+        }
     }
+/************************************************************************/
+pub struct OnChain: MetadataViews.File {
+    priv let file: String
+    init(file: String) { self.file = file }
+    pub fun uri(): String { return self.file }
+}
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
@@ -460,16 +468,34 @@ pub struct PersonalCollection {
     pub fun removeCollection(at: UInt64) { self.personalCollections.remove(at: at) }
 }
 // Standand Flow Collection Wallet
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic,
+        CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
         // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
         pub var collections : {String: PersonalCollection}
-        
-        // {name : MetadataViews.NFTCollectionData } // TODO
                         
         init() {
             self.ownedNFTs <- {} // List of owned NFTs
             self.collections = {}
+        }
+
+        pub fun getViews(): [Type] { return []/*return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>()]*/ }
+
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                /*case Type<MetadataViews.NFTCollectionData>() : 
+                return MetadataViews.NFTCollectionData (
+                    storagePath: DAAM.collectionStoragePath,
+                    publicPath: DAAM.collectionPublicPath,
+                    providerPath: DAAM.collectionPrivatePath,
+                    publicCollection: Type<@DAAM.Collection>(),
+                    publicLinkedType: Type<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
+                    providerLinkedType: ?????, // TODO  ???
+                    createEmptyCollectionFunction: (DAAM.createEmptyCollection() : @DAAM.Collection) // TODO ???
+                )*/
+                default: return nil
+                
+            }
         }
 
         // adds to a personal collection, has no actual bearing on nfts. The same NFTs can be added to multiple personal collections
@@ -533,6 +559,12 @@ pub struct PersonalCollection {
         }
 
         pub fun getPersonalCollection(): {String: PersonalCollection} { return self.collections }
+
+        pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
+            pre { self.ownedNFTs.containsKey(id) : "TokenID: ".concat(id.toString().concat(" is not in this collection.")) }
+            let mRef = &self.ownedNFTs[id] as &NonFungibleToken.NFT?
+            return mRef as! &DAAM.NFT{MetadataViews.Resolver}
+        }
 
         // withdraw removes an NFT from the collection and moves it to the caller
         pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
@@ -872,7 +904,7 @@ pub resource Admin: Agent
                 DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
             return <- create RequestGenerator(self.grantee) // return Request Generator
-        } 
+        }
     }
 /************************************************************************/
 // mintNFT mints a new NFT and returns it.
@@ -1041,14 +1073,14 @@ pub resource MinterAccess
     // Create an new Collection to store NFTs
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         post { result.getIDs().length == 0: "The created collection must be empty!" }
-        return <- create Collection() // Return Collection Resource
+        return <- create DAAM.Collection() // Return Collection Resource
     }
 
     // Create an new Collection to store NFTs
-    pub fun createDAAMCollection(): @DAAM.Collection {
+    /*pub fun createDAAMCollection(): @DAAM.Collection {
         post { result.getIDs().length == 0: "The created DAAM collection must be empty!" }
         return <- create DAAM.Collection() // Return Collection Resource
-    }
+    }*/
 
     // Return list of Creators
     pub fun getCreators(): [Address] {
