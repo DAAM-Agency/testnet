@@ -19,8 +19,8 @@ transaction(public: Bool)
     }
 
     execute {
-        let collection <- DAAM.createDAAMCollection()    // Create a new empty collection
-        self.acct.save<@DAAM.Collection>(<-collection, to: DAAM.collectionStoragePath) // save the new account
+        let collection <- DAAM.createEmptyCollection()    // Create a new empty collection
+        self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM.collectionStoragePath) // save the new account
         
         if self.public {
             self.acct.link<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)

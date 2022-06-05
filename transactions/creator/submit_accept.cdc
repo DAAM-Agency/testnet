@@ -18,10 +18,10 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     panic("Thumbnail Type is invalid")
 }
 
-transaction(name: String, max: UInt64?, categories: [String], inCollection: [UInt64]?, description: String, // Metadata information
+transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
-    percentage: UFix64)                                                      // Royalty percentage for Creator(s)
+    interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
@@ -30,7 +30,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: [UIn
     let name        : String
     let max         : UInt64?
     var categories  : [Categories.Category]
-    let inCollection: [UInt64]?
+    let inCollection: {String:[UInt64]}?
+    let interact    : AnyStruct?
     let description : String
     let thumbnail   : {String : {MetadataViews.File}}
     let file        : {String : MetadataViews.Media}
@@ -45,6 +46,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: [UIn
         self.max          = max
         self.description  = description
         self.inCollection = inCollection
+        self.interact     = interact
         self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
@@ -60,7 +62,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: [UIn
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
-        description: self.description, thumbnail: self.thumbnail, file: self.file)
+        description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
 
         self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
 

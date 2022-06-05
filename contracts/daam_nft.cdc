@@ -175,11 +175,11 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var inCollection: [UInt64]?
+        pub var inCollection: {String:[UInt64]}?  // {name: [MIDs in Collection] }
         pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         
-        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: [UInt64]?,
+        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: {String:[UInt64]}?,
             description: String, thumbnail: {String : {MetadataViews.File}})
         {
             self.mid          = mid
@@ -197,15 +197,17 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo  // Creator of NFT
         pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var inCollection: [UInt64]? 
+        pub var inCollection: {String:[UInt64]}?
         pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
+        pub let interact    : AnyStruct?
         pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: [UInt64]?, description: String?,
-            thumbnail: {String:{MetadataViews.File}}?, file: {String:MetadataViews.Media}?, metadata: &Metadata?)
+        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
+            thumbnail: {String:{MetadataViews.File}}?, file: {String:MetadataViews.Media}?, metadata: &Metadata?, interact: AnyStruct?)
         {            
             pre {
+                DAAM.validInteract(interact) : "This Interaction is not Authorized"
                 max != 0 : "Max has an incorrect value of 0."
                 // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
                 (creators==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
@@ -224,8 +226,9 @@ pub resource RequestGenerator {
                 self.description = description!           // data,about,misc page
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
                 self.file        = file!                  // NFT data is stored hereere
-                // is not Constant or Optional
+                // below are not Constant or Optional
                 self.inCollection = inCollection 
+                self.interact = interact
             } else {                
                 self.mid         = metadata!.mid         // init MID with counter
                 self.creatorInfo = metadata!.creatorInfo // creator of NFT
@@ -234,7 +237,10 @@ pub resource RequestGenerator {
                 self.description = metadata!.description // data,about,misc page
                 self.thumbnail   = metadata!.thumbnail   // thumbnail are stored here
                 self.file        = metadata!.file
+                // below are not Constant or Optional
                 self.inCollection = metadata!.inCollection
+                self.interact     = metadata!.interact
+
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
                 if(metadata!.edition.max != nil) { assert(metadata!.edition.number <= metadata!.edition.max!, message: "Metadata prints are finished.") }
             }
@@ -247,7 +253,7 @@ pub resource RequestGenerator {
 
         pub fun getDisplay(): MetadataViews.Display {
             return MetadataViews.Display(name: self.edition.name!, description: self.description, thumbnail: self.thumbnail[self.thumbnail.keys[0]]!)
-        }
+        }        
     }
 /************************************************************************/
 pub resource interface MetadataGeneratorMint {
@@ -278,8 +284,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], inCollection: [UInt64]?, description: String,
-            thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media} ): UInt64
+        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], inCollection: {String:[UInt64]}?, description: String,
+            thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct? ): UInt64
         {
             pre{
                 self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
@@ -288,7 +294,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             }
 
             let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, inCollection: inCollection,
-                description: description, thumbnail: thumbnail, file: file, metadata: nil) // Create Metadata
+                description: description, thumbnail: thumbnail, file: file, metadata: nil, interact: interact) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
             destroy old
@@ -351,7 +357,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if mRef!.edition.max != nil {
                 if mRef!.edition.number < mRef!.edition.max! {            
                     let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
-                        description:nil, thumbnail:nil, file:nil, metadata: mRef)
+                        description:nil, thumbnail:nil, file:nil, metadata: mRef, interact: nil)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
                 }
@@ -975,7 +981,7 @@ pub resource Admin: Agent
             pre  { !DAAM.newNFTs.contains(id) : "Token ID: ".concat(id.toString()).concat(" is already set to New.") }
             post { DAAM.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
                 DAAM.newNFTs.append(id)       // Append 'new' list
-        }      
+        }        
     }
 /************************************************************************/
 pub resource MinterAccess 
@@ -1119,6 +1125,16 @@ pub resource MinterAccess
         let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
         return creatorInfo.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
+
+    priv fun validInteract(_ interact: AnyStruct?): Bool {
+            if interact == nil { return true } //pass no interact 
+            let type = interact.getType()
+            let identifier = type.identifier
+            switch identifier {
+                //case "A.address.Contract.Struct": return true
+            }
+            return false
+    } 
 /************************************************************************/
 // Init DAAM Contract variables
     
