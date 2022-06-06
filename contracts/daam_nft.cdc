@@ -268,16 +268,19 @@ pub resource interface MetadataGeneratorPublic {
     pub fun viewMetadatas(): [MetadataHolder]
     pub fun viewDisplay(mid: UInt64): MetadataViews.Display?
     pub fun viewDisplays(): [MetadataViews.Display]
+    pub fun returnMetadata(metadata: @Metadata)
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
 pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
         priv var metadata : @{UInt64 : Metadata} // {MID : Metadata Resource}
-        priv let grantee: Address
+        priv var returns  : @{UInt64 : [Metadata?]}
+        priv let grantee  : Address
 
         init(_ grantee: Address) {
             self.metadata <- {}  // Init Metadata
+            self.returns <- {}   // Metadata Returns, when a metadata is not sold
             self.grantee = grantee
             DAAM.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
         }
@@ -353,6 +356,12 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             // Create Metadata with incremented counter/print
             let mRef = &self.metadata[mid] as &Metadata?
 
+            if self.returns[mid]?.length! !=0 {
+               let ref = &self.returns[mid] as &[Metadata?]?
+               let metadata <- ref!.remove(at:0)
+               return <- metadata!
+            } // Use a return Metadata, instead of increasing the counter print.
+
             // Verify Metadata Counter (print) is not last, if so delete Metadata
             if mRef!.edition.max != nil {
                 if mRef!.edition.number < mRef!.edition.max! {            
@@ -363,8 +372,15 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 }
                 panic("Metadata Prints Finished.")
             } // if not last, print
+            
             let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
             return <- orig_metadata! // Return current Metadata  
+        }
+
+        pub fun returnMetadata(metadata: @Metadata) {
+            pre { metadata.creatorInfo.creator.containsKey(self.grantee) : "Must be returned to an Original Creator" } 
+            let ref = &self.returns[metadata.mid] as &[Metadata?]?
+            ref!.append(<-metadata)
         }
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
@@ -402,7 +418,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             return list
         }
 
-        destroy() { destroy self.metadata } 
+        destroy() {
+            destroy self.metadata
+            destroy self.returns
+        } 
 }
 /************************************************************************/
     pub resource interface INFT {

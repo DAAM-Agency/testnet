@@ -104,24 +104,24 @@ pub struct AuctionInfo {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, mid: UInt64, start: UFix64,
+        pub fun createAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, id: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool): UInt64
         {
             pre {
                 (metadataGenerator == nil && nft != nil) || (metadataGenerator != nil && nft == nil) : "You can not enter a Metadata and NFT."
-                //metadataGenerator.borrow() != nil        : "There is no Metadata."
-                DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
-                DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
                 self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
-
             var auction: @Auction? <- nil
+            // Is Metadata, not NFT
             if metadataGenerator != nil {
-                AuctionHouse.metadataGen.insert(key: mid, metadataGenerator!) // add access to Creators' Metadata
+                assert(DAAM.getCopyright(mid: id) != DAAM.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
+                assert(DAAM.getCopyright(mid: id) != DAAM.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
+
+                AuctionHouse.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
                 let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
                 let minterAccess <- AuctionHouse.minterAccess()
-                let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
+                let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: id)      // Create MetadataHolder
                 // Create Auctions
                 let old <- auction <- create Auction(metadata: <-metadata!, nft: nil, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
                     incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
@@ -447,7 +447,7 @@ pub struct AuctionInfo {
         // This is a key function where are all the action happens.
         // Verifies the Reserve Price is met. 
         // Calls royalty() & ReturnFunds() and manages all royalities and funds are returned
-        // Sends the item (NFT)
+        // Sends the item (NFT) or Mints Metadata then Sends, or Returns Metadata
         access(contract) fun verifyReservePrice() {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
             post { self.verifyAuctionLog() } // Verify funds calcuate
@@ -464,34 +464,56 @@ pub struct AuctionInfo {
                 }
             }
 
-            if pass { // leader met the reserve price
-                // remove leader from log before returnFunds()!!
-                self.auctionLog.remove(key: self.leader!)!
-                self.returnFunds()  // return funds to all bidders
-                self.royalty()     // pay royalty
+            //var nft: @DAAM.NFT? <- nil
+            if pass { // leader met the reserve price              
+                if self.auctionMetadata != nil {
+                    let metadata <- self.auctionMetadata <- nil
+                    let nft <- AuctionHouse.mintNFT(metadata: <-metadata!)
+                    // remove nft
+                    // remove leader from log before returnFunds()!!
+                    self.auctionLog.remove(key: self.leader!)!
+                    self.returnFunds()  // Return funds to all bidders
+                    self.royalty()      // Pay royalty
+                    self.finalise(receiver: receiver, nft: <-nft, pass: pass)
+                } else {
+                    let nft <- self.auctionNFT <- nil
+                    // remove leader from log before returnFunds()!!
+                    self.auctionLog.remove(key: self.leader!)!
+                    self.returnFunds()  // Return funds to all bidders
+                    self.royalty()      // Pay royalty
+                    self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
+                }                
                 log("Item: Won")
                 emit ItemWon(auctionID: self.auctionID, winner: self.leader!) // Auction Ended, but Item not delivered yet.
-            } else {                
-                receiver = self.owner!.address // set receiver from leader to auctioneer
-                self.returnFunds()              // return funds to all bidders
-                log("Item: Returned")
-                emit ItemReturned(auctionID: self.auctionID)    
+            } else {   
+                receiver = self.owner!.address // set receiver from leader to auctioneer 
+                if self.auctionMetadata != nil { // return Metadata to Creator
+                    let metadata <- self.auctionMetadata <- nil
+                    let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
+                    ref.returnMetadata(metadata: <- metadata!)
+                    self.returnFunds()              // return funds to all bidders
+                    log("Item: Returned")
+                    emit ItemReturned(auctionID: self.auctionID)
+                } else {      // return NFT to Seller, reerve not meet
+                    let nft <- self.auctionNFT <- nil
+                    self.returnFunds()              // return funds to all bidders
+                    self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
+                    log("Item: Returned")
+                    emit ItemReturned(auctionID: self.auctionID) 
+                }                            
             }
+        }
+
+        priv fun finalise(receiver: Address?, nft: @DAAM.NFT, pass: Bool) {
             log("receiver: ".concat(receiver!.toString()) )   
             let collectionRef = getAccount(receiver!).getCapability<&{NonFungibleToken.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!
-            // NFT Deposot Must be LAST !!! *except for seriesMinter
-            let nft <- self.auctionNFT <- nil     // remove nft
-
+           
             var isLast = false
-            if nft?.metadata!.edition.max != nil { 
-                isLast = (nft?.metadata!.edition.number <= nft?.metadata!.edition.max!)
+            if nft.metadata!.edition.max != nil { 
+                isLast = (nft.metadata!.edition.number <= nft.metadata!.edition.max!)
             }
-            
-            log("vrp(); Print Number: ")
-            log(nft?.metadata!.edition.number)
-            log("vrp(); Max: ")
-            log(nft?.metadata!.edition.max)
 
+            // NFT Deposot Must be LAST !!! *except for seriesMinter
             collectionRef.deposit(token: <- nft!) // deposit nft
 
             if pass && !isLast { // possible re-auction Series Minter                

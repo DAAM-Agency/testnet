@@ -6,15 +6,16 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 import FUSD             from 0x192440c99cb17282
 
-transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
+transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
   /*requiredCurrency: Type,*/ incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
-  reserve: UFix64, buyNow: UFix64)
+  reserve: UFix64, buyNow: UFix64, reprint: Bool)
 {
 
   let auctionHouse : &AuctionHouse.AuctionWallet
   let nftCollection: &DAAM.Collection
+  let metadataCap  : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?
 
-  let tokenID     : UInt64
+  let id          : UInt64
   let start       : UFix64
   let length      : UFix64
   let isExtended  : Bool
@@ -24,12 +25,15 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
   let startingBid : UFix64?
   let reserve     : UFix64
   let buyNow      : UFix64
+  let isMetadata  : Bool
+  let reprint     : Bool
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
     self.nftCollection = auctioneer.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!
+    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath) : nil
 
-    self.tokenID          = tokenID
+    self.id               = id
     self.start            = start
     self.length           = length
     self.isExtended       = isExtended
@@ -39,15 +43,23 @@ transaction(tokenID: UInt64, start: UFix64, length: UFix64, isExtended: Bool, ex
     self.startingBid      = startingBid
     self.reserve          = reserve
     self.buyNow           = buyNow
+    self.isMetadata       = isMetadata
+    self.reprint          = reprint
   }
 
   execute {
-      let nft <- self.nftCollection.withdraw(withdrawID: self.tokenID) as! @DAAM.NFT
       let vault <- FUSD.createEmptyVault()
 
-      let aid = self.auctionHouse.createAuction(nft: <-nft, start: self.start, length: self.length, isExtended: self.isExtended,
-        extendedTime: self.extendedTime, vault: <-vault, incrementByPrice: self.incrementByPrice,
-        incrementAmount: self.incrementAmount, startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow)
+      var nft: @DAAM.NFT? <- nil
+      if !self.isMetadata {
+        let old <- nft <- self.nftCollection.withdraw(withdrawID: self.id) as! @DAAM.NFT
+        destroy old
+      }
+
+      let aid = self.auctionHouse.createAuction(metadataGenerator: self.metadataCap, nft: <-nft, id: self.id,
+        start: self.start, length: self.length, isExtended: self.isExtended, extendedTime: self.extendedTime,
+        vault: <-vault, incrementByPrice: self.incrementByPrice, incrementAmount: self.incrementAmount,
+        startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow, reprintSeries: self.reprint)
 
       log("New Auction has been created. AID: ".concat(aid.toString() ))
   }

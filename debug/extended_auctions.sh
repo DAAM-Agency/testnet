@@ -37,39 +37,39 @@ echo "Start Time: "$START
 
 echo "========== Create Extended Auctions I =========="
 echo "---------- A ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 1 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 1 $START \
 100.0 false 0.0 false 0.05 nil \
-20.0 30.1 true --signer creator #A MID: 1, AID: 1  // Auction ID
+20.0 30.1 true nil --signer creator #A MID: 1, AID: 1  // Auction ID
 
 echo "---------- B ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 2 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 2 $START \
 40.0 true 60.0 true 5.0 12.0 \
-25.0 0.0 false --signer creator #B MID: 2, AID: 2
+25.0 0.0 false nil --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: #C Metadatanwas deleted by Creator. Does not exist."
-flow transactions send ./transactions/auction/create_original_auction.cdc 3 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 3 $START \
 100.0 false 0.0 false 0.04 nil \
-26.0 30.3 false --signer creator #C
+26.0 30.3 false nil --signer creator #C
 
 echo "FAIL TEST: #D does not exist. Rejected by Admin. Metadata Removed"
-flow transactions send ./transactions/auction/create_original_auction.cdc 4 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 4 $START \
 100.0 false 0.0 false 0.04 nil \
-26.0 30.4 false --signer creator #D
+26.0 30.4 false nil --signer creator #D
 
 echo "FAIL TEST: #E Rejected by Copyright Claim"
-flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 5 $START \
 100.0 false 0.0 false 0.04 nil \
-26.0 30.5 false --signer creator #E
+26.0 30.5 false nil --signer creator #E
 
 echo "---------- F ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 6 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 6 $START \
 200.0 true 60.0 false 0.05 16.0 \
-27.0 30.3 true --signer creator #F, MID: 6, AID: 3
+27.0 30.3 true nil --signer creator #F, MID: 6, AID: 3
 
 echo "---------- G ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 7 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 7 $START \
 200.0 false 0.0 false 0.025 nil \
-28.0 30.7 false --signer creator #G, MID: 7, AID: 4
+28.0 30.7 false nil --signer creator #G, MID: 7, AID: 4
 
 # Verify Metadata
 echo "========= Veriy Metadata ========="
@@ -88,19 +88,19 @@ echo "Start Time: "$START
 
 # Auction ID: 5, Extended Auction, Reserve Price: Not Meet
 echo "---------- E ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 5 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 5 $START \
 60.0 true 60.0 false 0.04 15.0 \
 26.0 30.5 true --signer creator #E AID: 5
 
 # Auction ID: 6, Extended Auction, Reserve Price: Meet
 echo "---------- H ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 8 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 8 $START \
 200.0 false 0.0 false 0.025 nil \
 28.0 30.6 true --signer creator #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "---------- I ---------- "
-flow transactions send ./transactions/auction/create_original_auction.cdc 9 $START \
+flow transactions send ./transactions/auction/create_auction.cdc 9 $START \
 200.0 false 0.0 false 0.025 nil \
 28.0 30.7 false --signer creator #I, AID: 7
 
