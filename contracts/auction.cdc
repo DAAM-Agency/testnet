@@ -32,7 +32,7 @@ pub contract AuctionHouse {
 pub struct AuctionInfo {
         pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creators      : [Address]
+        pub let creators      : DAAM.CreatorInfo
         pub let mid           : UInt64       // collect Metadata ID
         pub let start         : UFix64       // timestamp
         pub let length        : UFix64   // post{!isExtended && length == before(length)}
@@ -50,7 +50,7 @@ pub struct AuctionInfo {
         pub let requiredCurrency: Type
 
         init(
-            _ status:Bool?, _ auctionID:UInt64, _ creators: [Address], _ mid: UInt64, _ start: UFix64, _ length: UFix64,
+            _ status:Bool?, _ auctionID:UInt64, _ creators: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
             _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: Bool,
             _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
@@ -227,7 +227,7 @@ pub struct AuctionInfo {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creators    : [Address]
+        pub let creators    : DAAM.CreatorInfo
         pub let mid         : UInt64       // collect Metadata ID
         pub var start       : UFix64       // timestamp
         priv let origLength   : UFix64   // original length of auction, needed to reset if Series
@@ -304,7 +304,7 @@ pub struct AuctionInfo {
             self.price = buyNow
             
             let ref = (nft != nil) ? &nft?.metadata! as &DAAM.MetadataHolder : &metadata?.getHolder()! as &DAAM.MetadataHolder
-            self.creators = ref.creatorInfo.creator.keys
+            self.creators = ref.creatorInfo
 
             if ref.edition.max != nil { // if last in series don't reprint.
                 self.reprintSeries = ref.edition.max! == ref.edition.number ? false : reprintSeries
@@ -664,12 +664,33 @@ pub struct AuctionInfo {
 
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
+            //let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+            let price     = self.auctionVault.balance 
             let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-            let price = self.auctionVault.balance 
-            for royalty in royalties {
-                let amount = price * royalty.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
+            let creatorPercentage   = 0.8
+            let remainderPercentage = 1.0 - creatorPercentage
+            let creatorAmount   = price * creatorPercentage
+            let remainderAmount = price * remainderPercentage
+
+            let creators = self.creators.creator
+            for creator in creators.keys {
+                let amount = creatorPercentage * creators[creator]!.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
                 let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
-                let cap = royalty.receiver.borrow()!
+                let cap = creators[creator]!.receiver.borrow()!
+                cap.deposit(from: <-cut ) //deposit royalty share
+            }
+
+            var remainderList: [MetadataViews.Royalty] = []
+            if self.creators.agent == nil {
+                remainderList = DAAM.agency.getRoyalties()
+            } else {
+                for agent in self.creators.agent!.keys { remainderList.append(self.creators.agent![agent]!) }
+            }
+
+            for other in remainderList {
+                let amount = remainderPercentage * other.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
+                let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
+                let cap = other.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
             }
         }
@@ -724,7 +745,7 @@ pub struct AuctionInfo {
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
             if !self.reprintSeries { return } // if reprint is set to false, skip function
-            if self.creators[0] != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
+            if self.creators.creator.keys[0] != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
             let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let minterAccess <- AuctionHouse.minterAccess()

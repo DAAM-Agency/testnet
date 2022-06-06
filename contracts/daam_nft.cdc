@@ -72,12 +72,20 @@ pub enum CopyrightStatus: UInt8 {
 }
 /***********************************************************************/
 pub struct CreatorInfo {
-    pub let creator: {Address: MetadataViews.Royalty}
+    pub let creator: {Address: MetadataViews.Royalty} // This cut is beween the creators. it should equal 100%
     pub(set) var status: Bool?
     pub(set) var agent: {Address: MetadataViews.Royalty} // Agent & Percentage
 
     init(creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?, status: Bool)
     {
+        var royaltyList: [MetadataViews.Royalty] = []
+        var totalCut: UFix64 = 0.0
+        for cut in creator.keys { totalCut = totalCut + creator[cut]!.cut }
+        if agent != nil {
+            for cut in agent!.keys { totalCut = totalCut + agent![cut]!.cut }
+        }
+        assert(totalCut == 1.0, message: "Shares must equal 100%")
+
         self.creator = creator // element 0 is reserved for Creator
         self.status = status
         self.agent = (agent!=nil) ? agent! : {}
@@ -134,8 +142,7 @@ pub resource RequestGenerator {
         // Getting Agency royalties
         //let agency   = DAAM.agency.getRoyalties()
         let creators = metadataGen.viewMetadata(mid: mid)!.creatorInfo.creator // creatorInfo.creators[0]
-        let fee = 0.025
-        let creatorCut = percentage / (1.0 + fee)// Add Creator percentage
+        let creatorCut = percentage // Add Creator percentage
         //let agencyCut  = percentage - creatorCut // Add Agency percentage, Agency takes 10% of Creator
         var royalty_list: [MetadataViews.Royalty] = []
 
@@ -151,7 +158,7 @@ pub resource RequestGenerator {
         for creator in creators.keys {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver),//creator!.receiver,
+                    recepient: getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver),
                     cut: creatorCut * creators[creator]!.cut,
                     description: "Creator")
             ) // end append   
