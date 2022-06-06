@@ -354,11 +354,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             destroy minter
 
             // Create Metadata with incremented counter/print
-            let mRef = &self.metadata[mid] as &Metadata?
+            let mRef = &self.metadata[mid] as &Metadata
 
             if self.returns[mid] != nil {
                 if self.returns[mid]?.length! != 0 {
-                let ref = &self.returns[mid] as &[Metadata?]?
+                let ref = &self.returns[mid] as &[Metadata?]
                 let metadata <- ref!.remove(at:0)
                 return <- metadata!
                 }
@@ -381,7 +381,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun returnMetadata(metadata: @Metadata) {
             pre { metadata.creatorInfo.creator.containsKey(self.grantee) : "Must be returned to an Original Creator" } 
-            let ref = &self.returns[metadata.mid] as &[Metadata?]?
+            let ref = &self.returns[metadata.mid] as &[Metadata?]
             ref!.append(<-metadata)
         }
 
@@ -391,7 +391,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun viewMetadata(mid: UInt64): MetadataHolder? {
             pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
-            let mRef = &self.metadata[mid] as &Metadata?
+            let mRef = &self.metadata[mid] as &Metadata
             let data: MetadataHolder? = mRef!.getHolder() // as MetadataHolder// as &Metadata
             return data
         }
@@ -399,7 +399,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun viewMetadatas(): [MetadataHolder] {
             var list: [MetadataHolder] = []
             for m in self.metadata.keys {
-                let mRef = &self.metadata[m] as &Metadata?
+                let mRef = &self.metadata[m] as &Metadata
                 list.append(mRef!.getHolder() )
             } 
             return list
@@ -407,14 +407,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
             pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
-            let mRef = &self.metadata[mid] as &Metadata?
+            let mRef = &self.metadata[mid] as &Metadata
             return mRef!.getDisplay()
         }
 
         pub fun viewDisplays(): [MetadataViews.Display] {
             var list: [MetadataViews.Display] = []
             for m in self.metadata.keys {
-                let mRef = &self.metadata[m] as &Metadata?
+                let mRef = &self.metadata[m] as &Metadata
                 list.append(mRef!.getDisplay() )
             } 
             return list
@@ -589,8 +589,11 @@ pub struct PersonalCollection {
 
         pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
             pre { self.ownedNFTs.containsKey(id) : "TokenID: ".concat(id.toString().concat(" is not in this collection.")) }
-            let mRef = &self.ownedNFTs[id] as &NonFungibleToken.NFT?
-            return mRef as! &DAAM.NFT{MetadataViews.Resolver}
+            let token <- self.ownedNFTs.remove(key: id)! as! @DAAM.NFT // Get NFT
+            let ref = &token as! &DAAM.NFT{MetadataViews.Resolver} // Get reference to NFT
+            let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
+            destroy oldToken                              // destroy place holder
+            return ref //as! &DAAM.NFT{MetadataViews.Resolver}
         }
 
         // withdraw removes an NFT from the collection and moves it to the caller
@@ -617,12 +620,12 @@ pub struct PersonalCollection {
         pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
 
         // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)! }
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return &self.ownedNFTs[id] as &NonFungibleToken.NFT }
 
         // borrowDAAM gets a reference to an DAAM.NFT in the album.
         pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
             pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
-            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? // Get reference to NFT
+            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT // Get reference to NFT
             return ref as! &DAAM.NFT                                    // return NFT Reference
         }
 
@@ -959,7 +962,7 @@ pub resource Admin: Agent
             }
 
             let mid = metadata.mid               // Get MID
-            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request?) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: &DAAM.request[mid] as &Request) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
