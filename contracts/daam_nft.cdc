@@ -437,6 +437,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let mid      : UInt64   // Metadata ID, A unique serialized number
         pub let metadata : MetadataHolder          // Metadata of NFT
         pub let royalty  : MetadataViews.Royalties // Where all royalities are stored {Address : percentage} Note: 1.0 = 100%
+        pub let file     : {String : MetadataViews.Media} 
 
         init(metadata: @Metadata, request: &Request?) {
             pre { metadata.mid == request!.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
@@ -446,6 +447,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.mid         = metadata.mid         // Set Metadata ID
             self.royalty     = request!.royalty!     // Save Request which are the royalities.  
             self.metadata    = metadata.getHolder() // Save Metadata from Metadata Holder
+            self.file        = metadata.file
             destroy metadata                        // Destroy no loner needed container Metadata Holder
         }
 
