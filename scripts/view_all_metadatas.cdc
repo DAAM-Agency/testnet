@@ -1,15 +1,15 @@
 // view_all_metadatas.cdc
 
-import DAAM_V11 from 0xa4ad5ea5c0bd2fba
+import DAAM from 0xfd43f9148d4b725d
 
-pub fun main(): {Address: [DAAM_V11.MetadataHolder]}
+pub fun main(): {Address: [DAAM.MetadataHolder]}
 {
-    let creators = DAAM_V11.getCreators()
-    var list: {Address: [DAAM_V11.MetadataHolder]} = {}
+    let creators = DAAM.getCreators()
+    var list: {Address: [DAAM.MetadataHolder]} = {}
 
     for c in creators {
         let metadataRef = getAccount(c)
-        .getCapability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorPublic}>(DAAM_V11.metadataPublicPath)
+        .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath)
         .borrow()!
 
         list.insert(key: c, metadataRef.viewMetadatas())

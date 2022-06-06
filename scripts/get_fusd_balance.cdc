@@ -1,8 +1,8 @@
 // get_fusd_balance.cdc
 
-import FungibleToken from 0x9a0766d93b6608b7
+import FungibleToken from 0xee82856bf20e2aa6
 import FlowToken     from 0x0ae53cb6e3f42a79
-import FUSD          from 0xe223d8a629e49c68
+import FUSD          from 0x192440c99cb17282
 
 pub fun main(address: Address): UFix64?
 {
