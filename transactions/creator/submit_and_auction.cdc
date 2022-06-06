@@ -4,7 +4,7 @@
 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM          from 0xa4ad5ea5c0bd2fba
+import DAAM_V11          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse  from 0x045a1763c93006ca
 
 // argument have two modes:
@@ -14,7 +14,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "file": return DAAM.OnChain(file: string_cid)
+        case "file": return DAAM_V11.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
     panic("Thumbnail Type is invalid")
@@ -26,9 +26,9 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM.RequestGenerator
-    let metadataGen : &DAAM.MetadataGenerator
-    let metadataCap : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
+    let requestGen  : &DAAM_V11.RequestGenerator
+    let metadataGen : &DAAM_V11.MetadataGenerator
+    let metadataCap : Capability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse.AuctionWallet
 
     let name        : String
@@ -43,10 +43,10 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen  = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.metadataGen  = creator.borrow<&DAAM_V11.MetadataGenerator>(from: DAAM_V11.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V11.RequestGenerator>( from: DAAM_V11.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>(DAAM_V11.metadataPublicPath)!
         
         self.name         = name
         self.max          = max

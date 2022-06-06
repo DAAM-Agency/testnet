@@ -2,7 +2,7 @@
 // Used to create an auction for a first-time sale.
 
 import AuctionHouse from 0x045a1763c93006ca
-import DAAM         from 0xa4ad5ea5c0bd2fba
+import DAAM_V11         from 0xa4ad5ea5c0bd2fba
 import FUSD         from 0xba1132bc08f82fe2
 
 transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, 
@@ -10,7 +10,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
   reserve: UFix64, buyNow: UFix64, reprintSeries: Bool)
 {
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let metadataCap  : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
+  let metadataCap  : Capability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>
 
   let mid         : UInt64
   let start       : UFix64
@@ -27,7 +27,7 @@ transaction(mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extend
 
   prepare(auctioneer: AuthAccount) {
       self.auctionHouse = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!      
-      self.metadataCap  = auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
+      self.metadataCap  = auctioneer.getCapability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>(DAAM_V11.metadataPublicPath)!
 
       self.mid              = mid
       self.start            = start
