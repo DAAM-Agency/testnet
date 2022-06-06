@@ -2,7 +2,7 @@
 // Admin can remove an Agent.
 // Two Admins can remove another Admin. Must be run by two Admins.
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(exAgent: Address) {
     let admin   : &DAAM.Admin
