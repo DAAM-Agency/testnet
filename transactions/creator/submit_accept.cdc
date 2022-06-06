@@ -3,7 +3,7 @@
 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V11          from 0xa4ad5ea5c0bd2fba
+import DAAM_V12          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -12,7 +12,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "file": return DAAM_V11.OnChain(file: string_cid)
+        case "file": return DAAM_V12.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
     panic("Thumbnail Type is invalid")
@@ -24,8 +24,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM_V11.RequestGenerator
-    let metadataGen : &DAAM_V11.MetadataGenerator
+    let requestGen  : &DAAM_V12.RequestGenerator
+    let metadataGen : &DAAM_V12.MetadataGenerator
 
     let name        : String
     let max         : UInt64?
@@ -39,8 +39,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen = creator.borrow<&DAAM_V11.MetadataGenerator>(from: DAAM_V11.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V11.RequestGenerator>( from: DAAM_V11.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V12.MetadataGenerator>(from: DAAM_V12.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V12.RequestGenerator>( from: DAAM_V12.requestStoragePath)!
 
         self.name         = name
         self.max          = max

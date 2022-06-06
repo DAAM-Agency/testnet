@@ -1,9 +1,9 @@
 // setup_daam_account.cdc
-// Create A DAAM_V11 Wallet to store DAAM_V11 NFTs
+// Create A DAAM_V12 Wallet to store DAAM_V12 NFTs
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import MetadataViews    from 0x631e88ae7f1d7c20
-import DAAM_V11             from 0xa4ad5ea5c0bd2fba
+import DAAM_V12             from 0xa4ad5ea5c0bd2fba
 
 transaction(public: Bool)
 {
@@ -11,22 +11,22 @@ transaction(public: Bool)
     let acct: AuthAccount
 
     prepare(acct: AuthAccount) {
-        if acct.borrow<&DAAM_V11.Collection>(from: DAAM_V11.collectionStoragePath) != nil {
-            panic("You already have a DAAM_V11 Collection.")
+        if acct.borrow<&DAAM_V12.Collection>(from: DAAM_V12.collectionStoragePath) != nil {
+            panic("You already have a DAAM_V12 Collection.")
         }
         self.public = public
         self.acct   = acct
     }
 
     execute {
-        let collection <- DAAM_V11.createEmptyCollection()    // Create a new empty collection
-        self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V11.collectionStoragePath) // save the new account
+        let collection <- DAAM_V12.createEmptyCollection()    // Create a new empty collection
+        self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V12.collectionStoragePath) // save the new account
         
         if self.public {
-            self.acct.link<&DAAM_V11.Collection{DAAM_V11.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V11.collectionPublicPath, target: DAAM_V11.collectionStoragePath)
-            log("DAAM_V11 Account Created. You have a DAAM_V11 Collection (Public) to store NFTs'")
+            self.acct.link<&DAAM_V12.Collection{DAAM_V12.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V12.collectionPublicPath, target: DAAM_V12.collectionStoragePath)
+            log("DAAM_V12 Account Created. You have a DAAM_V12 Collection (Public) to store NFTs'")
         } else {
-            log("DAAM_V11 Account Created. You have a DAAM_V11 Collection (Non-Public) to store NFTs'")
+            log("DAAM_V12 Account Created. You have a DAAM_V12 Collection (Non-Public) to store NFTs'")
         }
     }
 }

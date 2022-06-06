@@ -3,7 +3,7 @@
 
 import AuctionHouse     from 0x045a1763c93006ca
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V11             from 0xa4ad5ea5c0bd2fba
+import DAAM_V12             from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xba1132bc08f82fe2
 
 transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
@@ -12,8 +12,8 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
 {
 
   let auctionHouse : &AuctionHouse.AuctionWallet
-  let nftCollection: &DAAM_V11.Collection
-  let metadataCap  : Capability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>?
+  let nftCollection: &DAAM_V12.Collection
+  let metadataCap  : Capability<&DAAM_V12.MetadataGenerator{DAAM_V12.MetadataGeneratorMint}>?
 
   let id          : UInt64
   let start       : UFix64
@@ -30,8 +30,8 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
-    self.nftCollection = auctioneer.borrow<&DAAM_V11.Collection>(from: DAAM_V11.collectionStoragePath)!
-    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V11.MetadataGenerator{DAAM_V11.MetadataGeneratorMint}>(DAAM_V11.metadataPublicPath) : nil
+    self.nftCollection = auctioneer.borrow<&DAAM_V12.Collection>(from: DAAM_V12.collectionStoragePath)!
+    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V12.MetadataGenerator{DAAM_V12.MetadataGeneratorMint}>(DAAM_V12.metadataPublicPath) : nil
 
     self.id               = id
     self.start            = start
@@ -50,9 +50,9 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   execute {
       let vault <- FUSD.createEmptyVault()
 
-      var nft: @DAAM_V11.NFT? <- nil
+      var nft: @DAAM_V12.NFT? <- nil
       if !self.isMetadata {
-        let old <- nft <- self.nftCollection.withdraw(withdrawID: self.id) as! @DAAM_V11.NFT
+        let old <- nft <- self.nftCollection.withdraw(withdrawID: self.id) as! @DAAM_V12.NFT
         destroy old
       }
 

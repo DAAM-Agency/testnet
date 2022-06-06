@@ -1,4 +1,4 @@
-// init_DAAM_V11_Agency.cdc
+// init_DAAM_V12_Agency.cdc
 
 transaction(name: String, code: String, founders: {Address: UFix64}, defaultAdmins: [Address] ) {
     let name          : String
