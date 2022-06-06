@@ -104,57 +104,42 @@ pub struct AuctionInfo {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createOriginalAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+        pub fun createAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool): UInt64
         {
             pre {
-                metadataGenerator.borrow() != nil        : "There is no Metadata."
+                (metadataGenerator == nil && nft != nil) || (metadataGenerator != nil && nft == nil) : "You can not enter a Metadata and NFT."
+                //metadataGenerator.borrow() != nil        : "There is no Metadata."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
                 DAAM.getCopyright(mid: mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
                 self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
 
-            AuctionHouse.metadataGen.insert(key: mid, metadataGenerator) // add access to Creators' Metadata
-            let metadataRef = metadataGenerator.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
-            let minterAccess <- AuctionHouse.minterAccess()
-            let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
-
-            let nft <- AuctionHouse.mintNFT(metadata: <-metadata)        // Create NFT
-
-            // Create Auctions
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
-              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+            var auction: @Auction? <- nil
+            if metadataGenerator != nil {
+                AuctionHouse.metadataGen.insert(key: mid, metadataGenerator!) // add access to Creators' Metadata
+                let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
+                let minterAccess <- AuctionHouse.minterAccess()
+                let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: mid)      // Create MetadataHolder
+                // Create Auctions
+                let old <- auction <- create Auction(metadata: <-metadata!, nft: nil, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
+                    incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+                destroy old
+                destroy nft
+            } else {
+                let old <- auction <- create Auction(metadata: nil, nft: <-nft!, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
+                    incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+                destroy old
+            }
             // Add Auction
-            let aid = auction.auctionID // Auction ID
-            let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
+            let aid = auction?.auctionID! // Auction ID
+            let oldAuction <- self.currentAuctions.insert(key: aid, <- auction!) // Store Auction
             destroy oldAuction // destroy placeholder
 
             AuctionHouse.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             return aid
-        }
-
-        // Creates an auction for a NFT as opposed to Metadata. An existing NFT.
-        // same arguments as createOriginalAuction except for reprintSeries
-        pub fun createAuction(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool,
-            extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64): UInt64
-        {
-            pre {
-                DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.FRAUD : "This submission has been flaged for Copyright Issues."
-                DAAM.getCopyright(mid: nft.mid) != DAAM.CopyrightStatus.CLAIM : "This submission has been flaged for a Copyright Claim." 
-                self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
-            }
-
-            let auction <- create Auction(nft: <-nft, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault,
-              incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: false)
-            // Add Auction
-            let aid = auction.auctionID // Auction ID
-            let oldAuction <- self.currentAuctions.insert(key: aid, <- auction) // Store Auction
-            destroy oldAuction // destroy placeholder
-            
-            AuctionHouse.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
-            return aid
-        }
+        }        
 
         // Resolves all Auctions. Closes ones that have been ended or restarts them due to being a reprintSeries auctions.
         // This allows the auctioneer to close auctions to auctions that have ended, returning funds and appropriating items accordingly
@@ -257,8 +242,9 @@ pub struct AuctionInfo {
         pub let fee           : UFix64   // the fee
         pub let price         : UFix64   // original price
         pub let buyNow        : UFix64   // buy now price original price
-        pub var reprintSeries : Bool     // Active Series Minter (if series)
+        pub var reprintSeries : Bool   // Active Series Minter (if series)
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+        access(contract) var auctionMetadata : @DAAM.Metadata? // Store NFT for auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
         priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
         pub let requiredCurrency: Type
@@ -276,18 +262,20 @@ pub struct AuctionInfo {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        init(nft: @DAAM.NFT, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault,
+        init(metadata: @DAAM.Metadata?, nft: @DAAM.NFT?, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault,
           incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
             pre {
+                (metadata == nil && nft != nil) || (metadata != nil && nft == nil) : "Can not add NFT & Metadata"
                 start >= getCurrentBlock().timestamp : "Time has already past."
                 length >= 60.0                       : "Minimum is 1 min"
                 buyNow > reserve || buyNow == 0.0    : "The BuyNow option must be greater then the Reserve."
                 startingBid != 0.0 : "You can not have a Starting Bid of zero."
                 isExtended && extendedTime >= 20.0 || !isExtended && extendedTime == 0.0 : "Extended Time setting are incorrect. The minimim is 20 seconds."
-                reprintSeries && nft.metadata.edition.max != 1 || !reprintSeries : "This can not be reprinted."
                 startingBid == nil && buyNow != 0.0 || startingBid != nil : "Direct Purchase requires BuyItNow amount"
             }
-
+            let metadataHolder: DAAM.MetadataHolder = (metadata != nil) ? metadata?.getHolder()! : nft?.metadata!
+            assert(reprintSeries && metadataHolder.edition.max != 1 || !reprintSeries, message: "This can not be reprinted.")
+            
             if startingBid != nil { // Verify starting bid is lower then the reserve price
                 if reserve < startingBid! { panic("The Reserve must be greater then your Starting Bid") }
             }
@@ -301,10 +289,7 @@ pub struct AuctionInfo {
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
             self.auctionID = AuctionHouse.auctionCounter // Auction uinque ID number
-            var creators: [Address] = []
-            for c in nft.metadata.creatorInfo.creator.keys { creators.append(c) }
-            self.creators = creators
-            self.mid = nft.mid // Metadata ID
+            
             self.start = start        // When auction start
             self.length = length      // Length of auction
             self.origLength = length  // If length is reset (extneded auction), a new reprint can reset the original length
@@ -316,16 +301,26 @@ pub struct AuctionInfo {
             
             self.startingBid = startingBid 
             self.reserve = reserve
-            self.fee = AuctionHouse.getFee(mid: self.mid)
             self.price = buyNow
+            
+            let ref = (nft != nil) ? &nft?.metadata! as &DAAM.MetadataHolder : &metadata?.getHolder()! as &DAAM.MetadataHolder
+            self.creators = ref.creatorInfo.creator.keys
+
+            if ref.edition.max != nil { // if last in series don't reprint.
+                self.reprintSeries = ref.edition.max! == ref.edition.number ? false : reprintSeries
+            } else {
+                self.reprintSeries = reprintSeries
+            }              
+            
+            self.mid = ref.mid! // Meta   data ID
+            self.fee = AuctionHouse.getFee(mid: self.mid)
             self.buyNow = self.price * (self.fee + 1.0)
-            // if last in series don't reprint.
-            self.reprintSeries = nft.metadata.edition.max == nft.metadata.edition.number ? false : reprintSeries
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
             self.auctionVault <- vault  // ALL Crypto is stored
             self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
+            self.auctionMetadata <- metadata // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
             emit AuctionCreated(auctionID: self.auctionID, start: self.start)
@@ -752,6 +747,7 @@ pub struct AuctionInfo {
 
             destroy self.auctionVault
             destroy self.auctionNFT
+            destroy self.auctionMetadata
         }
     }
 /************************************************************************/
