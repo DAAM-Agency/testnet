@@ -356,10 +356,12 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             // Create Metadata with incremented counter/print
             let mRef = &self.metadata[mid] as &Metadata?
 
-            if self.returns[mid]?.length! !=0 {
-               let ref = &self.returns[mid] as &[Metadata?]?
-               let metadata <- ref!.remove(at:0)
-               return <- metadata!
+            if self.returns[mid] != nil {
+                if self.returns[mid]?.length! != 0 {
+                let ref = &self.returns[mid] as &[Metadata?]?
+                let metadata <- ref!.remove(at:0)
+                return <- metadata!
+                }
             } // Use a return Metadata, instead of increasing the counter print.
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
