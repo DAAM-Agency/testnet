@@ -468,19 +468,21 @@ pub struct AuctionInfo {
             if pass { // leader met the reserve price              
                 if self.auctionMetadata != nil {
                     let metadata <- self.auctionMetadata <- nil
-                    let nft <- AuctionHouse.mintNFT(metadata: <-metadata!)
+                    let old <-  self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata!)
+                    destroy old
                     // remove nft
                     // remove leader from log before returnFunds()!!
                     self.auctionLog.remove(key: self.leader!)!
                     self.returnFunds()  // Return funds to all bidders
                     self.royalty()      // Pay royalty
-                    self.finalise(receiver: receiver, nft: <-nft, pass: pass)
-                } else {
                     let nft <- self.auctionNFT <- nil
+                    self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
+                } else {
                     // remove leader from log before returnFunds()!!
                     self.auctionLog.remove(key: self.leader!)!
                     self.returnFunds()  // Return funds to all bidders
                     self.royalty()      // Pay royalty
+                    let nft <- self.auctionNFT <- nil
                     self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
                 }                
                 log("Item: Won")
