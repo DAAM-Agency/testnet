@@ -39,12 +39,11 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 TIME_LEFT=$(flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6 | awk  '{print $2}')
 echo "Time Left: $TIME_LEFT"
 sleep $TIME_LEFT
-sleep 20
 TIME_LEFT=0
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 . ./debug/create_auctions/winner_collect_original.sh $CREATOR2 6
-. ./debug/close_auctions.sh creator creator2
+. ./debug/close_auctions.sh $CREATOR $CREATOR
 
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR2 6
 . ./debug/create_auctions/serial_minter/serial_aid_6.sh

@@ -30,7 +30,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     let name        : String
     let max         : UInt64?
     var categories  : [Categories.Category]
-    let inCollection: [UInt64]?
+    let inCollection: {String:[UInt64]}?
     let interact    : AnyStruct?
     let description : String
     let thumbnail   : {String : {MetadataViews.File}}

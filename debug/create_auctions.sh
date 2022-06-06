@@ -24,5 +24,5 @@
 . ./debug/create_auctions/bids/bid_auction_15.sh
 . ./debug/view_basic_data.sh
 
-. ./debug/close_auctions.sh client nobody
+. ./debug/close_auctions.sh client $NOBODY
 . ./debug/view_basic_data.sh
