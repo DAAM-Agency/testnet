@@ -7,7 +7,7 @@ pub fun main(auction: Address, aid: UInt64): UFix64? {
     let auctionHouse = getAccount(auction)
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
-        .borrow()!
+        .borrow()
 
     let mRef = auctionHouse.item(aid) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?   
     return mRef!.timeLeft()
