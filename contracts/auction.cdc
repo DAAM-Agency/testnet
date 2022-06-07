@@ -314,7 +314,7 @@ pub struct AuctionInfo {
             
             self.mid = ref.mid! // Meta   data ID
             self.fee = AuctionHouse.getFee(mid: self.mid)
-            self.buyNow = self.price * (self.fee + 1.0)
+            self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
             self.auctionVault <- vault  // ALL Crypto is stored
@@ -653,7 +653,7 @@ pub struct AuctionInfo {
         }
 
 //
-        priv fun pay(price: UFix64, royalties: [MetadataViews.Royalty]) {
+        priv fun payRoyalty(price: UFix64, royalties: [MetadataViews.Royalty]) {
             for royalty in royalties {
                 let cut <-! self.auctionVault.withdraw(amount: price * royalty.cut)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
@@ -668,19 +668,10 @@ pub struct AuctionInfo {
             let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             let creatorPercentage   = 0.8 // Creator 1dr sale percentge, onlyone tatneed to be edited if ever.
             let remainderPercentage = 1.0 - creatorPercentage
-            //assert(s message: "Illegal Operation: payFirstSale")
             let creatorAmount   = price * creatorPercentage
             var remainderAmount = price * remainderPercentage
 
-            self.pay(price: creatorAmount, royalties: self.creators.creator)
-            /*
-            let creators = self.creators.creator
-            for creator in creators.keys {
-                let amount = creatorAmount * creators[creator]!.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
-                let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
-                let cap = creators[creator]!.receiver.borrow()!
-                cap.deposit(from: <-cut ) //deposit royalty share
-            }*/
+            self.payRoyalty(price: creatorAmount, royalties: self.creators.creator)
 
             var remainderList: [MetadataViews.Royalty] = []
             if self.creators.agent == nil {
@@ -689,13 +680,7 @@ pub struct AuctionInfo {
             else {
                 for agent in self.creators.agent!.keys { remainderList.append(self.creators.agent![agent]!) }
             }
-            self.pay(price: remainderAmount, royalties: remainderList)
-                /*for other in remainderList {
-                    let amount = remainderAmount * other.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
-                    let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
-                    let cap = other.receiver.borrow()!
-                    cap.deposit(from: <-cut ) //deposit royalty share
-                }*/        
+            self.payRoyalty(price: remainderAmount, royalties: remainderList)
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
@@ -707,14 +692,17 @@ pub struct AuctionInfo {
             
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
-                //self.payFirstSale()
+                self.payFirstSale()
                 AuctionHouse.notNew(tokenID: tokenID) 
-            } else {
-                //self.pay(amount: price)
+            } else { // if not New
+                let fee    = self.auctionVault.balance * self.fee
+                let amount = self.auctionVault.balance / (1.0 + self.fee)
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let sellerCut <-! self.auctionVault.withdraw(amount: amount) // Calcuate actual amount
+                seller.deposit(from: <-sellerCut ) // deposit amount
             }
-            let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
-            let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
-            seller.deposit(from: <-sellerCut ) // deposit amount
+            // collect fee
+            self.payRoyalty(price: fee, royalties: DAAM.Agency)                     
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
