@@ -7,7 +7,7 @@ pub fun main(auction: Address, auctionID: UInt64): Bool? {
     let auctionHouse = getAccount(auction)
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
-        .borrow()!
+        .borrow()
 
     let mRef = auctionHouse.item(auctionID) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?
     return mRef!.getStatus()
