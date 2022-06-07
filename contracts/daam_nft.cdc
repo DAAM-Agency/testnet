@@ -1188,7 +1188,7 @@ pub resource MinterAccess
 
         // Setup Up Founders
         var royalty_list: [MetadataViews.Royalty] = []
-        var totalCut = 1.0
+        var totalCut = 0.0
         for founder in founders.keys {
             royalty_list.append(
                 MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver), // TODO remove /public/fusdReceiver
