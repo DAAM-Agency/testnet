@@ -1,7 +1,7 @@
 // cancel_auction.cdc
 // Used to cancel an auction. There must have been be no bids made in order to cancel an auction.
 
-import AuctionHouse  from0x1837e15023c9249
+import AuctionHouse  from 0x1837e15023c9249
 import DAAM          from 0xa4ad5ea5c0bd2fba
 
 transaction(aid: UInt64)

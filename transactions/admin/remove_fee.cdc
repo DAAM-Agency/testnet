@@ -2,7 +2,7 @@
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
 import DAAM         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse from0x1837e15023c9249
+import AuctionHouse from 0x1837e15023c9249
 
 transaction(mid: UInt64)
 {

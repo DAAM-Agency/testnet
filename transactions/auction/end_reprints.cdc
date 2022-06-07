@@ -1,7 +1,7 @@
 // end_reprints.cdc
 // to toggle reprints to OFF.
 
-import AuctionHouse from0x1837e15023c9249
+import AuctionHouse from 0x1837e15023c9249
 
 transaction(aid: UInt64) {
     let aid    : UInt64
