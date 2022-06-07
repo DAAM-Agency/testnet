@@ -1195,10 +1195,10 @@ pub resource MinterAccess
                 cut: founders[founder]!,
                 description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
-                totalCut = totalCut + founders[founder]!
             ) // end append
+            totalCut = totalCut + founders[founder]!
         }
-        assert(total == 1.0 : "Shares Must equal 100%")
+        assert(totalCut == 1.0, message: "Shares Must equal 100%")
         
         self.agency = MetadataViews.Royalties(royalty_list)
 

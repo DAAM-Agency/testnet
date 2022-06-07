@@ -488,7 +488,7 @@ pub struct AuctionInfo {
                 log("Item: Won")
                 emit ItemWon(auctionID: self.auctionID, winner: self.leader!) // Auction Ended, but Item not delivered yet.
             } else {   
-                receiver = self.owner!.address // set receiver from leader to auctioneer 
+                receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
                     let metadata <- self.auctionMetadata <- nil
                     let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
@@ -671,24 +671,27 @@ pub struct AuctionInfo {
             let creatorAmount   = price * creatorPercentage
             var remainderAmount = price * remainderPercentage
 
-            self.payRoyalty(price: creatorAmount, royalties: self.creators.creator)
+            var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
+            for creator in self.creators.creator!.keys { list.append(self.creators.creator[creator]!) }
+            self.payRoyalty(price: creatorAmount, royalties: list)
 
-            var remainderList: [MetadataViews.Royalty] = []
+            list = [] // list of Agennts or Founder to be paid
             if self.creators.agent == nil {
-                remainderList = DAAM.agency.getRoyalties()
+                list = DAAM.agency.getRoyalties()
             }
             else {
-                for agent in self.creators.agent!.keys { remainderList.append(self.creators.agent![agent]!) }
+                for agent in self.creators.agent!.keys { list.append(self.creators.agent![agent]!) }
             }
-            self.payRoyalty(price: remainderAmount, royalties: remainderList)
+            self.payRoyalty(price: remainderAmount, royalties: list)
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
         priv fun royalty()
         {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
-            if self.auctionVault.balance == 0.0 { return } // No need to run, already processed.
-            let tokenID = self.auctionNFT?.id!      // get TokenID
+            if self.auctionVault.balance == 0.0 { return }     // No need to run, already processed.
+            let tokenID = self.auctionNFT?.id!                 // Get TokenID
+            let fee     = self.auctionVault.balance * self.fee // Get fee amount
             
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
@@ -702,7 +705,7 @@ pub struct AuctionInfo {
                 seller.deposit(from: <-sellerCut ) // deposit amount
             }
             // collect fee
-            self.payRoyalty(price: fee, royalties: DAAM.Agency)                     
+            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties())  
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
