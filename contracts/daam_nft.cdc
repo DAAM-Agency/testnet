@@ -1188,14 +1188,18 @@ pub resource MinterAccess
 
         // Setup Up Founders
         var royalty_list: [MetadataViews.Royalty] = []
+        var totalCut = 1.0
         for founder in founders.keys {
             royalty_list.append(
                 MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver), // TODO remove /public/fusdReceiver
                 cut: founders[founder]!,
                 description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
+                totalCut = totalCut + founders[founder]!
             ) // end append
         }
+        assert(total == 1.0 : "Shares Must equal 100%")
+        
         self.agency = MetadataViews.Royalties(royalty_list)
 
         // Initialize variables
