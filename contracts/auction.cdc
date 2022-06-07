@@ -652,9 +652,8 @@ pub struct AuctionInfo {
             return 0.0 as UFix64 // return no time left
         }
 
-        priv fun pay() {
-            let price = self.auctionVault.balance   // get price of NFT
-            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+//
+        priv fun pay(price: UFix64, royalties: [MetadataViews.Royalty]) {
             for royalty in royalties {
                 let cut <-! self.auctionVault.withdraw(amount: price * royalty.cut)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
@@ -665,34 +664,38 @@ pub struct AuctionInfo {
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
             //let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-            let price     = self.auctionVault.balance 
+            let price     = self.auctionVault.balance / (1.0 + self.fee)
             let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-            let creatorPercentage   = 0.8
+            let creatorPercentage   = 0.8 // Creator 1dr sale percentge, onlyone tatneed to be edited if ever.
             let remainderPercentage = 1.0 - creatorPercentage
+            //assert(s message: "Illegal Operation: payFirstSale")
             let creatorAmount   = price * creatorPercentage
-            let remainderAmount = price * remainderPercentage
+            var remainderAmount = price * remainderPercentage
 
+            self.pay(price: creatorAmount, royalties: self.creators.creator)
+            /*
             let creators = self.creators.creator
             for creator in creators.keys {
-                let amount = creatorPercentage * creators[creator]!.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
+                let amount = creatorAmount * creators[creator]!.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
                 let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
                 let cap = creators[creator]!.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
-            }
+            }*/
 
             var remainderList: [MetadataViews.Royalty] = []
             if self.creators.agent == nil {
                 remainderList = DAAM.agency.getRoyalties()
-            } else {
+            }
+            else {
                 for agent in self.creators.agent!.keys { remainderList.append(self.creators.agent![agent]!) }
             }
-
-            for other in remainderList {
-                let amount = remainderPercentage * other.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
-                let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
-                let cap = other.receiver.borrow()!
-                cap.deposit(from: <-cut ) //deposit royalty share
-            }
+            self.pay(price: remainderAmount, royalties: remainderList)
+                /*for other in remainderList {
+                    let amount = remainderAmount * other.cut // ((royalty.description=="Agency") ? 0.2 : 0.8)
+                    let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
+                    let cap = other.receiver.borrow()!
+                    cap.deposit(from: <-cut ) //deposit royalty share
+                }*/        
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
