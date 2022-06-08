@@ -34,6 +34,7 @@ pub contract DAAM: NonFungibleToken {
     pub event RequestAccepted(mid: UInt64)       // Royalty rate has been accepted 
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
+    pub event CreatorAddAgent(creator: Address, agent: Address)
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -72,23 +73,37 @@ pub enum CopyrightStatus: UInt8 {
 }
 /***********************************************************************/
 pub struct CreatorInfo {
-    pub let creator: {Address: MetadataViews.Royalty} // This cut is beween the creators. it should equal 100%
-    pub(set) var status: Bool?
-    pub(set) var agent: {Address: MetadataViews.Royalty} // Agent & Percentage
+    pub var creator: {Address: MetadataViews.Royalty} // This cut is beween the creators. it should equal 100%
+    pub var status: Bool?
+    pub var agent: {Address: MetadataViews.Royalty} // Agent & Percentage
 
     init(creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?, status: Bool)
     {
         var royaltyList: [MetadataViews.Royalty] = []
         var totalCut: UFix64 = 0.0
+        log(creator)
         for cut in creator.keys { totalCut = totalCut + creator[cut]!.cut }
         if agent != nil {
             for cut in agent!.keys { totalCut = totalCut + agent![cut]!.cut }
         }
-        assert(totalCut == 1.0, message: "Shares must equal 100%")
+        assert(totalCut == 1.0, message: "Shares must equal 100% not ".concat(creator[creator.keys[0]]!.cut.toString()))
 
         self.creator = creator // element 0 is reserved for Creator
         self.status = status
         self.agent = (agent!=nil) ? agent! : {}
+    }
+
+    pub fun setStatus(_ status: Bool?) { self.status = status }
+
+    access(contract) fun updateAgent (creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?) {
+        // error checking below
+        for c in creator.keys { assert(DAAM.isCreator(c) != nil, message: c.toString().concat("Is not a Creator")) }
+        if agent != nil {
+            for a in agent!.keys { assert(DAAM.isCreator(a) != nil, message: a.toString().concat("Is not an Agent")) }
+        }
+        let info = CreatorInfo(creator: creator, agent: agent, status: self.status!)
+        self.creator = info.creator
+        self.agent   = info.agent
     }
 }
 /***********************************************************************/
@@ -643,7 +658,7 @@ pub struct PersonalCollection {
     {
         pub var status: Bool // the current status of the Admin
 
-        pub fun inviteCreator(_ creator: Address)                   // Admin invites a new creator       
+        pub fun inviteCreator(_ creator: Address, agentCut: UFix64?)                   // Admin invites a new creator       
         pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
         pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
@@ -712,7 +727,7 @@ pub resource Admin: Agent
             emit AgentInvited(agent: agent)         
         }
 
-        pub fun inviteCreator(_ creator: Address) {    // Admin or Agent invite a new creator
+        pub fun inviteCreator(_ creator: Address, agentCut: UFix64? ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
             pre {
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
@@ -726,12 +741,20 @@ pub resource Admin: Agent
 
             // If Creator is invited by Agent, attach Agent to Creator Info
             let creatorCap = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
-            let agencyCap  = getAccount(self.owner!.address).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
-            let creatorRoyalty = MetadataViews.Royalty(recepient: creatorCap, cut: 0.0, description: "Invited by ".concat(self.owner!.address.toString()) )
-            let agencyRoyalty  = MetadataViews.Royalty(recepient: agencyCap, cut: 0.0, description: "Agency Invite")
+            let creatorCut = (agentCut==nil) ? 1.0 : (1.0-agentCut!)
+            let creatorRoyalty = MetadataViews.Royalty(recepient: creatorCap, cut: creatorCut, description: "Invited by ".concat(self.owner!.address.toString()) )
             let creatorArg: {Address: MetadataViews.Royalty}  = {creator : creatorRoyalty}
-            let agentArg  : {Address: MetadataViews.Royalty}? = 
-                DAAM.isAgent(self.owner!.address) != nil ? {self.owner!.address: agencyRoyalty} : {}
+
+            var agentArg: {Address:MetadataViews.Royalty}? = nil
+            if agentCut != nil {
+                assert(agentCut! < 1.0, message: "You can not have 100% of Shares.")
+                let agentCap  = getAccount(self.owner!.address).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
+                let agentRoyalty  = MetadataViews.Royalty(recepient: agentCap, cut: agentCut!, description: "Agency Invite")
+                agentArg = DAAM.isAgent(self.owner!.address) != nil ? {self.owner!.address: agentRoyalty} : {}
+            }
+
+            log(creatorArg)
+            log(agentArg)
             let creatorInfo = CreatorInfo(
                 creator: creatorArg,
                 agent: agentArg ,
@@ -824,15 +847,33 @@ pub resource Admin: Agent
 
         pub fun removeMinter(minter: Address) { // Admin removes selected Agent by Address
             pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                DAAM.isAdmin(self.owner!.address) == true  : "Permission Denied"
+                self.grantee == self.owner!.address        : "Permission Denied"
                 self.status                      : "You're no longer a have Access."
-                DAAM.minters.containsKey(minter) : "This is not a Minter Address."
+                DAAM.isMinter(minter) != nil     : "This is not a Minter Address."
             }
             post { !DAAM.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
             DAAM.minters.remove(key: minter)    // Remove Agent from list
             log("Removed Minter")
             emit MinterRemoved(minter: minter)
+        }
+
+        // Admin can Change Creator Agents 
+        pub fun creatorUpdateAgent(creator: Address, agent: Address, royalty: MetadataViews.Royalty) {
+            pre  {
+                DAAM.isAdmin(self.owner!.address) == true : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                     : "You're no longer a have Access."
+                DAAM.isAgent(agent) == true     : "This is not a Agent Address."
+                DAAM.isCreator(creator) == true : "This is not a Agent Address."
+                !DAAM.creators[creator]!.agent.containsKey(agent) == false : "Already your Agent."
+            }
+            post { creatorInfo.agent.containsKey(agent) : "Illegal Operation: creatorAddAgent" } // Unreachable
+
+            let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
+            creatorInfo.updateAgent(creator: creatorInfo.creator, agent: creatorInfo.agent) // status changed
+            log("Creator Status Changed")
+            emit CreatorAddAgent(creator: creator, agent: agent)
         }
 
         // Admin can Change Agent status 
@@ -863,7 +904,7 @@ pub resource Admin: Agent
             post { DAAM.isCreator(creator) == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
             let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
-            creatorInfo.status = status // status changed
+            creatorInfo.setStatus(status) // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
@@ -1087,7 +1128,7 @@ pub resource MinterAccess
         }
         // Invitation accepted at this point
         let creatorInfo = &DAAM.creators[newCreator.address]! as &CreatorInfo
-        creatorInfo.status = submit         // Add Creator & set Status (True)
+        creatorInfo.setStatus(submit)         // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
         return <- create Creator(newCreator.address)!                         // Return Creator Resource
@@ -1119,13 +1160,7 @@ pub resource MinterAccess
     }*/
 
     // Return list of Creators
-    pub fun getCreators(): [Address] {
-        var clist: [Address] = []
-        for creator in self.creators.keys {
-            clist.append(creator)
-        }
-        return clist
-    }
+    pub fun getCreators(): {Address:CreatorInfo} { return self.creators }
 
     // Return Copyright Status. nil = non-existent MID
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { 

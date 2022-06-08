@@ -4,7 +4,7 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(creator: Address)
+transaction(creator: Address, agentCut: UFix64?)
 {
     let admin   : &{DAAM.Agent}
     let creator : Address
@@ -21,7 +21,7 @@ transaction(creator: Address)
     }
     
     execute {
-        self.admin.inviteCreator(self.creator)
+        self.admin.inviteCreator(self.creator, agentCut: agentCut)
         log("Creator Invited")
     }
 
