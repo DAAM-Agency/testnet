@@ -89,9 +89,10 @@ pub struct AuctionInfo {
 
         init() { self.currentAuctions <- {} }  // Auction Resources are stored here. The Auctions themselves.
 
-        // createOriginalAuction: An Original Auction is defined as a newly minted NFT.
-        // MetadataGenerator: Reference to Metadata
-        // mid: DAAM Metadata ID
+        // createAuction: An Original Auction is defined as a newly minted NFT.
+        // MetadataGenerator: Reference to Metadata or nil when nft argument is enterd
+        // nft: DAAM.NFT or nil when MetadataGenerator argument is entered
+        // id: DAAM Metadata ID or Token ID depenedent whether nft or MetadataGenerator is entered
         // start: Enter UNIX Flow Blockchain Time
         // length: Length of auction
         // isExtended: if the auction lenght is to be an Extended Auction

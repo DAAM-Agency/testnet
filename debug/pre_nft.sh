@@ -11,8 +11,8 @@ echo "Added some test here to verify FAIL TEST"
 . ./debug/pre_nft/answer_invite_agent.sh agent2 true $AGENT2
 . ./debug/pre_nft/invite_creator.sh $CREATOR $CREATOR2
 
-. ./debug/pre_nft/answer_invite_creator.sh creator true $CREATOR
-. ./debug/pre_nft/answer_invite_creator.sh creator2 true $CREATOR2
+. ./debug/pre_nft/answer_invite_creator.sh creator $CREATOR true
+. ./debug/pre_nft/answer_invite_creator.sh creator2 $CREATOR2 true
 
 . ./debug/pre_nft/submit_nft.sh
 . ./debug/pre_nft/remove_metadata.sh creator 3

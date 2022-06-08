@@ -81,11 +81,12 @@ pub struct CreatorInfo {
     {
         var royaltyList: [MetadataViews.Royalty] = []
         var totalCut: UFix64 = 0.0
-        log(creator)
+        // Get totalCut from Creators
         for cut in creator.keys { totalCut = totalCut + creator[cut]!.cut }
+        // Get totalCut from Agents if any
         if agent != nil {
             for cut in agent!.keys { totalCut = totalCut + agent![cut]!.cut }
-        }
+        } // Verify Cretors cut and Agents cut = 1.0
         assert(totalCut == 1.0, message: "Shares must equal 100% not ".concat(creator[creator.keys[0]]!.cut.toString()))
 
         self.creator = creator // element 0 is reserved for Creator
@@ -99,7 +100,7 @@ pub struct CreatorInfo {
         // error checking below
         for c in creator.keys { assert(DAAM.isCreator(c) != nil, message: c.toString().concat("Is not a Creator")) }
         if agent != nil {
-            for a in agent!.keys { assert(DAAM.isCreator(a) != nil, message: a.toString().concat("Is not an Agent")) }
+            for a in agent!.keys { assert(DAAM.isAgent(a) != nil, message: a.toString().concat("Is not an Agent")) }
         }
         let info = CreatorInfo(creator: creator, agent: agent, status: self.status!)
         self.creator = info.creator
@@ -155,20 +156,12 @@ pub resource RequestGenerator {
             percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
-        //let agency   = DAAM.agency.getRoyalties()
+        let agency   = DAAM.agency.getRoyalties()
         let creators = metadataGen.viewMetadata(mid: mid)!.creatorInfo.creator // creatorInfo.creators[0]
-        let creatorCut = percentage // Add Creator percentage
-        //let agencyCut  = percentage - creatorCut // Add Agency percentage, Agency takes 10% of Creator
+        let creatorCut = percentage / 1.025 // Add Creator percentage
+        let daamCut    = percentage - creatorCut // Add daam percentge
+        assert(creatorCut + daamCut == percentage, message: "Illegal Operation: accept Default")
         var royalty_list: [MetadataViews.Royalty] = []
-
-        /*for founder in agency {
-            royalty_list.append(
-                MetadataViews.Royalty(
-                    recepient: founder.receiver,
-                    cut: agencyCut * founder.cut,
-                    description: "Agency")
-            ) // end append   
-        }*/
 
         for creator in creators.keys {
             royalty_list.append(
@@ -176,6 +169,15 @@ pub resource RequestGenerator {
                     recepient: getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver),
                     cut: creatorCut * creators[creator]!.cut,
                     description: "Creator")
+            ) // end append   
+        }        
+
+        for founder in agency {
+            royalty_list.append(
+                MetadataViews.Royalty(
+                    recepient: founder.receiver,
+                    cut: daamCut * founder.cut,
+                    description: "Agency Fee")
             ) // end append   
         }        
 
@@ -743,7 +745,7 @@ pub resource Admin: Agent
             let creatorCap = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
             let creatorCut = (agentCut==nil) ? 1.0 : (1.0-agentCut!)
             let creatorRoyalty = MetadataViews.Royalty(recepient: creatorCap, cut: creatorCut, description: "Invited by ".concat(self.owner!.address.toString()) )
-            let creatorArg: {Address: MetadataViews.Royalty}  = {creator : creatorRoyalty}
+            let creatorArg: {Address: MetadataViews.Royalty} = {creator : creatorRoyalty}
 
             var agentArg: {Address:MetadataViews.Royalty}? = nil
             if agentCut != nil {
@@ -955,7 +957,7 @@ pub resource Admin: Agent
 // The Creator Resource (like Admin/Agent) is a permissions Resource. This allows the Creator
 // to Create Metadata which inturn can be made in NFTs after Minting
     pub resource Creator {
-        pub var agent: {UInt64: Address} // {MID: Agent Address} // preparation for V2
+        pub var agent: {Address: [UInt64]} // {Agent Address:[MID]} // preparation for V2
         access (contract) let grantee: Address
 
         init(_ creator: Address) {

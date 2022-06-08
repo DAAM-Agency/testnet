@@ -16,6 +16,6 @@ done
 echo "---------- Inviting Creators ----------"
 for user in $CREATOR $CREATOR2
 do
-flow transactions send ./transactions/admin/invite_creator.cdc $user --signer cto
+flow transactions send ./transactions/admin/invite_creator.cdc $user nil --signer cto
 done
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
