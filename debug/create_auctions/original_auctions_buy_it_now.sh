@@ -1,5 +1,6 @@
 # Create Original Auction Tests
-# MID: UInt64, start: UFix64
+# isMetadta: true if Metadata false if NFT
+# MID: UInt64 if isMetadata is true, otherwise is ID got NFT when isMetadata is false
 # length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
@@ -18,18 +19,18 @@ echo "START: "$START
 echo "========== Create Original Auctions Tests II =========="
 # Auction MID 5, AID: 5 after copyright adjustment. (set to Verfied)
 echo "Test Auction E: Buy It Now"
-flow transactions send ./transactions/auction/create_auction.cdc $DISAPPROVED_COPYRIGHT $START \
+flow transactions send ./transactions/auction/create_auction.cdc true $DISAPPROVED_COPYRIGHT $START \
 500.0 false 0.0 false 0.04 13.00 \
 20.0 30.5 false --signer creator #E AID: 5
 
 # Auction ID: 6, Winner and Collect
 echo "Test Auction H: Bids followed by Buy It Now"
-flow transactions send ./transactions/auction/create_auction.cdc 8 $START \
+flow transactions send ./transactions/auction/create_auction.cdc true 8 $START \
 500.0 false 0.0 false 0.025 15.00 \
 20.0 30.6 true --signer creator2 #H, AID: 6
 
 # Auction ID: 7, Bid(s), but auction in finalized by a BuyItNow
 echo "Test Auction I: Bids followed by Buy It Now"
-flow transactions send ./transactions/auction/create_auction.cdc 9 $START \
+flow transactions send ./transactions/auction/create_auction.cdc true 9 $START \
 500.0 false 0.0 false 0.025 15.00 \
 20.0 30.7 true --signer creator2 #I, AID: 7
