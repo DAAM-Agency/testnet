@@ -1,6 +1,7 @@
 # Create Original Auction Tests
-# MID: UInt64, start: UFix64
-# length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
+# isMetadta: true if Metadata false if NFT
+# MID: UInt64 if isMetadata is true, otherwise is ID got NFT when isMetadata is false
+# start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
 # Start Bidding

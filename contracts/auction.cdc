@@ -683,6 +683,8 @@ pub struct AuctionInfo {
             else {
                 for agent in self.creators.agent!.keys { list.append(self.creators.agent![agent]!) }
             }
+            log("payfirstSale List: ")
+            log(list)
             self.payRoyalty(price: remainderAmount, royalties: list)
         }
 
@@ -692,15 +694,14 @@ pub struct AuctionInfo {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
             if self.auctionVault.balance == 0.0 { return }     // No need to run, already processed.
             let tokenID = self.auctionNFT?.id!                 // Get TokenID
-            let fee     = self.auctionVault.balance * self.fee // Get fee amount
+            let amount  = self.auctionVault.balance / (1.0 + self.fee)
+            let fee     = self.auctionVault.balance - amount   // Get fee amount
             
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
                 self.payFirstSale()
                 AuctionHouse.notNew(tokenID: tokenID) 
-            } else { // if not New
-                let fee    = self.auctionVault.balance * self.fee
-                let amount = self.auctionVault.balance / (1.0 + self.fee)
+            } else { // if not New                
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: amount) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount

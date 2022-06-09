@@ -12,10 +12,15 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "file": return DAAM.OnChain(file: string_cid)
+        case "text": return DAAM.OnChain(file: string_cid)
+        case "jpg": return DAAM.OnChain(file: string_cid)
+        case "jpg": return DAAM.OnChain(file: string_cid)
+        case "png": return DAAM.OnChain(file: string_cid)
+        case "bmp": return DAAM.OnChain(file: string_cid)
+        case "gif": return DAAM.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
-    panic("Thumbnail Type is invalid")
+    panic("Type is invalid")
 }
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
@@ -47,7 +52,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
         self.description  = description
         self.inCollection = inCollection
         self.interact     = interact
-        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: thumbnailType_path)}
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
