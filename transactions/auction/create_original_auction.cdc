@@ -1,7 +1,7 @@
 // create_auction.cdc
 // Used to create an auction for a first-time sale.
 
-import AuctionHouse from 0x045a1763c93006ca
+import AuctionHouse from 0x1837e15023c9249
 import DAAM_V12         from 0xa4ad5ea5c0bd2fba
 import FUSD         from 0xba1132bc08f82fe2
 

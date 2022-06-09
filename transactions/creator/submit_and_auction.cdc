@@ -5,7 +5,7 @@
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V12          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse  from 0x1837e15023c9249
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -15,7 +15,6 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "text": return DAAM_V12.OnChain(file: string_cid)
-        case "jpg": return DAAM_V12.OnChain(file: string_cid)
         case "jpg": return DAAM_V12.OnChain(file: string_cid)
         case "png": return DAAM_V12.OnChain(file: string_cid)
         case "bmp": return DAAM_V12.OnChain(file: string_cid)
