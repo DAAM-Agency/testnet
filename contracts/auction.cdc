@@ -453,43 +453,32 @@ pub struct AuctionInfo {
             pre  { self.updateStatus() == false   : "Auction still in progress" }
             post { self.verifyAuctionLog() } // Verify funds calcuate
 
-            var receiver = self.leader // receiver of the item
-            var pass     = false       // false till reserve price is verified
-
+            var pass = false       // false till reserve price is verified
             log("Auction Log Length: ".concat(self.auctionLog.length.toString()) )
-
-            if receiver != nil {
-                // Does the leader meet the reserve price?
-                if self.auctionLog[self.leader!]! >= self.reserve {
+            if self.leader != nil {
+                if self.auctionLog[self.leader!]! >= self.reserve { // Does the leader meet the reserve price?
                     pass = true
                 }
             }
 
-            //var nft: @DAAM.NFT? <- nil
             if pass { // leader met the reserve price              
-                if self.auctionMetadata != nil {
+                if self.auctionMetadata != nil { // If Metadata turn into nFt
                     let metadata <- self.auctionMetadata <- nil
                     let old <-  self.auctionNFT <- AuctionHouse.mintNFT(metadata: <-metadata!)
                     destroy old
-                    // remove nft
-                    // remove leader from log before returnFunds()!!
-                    self.auctionLog.remove(key: self.leader!)!
-                    self.returnFunds()  // Return funds to all bidders
-                    self.royalty()      // Pay royalty
-                    let nft <- self.auctionNFT <- nil
-                    self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
-                } else {
-                    // remove leader from log before returnFunds()!!
-                    self.auctionLog.remove(key: self.leader!)!
-                    self.returnFunds()  // Return funds to all bidders
-                    self.royalty()      // Pay royalty
-                    let nft <- self.auctionNFT <- nil
-                    self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
-                }                
+                }
+                // remove leader from log before returnFunds()!!
+                self.auctionLog.remove(key: self.leader!)!
+                self.returnFunds()  // Return funds to all bidders
+                self.royalty()      // Pay royalty
+
+                let nft <- self.auctionNFT <- nil // remove nft
+                let leader = self.leader!
+                self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                emit ItemWon(auctionID: self.auctionID, winner: self.leader!) // Auction Ended, but Item not delivered yet.
+                emit ItemWon(auctionID: self.auctionID, winner: leader) // Auction Ended, but Item not delivered yet.
             } else {   
-                receiver = self.owner!.address   // set receiver from leader to auctioneer 
+                let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
                     let metadata <- self.auctionMetadata <- nil
                     let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
@@ -574,7 +563,7 @@ pub struct AuctionInfo {
 
             self.status = false          // ends the auction
             self.length = 0.0            // set length to 0; double end auction
-            self.leader = bidder // set new leader
+            self.leader = bidder         // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
