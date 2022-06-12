@@ -7,6 +7,9 @@ echo "NOBODY FUSD"
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 flow scripts execute ./scripts/get_fusd_balance.cdc $NOBODY
 
+echo "Time Left: "
+flow scripts execute ./scripts/auction/item_info.cdc $CREATOR 2
+
 echo "--------- Get Creator Auctions ---------"
 flow scripts execute ./scripts/auction/get_auctions.cdc $CREATOR
 

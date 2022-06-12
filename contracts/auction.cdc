@@ -630,7 +630,7 @@ pub struct AuctionInfo {
         }
 
         pub fun itemInfo(): DAAM.MetadataHolder? { // returns the metadata of the item NFT.
-            return self.auctionNFT?.metadata
+            return (self.auctionNFT != nil) ? self.auctionNFT?.metadata! : self.auctionMetadata?.getHolder()!
         }
 
         pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.
@@ -693,21 +693,27 @@ pub struct AuctionInfo {
         {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
             if self.auctionVault.balance == 0.0 { return }     // No need to run, already processed.
+            // 2nd Sale
+            // Pay Fee
             let tokenID = self.auctionNFT?.id!                 // Get TokenID
-            let amount  = self.auctionVault.balance / (1.0 + self.fee)
-            let fee     = self.auctionVault.balance - amount   // Get fee amount
+            let price   = self.auctionVault.balance / (1.0 + self.fee)
+            let fee     = self.auctionVault.balance - price   // Get fee amount
+            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties())
+            // Pay Creator Royalty
+            let creatorAmount = price * 0.15
+            var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
+            for creator in self.creators.creator!.keys { list.append(self.creators.creator[creator]!) }
+            self.payRoyalty(price: creatorAmount, royalties: list)
+            //Pay Seller
+            let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+            let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
+            seller.deposit(from: <-sellerCut ) // deposit amount
             
             // If 1st sale is 'new' remove from 'new list'
-            if DAAM.isNFTNew(id: tokenID) {
-                self.payFirstSale()
+            /*if DAAM.isNFTNew(id: tokenID) {
                 AuctionHouse.notNew(tokenID: tokenID) 
-            } else { // if not New                
-                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
-                let sellerCut <-! self.auctionVault.withdraw(amount: amount) // Calcuate actual amount
-                seller.deposit(from: <-sellerCut ) // deposit amount
-            }
-            // collect fee
-            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties())  
+                self.payFirstSale()
+            }*/            
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
@@ -778,9 +784,10 @@ pub struct AuctionInfo {
 
         destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
-                self.auctionNFT == nil
-                self.status == false
-                self.auctionVault.balance == 0.0
+                self.auctionNFT == nil           : "Illegal Operation: Auction still contains NFT."
+                self.auctionMetadata == nil      : "Illegal Operation: Auction still contains Metadata."
+                self.status == false             : "Illegal Operation: Auction is not Finished."
+                self.auctionVault.balance == 0.0 : "Illegal Operation: Auction Balance is ".concat(self.auctionVault.balance.toString())
             }
             // Re-Verify Funds Allocated Properly, since it's empty it should just pass
             self.returnFunds()

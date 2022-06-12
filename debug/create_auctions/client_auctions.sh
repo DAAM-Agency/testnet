@@ -15,7 +15,7 @@ echo "---------- Client Sells All (4) -----------"
 
 echo "---------- TokenID: 2 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 2 $START \
-330.0 false 0.0 false 0.05 \
+1000.0 false 0.0 false 0.05 \
 11.00 20.0 30.1 --signer client #AID: 8  // Auction ID
 
 echo "---------- TokenID: 7 ---------- "
@@ -25,7 +25,7 @@ flow transactions send ./transactions/auction/create_auction.cdc 7 $START \
 
 echo "---------- TokenID: 6 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 6 $START \
-330.0 false 0.0 false 0.04 \
+1000.0 false 0.0 false 0.04 \
 10.00 26.0 30.3 --signer client #AID: 10  // Auction ID
 
 echo "---------- TokenID: 5 ---------- "
@@ -52,7 +52,7 @@ flow transactions send ./transactions/auction/create_auction.cdc 14 $START \
 
 echo "---------- TokenID: 12 ---------- "
 flow transactions send ./transactions/auction/create_auction.cdc 12 $START \
-330.0 false 0.0 false 0.025 \
+1000.0 false 0.0 false 0.025 \
 15.00 28.0 30.7 --signer nobody #AID: 15  // Auction ID
 
 echo "---------- TokenID: 1 ---------- "
