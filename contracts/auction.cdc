@@ -212,7 +212,7 @@ pub struct AuctionInfo {
     pub resource interface AuctionPublic {
         pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault) // @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance}
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault
-        pub fun auctionInfo(): AuctionInfo?
+        pub fun auctionInfo(): AuctionInfo
         pub fun winnerCollect()
         pub fun getBuyNowAmount(bidder: Address): UFix64
         pub fun getMinBidAmount(bidder: Address): UFix64?
@@ -630,7 +630,7 @@ pub struct AuctionInfo {
         }
 
         pub fun itemInfo(): DAAM.MetadataHolder? { // returns the metadata of the item NFT.
-            return (self.auctionNFT != nil) ? self.auctionNFT?.metadata! : self.auctionMetadata?.getHolder()!
+            return (self.auctionNFT != nil) ? self.auctionNFT?.metadata! : self.auctionMetadata?.getHolder()
         }
 
         pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.

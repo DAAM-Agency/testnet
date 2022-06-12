@@ -390,17 +390,24 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
             // Verify Metadata Counter (print) is not last, if so delete Metadata
             if mRef!.edition.max != nil {
+                // if not last, print
                 if mRef!.edition.number < mRef!.edition.max! {            
                     let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
                         description:nil, thumbnail:nil, file:nil, metadata: mRef, interact: nil)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
+                } else if mRef!.edition.number == mRef!.edition.max! { // Last print
+                    let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
+                    return <- orig_metadata! // Return current Metadata
+                } else {
+                    panic("Metadata Prints Finished.")
                 }
-                panic("Metadata Prints Finished.")
-            } // if not last, print
-            
-            let orig_metadata <- self.clearMetadata(mid: mid) // Remove metadata template
-            return <- orig_metadata! // Return current Metadata  
+            }
+            // unlimited prints
+            let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
+                description:nil, thumbnail:nil, file:nil, metadata: mRef, interact: nil)
+            let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
+            return <- orig_metadata!
         }
 
         pub fun returnMetadata(metadata: @Metadata) {
