@@ -45,14 +45,14 @@ pub struct AuctionHolder {
         pub let fee           : UFix64   // the fee
         pub let price         : UFix64   // original price
         pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
-        pub let reprintSeries : Bool     // Active Series Minter (if series)
+        pub let reprintSeries : UInt64?  // Active Series Minter (if series)
         pub let auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         pub let requiredCurrency: Type
 
         init(
             _ status:Bool?, _ auctionID:UInt64, _ creators: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
-            _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: Bool,
+            _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: UInt64?,
             _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
             )
             {
@@ -107,12 +107,13 @@ pub struct AuctionHolder {
         // *** new is defines as "never sold", age is not a consideration. ***
         pub fun createAuction(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, id: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
-            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool): UInt64
+            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
             pre {
                 (metadataGenerator == nil && nft != nil) || (metadataGenerator != nil && nft == nil) : "You can not enter a Metadata and NFT."
                 self.validToken(vault: &vault as &FungibleToken.Vault)       : "We do not except this Token."
             }
+            
             var auction: @Auction? <- nil
             // Is Metadata, not NFT
             if metadataGenerator != nil {
@@ -191,8 +192,8 @@ pub struct AuctionHolder {
 
         pub fun endReprints(auctionID: UInt64) { // Toggles the reprint to OFF. Note: This is not a toggle
             pre {
-                self.currentAuctions.containsKey(auctionID)     : "AuctionID does not exist"
-                self.currentAuctions[auctionID]?.reprintSeries! : "Reprint is already set to Off."
+                self.currentAuctions.containsKey(auctionID)         : "AuctionID does not exist"
+                self.currentAuctions[auctionID]?.reprintSeries != 0 : "Reprint is already set to Off."
             }
             self.currentAuctions[auctionID]?.endReprints()
         }
@@ -238,12 +239,12 @@ pub struct AuctionHolder {
         pub var leader        : Address? // leading bidder
         pub var minBid        : UFix64?  // minimum bid
         priv let increment    : {Bool : UFix64} // true = is amount, false = is percentage *Note 1.0 = 100%
-        pub let startingBid   : UFix64?  // the starting bid od an auction. Nil = No Bidding. Direct Purchase
+        pub let startingBid   : UFix64?  // the starting bid of an auction. nil = No Bidding. Direct Purchase
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
         pub let fee           : UFix64   // the fee
         pub let price         : UFix64   // original price
         pub let buyNow        : UFix64   // buy now price original price
-        pub var reprintSeries : Bool   // Active Series Minter (if series)
+        pub var reprintSeries : UInt64?  // Number of reprints, nil = max prints.
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         access(contract) var auctionMetadata : @DAAM.Metadata? // Store NFT for auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
@@ -264,7 +265,7 @@ pub struct AuctionHolder {
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
         init(metadata: @DAAM.Metadata?, nft: @DAAM.NFT?, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault,
-          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool) {
+          incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?) {
             pre {
                 (metadata == nil && nft != nil) || (metadata != nil && nft == nil) : "Can not add NFT & Metadata"
                 start >= getCurrentBlock().timestamp : "Time has already past."
@@ -275,11 +276,9 @@ pub struct AuctionHolder {
                 startingBid == nil && buyNow != 0.0 || startingBid != nil : "Direct Purchase requires BuyItNow amount"
             }
             let metadataHolder: DAAM.MetadataHolder = (metadata != nil) ? metadata?.getHolder()! : nft?.metadata!
-            assert(reprintSeries && metadataHolder.edition.max != 1 || !reprintSeries, message: "This can not be reprinted.")
-            
-            if startingBid != nil { // Verify starting bid is lower then the reserve price
-                if reserve < startingBid! { panic("The Reserve must be greater then your Starting Bid") }
-            }
+            if reprintSeries != nil && metadataHolder.edition.max != nil { assert(reprintSeries! <= metadataHolder.edition.max!, message: "") }
+            // Verify starting bid is lower then the reserve price
+            if startingBid != nil { assert(reserve > startingBid!, message: "The Reserve must be greater then your Starting Bid") }
                      
             // Manage incrementByPrice
             if incrementByPrice == false && incrementAmount < 0.01  { panic("The minimum increment is 1.0%.")   }
@@ -307,10 +306,10 @@ pub struct AuctionHolder {
             let ref = (nft != nil) ? &nft?.metadata! as &DAAM.MetadataHolder : &metadata?.getHolder()! as &DAAM.MetadataHolder
             self.creators = ref.creatorInfo
 
-            if ref.edition.max != nil { // if last in series don't reprint.
-                self.reprintSeries = ref.edition.max! == ref.edition.number ? false : reprintSeries
+            if ref.edition.max != nil && reprintSeries == nil { // if there is max and reprint is set to nil ...
+                self.reprintSeries = ref.edition.max!           // set reprint to max 
             } else {
-                self.reprintSeries = reprintSeries
+                self.reprintSeries = reprintSeries              // otherwise reprint is equal to argument
             }              
             
             self.mid = ref.mid! // Meta   data ID
@@ -720,7 +719,11 @@ pub struct AuctionHolder {
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
         priv fun resetAuction() {
             //pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }  // already called by SerialMinter          
-            if !self.reprintSeries { return } // if reprint is set to off (false) return
+            if self.reprintSeries == 0 {
+                return // if reprint is set to off (false) return
+            } else if self.reprintSeries != nil {
+                self.reprintSeries = self.reprintSeries! - 1
+            }
 
             self.leader = nil
             self.start = getCurrentBlock().timestamp // reset new auction to start at current time
@@ -735,7 +738,7 @@ pub struct AuctionHolder {
         // Where the reprintSeries Mints another NFT.
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
-            if !self.reprintSeries { return } // if reprint is set to false, skip function
+            if self.reprintSeries == 0 { return } // if reprint is set to off (false) return
             if self.creators.creator.keys[0] != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
             let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
@@ -750,11 +753,10 @@ pub struct AuctionHolder {
         // End reprints. Set to OFF
         access(contract) fun endReprints() {
            pre {
-                self.reprintSeries : "Reprints is already off."
+                self.reprintSeries != 0 : "Reprints is already off."
                 self.auctionNFT?.metadata!.creatorInfo.creator.keys[0] == self.owner!.address : "You are not the Creator of this NFT"
-                //self.auctionNFT.metadata.series != 1 : "This is a 1-Shot NFT" // not reachable
            }
-           self.reprintSeries = false
+           self.reprintSeries = 0
         }
 
         // Auctions can be cancelled if they have no bids.
