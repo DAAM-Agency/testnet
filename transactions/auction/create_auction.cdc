@@ -8,7 +8,7 @@ import FUSD             from 0x192440c99cb17282
 
 transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
   /*requiredCurrency: Type,*/ incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
-  reserve: UFix64, buyNow: UFix64, reprint: Bool)
+  reserve: UFix64, buyNow: UFix64, reprint: UInt64?)
 {
 
   let auctionHouse : &AuctionHouse.AuctionWallet
@@ -26,7 +26,7 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   let reserve     : UFix64
   let buyNow      : UFix64
   let isMetadata  : Bool
-  let reprint     : Bool
+  let reprint     : UInt64?
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
