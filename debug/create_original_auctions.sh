@@ -29,7 +29,7 @@ flow transactions send ./transactions/admin/change_copyright.cdc $DISAPPROVED_CO
 . ./debug/view_basic_data.sh
 
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
-. ./debug/create_auctions/serial_minter/serial_aid_2.sh
+. ./debug/create_auctions/serial_minter/serial_aid_2.sh 2
 . ./debug/view_basic_data.sh
 
 . ./debug/create_auctions/withdraw_original_auctions.sh $CREATOR2 6

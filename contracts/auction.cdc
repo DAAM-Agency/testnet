@@ -76,7 +76,7 @@ pub struct AuctionInfo {
                 self.requiredCurrency = requiredCurrency
             }
 }
-/**********************`**************************************************/
+/************************************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
         pub fun getAuctions(): [UInt64] // MIDs in Auctions
@@ -148,11 +148,11 @@ pub struct AuctionInfo {
         pub fun closeAuctions()
         {
             for act in self.currentAuctions.keys {                
-                let current_status = self.currentAuctions[act]?.updateStatus() // status may be changed in verifyReservePrive() by seriesMinter()
+                let current_status = self.currentAuctions[act]?.updateStatus() // status may have been changed in verifyReservePrive() called by seriesMinter()
                 if current_status == false { // Check to see if auction has ended. A false value.
                     let auctionID = self.currentAuctions[act]?.auctionID! // get AID
                     log("Closing Token ID: ")
-                    if self.currentAuctions[act]?.auctionNFT != nil { // Winner has already collected
+                    if self.currentAuctions[act]?.auctionNFT != nil || self.currentAuctions[act]?.auctionMetadata != nil { // Winner has not yet collected
                         self.currentAuctions[act]?.verifyReservePrice()! // Winner has not claimed their item. Verify they have meet the reserve price?
                     }
 
@@ -773,8 +773,8 @@ pub struct AuctionInfo {
 
         destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
-                self.auctionNFT == nil           : "Illegal Operation: Auction still contains NFT."
-                self.auctionMetadata == nil      : "Illegal Operation: Auction still contains Metadata."
+                self.auctionNFT == nil           : "Illegal Operation: Auction still contains NFT Token ID: ".concat(self.auctionNFT?.metadata!.mid.toString())
+                self.auctionMetadata == nil      : "Illegal Operation: Auction still contains MetadataID: ".concat(self.auctionMetadata?.mid!.toString())
                 self.status == false             : "Illegal Operation: Auction is not Finished."
                 self.auctionVault.balance == 0.0 : "Illegal Operation: Auction Balance is ".concat(self.auctionVault.balance.toString())
             }
