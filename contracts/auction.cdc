@@ -29,7 +29,7 @@ pub contract AuctionHouse {
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 /**********************`**************************************************/
-pub struct AuctionInfo {
+pub struct AuctionHolder {
         pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
         pub let creators      : DAAM.CreatorInfo
@@ -212,7 +212,7 @@ pub struct AuctionInfo {
     pub resource interface AuctionPublic {
         pub fun depositToBid(bidder: Address, amount: @FungibleToken.Vault) // @AnyResource{FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance}
         pub fun withdrawBid(bidder: AuthAccount): @FungibleToken.Vault
-        pub fun auctionInfo(): AuctionInfo
+        pub fun auctionInfo(): AuctionHolder
         pub fun winnerCollect()
         pub fun getBuyNowAmount(bidder: Address): UFix64
         pub fun getMinBidAmount(bidder: Address): UFix64?
@@ -430,8 +430,8 @@ pub struct AuctionInfo {
             return <- amount  // return bidders deposit amount
         }
 
-        pub fun auctionInfo(): AuctionInfo {
-            let info = AuctionInfo(
+        pub fun auctionInfo(): AuctionHolder {
+            let info = AuctionHolder(
                 self.status, self.auctionID, self.creators, self.mid, self.start, self.length, self.isExtended,
                 self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
                 self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
