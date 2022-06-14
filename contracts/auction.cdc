@@ -665,11 +665,11 @@ pub struct AuctionHolder {
             self.payRoyalty(price: creatorAmount, royalties: list)
 
             list = [] // list of Agennts or Founder to be paid
-            if self.creators.agent == nil {
+            if self.creators.agent1stSale == nil {
                 list = DAAM.agency.getRoyalties()
             }
             else {
-                for agent in self.creators.agent!.keys { list.append(self.creators.agent![agent]!) }
+                for agent in self.creators.agent1stSale!.keys { list.append(self.creators.agent1stSale![agent]!) }
             }
             log("payfirstSale List: ")
             log(list)

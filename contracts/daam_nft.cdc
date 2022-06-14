@@ -75,7 +75,7 @@ pub enum CopyrightStatus: UInt8 {
 pub struct CreatorInfo {
     pub var creator: {Address: MetadataViews.Royalty} // This cut is beween the creators. it should equal 100%
     pub var status: Bool?
-    pub var agent: {Address: MetadataViews.Royalty} // Agent & Percentage
+    pub var agent1stSale: {Address: MetadataViews.Royalty} // Agent & Percentage
 
     init(creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?, status: Bool)
     {
@@ -91,7 +91,7 @@ pub struct CreatorInfo {
 
         self.creator = creator // element 0 is reserved for Creator
         self.status = status
-        self.agent = (agent!=nil) ? agent! : {}
+        self.agent1stSale = (agent!=nil) ? agent! : {}
     }
 
     pub fun setStatus(_ status: Bool?) { self.status = status }
@@ -104,7 +104,7 @@ pub struct CreatorInfo {
         }
         let info = CreatorInfo(creator: creator, agent: agent, status: self.status!)
         self.creator = info.creator
-        self.agent   = info.agent
+        self.agent1stSale = info.agent1stSale
     }
 }
 /***********************************************************************/
@@ -880,12 +880,12 @@ pub resource Admin: Agent
                 self.status                     : "You're no longer a have Access."
                 DAAM.isAgent(agent) == true     : "This is not a Agent Address."
                 DAAM.isCreator(creator) == true : "This is not a Agent Address."
-                !DAAM.creators[creator]!.agent.containsKey(agent) == false : "Already your Agent."
+                !DAAM.creators[creator]!.agent1stSale.containsKey(agent) == false : "Already your Agent."
             }
-            post { creatorInfo.agent.containsKey(agent) : "Illegal Operation: creatorAddAgent" } // Unreachable
+            post { creatorInfo.agent1stSale.containsKey(agent) : "Illegal Operation: creatorAddAgent" } // Unreachable
 
             let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
-            creatorInfo.updateAgent(creator: creatorInfo.creator, agent: creatorInfo.agent) // status changed
+            creatorInfo.updateAgent(creator: creatorInfo.creator, agent: creatorInfo.agent1stSale) // status changed
             log("Creator Status Changed")
             emit CreatorAddAgent(creator: creator, agent: agent)
         }
