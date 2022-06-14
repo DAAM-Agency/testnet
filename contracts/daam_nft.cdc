@@ -299,8 +299,8 @@ pub resource interface MetadataGeneratorPublic {
 pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // Variables
         priv var metadata : @{UInt64 : Metadata} // {MID : Metadata Resource}
-        priv var returns  : @{UInt64 : [Metadata?]}
-        priv let grantee  : Address
+        priv var returns  : @{UInt64 : [Metadata]}
+        priv let grantee  : Address              // original owner
 
         init(_ grantee: Address) {
             self.metadata <- {}  // Init Metadata
@@ -411,9 +411,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun returnMetadata(metadata: @Metadata) {
-            pre { metadata.creatorInfo.creator.containsKey(self.grantee) : "Must be returned to an Original Creator" } 
-            let ref = &self.returns[metadata.mid] as &[Metadata?]?
-            ref!.append(<-metadata)
+            pre { metadata.creatorInfo.creator.containsKey(self.grantee) : "Must be returned to an Original Creator" }
+
+            if self.returns[metadata.mid] == nil { // If first return of a Metadata ID
+                let old <- self.returns[metadata.mid] <- []
+                destroy old
+            }
+            let ref = &self.returns[metadata.mid] as &[Metadata]?
+            ref!.append(<- metadata)
         }
 
         pub fun getMIDs(): [UInt64] { // Return specific MIDs of Creator
