@@ -501,7 +501,7 @@ pub struct AuctionHolder {
            
             var isLast = false
             if nft.metadata!.edition.max != nil { 
-                isLast = (nft.metadata!.edition.number <= nft.metadata!.edition.max!)
+                isLast = (nft.metadata!.edition.number == nft.metadata!.edition.max!)
             }
 
             // NFT Deposot Must be LAST !!! *except for seriesMinter

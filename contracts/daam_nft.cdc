@@ -1015,11 +1015,11 @@ pub resource Admin: Agent
                 DAAM.isCreator(metadata.creatorInfo.creator.keys[0]) == true :
                     "Account: ".concat(metadata.creatorInfo.creator.keys[0].toString()).concat(" This is not our Creator.")
                 DAAM.isMinter(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
-                DAAM.request.containsKey(metadata.mid) : "Invalid Request"
+                DAAM.request.containsKey(metadata.mid) : "Invalid Request for MID: ".concat(metadata.mid.toString())
             }
             var isLast = false
             if metadata.edition.max != nil { 
-                isLast = (metadata.edition.number <= metadata.edition.max!)
+                isLast = (metadata.edition.number == metadata.edition.max!)
             }
 
             let mid = metadata.mid               // Get MID
