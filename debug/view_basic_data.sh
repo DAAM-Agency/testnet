@@ -36,19 +36,39 @@ getAddressName() {
         $NOBODY)
         echo -n " Nobody  : "
         ;;
+
+        $CLIENT)
+        echo -n " Client  : "
+        ;;
+
+        $CLIENT2)
+        echo -n " Client2 : "
+        ;;
         
         $CTO)
         echo -n " CTO     : "
         ;;
         
-        $CLIENT)
-        echo -n " Client  : "
+        $FOUNDER1)
+        echo -n " Founder1: "
         ;;
         
-        $CLIENT2)
-        echo -n " Client2 : "
+        $FOUNDER2)
+        echo -n " Founder2: "
         ;;
         
+        $FOUNDER3)
+        echo -n " Founder3: "
+        ;;
+        
+        $FOUNDER4)
+        echo -n " Founder4: "
+        ;;
+        
+        $FOUNDER5)
+        echo -n " Founder5: "
+        ;;
+
         *)
         echo -n "!!!!!!!!! RETURNED WRONG VALUE !!!!!!!!!!"
         ;;
@@ -58,7 +78,7 @@ getAddressName() {
 
 # Get Accounts FUSD total
 echo "---------- FUSD ----------"
-for user in $AGENCY $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2 $NOBODY
+for user in $AGENCY $CREATOR $CREATOR2 $AGENT $AGENT2 $CLIENT $CLIENT2 $NOBODY $CTO $FOUNDER1 $FOUNDER2 $FOUNDER3 $FOUNDER4 $FOUNDER5
 do
     getAddressName $user
     flow -o json scripts execute ./scripts/get_fusd_balance.cdc $user | jq ' .value | .value'
