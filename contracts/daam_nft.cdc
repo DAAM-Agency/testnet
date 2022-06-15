@@ -72,42 +72,6 @@ pub enum CopyrightStatus: UInt8 {
             pub case VERIFIED   // 3 as UInt8
 }
 /***********************************************************************/
-pub struct CreatorInfo {
-    pub var creator: {Address: MetadataViews.Royalty} // This cut is beween the creators. it should equal 100%
-    pub var status: Bool?
-    pub var agent1stSale: {Address: MetadataViews.Royalty} // Agent & Percentage
-
-    init(creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?, status: Bool)
-    {
-        var royaltyList: [MetadataViews.Royalty] = []
-        var totalCut: UFix64 = 0.0
-        // Get totalCut from Creators
-        for cut in creator.keys { totalCut = totalCut + creator[cut]!.cut }
-        // Get totalCut from Agents if any
-        if agent != nil {
-            for cut in agent!.keys { totalCut = totalCut + agent![cut]!.cut }
-        } // Verify Cretors cut and Agents cut = 1.0
-        assert(totalCut == 1.0, message: "Shares must equal 100% not ".concat(creator[creator.keys[0]]!.cut.toString()))
-
-        self.creator = creator // element 0 is reserved for Creator
-        self.status = status
-        self.agent1stSale = (agent!=nil) ? agent! : {}
-    }
-
-    pub fun setStatus(_ status: Bool?) { self.status = status }
-
-    access(contract) fun updateAgent (creator: {Address: MetadataViews.Royalty}, agent: {Address: MetadataViews.Royalty}?) {
-        // error checking below
-        for c in creator.keys { assert(DAAM.isCreator(c) != nil, message: c.toString().concat("Is not a Creator")) }
-        if agent != nil {
-            for a in agent!.keys { assert(DAAM.isAgent(a) != nil, message: a.toString().concat("Is not an Agent")) }
-        }
-        let info = CreatorInfo(creator: creator, agent: agent, status: self.status!)
-        self.creator = info.creator
-        self.agent1stSale = info.agent1stSale
-    }
-}
-/***********************************************************************/
 // Used to make requests for royalty. A resource for Neogoation of royalities.
 // When both parties agree on 'royalty' the Request is considered valid aka isValid() = true and
 // Request manage the royalty rate
@@ -147,43 +111,47 @@ pub resource RequestGenerator {
 
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
-    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, percentage: UFix64) {
+    pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalties: MetadataViews.Royalties) {
         pre {
             self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
             metadataGen.getMIDs().contains(mid)     : "MID: ".concat(mid.toString()).concat(" is Incorrect")
             DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
             DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
-            percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
+            //percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
         // Getting Agency royalties
         let agency   = DAAM.agency.getRoyalties()
-        let creators = metadataGen.viewMetadata(mid: mid)!.creatorInfo.creator // creatorInfo.creators[0]
-        let creatorCut = percentage / 1.025 // Add Creator percentage
-        let daamCut    = percentage - creatorCut // Add daam percentge
-        assert(creatorCut + daamCut == percentage, message: "Illegal Operation: accept Default")
+        let rate     = 0.025
         var royalty_list: [MetadataViews.Royalty] = []
-
-        for creator in creators.keys {
+        
+        let creators = royalties!.getRoyalties()
+        var totalCut = 0.0
+        var rateCut  = 0.0
+        for creator in creators {
+            totalCut = totalCut + creator.cut
+            let newCut = creator.cut / (1.0 + rate)
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver),
-                    cut: creatorCut * creators[creator]!.cut,
-                    description: "Creator")
-            ) // end append   
-        }        
+                    recepient: creator.receiver,
+                    cut: newCut,
+                    description: "Creator Royalty")
+            ) // end append    
+            rateCut = rateCut + (creator.cut - newCut)         
+        }
+        assert(totalCut >= 0.1 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 
         for founder in agency {
             royalty_list.append(
                 MetadataViews.Royalty(
                     recepient: founder.receiver,
-                    cut: daamCut * founder.cut,
-                    description: "Agency Fee")
-            ) // end append   
-        }        
+                    cut: founder.cut * rateCut,
+                    description: "Agency Royalty")
+            ) // end append 
+        }
 
         let request <-! create Request(mid: mid) // get request
-        let royalties = MetadataViews.Royalties(royalty_list)
-        request.acceptDefault(royalty: royalties)  // append royalty rate
+        let newRoyalties = MetadataViews.Royalties(royalty_list)
+        request.acceptDefault(royalty: newRoyalties)  // append royalty rate
 
         let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
         destroy old // destroy place holder
@@ -196,18 +164,18 @@ pub resource RequestGenerator {
     pub struct MetadataHolder
     {   // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
-        pub let creatorInfo : CreatorInfo           // Creator of NFT
+        pub let creatorInfo : CreatorInfo               // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
         pub let category    : [Categories.Category]
-        pub var inCollection: {String:[UInt64]}?  // {name: [MIDs in Collection] }
+        pub var inCollection: {String:[UInt64]}?    // {name: [MIDs in Collection] }
         pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         
-        init(creators: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: {String:[UInt64]}?,
+        init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: {String:[UInt64]}?,
             description: String, thumbnail: {String : {MetadataViews.File}})
         {
             self.mid          = mid
-            self.creatorInfo  = creators     // creator of NFT
+            self.creatorInfo  = creator      // creator of NFT
             self.edition      = edition      // total prints
             self.category     = categories
             self.inCollection = inCollection // total prints
@@ -217,34 +185,34 @@ pub resource RequestGenerator {
     }
 /************************************************************************/
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
-        pub let mid         : UInt64   // Metadata ID number
-        pub let creatorInfo : CreatorInfo  // Creator of NFT
-        pub let edition     : MetadataViews.Edition   // series total, number of prints. 0 = Unlimited [counter, total]
-        pub let category    : [Categories.Category]
+        pub let mid         : UInt64                // Metadata ID number
+        pub let creatorInfo : CreatorInfo           // Creator of NFT
+        pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?
-        pub let description : String   // JSON see metadata.json all data ABOUT the NFT is stored here
+        pub let description : String                // NFT description is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         pub let interact    : AnyStruct?
         pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creators: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
+        init(creator: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
             thumbnail: {String:{MetadataViews.File}}?, file: {String:MetadataViews.Media}?, metadata: &Metadata?, interact: AnyStruct?)
         {            
             pre {
                 DAAM.validInteract(interact) : "This Interaction is not Authorized"
                 max != 0 : "Max has an incorrect value of 0."
                 // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
-                (creators==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
+                (creator==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
                 metadata != nil)
                 || // or
                 // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
-                (creators!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
+                (creator!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
             if metadata == nil {
                 DAAM.metadataCounterID = DAAM.metadataCounterID + 1
                 self.mid         = DAAM.metadataCounterID // init MID with counter
-                self.creatorInfo = creators!               // creator of NFT
+                self.creatorInfo = creator!               // creator of NFT
                 self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
                 self.category    = categories!            // categories 
                 self.description = description!           // data,about,misc page
@@ -271,7 +239,7 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creators: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
+            return MetadataHolder(creator: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
                 inCollection: self.inCollection, description: self.description, thumbnail: self.thumbnail )
         }
 
@@ -320,7 +288,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             }
 
-            let metadata <- create Metadata(creators: DAAM.creators[self.grantee], name: name, max: max, categories: categories, inCollection: inCollection,
+            let metadata <- create Metadata(creator: DAAM.creators[self.grantee], name: name, max: max, categories: categories, inCollection: inCollection,
                 description: description, thumbnail: thumbnail, file: file, metadata: nil, interact: interact) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
@@ -392,7 +360,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if mRef!.edition.max != nil {
                 // if not last, print
                 if mRef!.edition.number < mRef!.edition.max! {            
-                    let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
+                    let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, inCollection:nil,
                         description:nil, thumbnail:nil, file:nil, metadata: mRef, interact: nil)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
@@ -404,14 +372,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 }
             }
             // unlimited prints
-            let new_metadata <- create Metadata(creators:nil, name:nil, max:nil, categories:nil, inCollection:nil,
+            let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, inCollection:nil,
                 description:nil, thumbnail:nil, file:nil, metadata: mRef, interact: nil)
             let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
             return <- orig_metadata!
         }
 
         pub fun returnMetadata(metadata: @Metadata) {
-            pre { metadata.creatorInfo.creator.containsKey(self.grantee) : "Must be returned to an Original Creator" }
+            pre { metadata.creatorInfo.creator == self.grantee : "Must be returned to an Original Creator" }
 
             if self.returns[metadata.mid] == nil { // If first return of a Metadata ID
                 let old <- self.returns[metadata.mid] <- []
@@ -752,28 +720,9 @@ pub resource Admin: Agent
                 Profile.check(creator)        : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
             post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
-
-            // If Creator is invited by Agent, attach Agent to Creator Info
-            let creatorCap = getAccount(creator).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
-            let creatorCut = (agentCut==nil) ? 1.0 : (1.0-agentCut!)
-            let creatorRoyalty = MetadataViews.Royalty(recepient: creatorCap, cut: creatorCut, description: "Invited by ".concat(self.owner!.address.toString()) )
-            let creatorArg: {Address: MetadataViews.Royalty} = {creator : creatorRoyalty}
-
-            var agentArg: {Address:MetadataViews.Royalty}? = nil
-            if agentCut != nil {
-                assert(agentCut! < 1.0, message: "You can not have 100% of Shares.")
-                let agentCap  = getAccount(self.owner!.address).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)
-                let agentRoyalty  = MetadataViews.Royalty(recepient: agentCap, cut: agentCut!, description: "Agency Invite")
-                agentArg = DAAM.isAgent(self.owner!.address) != nil ? {self.owner!.address: agentRoyalty} : {}
-            }
-
-            log(creatorArg)
-            log(agentArg)
-            let creatorInfo = CreatorInfo(
-                creator: creatorArg,
-                agent: agentArg ,
-                status: false) // Store Creator status, false = invited, not yet answered
-            DAAM.creators.insert(key: creator, creatorInfo ) // Creator account is setup but not active untill accepted.
+            let agent: Address? = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : nil
+            let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
+            DAAM.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
 
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
@@ -872,24 +821,6 @@ pub resource Admin: Agent
             emit MinterRemoved(minter: minter)
         }
 
-        // Admin can Change Creator Agents 
-        pub fun creatorUpdateAgent(creator: Address, agent: Address, royalty: MetadataViews.Royalty) {
-            pre  {
-                DAAM.isAdmin(self.owner!.address) == true : "Permission Denied"
-                self.grantee == self.owner!.address       : "Permission Denied"
-                self.status                     : "You're no longer a have Access."
-                DAAM.isAgent(agent) == true     : "This is not a Agent Address."
-                DAAM.isCreator(creator) == true : "This is not a Agent Address."
-                !DAAM.creators[creator]!.agent1stSale.containsKey(agent) == false : "Already your Agent."
-            }
-            post { creatorInfo.agent1stSale.containsKey(agent) : "Illegal Operation: creatorAddAgent" } // Unreachable
-
-            let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
-            creatorInfo.updateAgent(creator: creatorInfo.creator, agent: creatorInfo.agent1stSale) // status changed
-            log("Creator Status Changed")
-            emit CreatorAddAgent(creator: creator, agent: agent)
-        }
-
         // Admin can Change Agent status 
         pub fun changeAgentStatus(agent: Address, status: Bool) {
             pre {
@@ -917,8 +848,7 @@ pub resource Admin: Agent
             }
             post { DAAM.isCreator(creator) == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
-            let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
-            creatorInfo.setStatus(status) // status changed
+            DAAM.creators[creator]!.setStatus(status) // status changed
             log("Creator Status Changed")
             emit ChangeCreatorStatus(creator: creator, status: status)
         }
@@ -966,14 +896,28 @@ pub resource Admin: Agent
         }
 	}
 /************************************************************************/
+pub struct CreatorInfo {
+    pub let creator   : Address
+    pub let agent     : Address?
+    pub let firstSale : UFix64?
+    pub var status    : Bool?
+
+    init(creator: Address, agent: Address?, firstSale: UFix64? ) {
+        self.creator   = creator
+        self.agent     = agent
+        self.firstSale = firstSale
+        self.status    = false 
+    }
+
+    access(contract) fun setStatus(_ status: Bool?) { self.status = status }
+}
+/************************************************************************/
 // The Creator Resource (like Admin/Agent) is a permissions Resource. This allows the Creator
 // to Create Metadata which inturn can be made in NFTs after Minting
     pub resource Creator {
-        pub var agent: {Address: [UInt64]} // {Agent Address:[MID]} // preparation for V2
         access (contract) let grantee: Address
 
         init(_ creator: Address) {
-            self.agent = {}
             self.grantee = creator
         }  // init Creators agent(s)
 
@@ -1012,10 +956,10 @@ pub resource Admin: Agent
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
                 //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
-                DAAM.isCreator(metadata.creatorInfo.creator.keys[0]) == true :
-                    "Account: ".concat(metadata.creatorInfo.creator.keys[0].toString()).concat(" This is not our Creator.")
-                DAAM.isMinter(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
-                DAAM.request.containsKey(metadata.mid) : "Invalid Request for MID: ".concat(metadata.mid.toString())
+                DAAM.isCreator(metadata.creatorInfo.creator) == true :
+                    "Account: ".concat(metadata.creatorInfo.creator.toString()).concat(" This is not our Creator.")
+                DAAM.isMinter(self.grantee) == true      : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
+                DAAM.request.containsKey(metadata.mid)   : "Invalid Request for MID: ".concat(metadata.mid.toString())
             }
             var isLast = false
             if metadata.edition.max != nil { 
@@ -1033,7 +977,7 @@ pub resource Admin: Agent
             self.newNFT(id: nft.id) // Mark NFT as new
             
             log("Minited NFT: ".concat(nft.id.toString()))
-            emit MintedNFT(creator: nft.metadata.creatorInfo.creator.keys[0], id: nft.id)
+            emit MintedNFT(creator: nft.metadata.creatorInfo.creator, id: nft.id)
 
             return <- nft  // return NFT
         }
@@ -1141,8 +1085,7 @@ pub resource MinterAccess
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        let creatorInfo = &DAAM.creators[newCreator.address]! as &CreatorInfo
-        creatorInfo.setStatus(submit)         // Add Creator & set Status (True)
+        DAAM.creators[newCreator.address]!.setStatus(submit)        // Add Creator & set Status (True)
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
         return <- create Creator(newCreator.address)!                         // Return Creator Resource
@@ -1166,12 +1109,6 @@ pub resource MinterAccess
         post { result.getIDs().length == 0: "The created collection must be empty!" }
         return <- create DAAM.Collection() // Return Collection Resource
     }
-
-    // Create an new Collection to store NFTs
-    /*pub fun createDAAMCollection(): @DAAM.Collection {
-        post { result.getIDs().length == 0: "The created DAAM collection must be empty!" }
-        return <- create DAAM.Collection() // Return Collection Resource
-    }*/
 
     // Return list of Creators
     pub fun getCreators(): {Address:CreatorInfo} { return self.creators }
@@ -1200,9 +1137,7 @@ pub resource MinterAccess
     }
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
-        if self.creators[creator] == nil { return nil }
-        let creatorInfo = &DAAM.creators[creator]! as &CreatorInfo
-        return creatorInfo.status // nil = not a creator, false = invited to be a creator, true = is a creator
+        return DAAM.creators[creator]?.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 
     priv fun validInteract(_ interact: AnyStruct?): Bool {

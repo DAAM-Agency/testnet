@@ -32,7 +32,7 @@ pub contract AuctionHouse {
 pub struct AuctionHolder {
         pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creators      : DAAM.CreatorInfo
+        pub let creator       : DAAM.CreatorInfo
         pub let mid           : UInt64       // collect Metadata ID
         pub let start         : UFix64       // timestamp
         pub let length        : UFix64   // post{!isExtended && length == before(length)}
@@ -50,7 +50,7 @@ pub struct AuctionHolder {
         pub let requiredCurrency: Type
 
         init(
-            _ status:Bool?, _ auctionID:UInt64, _ creators: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
+            _ status:Bool?, _ auctionID:UInt64, _ creator: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
             _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: UInt64?,
             _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
@@ -58,7 +58,7 @@ pub struct AuctionHolder {
             {
                 self.status        = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
                 self.auctionID     = auctionID       // Auction ID number. Note: Series auctions keep the same number. 
-                self.creators      = creators
+                self.creator       = creator 
                 self.mid           = mid       // collect Metadata ID
                 self.start         = start       // timestamp
                 self.length        = length   // post{!isExtended && length == before(length)}
@@ -229,7 +229,7 @@ pub struct AuctionHolder {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creators    : DAAM.CreatorInfo
+        pub let creator     : DAAM.CreatorInfo
         pub let mid         : UInt64       // collect Metadata ID
         pub var start       : UFix64       // timestamp
         priv let origLength   : UFix64   // original length of auction, needed to reset if Series
@@ -304,7 +304,7 @@ pub struct AuctionHolder {
             self.price = buyNow
             
             let ref = (nft != nil) ? &nft?.metadata! as &DAAM.MetadataHolder : &metadata?.getHolder()! as &DAAM.MetadataHolder
-            self.creators = ref.creatorInfo
+            self.creator = ref.creator
 
             if ref.edition.max != nil && reprintSeries == nil { // if there is max and reprint is set to nil ...
                 self.reprintSeries = ref.edition.max!           // set reprint to max 
@@ -655,17 +655,18 @@ pub struct AuctionHolder {
             //let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             let price     = self.auctionVault.balance / (1.0 + self.fee)
             let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-            let creatorPercentage   = 0.8 // Creator 1dr sale percentge, onlyone tatneed to be edited if ever.
-            let remainderPercentage = 1.0 - creatorPercentage
-            let creatorAmount   = price * creatorPercentage
-            var remainderAmount = price * remainderPercentage
+            //let creatorPercentage   = 0.8 // Creator 1dr sale percentge, onlyone tatneed to be edited if ever.
+            //let remainderPercentage = 1.0 - creatorPercentage
+            //let creatorAmount   = price //* creatorPercentage
+            //let remainderAmount = self.auctionVault.balance - price
 
             var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
             for creator in self.creators.creator!.keys { list.append(self.creators.creator[creator]!) }
-            self.payRoyalty(price: creatorAmount, royalties: list)
+            //self.payRoyalty(price: price, royalties: list)
 
-            list = [] // list of Agennts or Founder to be paid
+            //list = [] // list of Agennts or Founder to be paid
             if self.creators.agent1stSale == nil {
+                //add DAAM default Cut of 15% TODO
                 list = DAAM.agency.getRoyalties()
             }
             else {
@@ -673,7 +674,7 @@ pub struct AuctionHolder {
             }
             log("payfirstSale List: ")
             log(list)
-            self.payRoyalty(price: remainderAmount, royalties: list)
+            self.payRoyalty(price: price, royalties: list)
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
@@ -688,9 +689,13 @@ pub struct AuctionHolder {
             let fee     = self.auctionVault.balance - price   // Get fee amount
             self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties())
             // Pay Creator Royalty
-            let creatorAmount = price * 0.15
             var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
-            for creator in self.creators.creator!.keys { list.append(self.creators.creator[creator]!) }
+            var totalCut = 0.0
+            for creator in self.creators.creator!.keys {
+                list.append(self.creators.creator[creator]!)
+                totalCut = totalCut + self.creators.creator[creator]!.cut
+            }
+            let creatorAmount = price * totalCut
             self.payRoyalty(price: creatorAmount, royalties: list)
             //Pay Seller
             let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
