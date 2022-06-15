@@ -1,6 +1,7 @@
 // submit_accept.cdc
 // Creator uses to submit Metadata & Approve Rpyalty
 
+import FungibleToken from 0xee82856bf20e2aa6 
 import Categories    from 0xfd43f9148d4b725d
 import MetadataViews from 0xf8d6e0586b0a20c7
 import DAAM          from 0xfd43f9148d4b725d
@@ -40,10 +41,9 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     let description : String
     let thumbnail   : {String : {MetadataViews.File}}
     let file        : {String : MetadataViews.Media}
-    let percentage  : UFix64
+    let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
-        //self.creator     = creator
         self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
 
@@ -56,11 +56,16 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
+        let royalties    = [ MetadataViews.Royalty(
+            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),
+            cut: percentage,
+            description: "Creator Royalty" )
+        ]
+        self.royalties = MetadataViews.Royalties(royalties)
         self.categories = []
         for cat in categories {
             self.categories.append(Categories.Category(cat))
         }
-        self.percentage = percentage
     }
 
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
@@ -69,7 +74,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
         description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
 
-        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
 
         log("Metadata Submitted: ".concat(mid.toString()))
     }

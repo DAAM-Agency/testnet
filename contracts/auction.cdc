@@ -199,6 +199,7 @@ pub struct AuctionHolder {
         }
 
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
+            //self.crypto = {String: "/public/fusdReceiver"}
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {
@@ -652,18 +653,19 @@ pub struct AuctionHolder {
 
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
-            let price     = self.auctionVault.balance / (1.0 + self.fee)
-            let fee       = self.auctionVault.balance - price   // Get fee amount
-            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+            let price       = self.auctionVault.balance / (1.0 + self.fee)
+            let fee         = self.auctionVault.balance - price   // Get fee amount
+            let royalties   = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+            let daamRoyalty = 0.15
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
-                //default daam first sale TODO
+                let daamAmount = price * daamRoyalty
+                self.payRoyalty(price: daamAmount+fee, royalties: DAAM.agency.getRoyalties())
             } else {
                 let agentAmount   = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
-                let agentRoyalty = Add Agent into [Royalty]
                 self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
                 self.payRoyalty(price: agentAmount, royalties: royalties)
             }
-            self.payRoyalty(price: self.auctionVault.balance, royalties: DAAM.agency.getRoyalties() )
+            self.payRoyalty(price: self.auctionVault.balance, royalties: royalties )
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
