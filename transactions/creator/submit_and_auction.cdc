@@ -83,7 +83,7 @@ transaction(
         let royalties    = [ MetadataViews.Royalty(
             recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),
             cut: percentage,
-            description: "" )
+            description: "Creator Royalty" )
         ]
         self.royalties = MetadataViews.Royalties(royalties)
 
