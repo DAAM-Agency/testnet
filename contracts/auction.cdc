@@ -652,29 +652,18 @@ pub struct AuctionHolder {
 
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
-            //let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
             let price     = self.auctionVault.balance / (1.0 + self.fee)
+            let fee       = self.auctionVault.balance - price   // Get fee amount
             let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-            //let creatorPercentage   = 0.8 // Creator 1dr sale percentge, onlyone tatneed to be edited if ever.
-            //let remainderPercentage = 1.0 - creatorPercentage
-            //let creatorAmount   = price //* creatorPercentage
-            //let remainderAmount = self.auctionVault.balance - price
-
-            var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
-            for creator in royalties { list.append(creator) }
-            //self.payRoyalty(price: price, royalties: list)
-
-            //list = [] // list of Agennts or Founder to be paid
-            if self.creatorInfo.firstSale == nil {
-                //add DAAM default Cut of 15% TODO
-                //list = DAAM.agency.getRoyalties()
+            if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
+                //default daam first sale TODO
+            } else {
+                let agentAmount   = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
+                let agentRoyalty = Add Agent into [Royalty]
+                self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
+                self.payRoyalty(price: agentAmount, royalties: royalties)
             }
-            else {
-                //for agent in self.creatorInfo.firstSale!.keys { list.append(self.creatorInfo.firstSale![agent]!) }
-            }
-            log("payfirstSale List: ")
-            log(list)
-            self.payRoyalty(price: price, royalties: list)
+            self.payRoyalty(price: self.auctionVault.balance, royalties: DAAM.agency.getRoyalties() )
         }
 
         // Royalty rates are gathered from the NFTs metadata and funds are proportioned accordingly.
@@ -682,25 +671,23 @@ pub struct AuctionHolder {
         {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
             if self.auctionVault.balance == 0.0 { return }     // No need to run, already processed.
-            // 2nd Sale
-            // Pay Fee
             let tokenID = self.auctionNFT?.id!                 // Get TokenID
-            let price   = self.auctionVault.balance / (1.0 + self.fee)
-            let fee     = self.auctionVault.balance - price   // Get fee amount
-            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
-
-            self.payRoyalty(price: price, royalties:royalties)
-            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
-
-            let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
-            let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
-            seller.deposit(from: <-sellerCut ) // deposit amount
-            
             // If 1st sale is 'new' remove from 'new list'
-            /*if DAAM.isNFTNew(id: tokenID) {
+            if DAAM.isNFTNew(id: tokenID) {
                 AuctionHouse.notNew(tokenID: tokenID) 
                 self.payFirstSale()
-            }*/            
+            } else {   // 2nd Sale
+                let price   = self.auctionVault.balance / (1.0 + self.fee)
+                let fee     = self.auctionVault.balance - price   // Get fee amount
+                let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+
+                self.payRoyalty(price: price, royalties:royalties)
+                self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
+
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
+                seller.deposit(from: <-sellerCut ) // deposit amount
+            }     
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!

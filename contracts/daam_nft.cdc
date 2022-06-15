@@ -903,6 +903,8 @@ pub struct CreatorInfo {
     pub var status    : Bool?
 
     init(creator: Address, agent: Address?, firstSale: UFix64? ) {
+        pre { agent == nil && firstSale == nil || agent != nil && firstSale != nil : "Agent and First Sale Argument do not match." }
+        
         self.creator   = creator
         self.agent     = agent
         self.firstSale = firstSale
