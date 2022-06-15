@@ -32,7 +32,7 @@ pub contract AuctionHouse {
 pub struct AuctionHolder {
         pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creator       : DAAM.CreatorInfo
+        pub let creatorInfo   : DAAM.CreatorInfo
         pub let mid           : UInt64       // collect Metadata ID
         pub let start         : UFix64       // timestamp
         pub let length        : UFix64   // post{!isExtended && length == before(length)}
@@ -58,7 +58,7 @@ pub struct AuctionHolder {
             {
                 self.status        = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
                 self.auctionID     = auctionID       // Auction ID number. Note: Series auctions keep the same number. 
-                self.creator       = creator 
+                self.creatorInfo   = creator 
                 self.mid           = mid       // collect Metadata ID
                 self.start         = start       // timestamp
                 self.length        = length   // post{!isExtended && length == before(length)}
@@ -229,7 +229,7 @@ pub struct AuctionHolder {
         access(contract) var status: Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         priv var height     : UInt64?      // Stores the final block height made by the final bid only.
         pub var auctionID   : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
-        pub let creator     : DAAM.CreatorInfo
+        pub let creatorInfo : DAAM.CreatorInfo
         pub let mid         : UInt64       // collect Metadata ID
         pub var start       : UFix64       // timestamp
         priv let origLength   : UFix64   // original length of auction, needed to reset if Series
@@ -304,7 +304,7 @@ pub struct AuctionHolder {
             self.price = buyNow
             
             let ref = (nft != nil) ? &nft?.metadata! as &DAAM.MetadataHolder : &metadata?.getHolder()! as &DAAM.MetadataHolder
-            self.creator = ref.creator
+            self.creatorInfo = ref.creatorInfo
 
             if ref.edition.max != nil && reprintSeries == nil { // if there is max and reprint is set to nil ...
                 self.reprintSeries = ref.edition.max!           // set reprint to max 
@@ -431,7 +431,7 @@ pub struct AuctionHolder {
 
         pub fun auctionInfo(): AuctionHolder {
             let info = AuctionHolder(
-                self.status, self.auctionID, self.creators, self.mid, self.start, self.length, self.isExtended,
+                self.status, self.auctionID, self.creatorInfo, self.mid, self.start, self.length, self.isExtended,
                 self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
                 self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
             )
@@ -661,16 +661,16 @@ pub struct AuctionHolder {
             //let remainderAmount = self.auctionVault.balance - price
 
             var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
-            for creator in self.creators.creator!.keys { list.append(self.creators.creator[creator]!) }
+            for creator in royalties { list.append(creator) }
             //self.payRoyalty(price: price, royalties: list)
 
             //list = [] // list of Agennts or Founder to be paid
-            if self.creators.agent1stSale == nil {
+            if self.creatorInfo.firstSale == nil {
                 //add DAAM default Cut of 15% TODO
-                list = DAAM.agency.getRoyalties()
+                //list = DAAM.agency.getRoyalties()
             }
             else {
-                for agent in self.creators.agent1stSale!.keys { list.append(self.creators.agent1stSale![agent]!) }
+                //for agent in self.creatorInfo.firstSale!.keys { list.append(self.creatorInfo.firstSale![agent]!) }
             }
             log("payfirstSale List: ")
             log(list)
@@ -687,17 +687,11 @@ pub struct AuctionHolder {
             let tokenID = self.auctionNFT?.id!                 // Get TokenID
             let price   = self.auctionVault.balance / (1.0 + self.fee)
             let fee     = self.auctionVault.balance - price   // Get fee amount
-            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties())
-            // Pay Creator Royalty
-            var list: [MetadataViews.Royalty] = [] // list of Creators to be paid
-            var totalCut = 0.0
-            for creator in self.creators.creator!.keys {
-                list.append(self.creators.creator[creator]!)
-                totalCut = totalCut + self.creators.creator[creator]!.cut
-            }
-            let creatorAmount = price * totalCut
-            self.payRoyalty(price: creatorAmount, royalties: list)
-            //Pay Seller
+            let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
+
+            self.payRoyalty(price: price, royalties:royalties)
+            self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
+
             let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
             let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
             seller.deposit(from: <-sellerCut ) // deposit amount
@@ -744,7 +738,7 @@ pub struct AuctionHolder {
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
             if self.reprintSeries == 0 { return } // if reprint is set to off (false) return
-            if self.creators.creator.keys[0] != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
+            if self.creatorInfo.creator != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
             let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
             let minterAccess <- AuctionHouse.minterAccess()
@@ -759,7 +753,7 @@ pub struct AuctionHolder {
         access(contract) fun endReprints() {
            pre {
                 self.reprintSeries != 0 : "Reprints is already off."
-                self.auctionNFT?.metadata!.creatorInfo.creator.keys[0] == self.owner!.address : "You are not the Creator of this NFT"
+                self.auctionNFT?.metadata!.creatorInfo.creator == self.owner!.address : "You are not the Creator of this NFT"
            }
            self.reprintSeries = 0
         }
