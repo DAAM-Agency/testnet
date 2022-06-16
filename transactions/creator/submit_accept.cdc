@@ -1,16 +1,7 @@
-// submit_nft.cdc
-// Creator uses to submit Metadata
+// submit_accept.cdc
+// Creator uses to submit Metadata & Approve Rpyalty
 
-<<<<<<< HEAD
-import Categories from 0xa4ad5ea5c0bd2fba
-import DAAM_V10       from 0xa4ad5ea5c0bd2fba
-transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String)
-{    
-    //let creator     : AuthAccount
-    let metadataGen : &DAAM_V10.MetadataGenerator
-    let series      : UInt64
-    let data        : String
-=======
+import FungibleToken from 0x9a0766d93b6608b7 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V14          from 0xa4ad5ea5c0bd2fba
@@ -23,12 +14,13 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "text": return DAAM_V14.OnChain(file: string_cid)
+        case "jpg": return DAAM_V14.OnChain(file: string_cid)
         case "png": return DAAM_V14.OnChain(file: string_cid)
         case "bmp": return DAAM_V14.OnChain(file: string_cid)
         case "gif": return DAAM_V14.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
-    panic("Thumbnail Type is invalid")
+    panic("Type is invalid")
 }
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
@@ -42,39 +34,37 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     let name        : String
     let max         : UInt64?
->>>>>>> DAAM_V14
     var categories  : [Categories.Category]
     let inCollection: {String:[UInt64]}?
     let interact    : AnyStruct?
     let description : String
     let thumbnail   : {String : {MetadataViews.File}}
     let file        : {String : MetadataViews.Media}
-    let percentage  : UFix64
+    let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
-        //self.creator = creator
-        self.metadataGen = creator.borrow<&DAAM_V10.MetadataGenerator>(from: DAAM_V10.metadataStoragePath)!
-=======
-        //self.creator     = creator
         self.metadataGen = creator.borrow<&DAAM_V14.MetadataGenerator>(from: DAAM_V14.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM_V14.RequestGenerator>( from: DAAM_V14.requestStoragePath)!
->>>>>>> DAAM_V14
 
         self.name         = name
         self.max          = max
         self.description  = description
         self.inCollection = inCollection
         self.interact     = interact
-        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: thumbnailType_path)}
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
+        let royalties    = [ MetadataViews.Royalty(
+            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),
+            cut: percentage,
+            description: "Creator Royalty" )
+        ]
+        self.royalties = MetadataViews.Royalties(royalties)
         self.categories = []
         for cat in categories {
             self.categories.append(Categories.Category(cat))
         }
-        self.percentage = percentage
     }
 
     pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
@@ -82,6 +72,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
         description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
+
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
 
         log("Metadata Submitted: ".concat(mid.toString()))
     }
