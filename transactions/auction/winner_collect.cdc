@@ -1,17 +1,17 @@
 // winner_collect.cdc
 // Used to claim an item. Must meet reserve price.
 
-import AuctionHouse_V3  from 0x045a1763c93006ca
+import AuctionHouse_V4  from 0x045a1763c93006ca
 transaction(auction: Address, aid: UInt64)
 { 
     let aid          : UInt64
-    let auctionHouse : &AuctionHouse_V3.AuctionWallet{AuctionHouse_V3.AuctionWalletPublic}
+    let auctionHouse : &AuctionHouse_V4.AuctionWallet{AuctionHouse_V4.AuctionWalletPublic}
     
     prepare(signer: AuthAccount) {
         self.aid          = aid
         self.auctionHouse = getAccount(auction)
-            .getCapability<&AuctionHouse_V3.AuctionWallet{AuctionHouse_V3.AuctionWalletPublic}>
-            (AuctionHouse_V3.auctionPublicPath)
+            .getCapability<&AuctionHouse_V4.AuctionWallet{AuctionHouse_V4.AuctionWalletPublic}>
+            (AuctionHouse_V4.auctionPublicPath)
             .borrow()!
     }
 

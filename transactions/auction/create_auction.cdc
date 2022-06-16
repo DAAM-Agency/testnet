@@ -1,9 +1,9 @@
 // create_auction.cdc
 // Used to create an auction for an NFT
 
-import AuctionHouse_V3     from 0x045a1763c93006ca
+import AuctionHouse_V4     from 0x045a1763c93006ca
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V13         from 0xa4ad5ea5c0bd2fba
+import DAAM_V14         from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xe223d8a629e49c68
 
 transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
@@ -11,9 +11,9 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   reserve: UFix64, buyNow: UFix64, reprint: UInt64?)
 {
 
-  let auctionHouse : &AuctionHouse_V3.AuctionWallet
-  let nftCollection: &DAAM_V13.Collection
-  let metadataCap  : Capability<&DAAM_V13.MetadataGenerator{DAAM_V13.MetadataGeneratorMint}>?
+  let auctionHouse : &AuctionHouse_V4.AuctionWallet
+  let nftCollection: &DAAM_V14.Collection
+  let metadataCap  : Capability<&DAAM_V14.MetadataGenerator{DAAM_V14.MetadataGeneratorMint}>?
 
   let id          : UInt64
   let start       : UFix64
@@ -29,9 +29,9 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   let reprint     : UInt64?
 
   prepare(auctioneer: AuthAccount) {
-    self.auctionHouse  = auctioneer.borrow<&AuctionHouse_V3.AuctionWallet>(from: AuctionHouse_V3.auctionStoragePath)!
-    self.nftCollection = auctioneer.borrow<&DAAM_V13.Collection>(from: DAAM_V13.collectionStoragePath)!
-    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V13.MetadataGenerator{DAAM_V13.MetadataGeneratorMint}>(DAAM_V13.metadataPublicPath) : nil
+    self.auctionHouse  = auctioneer.borrow<&AuctionHouse_V4.AuctionWallet>(from: AuctionHouse_V4.auctionStoragePath)!
+    self.nftCollection = auctioneer.borrow<&DAAM_V14.Collection>(from: DAAM_V14.collectionStoragePath)!
+    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V14.MetadataGenerator{DAAM_V14.MetadataGeneratorMint}>(DAAM_V14.metadataPublicPath) : nil
 
     self.id               = id
     self.start            = start
@@ -50,9 +50,9 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   execute {
       let vault <- FUSD.createEmptyVault()
 
-      var nft: @DAAM_V13.NFT? <- nil
+      var nft: @DAAM_V14.NFT? <- nil
       if !self.isMetadata {
-        let old <- nft <- self.nftCollection.withdraw(withdrawID: self.id) as! @DAAM_V13.NFT
+        let old <- nft <- self.nftCollection.withdraw(withdrawID: self.id) as! @DAAM_V14.NFT
         destroy old
       }
 
