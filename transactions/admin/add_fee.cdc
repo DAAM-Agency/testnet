@@ -1,7 +1,7 @@
 // add_fee.cdc
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
-import DAAM         from 0xfd43f9148d4b725d
+import DAAM         from 0xa4ad5ea5c0bd2fba
 import AuctionHouse from 0x045a1763c93006ca
 
 transaction(mid: UInt64, fee: UFix64)

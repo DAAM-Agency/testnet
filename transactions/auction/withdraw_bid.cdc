@@ -1,8 +1,8 @@
 // withdraw_bid.cdc
 // Used to withdraw bid made on item. Must not be lead bidder
 
-import FungibleToken from 0xee82856bf20e2aa6
-import FUSD          from 0x192440c99cb17282
+import FungibleToken from 0x9a0766d93b6608b7
+import FUSD          from 0xe223d8a629e49c68
 import AuctionHouse  from 0x045a1763c93006ca
 
 transaction(auction: Address, aid: UInt64)
