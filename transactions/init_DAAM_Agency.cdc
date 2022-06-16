@@ -1,4 +1,4 @@
-// init_DAAM_Agency.cdc
+// init_DAAM_V13_Agency.cdc
 
 transaction() {
     let name          : String
@@ -10,7 +10,7 @@ transaction() {
     prepare(signer: AuthAccount) {
         self.signer        = signer
 
-        self.name          = "DAAM"
+        self.name          = "DAAM_V13"
         self.founders      = {0x0f7025fa05b578e3 :0.19, 0x1beecc6fef95b62e :0.23, 0xff8975b2fe6fb6f1 :0.11, 0xe9dd1081676bbc90 :0.11, 0x0dbaa95c7691bc4f :0.19,0x1e7bd52309d4e4b4:0.17}
         self.defaultAdmins = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e, 0xff8975b2fe6fb6f1, 0xe9dd1081676bbc90, 0x0dbaa95c7691bc4f, 0x1e7bd52309d4e4b4]
 

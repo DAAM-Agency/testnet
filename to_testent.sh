@@ -25,3 +25,5 @@ grep -rl 0xfd43f9148d4b725d --exclude-dir='.*' --exclude='*.sh' | xargs sed -i '
 
 grep -rl 0x192440c99cb17282  --exclude-dir={.*,contracts} --exclude='*.sh' --exclude='*profile*' | xargs sed -i 's|0x192440c99cb17282|0xe223d8a629e49c68|g' # FUSD
 grep -rl 0x192440c99cb17282 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|0x192440c99cb17282|0xba1132bc08f82fe2|g' #Profile
+
+grep -rl DAAM --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|DAAM|DAAM_V13|g'

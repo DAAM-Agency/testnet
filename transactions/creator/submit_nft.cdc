@@ -3,7 +3,7 @@
 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM          from 0xa4ad5ea5c0bd2fba
+import DAAM_V13          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -12,11 +12,11 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "text": return DAAM.OnChain(file: string_cid)
-        case "jpg": return DAAM.OnChain(file: string_cid)
-        case "png": return DAAM.OnChain(file: string_cid)
-        case "bmp": return DAAM.OnChain(file: string_cid)
-        case "gif": return DAAM.OnChain(file: string_cid)
+        case "text": return DAAM_V13.OnChain(file: string_cid)
+        case "jpg": return DAAM_V13.OnChain(file: string_cid)
+        case "png": return DAAM_V13.OnChain(file: string_cid)
+        case "bmp": return DAAM_V13.OnChain(file: string_cid)
+        case "gif": return DAAM_V13.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
     panic("Thumbnail Type is invalid")
@@ -28,8 +28,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM.RequestGenerator
-    let metadataGen : &DAAM.MetadataGenerator
+    let requestGen  : &DAAM_V13.RequestGenerator
+    let metadataGen : &DAAM_V13.MetadataGenerator
 
     let name        : String
     let max         : UInt64?
@@ -43,8 +43,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V13.MetadataGenerator>(from: DAAM_V13.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V13.RequestGenerator>( from: DAAM_V13.requestStoragePath)!
 
         self.name         = name
         self.max          = max
