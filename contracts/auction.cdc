@@ -309,8 +309,10 @@ pub struct AuctionHolder {
 
             if ref.edition.max != nil && reprintSeries == nil { // if there is max and reprint is set to nil ...
                 self.reprintSeries = ref.edition.max!           // set reprint to max 
+            } else if reprintSeries != nil {
+                self.reprintSeries = reprintSeries!             // otherwise reprint is equal to argument
             } else {
-                self.reprintSeries = reprintSeries              // otherwise reprint is equal to argument
+                self.reprintSeries = nil
             }              
             
             self.mid = ref.mid! // Meta   data ID
@@ -642,13 +644,33 @@ pub struct AuctionHolder {
             return 0.0 as UFix64 // return no time left
         }
 
-//
         priv fun payRoyalty(price: UFix64, royalties: [MetadataViews.Royalty]) {
+            var totalCut    = 0.0
+            var totalAmount = 0.0
+            var count       = 0
+            let last        = royalties.length-1
+            var amount      = 0.0
+
             for royalty in royalties {
-                let cut <-! self.auctionVault.withdraw(amount: price * royalty.cut)  // Calculate Agency Crypto share
+                amount   = price * royalty.cut
+                totalAmount = totalAmount + amount
+                // deals with remainder
+                if count == last {
+                    let offset = 1.0 - totalCut
+                    let offsetAmount = price - totalAmount
+                    amount = amount + offsetAmount
+                    totalCut = totalCut + offset
+                    totalAmount = totalAmount + offsetAmount
+                }
+
+                let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
                 let cap = royalty.receiver.borrow()!
                 cap.deposit(from: <-cut ) //deposit royalty share
+
+                count = count + 1
             }
+            assert(totalCut == 1.0, message: "Price: ".concat(price.toString().concat(" totalCut: ").concat(totalCut.toString())))
+            assert(totalAmount == price, message: "Price: ".concat(price.toString().concat(" totalAmount: ").concat(totalAmount.toString())))
         }
 
         priv fun convertTo100Percent(): [MetadataViews.Royalty] {
@@ -657,14 +679,27 @@ pub struct AuctionHolder {
             for r in royalties { totalCut = totalCut + r.cut }
             let offset = 1.0 / totalCut
             var rlist: [MetadataViews.Royalty] = []
+            let last = royalties.length-1
+            var count = 0
+            var cut = 0.0
 
+            totalCut = 0.0
             for r in royalties {
+                cut = r.cut * offset 
+                totalCut = totalCut + cut
+                if count == last { // takes care of remainder
+                    let offset = 1.0 - totalCut
+                    cut = cut + offset
+                    totalCut = totalCut + offset
+                }
                 rlist.append(MetadataViews.Royalty(
                     recipient: r.receiver,
-                    cut: r.cut * offset,
+                    cut: cut,
                     description: "Royalty Rate"
                 ))
+                count = count + 1
             }
+            assert(totalCut == 1.0 , message: "Illegal Operation: convertTo100Percent, totalCut: ".concat(totalCut.toString()))
             return rlist
         }
 
@@ -677,20 +712,20 @@ pub struct AuctionHolder {
             let daamRoyalty = 0.15
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
-                let daamAmount = price * (1.0 + daamRoyalty)
-                self.payRoyalty(price: daamAmount+fee, royalties: DAAM.agency.getRoyalties())
+                let daamAmount = (price * daamRoyalty) + fee
+                let creatorAmount = price - daamAmount
+                self.payRoyalty(price: daamAmount, royalties: DAAM.agency.getRoyalties())
+                self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
                 // Agent payment
-                let agentAmount  = price * (1.0 + self.auctionNFT?.metadata!.creatorInfo.firstSale!)
+                let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
                 let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
-                agent.deposit(from: <-agentCut ) // deposit amount
-                // Fee Payment
-                self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
-            }
-            // Royalty
-            self.payRoyalty(price: self.auctionVault.balance, royalties: creatorRoyalties)
+                agent.deposit(from: <-agentCut ) // deposit amount                
+                self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() ) // Fee Payment
+                self.payRoyalty(price: self.auctionVault.balance, royalties: creatorRoyalties) // Royalty
+            }           
             assert(self.auctionVault.balance==0.0, message: self.auctionVault.balance.toString().concat(" fee: ").concat(fee.toString()) )
         }
 
@@ -732,11 +767,10 @@ pub struct AuctionHolder {
 
         // Resets all variables that need to be reset for restarting a reprintSeries auction.
         priv fun resetAuction() {
-            //pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }  // already called by SerialMinter          
-            if self.reprintSeries == 0 {
-                return // if reprint is set to off (false) return
-            } else if self.reprintSeries != nil {
-                self.reprintSeries = self.reprintSeries! - 1
+            pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" }  // already called by SerialMinter
+
+            if self.reprintSeries != nil {                   // nil is unlimited prints
+                self.reprintSeries = self.reprintSeries! - 1 // Decrement reprint
             }
 
             self.leader = nil
@@ -752,7 +786,7 @@ pub struct AuctionHolder {
         // Where the reprintSeries Mints another NFT.
         priv fun seriesMinter() {
             pre { self.auctionVault.balance == 0.0 : "Internal Error: Serial Minter" } // Verifty funds from previous auction are gone.
-            if self.reprintSeries == 0 { return } // if reprint is set to off (false) return
+            if self.reprintSeries == 1 { return } // if reprint is set to off (false) return
             if self.creatorInfo.creator != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
             let metadataRef = AuctionHouse.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
