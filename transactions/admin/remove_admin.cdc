@@ -1,17 +1,6 @@
 // remove_admin.cdc
 // Two Admins can remove another Admin. Must be run by two Admins.
 
-<<<<<<< HEAD
-import DAAM_V10 from 0xa4ad5ea5c0bd2fba
-
-transaction(exAdmin: Address)
-{
-    let admin   : &DAAM_V10.Admin
-    let exAdmin : Address
-
-    prepare(admin: AuthAccount) {
-        self.admin = admin.borrow<&DAAM_V10.Admin>(from: DAAM_V10.adminStoragePath)!
-=======
 import DAAM_V14 from 0xa4ad5ea5c0bd2fba
 
 transaction(exAdmin: Address)
@@ -21,16 +10,11 @@ transaction(exAdmin: Address)
 
     prepare(admin: AuthAccount) {
         self.admin = admin.borrow<&DAAM_V14.Admin>(from: DAAM_V14.adminStoragePath) ?? panic(exAdmin.toString().concat(" is not an Admin."))
->>>>>>> DAAM_V14
 	    self.exAdmin = exAdmin
     }
 
     // Verify exAdmin is an Admin
-<<<<<<< HEAD
-    pre { DAAM_V10.isAdmin(exAdmin) == true : exAdmin.toString().concat(" is not an Admin.") }
-=======
     pre { DAAM_V14.isAdmin(exAdmin) != nil : exAdmin.toString().concat(" is not an Admin.") }
->>>>>>> DAAM_V14
 
     execute {
         self.admin.removeAdmin(admin: self.exAdmin)

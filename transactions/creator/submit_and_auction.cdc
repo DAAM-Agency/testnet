@@ -2,18 +2,12 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 // Used to create an auction for a first-time sale.
 
-<<<<<<< HEAD
-import Categories   from 0xa4ad5ea5c0bd2fba
-import DAAM_V10         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_V2 from 0x1837e15023c9249
-=======
 import FungibleToken from 0x9a0766d93b6608b7 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V14          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse_V4  from 0x045a1763c93006ca
 import FUSD          from 0xe223d8a629e49c68
->>>>>>> DAAM_V14
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -42,17 +36,10 @@ transaction(
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
     )
 {    
-<<<<<<< HEAD
-    let requestGen  : &DAAM_V10.RequestGenerator
-    let metadataGen : &DAAM_V10.MetadataGenerator
-    let metadataCap : Capability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}>
-    let auctionHouse: &AuctionHouse_V2.AuctionWallet
-=======
     let requestGen  : &DAAM_V14.RequestGenerator
     let metadataGen : &DAAM_V14.MetadataGenerator
     let metadataCap : Capability<&DAAM_V14.MetadataGenerator{DAAM_V14.MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse_V4.AuctionWallet
->>>>>>> DAAM_V14
 
     let name        : String
     let max         : UInt64?
@@ -77,12 +64,6 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
-        self.metadataGen  = creator.borrow<&DAAM_V10.MetadataGenerator>(from: DAAM_V10.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM_V10.RequestGenerator>( from: DAAM_V10.requestStoragePath)!
-        self.auctionHouse = creator.borrow<&AuctionHouse_V2.AuctionWallet>(from: AuctionHouse_V2.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}>(DAAM_V10.metadataPublicPath)!
-=======
         self.metadataGen  = creator.borrow<&DAAM_V14.MetadataGenerator>(from: DAAM_V14.metadataStoragePath)!
         self.requestGen   = creator.borrow<&DAAM_V14.RequestGenerator>( from: DAAM_V14.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse_V4.AuctionWallet>(from: AuctionHouse_V4.auctionStoragePath)!
@@ -97,7 +78,6 @@ transaction(
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
->>>>>>> DAAM_V14
 
         let royalties    = [ MetadataViews.Royalty(
             recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),

@@ -3,26 +3,17 @@
 
 import AuctionHouse_V4     from 0x045a1763c93006ca
 import NonFungibleToken from 0x631e88ae7f1d7c20
-<<<<<<< HEAD
-import DAAM_V10             from 0xa4ad5ea5c0bd2fba
-=======
 import DAAM_V14         from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xe223d8a629e49c68
->>>>>>> DAAM_V14
 
 transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
   /*requiredCurrency: Type,*/ incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
   reserve: UFix64, buyNow: UFix64, reprint: UInt64?)
 {
 
-<<<<<<< HEAD
-  let auctionHouse : &AuctionHouse_V2.AuctionWallet
-  let nftCollection: &DAAM_V10.Collection
-=======
   let auctionHouse : &AuctionHouse_V4.AuctionWallet
   let nftCollection: &DAAM_V14.Collection
   let metadataCap  : Capability<&DAAM_V14.MetadataGenerator{DAAM_V14.MetadataGeneratorMint}>?
->>>>>>> DAAM_V14
 
   let id          : UInt64
   let start       : UFix64
@@ -38,14 +29,9 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   let reprint     : UInt64?
 
   prepare(auctioneer: AuthAccount) {
-<<<<<<< HEAD
-    self.auctionHouse  = auctioneer.borrow<&AuctionHouse_V2.AuctionWallet>(from: AuctionHouse_V2.auctionStoragePath)!
-    self.nftCollection = auctioneer.borrow<&DAAM_V10.Collection>(from: DAAM_V10.collectionStoragePath)!
-=======
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse_V4.AuctionWallet>(from: AuctionHouse_V4.auctionStoragePath)!
     self.nftCollection = auctioneer.borrow<&DAAM_V14.Collection>(from: DAAM_V14.collectionStoragePath)!
     self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V14.MetadataGenerator{DAAM_V14.MetadataGeneratorMint}>(DAAM_V14.metadataPublicPath) : nil
->>>>>>> DAAM_V14
 
     self.id               = id
     self.start            = start
@@ -62,11 +48,7 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   }
 
   execute {
-<<<<<<< HEAD
-      let nft <- self.nftCollection.withdraw(withdrawID: self.tokenID) as! @DAAM_V10.NFT
-=======
       let vault <- FUSD.createEmptyVault()
->>>>>>> DAAM_V14
 
       var nft: @DAAM_V14.NFT? <- nil
       if !self.isMetadata {

@@ -1,16 +1,6 @@
 // submit_nft.cdc
 // Creator uses to submit Metadata
 
-<<<<<<< HEAD
-import Categories from 0xa4ad5ea5c0bd2fba
-import DAAM_V10       from 0xa4ad5ea5c0bd2fba
-transaction(series: UInt64, categories: [String], data: String,  thumbnail: String, file: String)
-{    
-    //let creator     : AuthAccount
-    let metadataGen : &DAAM_V10.MetadataGenerator
-    let series      : UInt64
-    let data        : String
-=======
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V14          from 0xa4ad5ea5c0bd2fba
@@ -42,7 +32,6 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     let name        : String
     let max         : UInt64?
->>>>>>> DAAM_V14
     var categories  : [Categories.Category]
     let inCollection: {String:[UInt64]}?
     let interact    : AnyStruct?
@@ -52,14 +41,9 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     let percentage  : UFix64
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
-        //self.creator = creator
-        self.metadataGen = creator.borrow<&DAAM_V10.MetadataGenerator>(from: DAAM_V10.metadataStoragePath)!
-=======
         //self.creator     = creator
         self.metadataGen = creator.borrow<&DAAM_V14.MetadataGenerator>(from: DAAM_V14.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM_V14.RequestGenerator>( from: DAAM_V14.requestStoragePath)!
->>>>>>> DAAM_V14
 
         self.name         = name
         self.max          = max
