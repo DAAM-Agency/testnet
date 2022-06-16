@@ -227,7 +227,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 5
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Winner Collect: Nobody,  AID: 5 ----------"
-flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 5 --signer nobody
+flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 5 --signer nobody --gas-limit 9999
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #E, AID: 5 =========="
@@ -279,7 +279,7 @@ flow scripts execute ./scripts/auction/auction_status.cdc $CREATOR 3 # Auction h
 echo "========= Winner Tests ========="
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "---------- Winner Collect: Nobody,  AID: 3 ----------"
-flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 3 --signer nobody
+flow transactions send ./transactions/auction/winner_collect.cdc $CREATOR 3 --signer nobody --gas-limit 9999
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========== Script: timeLeft.cdc Auction #F, AID: 3 =========="
