@@ -13,7 +13,6 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "text": return DAAM_V13.OnChain(file: string_cid)
-        case "jpg": return DAAM_V13.OnChain(file: string_cid)
         case "png": return DAAM_V13.OnChain(file: string_cid)
         case "bmp": return DAAM_V13.OnChain(file: string_cid)
         case "gif": return DAAM_V13.OnChain(file: string_cid)
