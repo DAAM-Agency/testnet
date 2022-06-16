@@ -28,18 +28,18 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 flow scripts execute ./scripts/auction/time_left.cdc $CREATOR 2
 
 echo "FAIL TEST: Did not meet Buy It Now: Not Enough. AID: 2"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 2.0 --signer client #I
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 2.0 --signer client --gas-limit 9999 #I
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "FAIL TEST: Did not meet Buy It Now: Too much. AID: 2"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 40.0 --signer client #I
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 40.0 --signer client --gas-limit 9999 #I
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "========= Buy It Now: Client AID: 2 ========="
 
 BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 2 $CLIENT | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer client #I
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 2 $BUYITNOW --signer client --gas-limit 9999 #I
 
 echo "CLIENT FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'

@@ -46,7 +46,7 @@ flow -o json scripts execute ./scripts/get_fusd_balance.cdc $NOBODY | jq -c ' .v
 echo "========= Buy It Now: Client ID: 7 ========="
 BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR2 7 $CLIENT | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 7 $BUYITNOW --signer client #I 30.7
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR2 7 $BUYITNOW --signer client --gas-limit 9999 #I 30.7
 
 echo "CLIENT FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT | jq -c ' .value | .value'

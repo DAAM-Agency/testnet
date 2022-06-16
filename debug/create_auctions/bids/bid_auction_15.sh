@@ -47,7 +47,7 @@ echo "========= Buy It Now: CLIENT2 ID: 15 ========="
 
 BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $NOBODY 15 $CLIENT2 | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
-flow transactions send ./transactions/auction/buy_it_now.cdc $NOBODY 15 $BUYITNOW --signer client2 # total 30.7
+flow transactions send ./transactions/auction/buy_it_now.cdc $NOBODY 15 $BUYITNOW --signer client2 --gas-limit 9999 # total 30.7
 
 echo "CLIENT2 FUSD"
 flow -o json scripts execute ./scripts/get_fusd_balance.cdc $CLIENT2 | jq -c ' .value | .value'

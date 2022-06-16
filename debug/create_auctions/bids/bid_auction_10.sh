@@ -59,7 +59,7 @@ flow transactions send ./transactions/auction/deposit_bid.cdc $CLIENT 10 5.0 --s
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "FAIL TEST: Buy It Now: too late.  AID: 10"
-flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 10 30.0 --signer nobody
+flow transactions send ./transactions/auction/buy_it_now.cdc $CLIENT 10 30.0 --signer nobody --gas-limit 9999
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 
 echo "========= Auction Status: AID: 10 (True) =========="

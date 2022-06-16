@@ -57,7 +57,7 @@ flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy act
 echo "FAIL TEST: Buy It Now: too late. AID: 5"
 BUYITNOW=$(flow -o json scripts execute ./scripts/auction/get_buy_now_amount.cdc $CREATOR 5 $NOBODY | jq -r ' .value ')
 echo BUYITNOW: $BUYITNOW
-flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 $BUYITNOW --signer nobody #E
+flow transactions send ./transactions/auction/buy_it_now.cdc $CREATOR 5 $BUYITNOW --signer nobody --gas-limit 9999 #E
 
 flow transactions send ./transactions/send_flow_em.cdc 1.0 $PROFILE  # dummy action update bc
 echo "========= Auction Status: AID: 5 (True) =========="
