@@ -6,7 +6,7 @@ import FungibleToken from 0x9a0766d93b6608b7
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V14          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_V4  from 0x045a1763c93006ca
+import AuctionHouse_V4  from 0x1837e15023c9249
 import FUSD          from 0xe223d8a629e49c68
 
 // argument have two modes:
