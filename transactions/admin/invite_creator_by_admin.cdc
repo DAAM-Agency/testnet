@@ -4,16 +4,14 @@
 
 import DAAM_V14 from 0xa4ad5ea5c0bd2fba
 
-transaction(creator: Address, agentCut: UFix64?)
+transaction(creator: Address)
 {
     let admin   : &{DAAM_V14.Agent}
     let creator : Address
-    let agentCut: UFix64?
 
     prepare(agent: AuthAccount) {
         self.admin   = agent.borrow<&DAAM_V14.Admin{DAAM_V14.Agent}>(from: DAAM_V14.adminStoragePath)!
         self.creator = creator
-        self.agentCut = agentCut
     }
 
     pre {
@@ -23,7 +21,7 @@ transaction(creator: Address, agentCut: UFix64?)
     }
     
     execute {
-        self.admin.inviteCreator(self.creator, agentCut: self.agentCut)
+        self.admin.inviteCreator(self.creator, agentCut: nil)
         log("Creator Invited")
     }
 
