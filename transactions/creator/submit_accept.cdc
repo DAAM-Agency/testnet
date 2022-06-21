@@ -13,15 +13,9 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "text": return DAAM.OnChain(file: string_cid)
-        case "jpg": return DAAM.OnChain(file: string_cid)
-        case "jpg": return DAAM.OnChain(file: string_cid)
-        case "png": return DAAM.OnChain(file: string_cid)
-        case "bmp": return DAAM.OnChain(file: string_cid)
-        case "gif": return DAAM.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
+        default: return DAAM.OnChain(file: string_cid)
     }
-    panic("Type is invalid")
 }
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
