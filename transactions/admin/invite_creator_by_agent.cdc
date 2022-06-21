@@ -4,7 +4,7 @@
 
 import DAAM_V14 from 0xa4ad5ea5c0bd2fba
 
-transaction(creator: Address, agentCut: UFix64?)
+transaction(creator: Address, agentCut: UFix64)
 {
     let admin   : &{DAAM_V14.Agent}
     let creator : Address
