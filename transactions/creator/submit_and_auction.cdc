@@ -2,12 +2,12 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 // Used to create an auction for a first-time sale.
 
-import FungibleToken from 0x9a0766d93b6608b7 
-import Categories    from 0xa4ad5ea5c0bd2fba
-import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V14          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_V4  from 0x1837e15023c9249
-import FUSD          from 0xe223d8a629e49c68
+import FungibleToken   from 0x9a0766d93b6608b7 
+import Categories      from 0xa4ad5ea5c0bd2fba
+import MetadataViews   from 0x631e88ae7f1d7c20
+import DAAM_V14        from 0xfd43f9148d4b725d
+import AuctionHouse_V4 from 0x045a1763c93006ca
+import FUSD            from 0xe223d8a629e49c68
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -16,14 +16,9 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "text": return DAAM_V14.OnChain(file: string_cid)
-        case "jpg": return DAAM_V14.OnChain(file: string_cid)
-        case "png": return DAAM_V14.OnChain(file: string_cid)
-        case "bmp": return DAAM_V14.OnChain(file: string_cid)
-        case "gif": return DAAM_V14.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
+        default: return DAAM_V14.OnChain(file: string_cid)
     }
-    panic("Type is invalid")
 }
 
 transaction(
