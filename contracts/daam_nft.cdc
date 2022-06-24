@@ -898,6 +898,11 @@ pub resource Admin: Agent
             log("MID: ".concat(mid.toString()) )
             emit ChangedCopyright(metadataID: mid)            
         }
+
+        pub fun addCategory(name: String) { Categories.addCategory(name: name) }
+
+        pub fun removeCategory(name: String) { Categories.removeCategory(name: name) }
+        
 	}
 /************************************************************************/
 pub struct CreatorInfo {
