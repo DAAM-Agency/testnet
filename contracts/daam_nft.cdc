@@ -480,7 +480,7 @@ pub struct OnChain: MetadataViews.File {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun borrowDAAM_V14(id: UInt64): &DAAM_V14.NFT? // Get NFT as DAAM_V14.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM_V14.NFT? // Get NFT as DAAM_V14.NFT
     pub fun getPersonalCollection(): {String: PersonalCollection}
 }
 /************************************************************************/
@@ -625,11 +625,12 @@ pub struct PersonalCollection {
         // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT { return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)! }
 
-        // borrowDAAM_V14 gets a reference to an DAAM_V14.NFT in the album.
-        pub fun borrowDAAM_V14(id: UInt64): &DAAM_V14.NFT {
-            pre { self.ownedNFTs[id] != nil : "Your Collection is empty." }
-            let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT? // Get reference to NFT
-            return ref as! &DAAM_V14.NFT                                    // return NFT Reference
+        // borrowDAAM gets a reference to an DAAM_V14.NFT
+        pub fun borrowDAAM(id: UInt64): &DAAM_V14.NFT {
+            pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
+            let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
+            let daam = ref as! &DAAM_V14.NFT
+            return daam // return NFT Reference
         }
 
         destroy() { destroy self.ownedNFTs } // Destructor
