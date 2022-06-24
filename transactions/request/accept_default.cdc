@@ -1,22 +1,22 @@
 // accept_default.cdc
 // Creator selects Royalty between 10% to 30%
 
-import FungibleToken from 0xee82856bf20e2aa6 
-import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM          from 0xfd43f9148d4b725d
+import FungibleToken from 0x9a0766d93b6608b7 
+import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_V15          from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64) {
     let mid         : UInt64
     let percentage  : UFix64
-    let requestGen  : &DAAM.RequestGenerator
-    let metadataGen : &DAAM.MetadataGenerator
+    let requestGen  : &DAAM_V15.RequestGenerator
+    let metadataGen : &DAAM_V15.MetadataGenerator
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
         self.mid     = mid
         self.percentage  = percentage
-        self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
-        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V15.RequestGenerator>( from: DAAM_V15.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V15.MetadataGenerator>(from: DAAM_V15.metadataStoragePath)!
 
         let royalties    = [ MetadataViews.Royalty(
             recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),

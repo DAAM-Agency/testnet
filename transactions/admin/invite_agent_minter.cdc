@@ -3,23 +3,23 @@
 // Used for Admin to give Minter access.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V15 from 0xa4ad5ea5c0bd2fba
 
 transaction(newAgent: Address, minterAccess: Bool)
 {
-    let admin    : &DAAM.Admin
+    let admin    : &DAAM_V15.Admin
     let newAgent : Address 
 
     prepare(admin: AuthAccount) {
-        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin    = admin.borrow<&DAAM_V15.Admin>(from: DAAM_V15.adminStoragePath)!
         self.newAgent = newAgent
     }
 
     pre {
-        DAAM.isAdmin(newAgent)   == nil : newAgent.toString().concat(" is already an Admin.")
-        DAAM.isAgent(newAgent)   == nil : newAgent.toString().concat(" is already an Agent.")
-        DAAM.isCreator(newAgent) == nil : newAgent.toString().concat(" is already a Creator.")
-        DAAM.isMinter(newAgent)  == nil : newAgent.toString().concat(" is already a Minter.")
+        DAAM_V15.isAdmin(newAgent)   == nil : newAgent.toString().concat(" is already an Admin.")
+        DAAM_V15.isAgent(newAgent)   == nil : newAgent.toString().concat(" is already an Agent.")
+        DAAM_V15.isCreator(newAgent) == nil : newAgent.toString().concat(" is already a Creator.")
+        DAAM_V15.isMinter(newAgent)  == nil : newAgent.toString().concat(" is already a Minter.")
     }
     
     execute {

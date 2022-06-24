@@ -1,16 +1,16 @@
 // remove_category.cdc
 // Remove a new category to contract Category
 
-import Categories from 0xfd43f9148d4b725d
-import DAAM       from 0xfd43f9148d4b725d
+import Categories from 0xa4ad5ea5c0bd2fba
+import DAAM_V15       from 0xa4ad5ea5c0bd2fba
 
 transaction(category: String) {
     let category: String
-    let admin   : &DAAM.Admin
+    let admin   : &DAAM_V15.Admin
 
     prepare(admin: AuthAccount) {
         self.category = category
-        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin    = admin.borrow<&DAAM_V15.Admin>(from: DAAM_V15.adminStoragePath)!
     }
 
     pre { Categories.getCategories().contains(category) }

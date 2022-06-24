@@ -65,7 +65,7 @@ This will lead to predictability in how applications can look up the data.
 ### Cadence
 -----------
 
-    import Profile from 0x192440c99cb17282
+    import Profile from 0xba1132bc08f82fe2
 
     transaction {
       let address: address
@@ -89,7 +89,7 @@ This will lead to predictability in how applications can look up the data.
 
     await mutate({
       cadence: `
-        import Profile from 0x192440c99cb17282
+        import Profile from 0xba1132bc08f82fe2
     
         transaction {
           prepare(currentUser: AuthAccount) {
@@ -121,7 +121,7 @@ As the owner of a resource you can update the following:
 ### Cadence
 -----------
 
-    import Profile from 0x192440c99cb17282
+    import Profile from 0xba1132bc08f82fe2
 
     transaction(name: String) {
       prepare(currentUser: AuthAccount) {
@@ -139,7 +139,7 @@ As the owner of a resource you can update the following:
 
     await mutate({
       cadence: `
-        import Profile from 0x192440c99cb17282
+        import Profile from 0xba1132bc08f82fe2
     
         transaction(name: String) {
           prepare(currentUser: AuthAccount) {
@@ -163,7 +163,7 @@ As the owner of a resource you can update the following:
 ### Cadence
 -----------
 
-    import Profile from 0x192440c99cb17282
+    import Profile from 0xba1132bc08f82fe2
 
     pub fun main(address: Address): Profile.ReadOnly? {
       return Profile.read(address)
@@ -177,14 +177,14 @@ As the owner of a resource you can update the following:
 
     await query({
       cadence: `
-        import Profile from 0x192440c99cb17282
+        import Profile from 0xba1132bc08f82fe2
     
         pub fun main(address: Address): Profile.ReadOnly? {
           return Profile.read(address)
         }
       `,
       args: (arg, t) => [
-        arg("192440c99cb17282", t.Address)
+        arg("ba1132bc08f82fe2", t.Address)
       ]
     })
 
@@ -196,7 +196,7 @@ As the owner of a resource you can update the following:
 ### Cadence
 -----------
 
-    import Profile from 0x192440c99cb17282
+    import Profile from 0xba1132bc08f82fe2
 
     pub fun main(addresses: [Address]): {Address: Profile.ReadOnly} {
       return Profile.readMultiple(addresses)
@@ -210,14 +210,14 @@ As the owner of a resource you can update the following:
 
     await query({
       cadence: `
-        import Profile from 0x192440c99cb17282
+        import Profile from 0xba1132bc08f82fe2
     
         pub fun main(addresses: [Address]): {Address: Profile.ReadOnly} {
           return Profile.readMultiple(addresses)
         }
       `,
       args: (arg, t) => [
-        arg(["192440c99cb17282", "0xf76a4c54f0f75ce4", "0xf117a8efa34ffd58"], t.Array(t.Address)),
+        arg(["ba1132bc08f82fe2", "0xf76a4c54f0f75ce4", "0xf117a8efa34ffd58"], t.Array(t.Address)),
       ]
     })
 
@@ -229,7 +229,7 @@ As the owner of a resource you can update the following:
 ### Cadence
 -----------
 
-    import Profile from 0x192440c99cb17282
+    import Profile from 0xba1132bc08f82fe2
 
     pub fun main(address: Address): Bool {
       return Profile.check(address)
@@ -243,14 +243,14 @@ As the owner of a resource you can update the following:
 
     await query({
       cadence: `
-        import Profile from 0x192440c99cb17282
+        import Profile from 0xba1132bc08f82fe2
     
         pub fun main(address: Address): Bool {
           return Profile.check(address)
         }
       `,
       args: (arg, t) => [
-        arg("192440c99cb17282", t.Address)
+        arg("ba1132bc08f82fe2", t.Address)
       ]
     })
 
