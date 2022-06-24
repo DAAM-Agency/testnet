@@ -2,19 +2,6 @@
 // Used for Admin / minters to change Creator status. True = active, False = frozen
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-<<<<<<< HEAD
-import DAAM_V14             from 0xa4ad5ea5c0bd2fba
-
-transaction(creator: Address, mid: UInt64, receiver: Address) {
-    let minterRef : &DAAM_V14.Minter
-    let creator   : Address
-    let mid       : UInt64
-    let metadataRef : &{DAAM_V14.MetadataGeneratorMint}
-    let receiverRef : &{NonFungibleToken.CollectionPublic}
-
-    prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAM_V14.Minter>(from: DAAM_V14.minterStoragePath)!
-=======
 import DAAM_V15             from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64, receiver: Address) {
@@ -26,27 +13,17 @@ transaction(creator: Address, mid: UInt64, receiver: Address) {
 
     prepare(minter: AuthAccount) {
         self.minterRef = minter.borrow<&DAAM_V15.Minter>(from: DAAM_V15.minterStoragePath)!
->>>>>>> DAAM_V15
         self.creator   = creator
         self.mid       = mid
 
         self.receiverRef  = getAccount(receiver)
-<<<<<<< HEAD
-            .getCapability(DAAM_V14.collectionPublicPath)
-=======
             .getCapability(DAAM_V15.collectionPublicPath)
->>>>>>> DAAM_V15
             .borrow<&{NonFungibleToken.CollectionPublic}>()!
 
 
         self.metadataRef = getAccount(self.creator)
-<<<<<<< HEAD
-            .getCapability(DAAM_V14.metadataPublicPath)
-            .borrow<&{DAAM_V14.MetadataGeneratorMint}>()!
-=======
             .getCapability(DAAM_V15.metadataPublicPath)
             .borrow<&{DAAM_V15.MetadataGeneratorMint}>()!
->>>>>>> DAAM_V15
     }
 
     execute {

@@ -4,11 +4,7 @@
 import FungibleToken from 0x9a0766d93b6608b7 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-<<<<<<< HEAD
-import DAAM_V14          from 0xa4ad5ea5c0bd2fba
-=======
 import DAAM_V15          from 0xa4ad5ea5c0bd2fba
->>>>>>> DAAM_V15
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -17,21 +13,8 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        case "text": return DAAM_V14.OnChain(file: string_cid)
-        case "jpg": return DAAM_V14.OnChain(file: string_cid)
-        case "png": return DAAM_V14.OnChain(file: string_cid)
-        case "bmp": return DAAM_V14.OnChain(file: string_cid)
-        case "gif": return DAAM_V14.OnChain(file: string_cid)
-=======
->>>>>>> DAAM_V15
         case "http": return MetadataViews.HTTPFile(url: string_cid)
         default: return DAAM_V15.OnChain(file: string_cid)
-=======
-        case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM_V14.OnChain(file: string_cid)
->>>>>>> bd81b241c4ac2c6110b14f47632daf3e3af02f31
     }
 }
 
@@ -41,13 +24,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-<<<<<<< HEAD
-    let requestGen  : &DAAM_V14.RequestGenerator
-    let metadataGen : &DAAM_V14.MetadataGenerator
-=======
     let requestGen  : &DAAM_V15.RequestGenerator
     let metadataGen : &DAAM_V15.MetadataGenerator
->>>>>>> DAAM_V15
 
     let name        : String
     let max         : UInt64?
@@ -60,13 +38,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
-        self.metadataGen = creator.borrow<&DAAM_V14.MetadataGenerator>(from: DAAM_V14.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V14.RequestGenerator>( from: DAAM_V14.requestStoragePath)!
-=======
         self.metadataGen = creator.borrow<&DAAM_V15.MetadataGenerator>(from: DAAM_V15.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM_V15.RequestGenerator>( from: DAAM_V15.requestStoragePath)!
->>>>>>> DAAM_V15
 
         self.name         = name
         self.max          = max

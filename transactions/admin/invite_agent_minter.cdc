@@ -3,17 +3,6 @@
 // Used for Admin to give Minter access.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
-<<<<<<< HEAD
-import DAAM_V14 from 0xa4ad5ea5c0bd2fba
-
-transaction(newAgent: Address, minterAccess: Bool)
-{
-    let admin    : &DAAM_V14.Admin
-    let newAgent : Address 
-
-    prepare(admin: AuthAccount) {
-        self.admin    = admin.borrow<&DAAM_V14.Admin>(from: DAAM_V14.adminStoragePath)!
-=======
 import DAAM_V15 from 0xa4ad5ea5c0bd2fba
 
 transaction(newAgent: Address, minterAccess: Bool)
@@ -23,22 +12,14 @@ transaction(newAgent: Address, minterAccess: Bool)
 
     prepare(admin: AuthAccount) {
         self.admin    = admin.borrow<&DAAM_V15.Admin>(from: DAAM_V15.adminStoragePath)!
->>>>>>> DAAM_V15
         self.newAgent = newAgent
     }
 
     pre {
-<<<<<<< HEAD
-        DAAM_V14.isAdmin(newAgent)   == nil : newAgent.toString().concat(" is already an Admin.")
-        DAAM_V14.isAgent(newAgent)   == nil : newAgent.toString().concat(" is already an Agent.")
-        DAAM_V14.isCreator(newAgent) == nil : newAgent.toString().concat(" is already a Creator.")
-        DAAM_V14.isMinter(newAgent)  == nil : newAgent.toString().concat(" is already a Minter.")
-=======
         DAAM_V15.isAdmin(newAgent)   == nil : newAgent.toString().concat(" is already an Admin.")
         DAAM_V15.isAgent(newAgent)   == nil : newAgent.toString().concat(" is already an Agent.")
         DAAM_V15.isCreator(newAgent) == nil : newAgent.toString().concat(" is already a Creator.")
         DAAM_V15.isMinter(newAgent)  == nil : newAgent.toString().concat(" is already a Minter.")
->>>>>>> DAAM_V15
     }
     
     execute {
