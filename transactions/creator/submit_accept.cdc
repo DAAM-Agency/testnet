@@ -18,6 +18,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
 <<<<<<< HEAD
+<<<<<<< HEAD
         case "text": return DAAM_V14.OnChain(file: string_cid)
         case "jpg": return DAAM_V14.OnChain(file: string_cid)
         case "png": return DAAM_V14.OnChain(file: string_cid)
@@ -27,6 +28,10 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
 >>>>>>> DAAM_V15
         case "http": return MetadataViews.HTTPFile(url: string_cid)
         default: return DAAM_V15.OnChain(file: string_cid)
+=======
+        case "http": return MetadataViews.HTTPFile(url: string_cid)
+        default: return DAAM_V14.OnChain(file: string_cid)
+>>>>>>> bd81b241c4ac2c6110b14f47632daf3e3af02f31
     }
 }
 

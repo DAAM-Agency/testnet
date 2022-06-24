@@ -263,7 +263,11 @@ pub struct AuctionHolder {
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {
+<<<<<<< HEAD
                 case "A.ba1132bc08f82fe2.FUSD.Vault": return true
+=======
+                case "A.e223d8a629e49c68.FUSD.Vault": return true
+>>>>>>> bd81b241c4ac2c6110b14f47632daf3e3af02f31
             }
             return false
         }

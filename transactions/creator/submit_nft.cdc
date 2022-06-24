@@ -4,10 +4,14 @@
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 <<<<<<< HEAD
+<<<<<<< HEAD
 import DAAM_V14          from 0xa4ad5ea5c0bd2fba
 =======
 import DAAM_V15          from 0xa4ad5ea5c0bd2fba
 >>>>>>> DAAM_V15
+=======
+import DAAM_V14      from 0xa4ad5ea5c0bd2fba
+>>>>>>> bd81b241c4ac2c6110b14f47632daf3e3af02f31
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -16,6 +20,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
+<<<<<<< HEAD
 <<<<<<< HEAD
         case "text": return DAAM_V14.OnChain(file: string_cid)
         case "png": return DAAM_V14.OnChain(file: string_cid)
@@ -26,6 +31,12 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
         case "http": return MetadataViews.HTTPFile(url: string_cid)
         default: return DAAM_V15.OnChain(file: string_cid)
     }
+=======
+        case "http": return MetadataViews.HTTPFile(url: string_cid)
+        default: return DAAM_V14.OnChain(file: string_cid)
+    }
+}
+>>>>>>> bd81b241c4ac2c6110b14f47632daf3e3af02f31
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
