@@ -9,7 +9,7 @@ pub fun main(account: Address, tokenID: UInt64 ):MetadataViews.Royalties? { //Me
         .borrow()
         //?? panic("Could not borrow capability from public collection")
     
-    let ref = collectionRef!.borrowDAAM_V15(id: tokenID)
+    let ref = collectionRef!.borrowDAAM(id: tokenID)
     let royalties = ref.royalty //as &MetadataViews.Royalities
     return royalties
 }

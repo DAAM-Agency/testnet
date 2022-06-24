@@ -28,3 +28,5 @@ grep -rl 192440c99cb17282 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|
 
 grep -rl DAAM --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|DAAM|DAAM_V15|g'
 grep -rl AuctionHouse --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|AuctionHouse|AuctionHouse_V5|g'
+
+grep -rl borrowDAAM_V15 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|borrowDAAM_V15|borrowDAAM|g'
