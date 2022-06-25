@@ -645,6 +645,8 @@ pub struct AuctionHolder {
         }
 
         priv fun payRoyalty(price: UFix64, royalties: [MetadataViews.Royalty]) {
+            pre{ royalties.length > 0 : "Ilegal Operation: payRoyalties, price: ".concat(price.toString()) }
+
             var totalCut    = 0.0
             var totalAmount = 0.0
             var count       = 0
@@ -652,7 +654,8 @@ pub struct AuctionHolder {
             var amount      = 0.0
 
             for royalty in royalties {
-                amount   = price * royalty.cut
+                assert(royalty.receiver != nil, message: "Ilegal Operation: payRoyalties, price: ".concat(price.toString()) )
+                amount      = price * royalty.cut
                 totalAmount = totalAmount + amount
                 // deals with remainder
                 if count == last {
@@ -664,7 +667,7 @@ pub struct AuctionHolder {
                 }
 
                 let cut <-! self.auctionVault.withdraw(amount: amount)  // Calculate Agency Crypto share
-                let cap = royalty.receiver.borrow()!
+                let cap = royalty.receiver.borrow() ?? panic("Ilegal Operation: payRoyalties, price: ".concat(price.toString()))
                 cap.deposit(from: <-cut ) //deposit royalty share
 
                 count = count + 1
@@ -674,7 +677,10 @@ pub struct AuctionHolder {
         }
 
         priv fun convertTo100Percent(): [MetadataViews.Royalty] {
-            let royalties = self.auctionNFT?.royalty!.getRoyalties()
+            post { rlist.length > 0 : "Illegal Operation: convertTo100Percent" }
+
+            let royalties = self.auctionNFT?.royalty!.getRoyalties()!
+            assert(royalties.length > 0, message: "Illegal Operation: convertTo100Percent")
             var totalCut = 0.0
             for r in royalties { totalCut = totalCut + r.cut }
             let offset = 1.0 / totalCut
@@ -687,19 +693,22 @@ pub struct AuctionHolder {
             for r in royalties {
                 cut = r.cut * offset 
                 totalCut = totalCut + cut
+                assert(r.receiver != nil, message: "Invald Entry: Receipient")
+
                 if count == last { // takes care of remainder
                     let offset = 1.0 - totalCut
                     cut = cut + offset
                     totalCut = totalCut + offset
                 }
+
                 rlist.append(MetadataViews.Royalty(
-                    recipient: r.receiver,
+                    recipient: r.receiver!,
                     cut: cut,
                     description: "Royalty Rate"
                 ))
                 count = count + 1
             }
-            assert(totalCut == 1.0 , message: "Illegal Operation: convertTo100Percent, totalCut: ".concat(totalCut.toString()))
+            assert(totalCut == 1.0, message: "Illegal Operation: convertTo100Percent, totalCut: ".concat(totalCut.toString()))
             return rlist
         }
 
@@ -739,7 +748,7 @@ pub struct AuctionHolder {
             if DAAM_V15.isNFTNew(id: tokenID) {
                 AuctionHouse_V5.notNew(tokenID: tokenID) 
                 self.payFirstSale()
-            } else {   // 2nd Sale
+            } //else {   // 2nd Sale
                 let price   = self.auctionVault.balance / (1.0 + self.fee)
                 let fee     = self.auctionVault.balance - price   // Get fee amount
                 let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
@@ -750,7 +759,7 @@ pub struct AuctionHolder {
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
-            }     
+            //}     
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
