@@ -132,7 +132,7 @@ pub resource RequestGenerator {
             let newCut = creator.cut / (1.0 + rate)
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: creator.receiver,
+                    recepient: creator.receiver!,
                     cut: newCut,
                     description: "Creator Royalty")
             ) // end append    
@@ -143,7 +143,7 @@ pub resource RequestGenerator {
         for founder in agency {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: founder.receiver,
+                    recepient: founder.receiver!,
                     cut: founder.cut * rateCut,
                     description: "Agency Royalty")
             ) // end append 
@@ -1186,7 +1186,7 @@ pub resource MinterAccess
         var totalCut = 0.0
         for founder in founders.keys {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver), // TODO remove /public/fusdReceiver
+                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!, // TODO remove /public/fusdReceiver
                 cut: founders[founder]!,
                 description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list

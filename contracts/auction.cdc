@@ -199,7 +199,6 @@ pub struct AuctionHolder {
         }
 
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
-            //self.crypto = {String: "/public/fusdReceiver"}
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {
@@ -674,6 +673,7 @@ pub struct AuctionHolder {
         }
 
         priv fun convertTo100Percent(): [MetadataViews.Royalty] {
+            post { rlist.length > 0 : "Illegal Operation: convertTo100Percent" }
             let royalties = self.auctionNFT?.royalty!.getRoyalties()
             var totalCut = 0.0
             for r in royalties { totalCut = totalCut + r.cut }
@@ -693,7 +693,7 @@ pub struct AuctionHolder {
                     totalCut = totalCut + offset
                 }
                 rlist.append(MetadataViews.Royalty(
-                    recipient: r.receiver,
+                    recipient: r.receiver!,
                     cut: cut,
                     description: "Royalty Rate"
                 ))
