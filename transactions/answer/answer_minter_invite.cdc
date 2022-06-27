@@ -1,7 +1,7 @@
 // answer_minter_invite.cdc
 // Answer the invitation to be a Minter. Typically only for Auctions & Marketplaces
 
-import DAAM_V15 from 0xa4ad5ea5c0bd2fba
+import DAAM_V16 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -13,12 +13,12 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let minter <- DAAM_V15.answerMinterInvite(newMinter: self.signer, submit: self.submit)
+        let minter <- DAAM_V16.answerMinterInvite(newMinter: self.signer, submit: self.submit)
         if minter != nil {
-            let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V15.minterStoragePath)
-            self.signer.save<@DAAM_V15.Minter>(<- minter!, to: DAAM_V15.minterStoragePath)
+            let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V16.minterStoragePath)
+            self.signer.save<@DAAM_V16.Minter>(<- minter!, to: DAAM_V16.minterStoragePath)
             destroy old_minter
-            log("You are now a DAAM_V15.Minter")
+            log("You are now a DAAM_V16.Minter")
         } else {
             destroy minter
             log("Thank You for your consoderation.")
