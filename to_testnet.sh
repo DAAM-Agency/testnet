@@ -26,7 +26,7 @@ grep -rl fd43f9148d4b725d --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|
 grep -rl 192440c99cb17282  --exclude-dir={.*,contracts} --exclude='*.sh' --exclude='*profile*' | xargs sed -i 's|192440c99cb17282|e223d8a629e49c68|g' # FUSD
 grep -rl 192440c99cb17282 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|192440c99cb17282|ba1132bc08f82fe2|g' #Profile
 
-grep -rl DAAM --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|DAAM|DAAM_V15|g'
-grep -rl AuctionHouse --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|AuctionHouse|AuctionHouse_V5|g'
+grep -rl DAAM --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|DAAM|DAAM_V16|g'
+grep -rl AuctionHouse --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|AuctionHouse|AuctionHouse_V6|g'
 
-grep -rl borrowDAAM_V16 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|borrowDAAM_V15|borrowDAAM|g'
+grep -rl borrowDAAM_V16 --exclude-dir='.*' --exclude='*.sh' | xargs sed -i 's|borrowDAAM_V16|borrowDAAM|g'
