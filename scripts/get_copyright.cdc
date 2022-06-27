@@ -1,8 +1,8 @@
 // get_copyright.cdc
 
-import DAAM_V15 from 0xa4ad5ea5c0bd2fba
+import DAAM_V16 from 0xa4ad5ea5c0bd2fba
 
-pub fun main(mid: UInt64): DAAM_V15.CopyrightStatus? {
-    return DAAM_V15.getCopyright(mid: mid)
+pub fun main(mid: UInt64): DAAM_V16.CopyrightStatus? {
+    return DAAM_V16.getCopyright(mid: mid)
 }
 // nil = non-existent MID

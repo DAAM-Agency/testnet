@@ -1,11 +1,11 @@
 // get_tokenIDs.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V15 from 0xa4ad5ea5c0bd2fba
+import DAAM_V16 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(account: Address): [UInt64]? {
     let collectionRef = getAccount(account)
-        .getCapability<&DAAM_V15.Collection{NonFungibleToken.CollectionPublic}>(DAAM_V15.collectionPublicPath)
+        .getCapability<&DAAM_V16.Collection{NonFungibleToken.CollectionPublic}>(DAAM_V16.collectionPublicPath)
         .borrow()
         //?? panic("Could not borrow capability from public collection")
     

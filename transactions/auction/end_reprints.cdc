@@ -1,15 +1,15 @@
 // end_reprints.cdc
 // to toggle reprints to OFF.
 
-import AuctionHouse_V5 from 0x01837e15023c9249
+import AuctionHouse_V6 from 0x01837e15023c9249
 
 transaction(aid: UInt64) {
     let aid    : UInt64
-    let auctionHouse : &AuctionHouse_V5.AuctionWallet
+    let auctionHouse : &AuctionHouse_V6.AuctionWallet
 
     prepare(signer: AuthAccount) {
         self.aid          = aid
-        self.auctionHouse = signer.borrow<&AuctionHouse_V5.AuctionWallet>(from: AuctionHouse_V5.auctionStoragePath)!
+        self.auctionHouse = signer.borrow<&AuctionHouse_V6.AuctionWallet>(from: AuctionHouse_V6.auctionStoragePath)!
     }
 
     execute {
