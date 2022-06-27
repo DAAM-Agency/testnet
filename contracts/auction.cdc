@@ -199,7 +199,6 @@ pub struct AuctionHolder {
         }
 
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
-            //self.crypto = {String: "/public/fusdReceiver"}
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {

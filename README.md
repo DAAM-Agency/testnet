@@ -1,4 +1,4 @@
-# DAAM_V15 Agency
+# DAAM Agency
 ## (Digital Art & Assets Management)
 daam.agency[https://daam.agency]
 
@@ -18,11 +18,4 @@ While the transactions.sh file runs through most of the transactions scripts. Ex
 ## Prerequisites
 Flow Client [https://docs.onflow.org/flow-cli/install/#gatsby-focus-wrapper]
 Cadence
-
-## Install
-Installing the daam.cdc contract must be done as a flow transaction since the contract has arguments.
-Ex: 
-export HEX_ENCODE_CODE=$(cat ../dev/hex_nft_enum)
-flow transactions send ../testnet_keys/init_DAAM_V15_Agency.cdc --arg String:"DAAM_V15" --arg String:$HEX_ENCODE_CODE --arg Address:$AGENCY --arg Address:$CTO --signer daam_nft
-
 

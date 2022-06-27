@@ -1,4 +1,4 @@
-// but_it_now.cdc
+// buy_it_now.cdc
 // Used for direct purchases
 
 import FungibleToken from 0x9a0766d93b6608b7

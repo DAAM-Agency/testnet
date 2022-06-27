@@ -132,7 +132,7 @@ pub resource RequestGenerator {
             let newCut = creator.cut / (1.0 + rate)
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: creator.receiver,
+                    recepient: creator.receiver!,
                     cut: newCut,
                     description: "Creator Royalty")
             ) // end append    
@@ -143,7 +143,7 @@ pub resource RequestGenerator {
         for founder in agency {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: founder.receiver,
+                    recepient: founder.receiver!,
                     cut: founder.cut * rateCut,
                     description: "Agency Royalty")
             ) // end append 
