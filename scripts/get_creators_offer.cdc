@@ -1,10 +1,10 @@
 // get_creators.cdc
 // Get List of Creators and their Agent
 
-import DAAM_V17 from 0xa4ad5ea5c0bd2fba
+import DAAM_V18 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(creator: Address): UFix64? {
-    let list =  DAAM_V17.getCreators()
+    let list =  DAAM_V18.getCreators()
     if list.containsKey(creator) {
         if list[creator]!.agent != nil {
             var agentCut = 0.0
