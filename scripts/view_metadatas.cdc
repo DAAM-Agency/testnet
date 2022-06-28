@@ -1,10 +1,10 @@
 // view_metadatas.cdc
 
-import DAAM_V16 from 0xa4ad5ea5c0bd2fba
+import DAAM_V17 from 0xa4ad5ea5c0bd2fba
 
-pub fun main(creator: Address): [DAAM_V16.MetadataHolder] {
+pub fun main(creator: Address): [DAAM_V17.MetadataHolder] {
     let metadataRef = getAccount(creator)
-        .getCapability<&DAAM_V16.MetadataGenerator{DAAM_V16.MetadataGeneratorPublic}>(DAAM_V16.metadataPublicPath)
+        .getCapability<&DAAM_V17.MetadataGenerator{DAAM_V17.MetadataGeneratorPublic}>(DAAM_V17.metadataPublicPath)
         .borrow()!
         
     return metadataRef.viewMetadatas()

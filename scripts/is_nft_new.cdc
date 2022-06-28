@@ -1,7 +1,7 @@
 // is_nft_new.cdc
 
-import DAAM_V16 from 0xa4ad5ea5c0bd2fba
+import DAAM_V17 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(tokenID: UInt64): Bool {
-    return DAAM_V16.isNFTNew(id: tokenID)
+    return DAAM_V17.isNFTNew(id: tokenID)
 }
