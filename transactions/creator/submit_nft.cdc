@@ -3,7 +3,7 @@
 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V17          from 0xa4ad5ea5c0bd2fba
+import DAAM_V18          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -13,7 +13,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM_V17.OnChain(file: string_cid)
+        default: return DAAM_V18.OnChain(file: string_cid)
     }
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
@@ -22,8 +22,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM_V17.RequestGenerator
-    let metadataGen : &DAAM_V17.MetadataGenerator
+    let requestGen  : &DAAM_V18.RequestGenerator
+    let metadataGen : &DAAM_V18.MetadataGenerator
 
     let name        : String
     let max         : UInt64?
@@ -37,8 +37,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-        self.metadataGen = creator.borrow<&DAAM_V17.MetadataGenerator>(from: DAAM_V17.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V17.RequestGenerator>( from: DAAM_V17.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V18.MetadataGenerator>(from: DAAM_V18.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V18.RequestGenerator>( from: DAAM_V18.requestStoragePath)!
 
         self.name         = name
         self.max          = max

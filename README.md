@@ -3,9 +3,9 @@
 daam.agency[https://daam.agency]
 
 ## About
-We work hand-in-hand with creators, galleries, institutions + private collectors, to realize their NFT goals. We choose Flow over Ethereum due to Ethereums the size limts, transfer time and rates issues regarding the NFT Market, despite the Solidity experience in house. We created an agency to bridge the gap between seller, creators, and the general public. While exposing our DAAM_V17 NFTs at selected events.
+We work hand-in-hand with creators, galleries, institutions + private collectors, to realize their NFT goals. We choose Flow over Ethereum due to Ethereums the size limts, transfer time and rates issues regarding the NFT Market, despite the Solidity experience in house. We created an agency to bridge the gap between seller, creators, and the general public. While exposing our DAAM_V18 NFTs at selected events.
 
-The DAAM_V17 Auction House and DAAM_V17 NFT are written in Cadence for the Flow blockchain. For more information on Flow and Cadence visit the at [https://docs.onflow.org/] 
+The DAAM_V18 Auction House and DAAM_V18 NFT are written in Cadence for the Flow blockchain. For more information on Flow and Cadence visit the at [https://docs.onflow.org/] 
 
 ## Files
 The two contracts are ./contracts/daam.cdc and ./contracts/auction.cdc. The NFT data structure, Agency, Collection, Minter, Creator, Admin, Founder, etc resources and interfaces are found in the daam.cdc file
