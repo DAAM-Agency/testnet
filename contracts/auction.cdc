@@ -721,7 +721,7 @@ pub struct AuctionHolder {
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let daamAmount = (price * daamRoyalty) + fee
-                let creatorAmount = price - daamAmount
+                let creatorAmount = self.auctionVault.balance - daamAmount
                 self.payRoyalty(price: daamAmount, royalties: DAAM_V18.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
