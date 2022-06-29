@@ -205,7 +205,6 @@ flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
 
 echo "========= Publish DAAM Contracts =========="
 # Categories
-export CODE=$(cat ../dev/hex_categories_enum)
 flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
 
 flow transactions send ./transactions/send_flow_em.cdc --args-json \
