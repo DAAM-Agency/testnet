@@ -645,6 +645,8 @@ pub struct AuctionHolder {
         }
 
         priv fun payRoyalty(price: UFix64, royalties: [MetadataViews.Royalty]) {
+            pre{ royalties.length > 0 : "Ilegal Operation 1: payRoyalties, price: ".concat(price.toString()) }
+
             var totalCut    = 0.0
             var totalAmount = 0.0
             var count       = 0
@@ -652,6 +654,7 @@ pub struct AuctionHolder {
             var amount      = 0.0
 
             for royalty in royalties {
+                assert(royalty.receiver != nil, message: "Ilegal Operation 2: payRoyalties, price: ".concat(price.toString()) )
                 amount   = price * royalty.cut
                 totalAmount = totalAmount + amount
                 // deals with remainder
@@ -674,7 +677,11 @@ pub struct AuctionHolder {
         }
 
         priv fun convertTo100Percent(): [MetadataViews.Royalty] {
+            post { rlist.length > 0 : "Illegal Operation: convertTo100Percent" }
+
             let royalties = self.auctionNFT?.royalty!.getRoyalties()
+            assert(royalties.length > 0, message: "Illegal Operation: convertTo100Percent")
+
             var totalCut = 0.0
             for r in royalties { totalCut = totalCut + r.cut }
             let offset = 1.0 / totalCut
@@ -687,13 +694,14 @@ pub struct AuctionHolder {
             for r in royalties {
                 cut = r.cut * offset 
                 totalCut = totalCut + cut
+                assert(r.receiver != nil, message: "Invald Entry: Receipient")
                 if count == last { // takes care of remainder
                     let offset = 1.0 - totalCut
                     cut = cut + offset
                     totalCut = totalCut + offset
                 }
                 rlist.append(MetadataViews.Royalty(
-                    recipient: r.receiver,
+                    recipient: r.receiver!,
                     cut: cut,
                     description: "Royalty Rate"
                 ))
