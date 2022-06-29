@@ -130,9 +130,10 @@ pub resource RequestGenerator {
         for creator in creators {
             totalCut = totalCut + creator.cut
             let newCut = creator.cut / (1.0 + rate)
+            assert(creator.receiver.borrow() != nil, message: "Illegal Operation 1: AcceptDefault" )
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: creator.receiver,
+                    recepient: creator.receiver!,
                     cut: newCut,
                     description: "Creator Royalty")
             ) // end append    
@@ -141,9 +142,10 @@ pub resource RequestGenerator {
         assert(totalCut >= 0.1 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 
         for founder in agency {
+            assert(founder.receiver.borrow() != nil, message: "Illegal Operation 2: AcceptDefault" )
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: founder.receiver,
+                    recepient: founder.receiver!,
                     cut: founder.cut * rateCut,
                     description: "Agency Royalty")
             ) // end append 
@@ -444,7 +446,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub let file     : {String : MetadataViews.Media} 
 
         init(metadata: @Metadata, request: &Request?) {
-            pre { metadata.mid == request!.mid : "Metadata and Request have different MIDs. They are not meant for each other."}
+            pre {
+                metadata.mid == request!.mid : "Metadata and Request have different MIDs. They are not meant for each other."
+                request!.royalty!.getRoyalties().length > 0 : "There must be at least Royalty Entry."
+            }
             
             DAAM.totalSupply = DAAM.totalSupply + 1 // Increment total supply
             self.id          = DAAM.totalSupply     // Set Token ID with total supply
