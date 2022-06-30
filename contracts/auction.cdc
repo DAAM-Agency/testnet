@@ -337,7 +337,7 @@ pub struct AuctionHolder {
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder                 : "You are already lead bidder."
-                self.creatorInfo.creator != self.owner?.address!  : "You can not bid in your own auction."
+                self.creatorInfo.creator != bidder    : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
@@ -555,7 +555,7 @@ pub struct AuctionHolder {
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
                 amount.isInstance(self.requiredCurrency) : "Incorrect Crypto."
-                self.creatorInfo.creator != self.owner?.address!  : "You can not bid in your own auction."
+                self.creatorInfo.creator != bidder    : "You can not bid in your own auction."
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.verifyBuyNowAmount(bidder: bidder, amount: amount.balance) : "Wrong Amount."
