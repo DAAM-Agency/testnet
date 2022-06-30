@@ -337,7 +337,7 @@ pub struct AuctionHolder {
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder                 : "You are already lead bidder."
-                self.owner!.address != bidder         : "You can not bid in your own auction."
+                self.creator != bidder         : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
