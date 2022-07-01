@@ -10,5 +10,5 @@ pub fun main(auction: Address): Bool {
         (AuctionHouse.auctionPublicPath)
         .borrow()!
         
-    return auction != nil
+    return auctionHouse != nil
 }
