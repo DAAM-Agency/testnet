@@ -19,7 +19,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
-    interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
+    interact: AnyStruct?)
 {    
     //let creator     : AuthAccount
     let requestGen  : &DAAM.RequestGenerator
@@ -33,7 +33,6 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     let description : String
     let thumbnail   : {String : {MetadataViews.File}}
     let file        : {String : MetadataViews.Media}
-    let percentage  : UFix64
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
@@ -53,10 +52,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
         for cat in categories {
             self.categories.append(Categories.Category(cat))
         }
-        self.percentage = percentage
     }
-
-    pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
