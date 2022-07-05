@@ -20,7 +20,7 @@ flow transactions send ./transactions/auction/create_auction.cdc true 1 $START \
 
 echo "Test Auction B: Item Won, Item not Collected"
 flow transactions send ./transactions/auction/create_auction.cdc true 2 $START \
-1000.00 false 0.0 true 1.0 12.00 \
+600.00 false 0.0 true 1.0 12.00 \
 25.0 30.2 nil --signer creator #B MID: 2, AID: 2
 
 echo "FAIL TEST: Test Auction C Metadatanwas deleted by Creator. Does not exist."
@@ -40,7 +40,7 @@ flow transactions send ./transactions/auction/create_auction.cdc true 5 $START \
 
 echo "Test Auction F: Item: Reserve not meet, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 6 $START \
-1000.0 false 0.0 false 0.05 14.00 \
+600.0 false 0.0 false 0.05 14.00 \
 27.0 30.3 nil --signer creator2 #F, MID: 6, AID: 3
 
 echo "Test Auction G: No Bids, Item returned."

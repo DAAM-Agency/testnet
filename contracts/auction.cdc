@@ -444,6 +444,8 @@ pub struct AuctionHolder {
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
         pub fun winnerCollect() {
             pre{ self.updateStatus() == false  : "Auction has not Ended." }
+            log("Leader: ")
+            log(self.leader)
             self.verifyReservePrice() // Verify Reserve price is met
         }
 
@@ -516,7 +518,7 @@ pub struct AuctionHolder {
         }
 
         // Verifies amount is equal to the buyNow amount. If not returns false
-        priv fun verifyBuyNowAmount(bidder: Address, amount: UFix64): Bool {
+        priv fun verifyBuyNowAmount(bidder: Address, amount: UFix64): Bool {            
             log("self.buyNow: ".concat(self.buyNow.toString()) )
             
             var total = amount
