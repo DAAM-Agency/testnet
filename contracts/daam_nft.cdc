@@ -167,7 +167,7 @@ pub resource RequestGenerator {
     {   // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64
         pub let creatorInfo : CreatorInfo               // Creator of NFT
-        pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
         pub let category    : [Categories.Category]
         pub var inCollection: {String:[UInt64]}?    // {name: [MIDs in Collection] }
         pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
@@ -189,7 +189,7 @@ pub resource RequestGenerator {
     pub resource Metadata {  // Metadata struct for NFT, will be transfered to the NFT.
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
-        pub let edition     : MetadataViews.Edition // series total, number of prints. 0 = Unlimited [counter, total]
+        pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
         pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?
         pub let description : String                // NFT description is stored here
