@@ -29,9 +29,29 @@ pub contract AuctionHouse {
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
 /************************************************************************/
+pub struct AuctionHistoryEntry {
+    pub let action: String // Action: (Bid, BuyitNow)
+    pub let height: UInt64
+    pub let amount: UFix64 
+    
+    init(action: String, height: UInt64, amount: UFix64) {
+        self.action = action
+        self.height = height
+        self.amount = amount
+    }
+}
+/************************************************************************/
 pub struct AuctionHistory {
-    // Action: (Bid, BuyitNow) , Height, Amount use self.auctionLog
-    // Result: ItemWon, ItemReturned
+    pub let entry: [AuctionHistoryEntry]
+    pub var result: Bool? // true = BuyItNow, false = Won  ay Auction, ? = returned to Seller
+
+    init() {
+        self.entry = []
+        self.result = nil
+    }
+
+    access(contract) fun addEntry(_ entry: AuctionHistoryEntry) {}
+    access(contract) fun finalEmtry(_ status: Bool?) {}
 }
 /************************************************************************/
 pub struct AuctionHolder {
