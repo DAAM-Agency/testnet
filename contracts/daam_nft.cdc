@@ -1127,7 +1127,14 @@ pub resource MinterAccess
     }
 
     // Return list of Creators
-    pub fun getCreators(): {Address:CreatorInfo} { return self.creators }
+    pub fun getCreators(): {Address:CreatorInfo} {
+        let creators = self.creators.keys
+        var list     = self.creators 
+        for creator in creators {
+            if self.creators[creator]!.status != true { list.remove(key: creator) } 
+        }
+        return list
+    }
 
     // Return Copyright Status. nil = non-existent MID
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
