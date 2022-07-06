@@ -3,31 +3,43 @@
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V18 from 0xa4ad5ea5c0bd2fba
 
-// This transaction transfers an NFT from one user's collection
-// to another user's collection.
-transaction(signer: Address, withdrawID: UInt64) {
+/// This transaction is for transferring and NFT from
+/// one account to another
+transaction(recipient: Address, withdrawID: UInt64) {
 
-    // The field that will hold the NFT as it is being transferred to the other account
-    let transferToken: @NonFungibleToken.NFT
-	
-    prepare(acct: AuthAccount) {
+    /// Reference to the withdrawer's collection
+    let withdrawRef: &DAAM_V18.Collection
 
-        // Borrow a reference from the stored collection
-        let collectionRef = acct.borrow<&DAAM_V18.Collection{NonFungibleToken.Provider}>(from: DAAM_V18.collectionStoragePath)
-            ?? panic("Could not borrow a reference to the owner's collection")
+    /// Reference of the collection to deposit the NFT to
+    let depositRef: &{NonFungibleToken.CollectionPublic}
 
-        // Call the withdraw function on the sender's Collection to move the NFT out of the collection
-        self.transferToken <- collectionRef.withdraw(withdrawID: withdrawID)
+    prepare(signer: AuthAccount) {
+        // borrow a reference to the signer's NFT collection
+        self.withdrawRef = signer.borrow<&DAAM_V18.Collection>(from: DAAM_V18.collectionStoragePath)
+            ?? panic("Account does not store an object at the specified path")
+
+        // get the recipients public account object
+        let recipient = getAccount(recipient)
+
+        // borrow a public reference to the receivers collection
+        self.depositRef = recipient.getCapability(DAAM_V18.collectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()
+            ?? panic("Could not borrow a reference to the receiver's collection")
+
     }
 
-    execute {        
-        let recipient = getAccount(signer)  // Get the recipient's public account object
-        // Get the Collection reference for the receiver getting the public capability and borrowing a reference from it
-        let receiverCap = recipient.getCapability<&DAAM_V18.Collection{NonFungibleToken.Receiver}>(DAAM_V18.collectionPublicPath)
-        let receiverRef = receiverCap.borrow()! //as &DAAM_V18.Collection //{NonFungibleToken.CollectionPublic}
-        receiverRef.deposit(token: <- self.transferToken)  // Deposit the NFT in the receivers collection
+    execute {
+        // withdraw the NFT from the owner's collection
+        let nft <- self.withdrawRef.withdraw(withdrawID: withdrawID)
 
-        let logmsg = "Transfer: ".concat(recipient.address.toString().concat(" TokenID: ").concat(withdrawID.toString()) )        
+        // Deposit the NFT in the recipient's collection
+        self.depositRef.deposit(token: <-nft)
+
+        let logmsg = "Transfer: ".concat(recipient.toString().concat(" TokenID: ").concat(withdrawID.toString()) )        
         log(logmsg)
+    }
+
+    post {
+        !self.withdrawRef.getIDs().contains(withdrawID) : "Original owner should not have the NFT anymore"
+        self.depositRef.getIDs().contains(withdrawID)   : "The reciever should now own the NFT"
     }
 }

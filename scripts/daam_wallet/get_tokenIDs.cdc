@@ -5,9 +5,9 @@ import DAAM_V18 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(account: Address): [UInt64]? {
     let collectionRef = getAccount(account)
-        .getCapability<&DAAM_V18.Collection{NonFungibleToken.CollectionPublic}>(DAAM_V18.collectionPublicPath)
+        .getCapability<&{NonFungibleToken.CollectionPublic}>(DAAM_V18.collectionPublicPath)
         .borrow()
-        //?? panic("Could not borrow capability from public collection")
+        ?? panic("Could not borrow capability from public collection")
     
-    return collectionRef?.getIDs()
+    return collectionRef.getIDs()
 }

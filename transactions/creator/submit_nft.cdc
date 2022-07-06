@@ -10,11 +10,14 @@ import DAAM_V18          from 0xa4ad5ea5c0bd2fba
 // when ipfs = false; first arument thumbnail String, second argument is thumbnailType and can not be nil
 pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataViews.File} {
     pre { ipfs || !ipfs && type_path != nil }
+
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
+
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
         default: return DAAM_V18.OnChain(file: string_cid)
     }
+}
 
 transaction(name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)

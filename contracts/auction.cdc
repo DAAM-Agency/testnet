@@ -336,7 +336,7 @@ pub struct AuctionHolder {
                 self.updateStatus() == true           : "Auction is not in progress."
                 self.validateBid(bidder: bidder, balance: amount.balance) : "You have made an invalid Bid."
                 self.leader != bidder                 : "You are already lead bidder."
-                self.creatorInfo.creator != self.owner?.address!  : "You can not bid in your own auction."
+                self.creatorInfo.creator != bidder    : "You can not bid in your own auction."
                 self.height == nil || getCurrentBlock().height < self.height! : "You bid was too late"
             }
             post { self.verifyAuctionLog() } // Verify Funds
@@ -443,6 +443,8 @@ pub struct AuctionHolder {
         // Winner can 'Claim' an item. Reserve price must be meet, otherwise returned to auctioneer
         pub fun winnerCollect() {
             pre{ self.updateStatus() == false  : "Auction has not Ended." }
+            log("Leader: ")
+            log(self.leader)
             self.verifyReservePrice() // Verify Reserve price is met
         }
 
@@ -515,7 +517,7 @@ pub struct AuctionHolder {
         }
 
         // Verifies amount is equal to the buyNow amount. If not returns false
-        priv fun verifyBuyNowAmount(bidder: Address, amount: UFix64): Bool {
+        priv fun verifyBuyNowAmount(bidder: Address, amount: UFix64): Bool {            
             log("self.buyNow: ".concat(self.buyNow.toString()) )
             
             var total = amount
@@ -554,7 +556,11 @@ pub struct AuctionHolder {
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
                 amount.isInstance(self.requiredCurrency) : "Incorrect Crypto."
+<<<<<<< HEAD
                 self.creatorInfo.creator != self.owner?.address!  : "You can not bid in your own auction."
+=======
+                self.creatorInfo.creator != bidder    : "You can not bid in your own auction."
+>>>>>>> dev-emulator
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.verifyBuyNowAmount(bidder: bidder, amount: amount.balance) : "Wrong Amount."
@@ -655,7 +661,11 @@ pub struct AuctionHolder {
 
             for royalty in royalties {
                 assert(royalty.receiver != nil, message: "Ilegal Operation 2: payRoyalties, price: ".concat(price.toString()) )
+<<<<<<< HEAD
                 amount      = price * royalty.cut
+=======
+                amount   = price * royalty.cut
+>>>>>>> dev-emulator
                 totalAmount = totalAmount + amount
                 // deals with remainder
                 if count == last {
@@ -679,8 +689,14 @@ pub struct AuctionHolder {
         priv fun convertTo100Percent(): [MetadataViews.Royalty] {
             post { rlist.length > 0 : "Illegal Operation: convertTo100Percent" }
 
+<<<<<<< HEAD
             let royalties = self.auctionNFT?.royalty!.getRoyalties()!
             assert(royalties.length > 0, message: "Illegal Operation: convertTo100Percent")
+=======
+            let royalties = self.auctionNFT?.royalty!.getRoyalties()
+            assert(royalties.length > 0, message: "Illegal Operation: convertTo100Percent")
+
+>>>>>>> dev-emulator
             var totalCut = 0.0
             for r in royalties { totalCut = totalCut + r.cut }
             let offset = 1.0 / totalCut
@@ -694,7 +710,10 @@ pub struct AuctionHolder {
                 cut = r.cut * offset 
                 totalCut = totalCut + cut
                 assert(r.receiver != nil, message: "Invald Entry: Receipient")
+<<<<<<< HEAD
 
+=======
+>>>>>>> dev-emulator
                 if count == last { // takes care of remainder
                     let offset = 1.0 - totalCut
                     cut = cut + offset
