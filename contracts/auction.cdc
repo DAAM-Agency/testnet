@@ -348,11 +348,7 @@ pub struct AuctionHolder {
             self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
-<<<<<<< HEAD
             self.history = AuctionHistory()
-=======
-            self.history = self.history
->>>>>>> 9fb91ca1 (auction.cdc compiles with new updates)
             self.auctionVault <- vault  // ALL Crypto is stored
             self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
