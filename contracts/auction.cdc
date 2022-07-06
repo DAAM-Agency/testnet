@@ -348,7 +348,11 @@ pub struct AuctionHolder {
             self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
+<<<<<<< HEAD
             self.history = AuctionHistory()
+=======
+            self.history = self.history
+>>>>>>> 9fb91ca1 (auction.cdc compiles with new updates)
             self.auctionVault <- vault  // ALL Crypto is stored
             self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
@@ -510,7 +514,7 @@ pub struct AuctionHolder {
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: self.auctionLog[self.leader!]!, history: AuctionHistory() ) // Auction Ended, but Item not delivered yet.
+                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: self.auctionLog[self.leader!]!, history: self.history) // Auction Ended, but Item not delivered yet.
             } else {   
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
@@ -519,13 +523,13 @@ pub struct AuctionHolder {
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")                   
-                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: AuctionHistory() )
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: self.history )
                 } else {      // return NFT to Seller, reerve not meet
                     let nft <- self.auctionNFT <- nil
                     self.returnFunds()              // return funds to all bidders
                     self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
                     log("Item: Returned")
-                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: AuctionHistory() )
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: self.history )
                 }                            
             }
         }
@@ -604,7 +608,7 @@ pub struct AuctionHolder {
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
             log("Buy It Now")
-            emit BuyItNow(auctionID: self.auctionID, winner: self.leader!, amount: self.buyNow, history: AuctionHistory() )
+            emit BuyItNow(auctionID: self.auctionID, winner: self.leader!, amount: self.buyNow, history: self.history )
             log(self.auctionLog)
             self.winnerCollect() // Will receive NFT if reserve price is met
         }    
