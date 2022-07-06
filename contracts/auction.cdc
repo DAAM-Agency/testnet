@@ -72,13 +72,14 @@ pub struct AuctionHolder {
         pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
         pub let reprintSeries : UInt64?  // Active Series Minter (if series)
         pub let auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+        pub let history       : AuctionHistory
         pub let requiredCurrency: Type
 
         init(
             _ status:Bool?, _ auctionID:UInt64, _ creator: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
             _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: UInt64?,
-            _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
+            _ auctionLog: {Address: UFix64}, _ history: AuctionHistory, _ requiredCurrency: Type
             )
             {
                 self.status        = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
@@ -98,6 +99,7 @@ pub struct AuctionHolder {
                 self.buyNow        = buyNow   // buy now price (original price + AuctionHouse.fee)
                 self.reprintSeries = reprintSeries     // Active Series Minter (if series)
                 self.auctionLog    = auctionLog    // {Bidders, Amount} // Log of the Auction
+                self.history       = history
                 self.requiredCurrency = requiredCurrency
             }
 }
@@ -272,6 +274,7 @@ pub struct AuctionHolder {
         pub let buyNow        : UFix64   // buy now price original price
         pub var reprintSeries : UInt64?  // Number of reprints, nil = max prints.
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
+        pub var history       : AuctionHistory
         access(contract) var auctionMetadata : @DAAM.Metadata? // Store NFT for auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
         priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
@@ -345,6 +348,7 @@ pub struct AuctionHolder {
             self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
+            self.history = AuctionHistory()
             self.auctionVault <- vault  // ALL Crypto is stored
             self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
@@ -461,7 +465,7 @@ pub struct AuctionHolder {
             let info = AuctionHolder(
                 self.status, self.auctionID, self.creatorInfo, self.mid, self.start, self.length, self.isExtended,
                 self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
-                self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
+                self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.history, self.requiredCurrency
             )
             return info
         }
