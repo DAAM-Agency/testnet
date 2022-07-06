@@ -556,11 +556,7 @@ pub struct AuctionHolder {
         pub fun buyItNow(bidder: Address, amount: @FungibleToken.Vault) {
             pre {
                 amount.isInstance(self.requiredCurrency) : "Incorrect Crypto."
-<<<<<<< HEAD
-                self.creatorInfo.creator != self.owner?.address!  : "You can not bid in your own auction."
-=======
                 self.creatorInfo.creator != bidder    : "You can not bid in your own auction."
->>>>>>> dev-emulator
                 self.updateStatus() != false  : "Auction has Ended."
                 self.buyNow != 0.0 : "Buy It Now option is not available."
                 self.verifyBuyNowAmount(bidder: bidder, amount: amount.balance) : "Wrong Amount."
