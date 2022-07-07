@@ -911,7 +911,11 @@ pub struct AuctionHolder {
     }
 
     access(contract) fun updateHistory(mid: UInt64, history: AuctionHistory) {
-
+        if self.history.containsKey(mid) {
+            self.history[mid]!.append(history)       // Append TokenID auction history
+        } else {
+            self.history.insert(key: mid, [history]) // Add new TokenID auction history
+        }
     }
 
     pub fun getFee(mid: UInt64): UFix64 {
@@ -929,6 +933,12 @@ pub struct AuctionHolder {
             self.fee.containsKey(mid) : "Mid does not exist."
         }
         self.fee.remove(key: mid)
+    }
+
+    pub fun getHistory(id: UInt64?): {UInt64: [AuctionHistory]} {
+        if id == nil { return self.history }
+        let history = self.history[id!]!
+        return {id! : history}
     }
 
     // Create Auction Wallet which is used for storing Auctions.
