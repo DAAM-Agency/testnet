@@ -1028,6 +1028,7 @@ pub struct CreatorInfo {
                 DAAM.newNFTs.append(id)       // Append 'new' list
         }        
     }
+
 /************************************************************************/
 pub resource MinterAccess 
 {
@@ -1140,6 +1141,13 @@ pub resource MinterAccess
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
         return self.copyright[mid]
     }
+
+    pub fun getRoyalties(mid: UInt64): MetadataViews.Royalties {
+        pre {DAAM.request.containsKey(mid) : "Invalid MID" }
+        let request = &DAAM.request[mid] as &Request?
+        let royalty = request!.royalty!
+        return royalty
+    } 
 
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
