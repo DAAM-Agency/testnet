@@ -23,11 +23,12 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-                                       // { MID   : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
+    access(contract) var history        : {UInt64 : [AuctionHistory]}
+
 /************************************************************************/
 pub struct AuctionHistoryEntry {
     pub let action: String // Action: (Bid, BuyitNow)
@@ -43,15 +44,19 @@ pub struct AuctionHistoryEntry {
 /************************************************************************/
 pub struct AuctionHistory {
     pub let entry: [AuctionHistoryEntry]
-    pub var result: Bool? // true = BuyItNow, false = Won  ay Auction, ? = returned to Seller
+    pub var result: Bool? // true = BuyItNow, false = Won by Auction, nil/? = returned to Seller
 
     init() {
         self.entry = []
         self.result = nil
     }
 
-    access(contract) fun addEntry(_ entry: AuctionHistoryEntry) {}
-    access(contract) fun finalEmtry(_ status: Bool?) {}
+    access(contract) fun addEntry(mid: UInt64, entry: AuctionHistoryEntry) {}
+
+    access(contract) fun finalEntry(mid: UInt64, result: Bool?) {
+        self.result = result
+        AuctionHouse.updateHistory(mid: mid, history: self)
+    }
 }
 /************************************************************************/
 pub struct AuctionHolder {
@@ -905,6 +910,10 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
+    access(contract) fun updateHistory(mid: UInt64, history: AuctionHistory) {
+
+    }
+
     pub fun getFee(mid: UInt64): UFix64 {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
@@ -931,6 +940,7 @@ pub struct AuctionHolder {
         self.metadataGen     = {}
         self.currentAuctions = {}
         self.fee             = {}
+        self.history         = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
