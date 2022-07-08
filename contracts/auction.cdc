@@ -14,13 +14,8 @@ pub contract AuctionHouse {
     pub event ItemReturned(auctionID: UInt64, seller: Address)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
     pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
-<<<<<<< HEAD
-    pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64)  // Item has been Won in an auction
-    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
-=======
     pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64, sale: SaleHistory)  // Item has been Won in an auction
     pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64, sale: SaleHistory) // Buy It Now has been completed
->>>>>>> f64d9fef (AuctionHistory => SaleHistory)
     pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
     // Path for Auction Wallet
@@ -901,11 +896,7 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
-<<<<<<< HEAD
-    access(contract) fun updateHistory(id: UInt64, history: AuctionHistory) {
-=======
     access(contract) fun updateSaleHistory(id: UInt64, history: SaleHistory) {
->>>>>>> f64d9fef (AuctionHistory => SaleHistory)
         if self.history.containsKey(id) {
             self.history[id]!.append(history)       // Append TokenID auction history
         } else {
