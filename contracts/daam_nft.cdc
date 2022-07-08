@@ -1141,6 +1141,13 @@ pub resource MinterAccess
         return self.copyright[mid]
     }
 
+    pub fun getRoyalties(mid: UInt64): MetadataViews.Royalties {
+        pre {DAAM_V18.request.containsKey(mid) : "Invalid MID" }
+        let request = &DAAM_V18.request[mid] as &Request?
+        let royalty = request!.royalty!
+        return royalty
+    } 
+
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
     }

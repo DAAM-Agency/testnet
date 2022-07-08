@@ -28,7 +28,24 @@ pub contract AuctionHouse_V8 {
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
-/**********************`**************************************************/
+    access(contract) var history        : {UInt64 : [SaleHistory]}
+
+/************************************************************************/
+    pub struct SaleHistory {
+        pub let price  : UFix64 
+        pub let from   : Address
+        pub let to     : Address
+        pub let height : UInt64 
+
+        init(price: UFix64, from: Address, to: Address) {
+            self.price  = price
+            self.from   = from
+            self.to     = to
+            self.height = getCurrentBlock().height
+        }
+    }
+/************************************************************************/
+
 pub struct AuctionHolder {
         pub let status        : Bool? // nil = auction not started or no bid, true = started (with bid), false = auction ended
         pub let auctionID     : UInt64       // Auction ID number. Note: Series auctions keep the same number. 
@@ -471,14 +488,20 @@ pub struct AuctionHolder {
                     destroy old
                 }
                 // remove leader from log before returnFunds()!!
+                let amount = self.auctionLog[self.leader!]!
+
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // Return funds to all bidders
                 self.royalty()      // Pay royalty
 
                 let nft <- self.auctionNFT <- nil // remove nft
+                let id = nft?.id!
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
+                let history = SaleHistory(price: amount, from: self.owner!.address, to: leader)
+                AuctionHouse_V8.updateSaleHistory(id: id, history: history)
+
                 emit ItemWon(auctionID: self.auctionID, winner: leader) // Auction Ended, but Item not delivered yet.
             } else {   
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
@@ -570,6 +593,7 @@ pub struct AuctionHolder {
             self.leader = bidder         // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
+            let price = self.auctionLog[self.leader!]!
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
             log("Buy It Now")
@@ -877,6 +901,14 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
+    access(contract) fun updateSaleHistory(id: UInt64, history: SaleHistory) {
+        if self.history.containsKey(id) {
+            self.history[id]!.append(history)       // Append TokenID auction history
+        } else {
+            self.history.insert(key: id, [history]) // Add new TokenID auction history
+        }
+    }
+
     pub fun getFee(mid: UInt64): UFix64 {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
@@ -893,6 +925,12 @@ pub struct AuctionHolder {
         }
         self.fee.remove(key: mid)
     }
+    
+    pub fun getSaleHistory(id: UInt64?): {UInt64: [SaleHistory]} {
+        if id == nil { return self.history }
+        let history = self.history[id!]!
+        return {id! : history}
+    }
 
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(): @AuctionWallet { 
@@ -903,6 +941,8 @@ pub struct AuctionHolder {
         self.metadataGen     = {}
         self.currentAuctions = {}
         self.fee             = {}
+        self.history         = {}
+
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_V18_Auction
         self.auctionPublicPath  = /public/DAAM_V18_Auction
