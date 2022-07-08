@@ -14,8 +14,13 @@ pub contract AuctionHouse {
     pub event ItemReturned(auctionID: UInt64, seller: Address)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
     pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
+<<<<<<< HEAD
     pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64)  // Item has been Won in an auction
     pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
+=======
+    pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64, sale: SaleHistory)  // Item has been Won in an auction
+    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64, sale: SaleHistory) // Buy It Now has been completed
+>>>>>>> f64d9fef (AuctionHistory => SaleHistory)
     pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
     // Path for Auction Wallet
@@ -451,7 +456,7 @@ pub struct AuctionHolder {
             let info = AuctionHolder(
                 self.status, self.auctionID, self.creatorInfo, self.mid, self.start, self.length, self.isExtended,
                 self.extendedTime, self.leader, self.minBid, self.startingBid, self.reserve, self.fee,
-                self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.history, self.requiredCurrency
+                self.price, self.buyNow, self.reprintSeries, self.auctionLog, self.requiredCurrency
             )
             return info
         }
@@ -487,6 +492,7 @@ pub struct AuctionHolder {
                     destroy old
                 }
                 // remove leader from log before returnFunds()!!
+                let amount = self.auctionLog[self.leader!]!
                 self.auctionLog.remove(key: self.leader!)!
                 self.returnFunds()  // Return funds to all bidders
                 self.royalty()      // Pay royalty
@@ -496,7 +502,10 @@ pub struct AuctionHolder {
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: self.auctionLog[self.leader!]!, history: self.history) // Auction Ended, but Item not delivered yet.
+                let history = SaleHistory(price: amount, from: self.owner!.address, to: leader)
+                AuctionHouse.updateSaleHistory(id: id, history: history)
+
+                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: history) // Auction Ended, but Item not delivered yet.
             } else {   
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
@@ -505,13 +514,13 @@ pub struct AuctionHolder {
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")                   
-                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: self.history )
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!)
                 } else {      // return NFT to Seller, reerve not meet
                     let nft <- self.auctionNFT <- nil
                     self.returnFunds()              // return funds to all bidders
                     self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
                     log("Item: Returned")
-                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!, history: self.history )
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!)
                 }                            
             }
         }
@@ -587,11 +596,9 @@ pub struct AuctionHolder {
             self.leader = bidder         // set new leader
 
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
+            let price = self.auctionLog[self.leader!]!
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
 
-            log("Buy It Now")
-            emit BuyItNow(auctionID: self.auctionID, winner: self.leader!, amount: self.buyNow, history: self.history )
-            log(self.auctionLog)
             self.winnerCollect() // Will receive NFT if reserve price is met
         }    
 
@@ -894,7 +901,11 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
+<<<<<<< HEAD
     access(contract) fun updateHistory(id: UInt64, history: AuctionHistory) {
+=======
+    access(contract) fun updateSaleHistory(id: UInt64, history: SaleHistory) {
+>>>>>>> f64d9fef (AuctionHistory => SaleHistory)
         if self.history.containsKey(id) {
             self.history[id]!.append(history)       // Append TokenID auction history
         } else {
@@ -919,7 +930,7 @@ pub struct AuctionHolder {
         self.fee.remove(key: mid)
     }
 
-    pub fun getHistory(id: UInt64?): {UInt64: [AuctionHistory]} {
+    pub fun getSaleHistory(id: UInt64?): {UInt64: [SaleHistory]} {
         if id == nil { return self.history }
         let history = self.history[id!]!
         return {id! : history}
