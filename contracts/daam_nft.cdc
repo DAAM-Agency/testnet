@@ -1127,12 +1127,26 @@ pub resource MinterAccess
     }
 
     // Return list of Creators
-    pub fun getCreators(): {Address:CreatorInfo} { return self.creators }
+    pub fun getCreators(): {Address:CreatorInfo} {
+        let creators = self.creators.keys
+        var list     = self.creators 
+        for creator in creators {
+            if self.creators[creator]!.status != true { list.remove(key: creator) } 
+        }
+        return list
+    }
 
     // Return Copyright Status. nil = non-existent MID
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
         return self.copyright[mid]
     }
+
+    pub fun getRoyalties(mid: UInt64): MetadataViews.Royalties {
+        pre {DAAM_V18.request.containsKey(mid) : "Invalid MID" }
+        let request = &DAAM_V18.request[mid] as &Request?
+        let royalty = request!.royalty!
+        return royalty
+    } 
 
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
