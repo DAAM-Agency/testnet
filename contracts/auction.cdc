@@ -11,11 +11,11 @@ pub contract AuctionHouse {
     pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
-    pub event ItemReturned(auctionID: UInt64, seller: Address, history: AuctionHistory)     // Auction has ended and the Reserve price was not met.
+    pub event ItemReturned(auctionID: UInt64, seller: Address)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
     pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
-    pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64, history: AuctionHistory)  // Item has been Won in an auction
-    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64, history: AuctionHistory) // Buy It Now has been completed
+    pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64)  // Item has been Won in an auction
+    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
     pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
     // Path for Auction Wallet
@@ -27,35 +27,20 @@ pub contract AuctionHouse {
     access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
-    access(contract) var history        : {UInt64 : [AuctionHistory]}
+    access(contract) var history        : {UInt64 : [SaleHistory]}
 
 /************************************************************************/
-pub struct AuctionHistoryEntry {
-    pub let action: String // Action: (Bid, BuyitNow)
-    pub let height: UInt64
-    pub let amount: UFix64 
-    
-    init(action: String, height: UInt64, amount: UFix64) {
-        self.action = action
-        self.height = height
-        self.amount = amount
-    }
-}
-/************************************************************************/
-pub struct AuctionHistory {
-    pub let entry: [AuctionHistoryEntry]
-    pub var result: Bool? // true = BuyItNow, false = Won by Auction, nil/? = returned to Seller
+pub struct SaleHistory {
+    pub let price  : UFix64 
+    pub let from   : Address
+    pub let to     : Address
+    pub let height : UInt64 
 
-    init() {
-        self.entry = []
-        self.result = nil
-    }
-
-    access(contract) fun addEntry(mid: UInt64, entry: AuctionHistoryEntry) {}
-
-    access(contract) fun finalEntry(mid: UInt64, result: Bool?) {
-        self.result = result
-        AuctionHouse.updateHistory(mid: mid, history: self)
+    init(price: UFix64, from: Address, to: Address) {
+        self.price  = price
+        self.from   = from
+        self.to     = to
+        self.height = getCurrentBlock().height
     }
 }
 /************************************************************************/
@@ -77,14 +62,13 @@ pub struct AuctionHolder {
         pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse.fee)
         pub let reprintSeries : UInt64?  // Active Series Minter (if series)
         pub let auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
-        pub let history       : AuctionHistory
         pub let requiredCurrency: Type
 
         init(
             _ status:Bool?, _ auctionID:UInt64, _ creator: DAAM.CreatorInfo, _ mid: UInt64, _ start: UFix64, _ length: UFix64,
             _ isExtended: Bool, _ extendedTime: UFix64, _ leader: Address?, _ minBid: UFix64?, _ startingBid: UFix64?,
             _ reserve: UFix64, _ fee: UFix64, _ price: UFix64, _ buyNow: UFix64, _ reprintSeries: UInt64?,
-            _ auctionLog: {Address: UFix64}, _ history: AuctionHistory, _ requiredCurrency: Type
+            _ auctionLog: {Address: UFix64}, _ requiredCurrency: Type
             )
             {
                 self.status        = status// nil = auction not started or no bid, true = started (with bid), false = auction ended
@@ -104,7 +88,6 @@ pub struct AuctionHolder {
                 self.buyNow        = buyNow   // buy now price (original price + AuctionHouse.fee)
                 self.reprintSeries = reprintSeries     // Active Series Minter (if series)
                 self.auctionLog    = auctionLog    // {Bidders, Amount} // Log of the Auction
-                self.history       = history
                 self.requiredCurrency = requiredCurrency
             }
 }
@@ -203,7 +186,7 @@ pub struct AuctionHolder {
                         AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list
                     }
 
-                    log("Auction Closed: ".concat(auctionID.toString()) )
+                    log("Auction Closed: ".concat(auctionID.toString()) )                    
                     emit AuctionClosed(auctionID: auctionID)
                 }
             }
@@ -279,7 +262,6 @@ pub struct AuctionHolder {
         pub let buyNow        : UFix64   // buy now price original price
         pub var reprintSeries : UInt64?  // Number of reprints, nil = max prints.
         pub var auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
-        pub var history       : AuctionHistory
         access(contract) var auctionMetadata : @DAAM.Metadata? // Store NFT for auction
         access(contract) var auctionNFT : @DAAM.NFT? // Store NFT for auction
         priv var auctionVault : @FungibleToken.Vault // Vault, All funds are stored.
@@ -353,7 +335,6 @@ pub struct AuctionHolder {
             self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
-            self.history = AuctionHistory()
             self.auctionVault <- vault  // ALL Crypto is stored
             self.requiredCurrency = self.auctionVault.getType()
             self.auctionNFT <- nft // NFT Storage durning auction
@@ -863,6 +844,9 @@ pub struct AuctionHolder {
             self.length = 0.0 as UFix64
 
             log("Auction Cancelled: ".concat(self.auctionID.toString()) )
+            let entry = AuctionHistoryEntry(action: "Auction Cancelled", amount: nil)
+            self.history.addEntry(id: id, entry: entry)
+            self.history.finalEntry(id: id, result: nil)
             emit AuctionCancelled(auctionID: self.auctionID)
         } 
 
@@ -910,11 +894,11 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
-    access(contract) fun updateHistory(mid: UInt64, history: AuctionHistory) {
-        if self.history.containsKey(mid) {
-            self.history[mid]!.append(history)       // Append TokenID auction history
+    access(contract) fun updateHistory(id: UInt64, history: AuctionHistory) {
+        if self.history.containsKey(id) {
+            self.history[id]!.append(history)       // Append TokenID auction history
         } else {
-            self.history.insert(key: mid, [history]) // Add new TokenID auction history
+            self.history.insert(key: id, [history]) // Add new TokenID auction history
         }
     }
 
