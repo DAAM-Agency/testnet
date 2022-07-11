@@ -15,7 +15,7 @@ pub contract AuctionHouse {
     pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
     pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
     pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64, sale: SaleHistory)  // Item has been Won in an auction
-    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64, sale: SaleHistory) // Buy It Now has been completed
+    pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
     pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
     // Path for Auction Wallet
@@ -594,6 +594,8 @@ pub struct AuctionHolder {
             self.updateAuctionLog(amount.balance)       // update auction log with new leader
             let price = self.auctionLog[self.leader!]!
             self.auctionVault.deposit(from: <- amount)  // depsoit into Auction Vault
+            
+            emit BuyItNow(auctionID: self.auctionID, winner: self.leader!, amount: self.buyNow)
 
             self.winnerCollect() // Will receive NFT if reserve price is met
         }    
