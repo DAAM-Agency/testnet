@@ -11,10 +11,10 @@ pub contract AuctionHouse_V8 {
     pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
-    pub event ItemReturned(auctionID: UInt64)     // Auction has ended and the Reserve price was not met.
-    pub event BidMade(auctionID: UInt64, bidder: Address ) // Bid has been made on an Item
+    pub event ItemReturned(auctionID: UInt64, seller: Address)     // Auction has ended and the Reserve price was not met.
+    pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
     pub event BidWithdrawn(auctionID: UInt64, bidder: Address)                // Bidder has withdrawn their bid
-    pub event ItemWon(auctionID: UInt64, winner: Address)  // Item has been Won in an auction
+    pub event ItemWon(auctionID: UInt64, winner: Address, tokenID: UInt64, amount: UFix64, sale: SaleHistory)  // Item has been Won in an auction
     pub event BuyItNow(auctionID: UInt64, winner: Address, amount: UFix64) // Buy It Now has been completed
     pub event FundsReturned(auctionID: UInt64)   // Funds have been returned accordingly
 
@@ -501,8 +501,8 @@ pub struct AuctionHolder {
                 log("Item: Won")
                 let history = SaleHistory(price: amount, from: self.owner!.address, to: leader)
                 AuctionHouse_V8.updateSaleHistory(id: id, history: history)
+                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: history) // Auction Ended, but Item not delivered yet.
 
-                emit ItemWon(auctionID: self.auctionID, winner: leader) // Auction Ended, but Item not delivered yet.
             } else {   
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
@@ -511,13 +511,13 @@ pub struct AuctionHolder {
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")
-                    emit ItemReturned(auctionID: self.auctionID)
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!)
                 } else {      // return NFT to Seller, reerve not meet
                     let nft <- self.auctionNFT <- nil
                     self.returnFunds()              // return funds to all bidders
                     self.finalise(receiver: receiver, nft: <-nft!, pass: pass)
                     log("Item: Returned")
-                    emit ItemReturned(auctionID: self.auctionID) 
+                    emit ItemReturned(auctionID: self.auctionID, seller: receiver!)
                 }                            
             }
         }
