@@ -3,13 +3,13 @@
 
 import FungibleToken from 0x9a0766d93b6608b7
 import FUSD          from 0xe223d8a629e49c68
-import AuctionHouse_V8  from 0x01837e15023c9249
+import AuctionHouse_V9  from 0x01837e15023c9249
 
 transaction(auction: Address, aid: UInt64)
 {
     let bidder          : AuthAccount
     let aid             : UInt64
-    let auctionHouse    : &AuctionHouse_V8.AuctionWallet{AuctionHouse_V8.AuctionWalletPublic}
+    let auctionHouse    : &AuctionHouse_V9.AuctionWallet{AuctionHouse_V9.AuctionWalletPublic}
     let fusdStoragePath : StoragePath
     let vaultRef        : &FUSD.Vault{FungibleToken.Receiver}
     
@@ -18,8 +18,8 @@ transaction(auction: Address, aid: UInt64)
         self.aid             = aid
         self.fusdStoragePath = /storage/fusdVault
         self.auctionHouse = getAccount(auction)
-            .getCapability<&AuctionHouse_V8.AuctionWallet{AuctionHouse_V8.AuctionWalletPublic}>
-            (AuctionHouse_V8.auctionPublicPath)
+            .getCapability<&AuctionHouse_V9.AuctionWallet{AuctionHouse_V9.AuctionWalletPublic}>
+            (AuctionHouse_V9.auctionPublicPath)
             .borrow()!
         self.vaultRef = bidder.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: self.fusdStoragePath)!
     }
