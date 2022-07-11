@@ -846,9 +846,6 @@ pub struct AuctionHolder {
             self.length = 0.0 as UFix64
 
             log("Auction Cancelled: ".concat(self.auctionID.toString()) )
-            let entry = AuctionHistoryEntry(action: "Auction Cancelled", amount: nil)
-            self.history.addEntry(id: id, entry: entry)
-            self.history.finalEntry(id: id, result: nil)
             emit AuctionCancelled(auctionID: self.auctionID)
         } 
 
