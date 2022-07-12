@@ -31,16 +31,18 @@ pub contract AuctionHouse {
 
 /************************************************************************/
 pub struct SaleHistory {
+    pub let id     : UInt64
     pub let price  : UFix64 
     pub let from   : Address
     pub let to     : Address
-    pub let height : UInt64 
+    pub let timestamp : UFix64 
 
-    init(price: UFix64, from: Address, to: Address) {
+    init(id: UInt64, price: UFix64, from: Address, to: Address) {
+        self.id     = id
         self.price  = price
         self.from   = from
         self.to     = to
-        self.height = getCurrentBlock().height
+        self.timestamp = getCurrentBlock().timestamp
     }
 }
 /************************************************************************/
@@ -498,7 +500,7 @@ pub struct AuctionHolder {
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                let history = SaleHistory(price: amount, from: self.owner!.address, to: leader)
+                let history = SaleHistory(id: id, price: amount, from: self.owner!.address, to: leader)
                 AuctionHouse.updateSaleHistory(id: id, history: history)
 
                 emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: history) // Auction Ended, but Item not delivered yet.
