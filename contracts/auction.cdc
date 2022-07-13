@@ -32,12 +32,14 @@ pub contract AuctionHouse_V9 {
 
 /************************************************************************/
     pub struct SaleHistory {
+        pub let id     : UInt64
         pub let price  : UFix64 
         pub let from   : Address
         pub let to     : Address
         pub let height : UInt64 
 
-        init(price: UFix64, from: Address, to: Address) {
+        init(id: UInt64, price: UFix64, from: Address, to: Address) {
+            self.id     = id
             self.price  = price
             self.from   = from
             self.to     = to
@@ -499,7 +501,7 @@ pub struct AuctionHolder {
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                let history = SaleHistory(price: amount, from: self.owner!.address, to: leader)
+                let history = SaleHistory(id: id, price: amount, from: self.owner!.address, to: leader)
                 AuctionHouse_V9.updateSaleHistory(id: id, history: history)
                 emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: history) // Auction Ended, but Item not delivered yet.
 
@@ -775,7 +777,7 @@ pub struct AuctionHolder {
             if DAAM_V18.isNFTNew(id: tokenID) {
                 AuctionHouse_V9.notNew(tokenID: tokenID) 
                 self.payFirstSale()
-            } //else {   // 2nd Sale
+            } else {   // 2nd Sale
                 let price   = self.auctionVault.balance / (1.0 + self.fee)
                 let fee     = self.auctionVault.balance - price   // Get fee amount
                 let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
@@ -786,7 +788,7 @@ pub struct AuctionHolder {
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
-            //}     
+            }     
         }
 
         // Comapres Log to Vault. Makes sure Funds match. Should always be true!
