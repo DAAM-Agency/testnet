@@ -182,8 +182,11 @@ pub struct AuctionHolder {
                     destroy auction                                              // end auction.
                     
                     // Update Current Auctions List
-                    if AuctionHouse.currentAuctions[self.owner!.address]!.length == 0 {
-                        log("AuctionHouse.currentAuctions[self.owner!.address]!.length: ".concat(AuctionHouse.currentAuctions[self.owner!.address]!.length.toString()) )
+                    log("AuctionHouse.currentAuctions[self.owner!.address]!.length: ".concat(AuctionHouse.currentAuctions[self.owner!.address]!.length.toString()) )
+                    log(AuctionHouse.currentAuctions[self.owner!.address])
+                    log(self.currentAuctions.keys)
+
+                    if self.currentAuctions.keys.length == 0 {
                         AuctionHouse.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
                     } else {
                         AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list
