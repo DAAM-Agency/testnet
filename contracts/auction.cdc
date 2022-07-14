@@ -10,6 +10,7 @@ pub contract AuctionHouse {
     // Event
     pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
+    pub event AuctionEnded(auctionID: UInt64, time: UFix64)   // Auction has ended, time is Unix timestamp. 
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
     pub event ItemReturned(auctionID: UInt64, seller: Address)     // Auction has ended and the Reserve price was not met.
     pub event BidMade(auctionID: UInt64, bidder: Address) // Bid has been made on an Item
@@ -182,14 +183,10 @@ pub struct AuctionHolder {
                     destroy auction                                              // end auction.
                     
                     // Update Current Auctions List
-                    log("AuctionHouse.currentAuctions[self.owner!.address]!.length: ".concat(AuctionHouse.currentAuctions[self.owner!.address]!.length.toString()) )
-                    log(AuctionHouse.currentAuctions[self.owner!.address])
-                    log(self.currentAuctions.keys)
-
                     if self.currentAuctions.keys.length == 0 {
                         AuctionHouse.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
                     } else {
-                        AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list
+                        AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list with reset values
                     }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )                    
@@ -421,6 +418,7 @@ pub struct AuctionHolder {
                 self.status = false                    // set auction to End (false)
                 self.height = getCurrentBlock().height // get height for bids at enf of auction.
                 log("Status: Time Limit Reached & Auction Ended")
+                emit AuctionEnded(auctionID: self.auctionID, time: getCurrentBlock().timestamp)
                 return false
             }
 
@@ -885,7 +883,7 @@ pub struct AuctionHolder {
     // Get current auctions { Address : [AID] }
     pub fun getCurrentAuctions(): {Address:[UInt64]} {
         return self.currentAuctions
-    }
+    }    
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM.Metadata): @DAAM.NFT {
