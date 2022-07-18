@@ -172,9 +172,11 @@ pub resource RequestGenerator {
         pub var inCollection: {String:[UInt64]}?    // {name: [MIDs in Collection] }
         pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
+        pub let featured    : Bool                              // True = Special Feature NFT
+        pub let misc        : String
         
         init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category], inCollection: {String:[UInt64]}?,
-            description: String, thumbnail: {String : {MetadataViews.File}})
+            description: String, thumbnail: {String : {MetadataViews.File}}, featured: Bool, misc: String)
         {
             self.mid          = mid
             self.creatorInfo  = creator      // creator of NFT
@@ -183,6 +185,8 @@ pub resource RequestGenerator {
             self.inCollection = inCollection // total prints
             self.description  = description  // data,about,misc page
             self.thumbnail    = thumbnail    // thumbnail are stored here
+            self.featured     = featured     // Specal NFT
+            self.misc         = misc         // Misc.
         }
     }
 /************************************************************************/
@@ -190,25 +194,26 @@ pub resource RequestGenerator {
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
+        pub let featured    : Bool                              // True = Special Feature NFT
         pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?
         pub let description : String                // NFT description is stored here
+        pub let misc        : String
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         pub let interact    : AnyStruct?
         pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creator: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
-            thumbnail: {String:{MetadataViews.File}}?, file: {String:MetadataViews.Media}?, metadata: &Metadata?, interact: AnyStruct?)
+        init(creator: CreatorInfo?, name: String?, max: UInt64?, featured: Bool?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
+            misc: String?, thumbnail: {String:{MetadataViews.File}}?, interact: AnyStruct?, file: {String:MetadataViews.Media}?, metadata: &Metadata?)
         {            
             pre {
                 DAAM.validInteract(interact) : "This Interaction is not Authorized"
                 max != 0 : "Max has an incorrect value of 0."
                 // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
-                (creator==nil && name==nil && categories==nil && description==nil && thumbnail==nil && file==nil &&
-                metadata != nil)
+                (creator==nil && name==nil && featured==nil && categories==nil && description==nil && misc==nil && thumbnail==nil && file==nil && metadata != nil)
                 || // or
                 // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
-                (creator!=nil && name!=nil && categories!=nil && description!=nil && thumbnail!=nil && file!=nil && metadata == nil)
+                (creator!=nil && name!=nil && featured!=nil && categories!=nil && description!=nil && misc==nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
             if metadata == nil {
@@ -216,8 +221,10 @@ pub resource RequestGenerator {
                 self.mid         = DAAM.metadataCounterID // init MID with counter
                 self.creatorInfo = creator!               // creator of NFT
                 self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
+                self.featured    = featured!              // Add feature setting
                 self.category    = categories!            // categories 
                 self.description = description!           // data,about,misc page
+                self.misc        = misc                   // Misc String
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
                 self.file        = file!                  // NFT data is stored hereere
                 // below are not Constant or Optional
@@ -227,8 +234,10 @@ pub resource RequestGenerator {
                 self.mid         = metadata!.mid         // init MID with counter
                 self.creatorInfo = metadata!.creatorInfo // creator of NFT
                 self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
+                self.featured    = metadata!.featured    // Add feature setting
                 self.category    = metadata!.category    // categories 
                 self.description = metadata!.description // data,about,misc page
+                self.misc        = metadata!.misc        // Misc String
                 self.thumbnail   = metadata!.thumbnail   // thumbnail are stored here
                 self.file        = metadata!.file
                 // below are not Constant or Optional
