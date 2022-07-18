@@ -24,15 +24,16 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
-    access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
-    access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
-    access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
-    access(contract) var history        : {UInt64 : [SaleHistory]}
+    access(contract) var metadataGen     : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
+    access(contract) var auctionCounter  : UInt64               // Incremental counter used for AID (Auction ID)
+    access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
+    access(contract) var agencyFirstSale : {UInt64 : UFix64}    // { MID : Agency fist sale precentage}
+    access(contract) var history         : {UInt64 : [SaleHistory]}
 
 /************************************************************************/
 pub struct SaleHistory {
-    pub let id     : UInt64
+    pub let id     : UInt64t
     pub let price  : UFix64 
     pub let from   : Address
     pub let to     : Address
@@ -740,10 +741,10 @@ pub struct AuctionHolder {
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
-            let price       = self.auctionVault.balance / (1.0 + self.fee)
+            let price       = self.auctionVault.balance / (1.0 + AuctionHouse.getFee(mid: self.mid))
             let fee         = self.auctionVault.balance - price   // Get fee amount
             let creatorRoyalties = self.convertTo100Percent() // get Royalty data
-            let daamRoyalty = 0.15
+            let daamRoyalty = AuctionHouse.agencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let daamAmount = (price * daamRoyalty) + fee
@@ -914,6 +915,15 @@ pub struct AuctionHolder {
     pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
         pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.fee[mid] = fee
+    }
+
+    pub fun getAgencyFisrtSale(mid: UInt64): UFix64 {
+        return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
+    }
+
+    pub fun addagencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+        pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        self.agencyFirstSale[mid] = fee
     }
 
     pub fun removeFee(mid: UInt64, permission: &DAAM.Admin) {
