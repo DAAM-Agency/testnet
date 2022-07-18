@@ -206,6 +206,7 @@ flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
 echo "========= Publish DAAM Contracts =========="
 # Categories
 flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
+flow accounts add-contract MultiFungibleToken ./contracts/MultiFungibleToken.cdc --signer profile
 
 flow transactions send ./transactions/send_flow_em.cdc --args-json \
 '[{"type": "UFix64", "value": "11.0"}, {"type": "Address", "value": "0x0f7025fa05b578e3"}]'
@@ -242,6 +243,17 @@ flow transactions send ./transactions/create_profile.cdc --signer founder2
 flow transactions send ./transactions/create_profile.cdc --signer founder3
 flow transactions send ./transactions/create_profile.cdc --signer founder4
 flow transactions send ./transactions/create_profile.cdc --signer founder5
+
+# Setup MultiFungibleToken Receiver
+echo "========= Setup All MultiFungibleToken Receiver ========="
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer creator
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer creator2
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer cto
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer founder1
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer founder2
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer founder3
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer founder4
+flow transactions send ./transactions/daam_wallet/setup_mft.cdc --signer founder5
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="

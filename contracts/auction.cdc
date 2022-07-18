@@ -29,7 +29,8 @@ pub contract AuctionHouse {
     access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
     access(contract) var agencyFirstSale : {UInt64 : UFix64}    // { MID : Agency fist sale precentage}
-    access(contract) var history         : {UInt64 : [SaleHistory]}
+    access(contract) var history         : {UInt64 : [SaleHistory]} // Sotres only the final sale price history.
+    access(contract) var crypto          : {String : PublicPath}    // Stores accepted Cryptos { A.Address.Vault : PublicPath of Crypto}
 
 /************************************************************************/
 pub struct SaleHistory {
@@ -917,21 +918,49 @@ pub struct AuctionHolder {
         self.fee[mid] = fee
     }
 
+    pub fun removeFee(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+        pre {
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.fee[mid] != nil : "No set Fee for this MID."
+        }
+        self.fee.remove(key: mid)
+    }
+
     pub fun getAgencyFisrtSale(mid: UInt64): UFix64 {
         return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
     }
 
-    pub fun addagencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+    pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
         pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.agencyFirstSale[mid] = fee
     }
 
-    pub fun removeFee(mid: UInt64, permission: &DAAM.Admin) {
+    pub fun removeAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
         pre {
-            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" 
-            self.fee.containsKey(mid) : "Mid does not exist."
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.fee[mid] != nil : "No set Fee for this MID."
         }
-        self.fee.remove(key: mid)
+        self.agencyFirstSale.remove(key: mid)
+    }
+
+    pub fun getCrypto(crypto: String): PublicPath {
+        pre { self.crypto[crypto] != nil : "This Crypto is not accepted" }
+        return self.crypto[crypto]
+    }
+
+    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin)) {
+        pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        let type = vault.getType()
+        let identifier = type.identifier
+        self.crypto.insert(key: identifier, path)
+    }
+
+    pub fun removeCrypto(crypto: String, permission: &DAAM.Admin) {
+        pre {
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.crypto[crypto] != nil : "This Crypto is not accepted.."
+        }
+        self.crypto.remove(key: crypto)
     }
 
     pub fun getSaleHistory(id: UInt64?): {UInt64: [SaleHistory]} {
@@ -953,5 +982,7 @@ pub struct AuctionHolder {
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
+        // init accepted cryptos
+        self.crypto = {"A.192440c99cb17282.FUSD.Vault" : /public/fusdReceiver}
     }
 }

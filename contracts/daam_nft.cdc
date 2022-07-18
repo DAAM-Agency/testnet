@@ -1215,7 +1215,7 @@ pub resource MinterAccess
         var totalCut = 0.0
         for founder in founders.keys {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver), // TODO remove /public/fusdReceiver
+                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
                 cut: founders[founder]!,
                 description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
