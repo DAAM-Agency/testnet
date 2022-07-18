@@ -219,7 +219,6 @@ pub struct AuctionHolder {
         }
 
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
-            //self.crypto = {String: "/public/fusdReceiver"}
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {
@@ -623,7 +622,9 @@ pub struct AuctionHolder {
             post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
-                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)
+                    .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
                 bidderRef.deposit(from: <- amount)  // Deposit amount to bidder
@@ -756,7 +757,9 @@ pub struct AuctionHolder {
                 // Agent payment
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
-                let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)!
+                    .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
                 self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() ) // Fee Payment
@@ -783,7 +786,9 @@ pub struct AuctionHolder {
                 self.payRoyalty(price: price, royalties:royalties)
                 self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
 
-                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))!
+                    .borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
             }     

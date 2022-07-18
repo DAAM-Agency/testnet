@@ -81,7 +81,7 @@ transaction(
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
 
         let royalties    = [ MetadataViews.Royalty(
-            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),
+            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
             cut: percentage,
             description: "Creator Royalty" )
         ]
