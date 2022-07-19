@@ -213,7 +213,7 @@ pub resource RequestGenerator {
                 (creator==nil && name==nil && featured==nil && categories==nil && description==nil && misc==nil && thumbnail==nil && file==nil && metadata != nil)
                 || // or
                 // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
-                (creator!=nil && name!=nil && featured!=nil && categories!=nil && description!=nil && misc==nil && thumbnail!=nil && file!=nil && metadata == nil)
+                (creator!=nil && name!=nil && featured!=nil && categories!=nil && description!=nil && misc!=nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
             if metadata == nil {
