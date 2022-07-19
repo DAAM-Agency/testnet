@@ -948,9 +948,10 @@ pub struct AuctionHolder {
         self.agencyFirstSale.remove(key: mid)
     }
 
-    pub fun getCrypto(crypto: String): PublicPath {
-        pre { self.crypto[crypto] != nil : "This Crypto is not accepted" }
-        return self.crypto[crypto]!
+    pub fun getCrypto(crypto: Type): PublicPath {
+        let identifier = crypto.identifier
+        assert( self.crypto.containsKey(identifier))
+        return self.crypto[identifier]!
     }
 
     pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin) {
