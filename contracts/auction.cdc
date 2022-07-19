@@ -623,7 +623,7 @@ pub struct AuctionHolder {
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))
                     .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
