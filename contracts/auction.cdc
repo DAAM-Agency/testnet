@@ -34,7 +34,7 @@ pub contract AuctionHouse {
 
 /************************************************************************/
 pub struct SaleHistory {
-    pub let id     : UInt64t
+    pub let id     : UInt64
     pub let price  : UFix64 
     pub let from   : Address
     pub let to     : Address
@@ -746,7 +746,7 @@ pub struct AuctionHolder {
             let price       = self.auctionVault.balance / (1.0 + AuctionHouse.getFee(mid: self.mid))
             let fee         = self.auctionVault.balance - price   // Get fee amount
             let creatorRoyalties = self.convertTo100Percent() // get Royalty data
-            let daamRoyalty = AuctionHouse.agencyFirstSale(mid: self.mid)
+            let daamRoyalty = AuctionHouse.getAgencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let daamAmount = (price * daamRoyalty) + fee
@@ -758,7 +758,7 @@ pub struct AuctionHolder {
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
                 let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)!
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)!)
                     .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
@@ -931,7 +931,7 @@ pub struct AuctionHolder {
         self.fee.remove(key: mid)
     }
 
-    pub fun getAgencyFisrtSale(mid: UInt64): UFix64 {
+    pub fun getAgencyFirstSale(mid: UInt64): UFix64 {
         return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
     }
 
@@ -950,12 +950,12 @@ pub struct AuctionHolder {
 
     pub fun getCrypto(crypto: String): PublicPath {
         pre { self.crypto[crypto] != nil : "This Crypto is not accepted" }
-        return self.crypto[crypto]
+        return self.crypto[crypto]!
     }
 
-    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin)) {
+    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin) {
         pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
-        let type = vault.getType()
+        let type = crypto.getType()
         let identifier = type.identifier
         self.crypto.insert(key: identifier, path)
     }
@@ -984,6 +984,7 @@ pub struct AuctionHolder {
         self.currentAuctions = {}
         self.fee             = {}
         self.history         = {}
+        self.agencyFirstSale = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
