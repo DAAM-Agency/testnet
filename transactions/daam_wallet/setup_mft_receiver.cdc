@@ -8,7 +8,7 @@ transaction()
     let acct: AuthAccount
 
     prepare(acct: AuthAccount) {
-        if acct.borrow<&MultiFungibleToken.MultiFungibleTokenManager>(from: MultiFungibleToken.MultiFungibleTokenStoragePath) != nil {
+        if acct.borrow<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>(from: MultiFungibleToken.MultiFungibleTokenStoragePath) != nil {
             panic("You already have a Multi-FungibleToken-Manager.")
         }
         self.acct   = acct

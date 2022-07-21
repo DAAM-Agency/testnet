@@ -6,8 +6,8 @@ import MultiFungibleToken from 0x192440c99cb17282
 pub fun main(account: Address): {String : UFix64} {
     let collectionRef = getAccount(account)
         .getCapability<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>
-        (MultiFungibleToken.MultiFungibleTokenPublicPath)
+        (MultiFungibleToken.MultiFungibleTokenBalancePath)
         .borrow()
     
-    return collectionRef.getBalances()
+    return collectionRef!.getBalances()!
 }
