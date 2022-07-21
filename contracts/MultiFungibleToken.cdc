@@ -1,12 +1,13 @@
 import FungibleToken from 0xee82856bf20e2aa6
-import MetadataViews from 0xf8d6e0586b0a20c7
-// Support FungibleTokens
+import MetadataViews from 0xf8d6e0586b0a20c7 // Only used for initializing MultiFungibleTokenReceiverPath
+// Supported FungibleTokens
 import FUSD from 0x192440c99cb17282
 
 pub contract MultiFungibleToken
 {
-    pub let MultiFungibleTokenPublicPath  : PublicPath
-    pub let MultiFungibleTokenStoragePath : StoragePath
+    pub let MultiFungibleTokenReceiverPath : PublicPath
+    pub let MultiFungibleTokenBalancePath  : PublicPath
+    pub let MultiFungibleTokenStoragePath  : StoragePath
 
     pub struct FungibleTokenVaultInfo {
         pub let type       : Type
@@ -22,10 +23,18 @@ pub contract MultiFungibleToken
         }
     }
 
-    pub resource MultiFungibleTokenManager: FungibleToken.Receiver {
-        access(contract) var storage: @{String : FungibleToken.Vault}
+    pub resource interface MultiFungibleTokenBalance {
+        pub fun getBalances(): {String : UFix64}
+    }
 
-        init() { self.storage <- {} }
+    pub resource MultiFungibleTokenManager: FungibleToken.Receiver, MultiFungibleTokenBalance {
+        access(contract) var storage: @{String : FungibleToken.Vault}
+        access(contract) var balance: {String : UFix64}
+
+        init() {
+            self.storage <- {}
+            self.balance =  {}
+        }
 
         pub fun deposit(from: @FungibleToken.Vault) // deposit takes a Vault and deposits it into the implementing resource type
         { 
@@ -47,18 +56,23 @@ pub contract MultiFungibleToken
 
             if self.storage.containsKey(identifier) {          
                 let vault <- self.storage.remove(key:identifier)
-                from.deposit(from: <- vault!)                
+                from.deposit(from: <- vault!)
             }
+            self.balance[identifier] = from.balance            
             let old <- self.storage.insert(key: identifier, <-from)
             destroy old
+        }
+
+        pub fun getBalances(): {String: UFix64} {
+            return self.balance
         }
 
         destroy() { destroy self.storage }
     }
 
     pub fun createEmptyMultiFungibleTokenReceiver(): @MultiFungibleTokenManager {
-        let mftm <- create MultiFungibleTokenManager()
-        return <- mftm
+        return <- create MultiFungibleTokenManager()
+        //return <- mftm
     }
 
     access(contract) fun getFungibleTokenInfo(_ type: Type,_ identifier: String): FungibleTokenVaultInfo? {
@@ -81,7 +95,8 @@ pub contract MultiFungibleToken
     }
 
     init() {
-        self.MultiFungibleTokenPublicPath  = MetadataViews.getRoyaltyReceiverPublicPath()
-        self.MultiFungibleTokenStoragePath = /storage/MultiFungibleTokenManager
+        self.MultiFungibleTokenReceiverPath  = MetadataViews.getRoyaltyReceiverPublicPath()
+        self.MultiFungibleTokenStoragePath   = /storage/MultiFungibleTokenManager
+        self.MultiFungibleTokenBalancePath   = /public/MultiFungibleTokenBalance
     }
 }

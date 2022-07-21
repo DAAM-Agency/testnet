@@ -5,8 +5,8 @@ import MultiFungibleToken from 0x192440c99cb17282
 
 pub fun main(account: Address): Bool {
     let collectionRef = getAccount(account)
-        .getCapability<&MultiFungibleToken.MultiFungibleTokenManager{FungibleToken.Receiver}>
-        (MultiFungibleToken.MultiFungibleTokenPublicPath)
+        .getCapability<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>
+        (MultiFungibleToken.MultiFungibleTokenBalancePath)
         .borrow()
     
     return (collectionRef != nil)
