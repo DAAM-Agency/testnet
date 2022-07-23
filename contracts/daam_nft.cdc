@@ -1153,10 +1153,9 @@ pub resource MinterAccess
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
     }
 
-    pub fun isAdmin(_ admin: Address): Bool? { // Returns Admin Status
+   pub fun isAdmin(_ admin: Address): Bool? { // Returns Admin Status
         if self.admins[admin] == nil { return nil }
-        let agent = (self.agents[admin] == true) ? true : false
-        return self.admins[admin]! && !agent
+        return self.agents[admin] == nil ? self.admins[admin]! : nil
     }
 
     pub fun isAgent(_ agent: Address): Bool? { // Returns Agent status
