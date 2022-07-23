@@ -24,11 +24,13 @@ pub contract AuctionHouse {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen    : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
-    access(contract) var auctionCounter : UInt64               // Incremental counter used for AID (Auction ID)
-    access(contract) var currentAuctions: {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
-    access(contract) var fee            : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
-    access(contract) var history        : {UInt64 : [SaleHistory]}
+    access(contract) var metadataGen     : {UInt64 : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}> }
+    access(contract) var auctionCounter  : UInt64               // Incremental counter used for AID (Auction ID)
+    access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
+    access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
+    access(contract) var agencyFirstSale : {UInt64 : UFix64}    // { MID : Agency fist sale precentage}
+    access(contract) var history         : {UInt64 : [SaleHistory]} // Sotres only the final sale price history.
+    access(contract) var crypto          : {String : PublicPath}    // Stores accepted Cryptos { A.Address.Vault : PublicPath of Crypto}
 
 /************************************************************************/
 pub struct SaleHistory {
@@ -217,7 +219,6 @@ pub struct AuctionHolder {
         }
 
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
-            //self.crypto = {String: "/public/fusdReceiver"}
             let type = vault.getType()
             let identifier = type.identifier
             switch identifier {
@@ -621,7 +622,9 @@ pub struct AuctionHolder {
             post { self.auctionLog.length == 0 : "Illegal Operation: returnFunds" } // Verify auction log is empty
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
-                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver).borrow()!
+                let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))
+                    .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
                 bidderRef.deposit(from: <- amount)  // Deposit amount to bidder
@@ -740,10 +743,10 @@ pub struct AuctionHolder {
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
-            let price       = self.auctionVault.balance / (1.0 + self.fee)
+            let price       = self.auctionVault.balance / (1.0 + AuctionHouse.getFee(mid: self.mid))
             let fee         = self.auctionVault.balance - price   // Get fee amount
             let creatorRoyalties = self.convertTo100Percent() // get Royalty data
-            let daamRoyalty = 0.15
+            let daamRoyalty = AuctionHouse.getAgencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let daamAmount = (price * daamRoyalty) + fee
@@ -754,7 +757,9 @@ pub struct AuctionHolder {
                 // Agent payment
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
-                let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)!)
+                    .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
                 self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() ) // Fee Payment
@@ -781,7 +786,9 @@ pub struct AuctionHolder {
                 self.payRoyalty(price: price, royalties:royalties)
                 self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
 
-                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>(/public/fusdReceiver)!.borrow()! // get Seller FUSD Wallet Capability
+                let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
+                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))!
+                    .borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
             }     
@@ -916,12 +923,50 @@ pub struct AuctionHolder {
         self.fee[mid] = fee
     }
 
-    pub fun removeFee(mid: UInt64, permission: &DAAM.Admin) {
+    pub fun removeFee(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
         pre {
-            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" 
-            self.fee.containsKey(mid) : "Mid does not exist."
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.fee[mid] != nil : "No set Fee for this MID."
         }
         self.fee.remove(key: mid)
+    }
+
+    pub fun getAgencyFirstSale(mid: UInt64): UFix64 {
+        return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
+    }
+
+    pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+        pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        self.agencyFirstSale[mid] = fee
+    }
+
+    pub fun removeAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+        pre {
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.fee[mid] != nil : "No set Fee for this MID."
+        }
+        self.agencyFirstSale.remove(key: mid)
+    }
+
+    pub fun getCrypto(crypto: Type): PublicPath {
+        let identifier = crypto.identifier
+        assert( self.crypto.containsKey(identifier))
+        return self.crypto[identifier]!
+    }
+
+    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin) {
+        pre { DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+        let type = crypto.getType()
+        let identifier = type.identifier
+        self.crypto.insert(key: identifier, path)
+    }
+
+    pub fun removeCrypto(crypto: String, permission: &DAAM.Admin) {
+        pre {
+            DAAM.isAdmin(permission.owner!.address) == true : "Permission Denied"
+            self.crypto[crypto] != nil : "This Crypto is not accepted.."
+        }
+        self.crypto.remove(key: crypto)
     }
 
     pub fun getSaleHistory(id: UInt64?): {UInt64: [SaleHistory]} {
@@ -940,8 +985,11 @@ pub struct AuctionHolder {
         self.currentAuctions = {}
         self.fee             = {}
         self.history         = {}
+        self.agencyFirstSale = {}
         self.auctionCounter  = 0
         self.auctionStoragePath = /storage/DAAM_Auction
         self.auctionPublicPath  = /public/DAAM_Auction
+        // init accepted cryptos
+        self.crypto = {"A.192440c99cb17282.FUSD.Vault" : /public/fusdReceiver}
     }
 }
