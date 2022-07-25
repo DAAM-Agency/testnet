@@ -47,6 +47,7 @@ pub contract MultiFungibleToken
                 ref!.deposit(from: <-from)    // Deposit the withdrawn tokens in the recipient's receiver
             } else {
                 self.storeDeposit(<-from)
+                // emit TODO
             }
         }
 
@@ -88,8 +89,11 @@ pub contract MultiFungibleToken
             var ftInfo = MultiFungibleToken.getFungibleTokenInfo(mft.storage[identifier].getType(), identifier) ?? panic(identifier.concat(" is not accepted."))
             switch identifier {
                     case "A.192440c99cb17282.FUSD.Vault":
-                        owner.save(<-FUSD.createEmptyVault(), to: ftInfo.storagePath)
-                        owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo.publicPath, target: ftInfo.storagePath)
+                        if owner.borrow<&FUSD.Vault{FungibleToken.Receiver}>() == nil {
+                            owner.save(<-FUSD.createEmptyVault(), to: ftInfo.storagePath)
+                            owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo.publicPath, target: ftInfo.storagePath)
+                        }
+                        mft.deposit(<- mft.storage[identifier])
             }
         }
     }

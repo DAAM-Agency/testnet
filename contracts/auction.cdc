@@ -8,7 +8,7 @@ import DAAM             from 0xfd43f9148d4b725d
 
 pub contract AuctionHouse {
     // Event
-    pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
+    pub event AuctionCreated(auctionID: UInt64, start: UFix64, seller: Address)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
     pub event AuctionEnded(auctionID: UInt64, time: UFix64)   // Auction has ended, time is Unix timestamp. 
     pub event AuctionCancelled(auctionID: UInt64) // Auction has been canceled
@@ -345,7 +345,7 @@ pub struct AuctionHolder {
             self.auctionMetadata <- metadata // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
-            emit AuctionCreated(auctionID: self.auctionID, start: self.start)
+            emit AuctionCreated(auctionID: self.auctionID, start: self.start, seller: self.owner?.adress!)
         }
 
         // Makes Bid, Bids are deposited into vault
