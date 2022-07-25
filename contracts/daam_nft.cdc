@@ -1076,7 +1076,7 @@ pub resource MinterAccess
     pub fun answerAgentInvite(newAgent: AuthAccount, submit: Bool): @Admin{Agent}?
     {
         pre {
-            self.isAdmin(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" An Agent can not use the same address as an Admin.")
+            self.isAdmin(newAgent.address)   == nil   : "Account: ".concat(newAgent.address.toString()).concat(" An Agent can not use the same address as an Admin.")
             self.isCreator(newAgent.address) == nil   : "Account: ".concat(newAgent.address.toString()).concat("A Agent can not use the same address as an Creator.")
             self.isAgent(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" You got no DAAM Agent invite.")
             Profile.check(newAgent.address) : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
