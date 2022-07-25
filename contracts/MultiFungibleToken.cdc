@@ -12,7 +12,7 @@ pub contract MultiFungibleToken
     pub let MultiFungibleTokenBalancePath  : PublicPath
     pub let MultiFungibleTokenStoragePath  : StoragePath
     //Structs ---------------------------------------------------------------------------------
-    pub struct FungibleTokenVaultInfo {
+    pub struct FungibleTokenVaultInfo { // Fungible Token Vault Information, unique to each FT
         pub let type       : Type
         pub let identifier : String
         pub let publicPath : PublicPath
@@ -26,17 +26,15 @@ pub contract MultiFungibleToken
         }
     }
     // Interfaces ---------------------------------------------------------------------------------
-    pub resource interface MultiFungibleTokenBalance {
-        pub fun getBalances(): {String : UFix64}
+    pub resource interface MultiFungibleTokenBalance { // An interface to get all the balances in storage
+        pub fun getStorageBalances(): {String : UFix64}
     }
     // Resources ---------------------------------------------------------------------------------
     pub resource MultiFungibleTokenManager: FungibleToken.Receiver, MultiFungibleTokenBalance {
         access(contract) var storage: @{String : FungibleToken.Vault}
-        access(contract) var balance: {String : UFix64}
 
         init() {
             self.storage <- {}
-            self.balance =  {}
         }
 
         pub fun deposit(from: @FungibleToken.Vault) // deposit takes a Vault and deposits it into the implementing resource type
@@ -44,14 +42,14 @@ pub contract MultiFungibleToken
             let type = from.getType()
             let identifier = type.identifier
             let balance = from.balance
-            var ftInfo = MultiFungibleToken.getFungibleTokenInfo(type, identifier) ?? panic(identifier.concat(" is not accepted."))
+            var ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) ?? panic(identifier.concat(" is not accepted."))
             
             var ref = self.owner!.getCapability(ftInfo.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
             if (ref != nil) {
                 ref!.deposit(from: <-from)    // Deposit the withdrawn tokens in the recipient's receiver
             } else {
                 self.storeDeposit(<-from)
-                emit CreateNewWallet(user: self.owner.address, type: type, amount: balance)
+                emit CreateNewWallet(user: self.owner!.address, type: type, amount: balance)
             }
         }
 
@@ -63,7 +61,6 @@ pub contract MultiFungibleToken
                 let vault <- self.storage.remove(key:identifier)
                 from.deposit(from: <- vault!)
             }
-            self.balance[identifier] = from.balance            
             let old <- self.storage.insert(key: identifier, <-from)
             destroy old
         }
@@ -75,8 +72,14 @@ pub contract MultiFungibleToken
             return <- coins
         }
 
-        pub fun getBalances(): {String: UFix64} {
-            return self.balance
+        pub fun getStorageBalances(): {String: UFix64} {
+            var balances: {String : UFix64} = {}            
+            for coin in self.storage.keys {
+                let ref = &self.storage[coin] as &FungibleToken.Vault?
+                let balance = ref?.balance!
+                balances.insert(key: coin, balance)
+            }
+            return balances
         }
 
         destroy() { destroy self.storage }
