@@ -12,7 +12,7 @@ pub contract MultiFungibleToken
     pub let MultiFungibleTokenBalancePath  : PublicPath
     pub let MultiFungibleTokenStoragePath  : StoragePath
     //Structs ---------------------------------------------------------------------------------
-    pub struct FungibleTokenVaultInfo { // Fungible Token Vault Information, unique to each FT
+    pub struct FungibleTokenVaultInfo { // Fungible Token Vault Basic Information, unique to each FT
         pub let type       : Type
         pub let identifier : String
         pub let publicPath : PublicPath
@@ -42,9 +42,9 @@ pub contract MultiFungibleToken
             let type = from.getType()
             let identifier = type.identifier
             let balance = from.balance
-            var ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) ?? panic(identifier.concat(" is not accepted."))
+            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) ?? panic(identifier.concat(" is not accepted."))
             
-            var ref = self.owner!.getCapability(ftInfo.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
+            let ref = self.owner!.getCapability(ftInfo.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
             if (ref != nil) {
                 ref!.deposit(from: <-from)    // Deposit the withdrawn tokens in the recipient's receiver
             } else {
@@ -57,19 +57,19 @@ pub contract MultiFungibleToken
             let type = from.getType()
             let identifier = type.identifier
 
-            if self.storage.containsKey(identifier) {          
-                let vault <- self.storage.remove(key:identifier)
-                from.deposit(from: <- vault!)
+            if !self.storage.containsKey(identifier) {
+                let old <- self.storage.insert(key: identifier, <-from)
+                destroy old
+            } else {
+                let ref = &self.storage[identifier] as &FungibleToken.Vault?
+                ref!.deposit(from: <- from)
             }
-            let old <- self.storage.insert(key: identifier, <-from)
-            destroy old
         }
 
         access(contract) fun removeDeposit(_ identifier: String): @FungibleToken.Vault {
             pre  { self.storage.containsKey(identifier)  : "Incorrent identifier: ".concat(identifier) }
             post { !self.storage.containsKey(identifier) : "Illegal Operation: removeDeposit, identifier: ".concat(identifier) }
-            let coins <- self.storage.remove(key: identifier)!
-            return <- coins
+            return <- self.storage.remove(key: identifier)!
         }
 
         pub fun getStorageBalances(): {String: UFix64} {
@@ -87,7 +87,6 @@ pub contract MultiFungibleToken
     // Contract Functions ---------------------------------------------------------------------------------
     pub fun createEmptyMultiFungibleTokenReceiver(): @MultiFungibleTokenManager {
         return <- create MultiFungibleTokenManager()
-        //return <- mftm
     }
 
     access(contract) fun getFungibleTokenInfo(_ type: Type): FungibleTokenVaultInfo? {
@@ -100,7 +99,7 @@ pub contract MultiFungibleToken
 
     access(contract) fun createMissingWalletsAndDeposit(_ owner: AuthAccount, _ mft: &MultiFungibleTokenManager) {
         for identifier in mft.storage.keys {          
-            var ftInfo = MultiFungibleToken.getFungibleTokenInfo(mft.storage[identifier].getType()) ?? panic(identifier.concat(" is not accepted."))
+            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(mft.storage[identifier].getType()) ?? panic(identifier.concat(" is not accepted."))
             switch identifier {
                     case "A.192440c99cb17282.FUSD.Vault":
                     if owner.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: ftInfo.storagePath) == nil {

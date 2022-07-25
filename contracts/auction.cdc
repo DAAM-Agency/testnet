@@ -345,7 +345,7 @@ pub struct AuctionHolder {
             self.auctionMetadata <- metadata // NFT Storage durning auction
 
             log("Auction Initialized: ".concat(self.auctionID.toString()) )
-            emit AuctionCreated(auctionID: self.auctionID, start: self.start, seller: self.owner?.adress!)
+            emit AuctionCreated(auctionID: self.auctionID, start: self.start, seller: self.owner?.address!)
         }
 
         // Makes Bid, Bids are deposited into vault
