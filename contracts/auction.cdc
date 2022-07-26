@@ -942,16 +942,16 @@ pub struct AuctionHolder {
         }
     }
 
-    pub fun getSaleHistory(id: UInt64?): {UInt64: SaleHistory} { // {TokenID : SaleHistory}
+    pub fun getSaleHistory(id: UInt64?): {UInt64: SaleHistory}? { // {TokenID : SaleHistory}
         if id == nil { return self.saleHistory }
-        assert(self.saleHistory.containsKey(id!), message: "ID: ".concat(id!.toString().concat(" is invalid.")))
+        if !self.saleHistory.containsKey(id!) { return nil}
         let salehistory = self.saleHistory[id!]!
         return {id! : salehistory}
     }
 
-    pub fun getHistory(mid: UInt64?): {UInt64 : {UInt64: SaleHistory}} { //{MID : {TokenID:SaleHistory} }
+    pub fun getHistory(mid: UInt64?): {UInt64 : {UInt64: SaleHistory}}? { //{MID : {TokenID:SaleHistory} }
         if mid == nil { return self.history }
-        assert(self.history.containsKey(mid!), message: "MID: ".concat(mid!.toString().concat(" is invalid.")))
+        if !self.history.containsKey(mid!) { return nil}
         let history = self.history[mid!]!
         return {mid! : history}
     }
