@@ -29,16 +29,17 @@ pub contract AuctionHouse {
     access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
     access(contract) var agencyFirstSale : {UInt64 : UFix64}    // { MID : Agency fist sale precentage}
+    access(contract) var saleHistory     : {UInt64 : SaleHistory} // Sotres sale history using the id as a center point of search. {TokenID : SaleHistory} }
     access(contract) var history         : {UInt64 : {UInt64 : SaleHistory} } // Sotres history using the mid as a center point of search. { MID : {TokenID : SaleHistory} }
     access(contract) var crypto          : {String : PublicPath}    // Stores accepted Cryptos { A.Address.Vault : PublicPath of Crypto}
 
 /************************************************************************/
 pub struct SaleHistoryEntry {
-    pub let id     : UInt64
-    pub let aucton : UInt64
-    pub let price  : UFix64 
-    pub let from   : Address
-    pub let to     : Address
+    pub let id      : UInt64
+    pub let auction : AuctionHolder
+    pub let price   : UFix64
+    pub let from    : Address
+    pub let to      : Address
     pub let timestamp : UFix64
 
     init(id: UInt64, auctionHolder: AuctionHolder, price: UFix64, from: Address, to: Address) {
@@ -519,10 +520,10 @@ pub struct AuctionHolder {
                 let leader = self.leader!
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
-                let saleHistoryEntry = SaleHistoryEntry(id: id, auctionHolder: self.auctionIngo(), price: amount, from: self.owner!.address, to: leader)
-                AuctionHouse.updateSaleHistory(mid: self.mid, id: id, metadata: metadata, history: saleHistoryEntry)
+                let saleHistoryEntry = SaleHistoryEntry(id: id, auctionHolder: self.auctionInfo(), price: amount, from: self.owner!.address, to: leader)
+                AuctionHouse.updateAllHistory(mid: self.mid, id: id, metadata: metadata, history: saleHistoryEntry)
 
-                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: history) // Auction Ended, but Item not delivered yet.
+                emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: saleHistoryEntry) // Auction Ended, but Item not delivered yet.
             } else {   
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
@@ -923,14 +924,21 @@ pub struct AuctionHolder {
         return <- minter_access                                  // Return NFT
     }
 
-    access(contract) fun updateSaleHistory(mid: UInt64, id: UInt64, metadata: DAAM.MetadataHolder, history: SaleHistoryEntry) {
-        if self.history.containsKey(mid) {
-            let ref = &self.history[mid] as &{UInt64:SaleHistory}?
-            ref![id]!.add(history)       // Append TokenID auction history
+    access(contract) fun updateAllHistory(mid: UInt64, id: UInt64, metadata: DAAM.MetadataHolder, history: SaleHistoryEntry) {
+        // update saleHistory
+        if self.saleHistory.containsKey(id) {
+            self.saleHistory[id]!.add(history)
         } else {
             let saleHistory = SaleHistory(metadata: metadata)
             saleHistory.add(history)
-            self.history.insert(key: mid, {id : saleHistory} ) // Add new TokenID auction history
+            self.saleHistory.insert(key: id, saleHistory ) // Add new TokenID auction history
+        }
+        // update history
+        if self.history.containsKey(mid) {
+            let ref = &self.history[mid]! as &{UInt64 : SaleHistory}
+            ref[id] = self.saleHistory[id]
+        } else {
+            self.history.insert(key: mid, {id : self.saleHistory[id]! } ) // Add new TokenID auction history
         }
     }
 
@@ -989,9 +997,9 @@ pub struct AuctionHolder {
         self.crypto.remove(key: crypto)
     }
 
-    pub fun getSaleHistory(id: UInt64?): {UInt64: [SaleHistoryEntry]} {
-        if id == nil { return self.history }
-        let history = self.history[id!]!
+    pub fun getSaleHistory(id: UInt64?): {UInt64: SaleHistory} {
+        if id == nil { return self.saleHistory }
+        let history = self.saleHistory[id!]!
         return {id! : history}
     }
 
@@ -1004,6 +1012,7 @@ pub struct AuctionHolder {
         self.metadataGen     = {}
         self.currentAuctions = {}
         self.fee             = {}
+        self.saleHistory     = {}
         self.history         = {}
         self.agencyFirstSale = {}
         self.auctionCounter  = 0
