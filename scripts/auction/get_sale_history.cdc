@@ -1,5 +1,5 @@
 // get_sale_history.cdc
-// Return all (nil) or spcific sale auctions
+// Return all (nil) or spcific sale history
 
 
 //import DAAM from 0xfd43f9148d4b725d
