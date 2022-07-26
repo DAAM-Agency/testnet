@@ -89,15 +89,7 @@ pub contract MultiFungibleToken
         return <- create MultiFungibleTokenManager()
     }
 
-    access(contract) fun getFungibleTokenInfo(_ type: Type): FungibleTokenVaultInfo? {
-        let identifier = type.identifier
-        switch identifier {
-                /* FUSD */ case "A.192440c99cb17282.FUSD.Vault": return FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: /public/fusdReceiver, storagePath: /storage/fusdVault)
-        }
-        return nil
-    }
-
-    access(contract) fun createMissingWalletsAndDeposit(_ owner: AuthAccount, _ mft: &MultiFungibleTokenManager) {
+    pub fun createMissingWalletsAndDeposit(_ owner: AuthAccount, _ mft: &MultiFungibleTokenManager) {
         for identifier in mft.storage.keys {          
             let ftInfo = MultiFungibleToken.getFungibleTokenInfo(mft.storage[identifier].getType()) ?? panic(identifier.concat(" is not accepted."))
             switch identifier {
@@ -111,6 +103,14 @@ pub contract MultiFungibleToken
             }
         }
     }
+
+    access(contract) fun getFungibleTokenInfo(_ type: Type): FungibleTokenVaultInfo? {
+        let identifier = type.identifier
+        switch identifier {
+                /* FUSD */ case "A.192440c99cb17282.FUSD.Vault": return FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: /public/fusdReceiver, storagePath: /storage/fusdVault)
+        }
+        return nil
+    }    
     // Contract Init ---------------------------------------------------------------------------------
     init() {
         self.MultiFungibleTokenReceiverPath  = MetadataViews.getRoyaltyReceiverPublicPath()
