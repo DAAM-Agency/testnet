@@ -942,6 +942,20 @@ pub struct AuctionHolder {
         }
     }
 
+    pub fun getSaleHistory(id: UInt64?): {UInt64: SaleHistory} { // {TokenID : SaleHistory}
+        if id == nil { return self.saleHistory }
+        assert(self.saleHistory.containsKey(id!), message: "ID: ".concat(id!.toString().concat(" is invalid.")))
+        let salehistory = self.saleHistory[id!]!
+        return {id! : salehistory}
+    }
+
+    pub fun getHistory(mid: UInt64?): {UInt64 : {UInt64: SaleHistory}} { //{MID : {TokenID:SaleHistory} }
+        if mid == nil { return self.history }
+        assert(self.history.containsKey(mid!), message: "MID: ".concat(mid!.toString().concat(" is invalid.")))
+        let history = self.history[mid!]!
+        return {mid! : history}
+    }
+
     pub fun getFee(mid: UInt64): UFix64 {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
@@ -995,13 +1009,7 @@ pub struct AuctionHolder {
             self.crypto[crypto] != nil : "This Crypto is not accepted.."
         }
         self.crypto.remove(key: crypto)
-    }
-
-    pub fun getSaleHistory(id: UInt64?): {UInt64: SaleHistory} {
-        if id == nil { return self.saleHistory }
-        let history = self.saleHistory[id!]!
-        return {id! : history}
-    }
+    }    
 
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(): @AuctionWallet { 
