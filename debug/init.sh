@@ -244,23 +244,18 @@ flow transactions send ./transactions/create_profile.cdc --signer founder3
 flow transactions send ./transactions/create_profile.cdc --signer founder4
 flow transactions send ./transactions/create_profile.cdc --signer founder5
 
-# Setup MultiFungibleToken Receiver
-echo "========= Setup All MultiFungibleToken Receiver ========="
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer creator
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer creator2
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer cto
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder1
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder2
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder3
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder4
-flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder5
-
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
 # Non-Public Accounts
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer cto
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer admin
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer admin2
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder1
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder2
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder3
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder4
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder5
+
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer agent
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer agent2
 # Public Accounts

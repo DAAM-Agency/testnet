@@ -63,7 +63,8 @@ pub contract DAAM: NonFungibleToken {
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
-    pub let agency : MetadataViews.Royalties  // DAAM Ageny Address
+    pub let agency : MetadataViews.Royalties  // DAAM Agency Founder Royaly Addresses
+    pub let company: Address                  // DAAM Company Address
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -1197,7 +1198,7 @@ pub resource MinterAccess
 /************************************************************************/
 // Init DAAM Contract variables
     
-    init(founders: {Address:UFix64}, defaultAdmins: [Address])
+    init(founders: {Address:UFix64}, company: Address, defaultAdmins: [Address])
     {
         //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
         //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
@@ -1230,6 +1231,7 @@ pub resource MinterAccess
         assert(totalCut == 1.0, message: "Shares Must equal 100%")
         
         self.agency = MetadataViews.Royalties(royalty_list)
+        self.company = company
 
         // Initialize variables
         self.admins    = {}
