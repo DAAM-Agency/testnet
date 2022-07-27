@@ -792,17 +792,20 @@ pub struct AuctionHolder {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
             if self.auctionVault.balance == 0.0 { return }     // No need to run, already processed.
             let tokenID = self.auctionNFT?.id!                 // Get TokenID
+            let inHouse = 0.5                                  // Portion of fee that stays inHouse
+            let agency = 1.0 - inHouse
             // If 1st sale is 'new' remove from 'new list'
             if DAAM.isNFTNew(id: tokenID) {
                 AuctionHouse.notNew(tokenID: tokenID) 
                 self.payFirstSale()
             } else {   // 2nd Sale
                 let price   = self.auctionVault.balance / (1.0 + self.fee)
-                let fee     = self.auctionVault.balance - price   // Get fee amount
+                var fee     = self.auctionVault.balance - price   // Get fee amount
                 let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
 
                 self.payRoyalty(price: price, royalties:royalties)
-                self.payRoyalty(price: fee, royalties: DAAM.agency.getRoyalties() )
+                self.payRoyalty(price: fee * inHouse, royalties: [DAAM.company] ) // get Comapny share of fee
+                self.payRoyalty(price: fee * agency, royalties: DAAM.agency.getRoyalties() ) // Pay Agency the fee
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
                     (AuctionHouse.getCrypto(crypto: self.requiredCurrency))!

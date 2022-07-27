@@ -64,7 +64,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency : MetadataViews.Royalties  // DAAM Agency Founder Royaly Addresses
-    pub let company: Address                  // DAAM Company Address
+    pub let company: MetadataViews.Royalty     // DAAM Company Address
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -1221,9 +1221,10 @@ pub resource MinterAccess
         var totalCut = 0.0
         for founder in founders.keys {
             royalty_list.append(
-                MetadataViews.Royalty(recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
-                cut: founders[founder]!,
-                description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
+                MetadataViews.Royalty(
+                    recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+                    cut: founders[founder]!,
+                    description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
             ) // end append
             totalCut = totalCut + founders[founder]!
@@ -1231,7 +1232,11 @@ pub resource MinterAccess
         assert(totalCut == 1.0, message: "Shares Must equal 100%")
         
         self.agency = MetadataViews.Royalties(royalty_list)
-        self.company = company
+        self.company = MetadataViews.Royalty(
+            recepient: getAccount(company).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+            cut: 1.0,
+            description: "Comapny Holding"
+        ) // end royalty_list
 
         // Initialize variables
         self.admins    = {}
