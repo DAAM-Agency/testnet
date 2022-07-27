@@ -29,8 +29,8 @@ pub contract AuctionHouse {
     access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
     access(contract) var agencyFirstSale : {UInt64 : UFix64}    // { MID : Agency fist sale precentage}
-    access(contract) var saleHistory     : {UInt64 : SaleHistory} // Sotres sale history using the id as a center point of search. {TokenID : SaleHistory} }
-    access(contract) var history         : {UInt64 : {UInt64 : SaleHistory} } // Sotres history using the mid as a center point of search. { MID : {TokenID : SaleHistory} }
+    access(contract) var saleHistory     : {UInt64 : SaleHistory} // Stores sale history using the id as a center point of search. {TokenID : SaleHistory} }
+    access(contract) var history         : {UInt64 : {UInt64 : SaleHistory} } // Stores history using the mid as a center point of search. { MID : {TokenID : SaleHistory} }
     access(contract) var crypto          : {String : PublicPath}    // Stores accepted Cryptos { A.Address.Vault : PublicPath of Crypto}
 
 /************************************************************************/

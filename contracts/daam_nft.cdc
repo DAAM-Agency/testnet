@@ -55,6 +55,7 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
     access(contract) var creators: {Address: CreatorInfo}    // {Creator Address : status} Creator address are stored here
+    access(contract) var creatorHistory : {Address : [UInt64]} // Stores creator history using the MID as a center point of search. {Address : UInt64 }
     access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var metadataCap: {Address : Capability<&MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
@@ -137,7 +138,9 @@ pub resource RequestGenerator {
                     cut: newCut,
                     description: "Creator Royalty")
             ) // end append    
-            rateCut = rateCut + (creator.cut - newCut)         
+            rateCut = rateCut + (creator.cut - newCut)
+            if !DAAM.creatorHistory.containsKey(creator) { DAAM.creatorHistory[creator] = [mid]}
+            if !DAAM.creatorHistory[creator]!.contains(mid) { DAAM.creatorHistory[creator]!.append(mid) }
         }
         assert(totalCut >= 0.1 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 
@@ -1145,6 +1148,10 @@ pub resource MinterAccess
         return list
     }
 
+    pub fun getCreatorMIDs(creator: Address): [UInt64]? {
+        return self.creatorHistory[creator]
+    }
+
     // Return Copyright Status. nil = non-existent MID
     pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
         return self.copyright[mid]
@@ -1231,6 +1238,7 @@ pub resource MinterAccess
         self.copyright = {}
         self.agents    = {} 
         self.creators  = {}
+        self.creatorHistory = {}
         self.minters   = {}
         self.metadata  = {}
         self.metadataCap = {}
