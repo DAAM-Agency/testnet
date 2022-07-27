@@ -139,8 +139,8 @@ pub resource RequestGenerator {
                     description: "Creator Royalty")
             ) // end append    
             rateCut = rateCut + (creator.cut - newCut)
-            if !DAAM.creatorHistory.containsKey(creator) { DAAM.creatorHistory[creator] = [mid]}
-            if !DAAM.creatorHistory[creator]!.contains(mid) { DAAM.creatorHistory[creator]!.append(mid) }
+            if !DAAM.creatorHistory.containsKey(creator.receiver.address) { DAAM.creatorHistory[creator.receiver.address] = [mid]}
+            if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) { DAAM.creatorHistory[creator.receiver.address]!.append(mid) }
         }
         assert(totalCut >= 0.1 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 

@@ -246,14 +246,14 @@ flow transactions send ./transactions/create_profile.cdc --signer founder5
 
 # Setup MultiFungibleToken Receiver
 echo "========= Setup All MultiFungibleToken Receiver ========="
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer creator
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer creator2
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer cto
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer founder1
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer founder2
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer founder3
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer founder4
-flow transactions send ./transactions/multitokent/setup_mft_receiver.cdc --signer founder5
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer creator
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer creator2
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer cto
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder1
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder2
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder3
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder4
+flow transactions send ./transactions/multitoken/setup_mft_receiver.cdc --signer founder5
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="
