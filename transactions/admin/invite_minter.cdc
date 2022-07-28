@@ -1,18 +1,18 @@
 // invite_minter.cdc
 // Used for Admin to give Minter access.
 
-import DAAM_V10 from 0xa4ad5ea5c0bd2fba
+import DAAM_V19 from 0xa4ad5ea5c0bd2fba
 
 transaction(newMinter: Address) {
-    let admin     : &DAAM_V10.Admin
+    let admin     : &DAAM_V19.Admin
     let newMinter : Address
 
     prepare(admin: AuthAccount) {
-        self.admin     = admin.borrow<&DAAM_V10.Admin>(from: DAAM_V10.adminStoragePath)!
+        self.admin     = admin.borrow<&DAAM_V19.Admin>(from: DAAM_V19.adminStoragePath)!
         self.newMinter = newMinter
     }
 
-    pre { DAAM_V10.isMinter(newMinter) == nil : newMinter.toString().concat(" is already a Minter.") }
+    pre { DAAM_V19.isMinter(newMinter) == nil : newMinter.toString().concat(" is already a Minter.") }
 
     execute {
         self.admin.inviteMinter(self.newMinter)

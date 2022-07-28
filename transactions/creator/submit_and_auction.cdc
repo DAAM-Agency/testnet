@@ -2,34 +2,57 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 // Used to create an auction for a first-time sale.
 
-import Categories   from 0xa4ad5ea5c0bd2fba
-import DAAM_V10         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_V2 from 0x1837e15023c9249
+import FungibleToken from 0x9a0766d93b6608b7 
+import Categories    from 0xa4ad5ea5c0bd2fba
+import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_V19          from 0xa4ad5ea5c0bd2fba
+import AuctionHouse_V12  from 0x045a1763c93006ca
+import FUSD          from 0xe223d8a629e49c68
+
+// argument have two modes:
+// when ipfs = true; first arument is cid, second argument is path 
+// when ipfs = false; first arument thumbnail String, second argument is thumbnailType and can not be nil
+pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataViews.File} {
+    pre { ipfs || !ipfs && type_path != nil }
+    if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
+    switch type_path! {
+        case "text": return DAAM_V19.OnChain(file: string_cid)
+        case "jpg": return DAAM_V19.OnChain(file: string_cid)
+        case "jpg": return DAAM_V19.OnChain(file: string_cid)
+        case "png": return DAAM_V19.OnChain(file: string_cid)
+        case "bmp": return DAAM_V19.OnChain(file: string_cid)
+        case "gif": return DAAM_V19.OnChain(file: string_cid)
+        case "http": return MetadataViews.HTTPFile(url: string_cid)
+    }
+    panic("Type is invalid")
+}
 
 transaction(
-    // Metadata Arguments
-    series: UInt64, categories: [String], data: String,  thumbnail: String, file: String,
-    // Request Arguments
-    percentage: UFix64, 
-    // Auction Arguments
-    start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, incrementByPrice: Bool,
-    incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
-)
-
+    name: String, max: UInt64?, categories: [String], inCollection: {String:[UInt64]}?, description: String, // Metadata information
+    ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
+    ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
+    interact: AnyStruct?, percentage: UFix64,
+    
+    start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*requiredCurrency: Type,*/
+    incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
+    )
 {    
-    let requestGen  : &DAAM_V10.RequestGenerator
-    let metadataGen : &DAAM_V10.MetadataGenerator
-    let metadataCap : Capability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}>
-    let auctionHouse: &AuctionHouse_V2.AuctionWallet
+    let requestGen  : &DAAM_V19.RequestGenerator
+    let metadataGen : &DAAM_V19.MetadataGenerator
+    let metadataCap : Capability<&DAAM_V19.MetadataGenerator{DAAM_V19.MetadataGeneratorMint}>
+    let auctionHouse: &AuctionHouse_V12.AuctionWallet
 
-    let series      : UInt64
-    let data        : String
+    let name        : String
+    let max         : UInt64?
     var categories  : [Categories.Category]
-    let thumbnail   : String
-    let file        : String
+    let inCollection: {String:[UInt64]}?
+    let interact    : AnyStruct?
+    let description : String
+    let thumbnail   : {String : {MetadataViews.File}}
+    let file        : {String : MetadataViews.Media}
+    let royalties   : MetadataViews.Royalties
 
-    let percentage  : UFix64
-
+    // Auction
     let start       : UFix64
     let length      : UFix64
     let isExtended  : Bool
@@ -39,19 +62,35 @@ transaction(
     let startingBid : UFix64?
     let reserve     : UFix64
     let buyNow      : UFix64
-    let reprintSeries   : Bool
+    let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-        self.metadataGen  = creator.borrow<&DAAM_V10.MetadataGenerator>(from: DAAM_V10.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM_V10.RequestGenerator>( from: DAAM_V10.requestStoragePath)!
-        self.auctionHouse = creator.borrow<&AuctionHouse_V2.AuctionWallet>(from: AuctionHouse_V2.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM_V10.MetadataGenerator{DAAM_V10.MetadataGeneratorMint}>(DAAM_V10.metadataPublicPath)!
+        self.metadataGen  = creator.borrow<&DAAM_V19.MetadataGenerator>(from: DAAM_V19.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V19.RequestGenerator>( from: DAAM_V19.requestStoragePath)!
+        self.auctionHouse = creator.borrow<&AuctionHouse_V12.AuctionWallet>(from: AuctionHouse_V12.auctionStoragePath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V19.MetadataGenerator{DAAM_V19.MetadataGeneratorMint}>(DAAM_V19.metadataPublicPath)!
+        
+        self.name         = name
+        self.max          = max
+        self.description  = description
+        self.inCollection = inCollection
+        self.interact     = interact
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
+        let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
+        let fileType      = ipfs_file ? "ipfs" : fileType_path
+        self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
 
-        self.series     = series
-        self.data       = data
-        self.thumbnail  = thumbnail
-        self.file       = file
-        self.percentage = percentage
+        let royalties    = [ MetadataViews.Royalty(
+            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+            cut: percentage,
+            description: "Creator Royalty" )
+        ]
+        self.royalties = MetadataViews.Royalties(royalties)
+
+        self.categories = []
+        for cat in categories {
+            self.categories.append(Categories.Category(cat))
+        }
 
         self.start            = start
         self.length           = length
@@ -62,27 +101,26 @@ transaction(
         self.startingBid      = startingBid
         self.reserve          = reserve
         self.buyNow           = buyNow
-        self.reprintSeries    = reprintSeries
-
-        self.categories = []
-        for cat in categories {
-            self.categories.append(Categories.Category(cat))
-        }
+        self.reprint          = reprint 
     }
 
     pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(series: self.series, categories: self.categories, data: self.data, thumbnail: self.thumbnail, file: self.file)       
-        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, percentage: self.percentage)
+        let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
+            description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
 
-        self.auctionHouse.createOriginalAuction(
-            metadataGenerator: self.metadataCap, mid: mid, start: self.start, length: self.length, isExtended: self.isExtended,
-            extendedTime: self.extendedTime, incrementByPrice: self.incrementByPrice, incrementAmount: self.incrementAmount,
-            startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow, reprintSeries: self.reprintSeries
+        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
+        let vault <- FUSD.createEmptyVault()
+
+        self.auctionHouse.createAuction(
+            metadataGenerator: self.metadataCap, nft: nil, id: mid, start: self.start, length: self.length, isExtended: self.isExtended,
+            extendedTime: self.extendedTime, vault: <-vault ,incrementByPrice: self.incrementByPrice, incrementAmount: self.incrementAmount,
+            startingBid: self.startingBid, reserve: self.reserve, buyNow: self.buyNow, reprintSeries: self.reprint
         )!
 
         log("New Auction has been created.")
-        log("Metadata Submitted: ".concat(mid.toString()).concat(" with a Royalty Percentage: ".concat((self.percentage*100.0).toString()).concat(" Accepted.")))
+        log("Metadata Submitted: ".concat(mid.toString()))
     }
 }
+

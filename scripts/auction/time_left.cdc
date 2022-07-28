@@ -1,12 +1,14 @@
 // time_left.cdc
 // Return time left in auction
 
-import AuctionHouse_V2 from 0x1837e15023c9249
+import AuctionHouse_V12 from 0x045a1763c93006ca
 
 pub fun main(auction: Address, aid: UInt64): UFix64? {    
     let auctionHouse = getAccount(auction)
-        .getCapability<&{AuctionHouse_V2.AuctionPublic}>(AuctionHouse_V2.auctionPublicPath)
+        .getCapability<&AuctionHouse_V12.AuctionWallet{AuctionHouse_V12.AuctionWalletPublic}>
+        (AuctionHouse_V12.auctionPublicPath)
         .borrow()!
-        
-    return auctionHouse.item(aid).timeLeft()
+
+    let mRef = auctionHouse.item(aid) as &AuctionHouse_V12.Auction{AuctionHouse_V12.AuctionPublic}?   
+    return mRef!.timeLeft()
 }
