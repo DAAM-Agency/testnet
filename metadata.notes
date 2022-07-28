@@ -1,3 +1,0 @@
-
-"list": "[0xNFT01, 0xNFT02]",   // matching address at 7th element = ex: 7 out of 14 of a series
-"print" : "{UInt64 : UInt64}"  // ex: {1:1} is 1 out 1 which is unique.
