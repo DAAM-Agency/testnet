@@ -5,8 +5,8 @@
 import FungibleToken from 0x9a0766d93b6608b7 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V18          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_V11  from 0x01837e15023c9249
+import DAAM_V21          from 0xa4ad5ea5c0bd2fba
+import AuctionHouse_V14  from 0x045a1763c93006ca
 import FUSD          from 0xe223d8a629e49c68
 
 // argument have two modes:
@@ -16,12 +16,12 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "text": return DAAM_V18.OnChain(file: string_cid)
-        case "jpg": return DAAM_V18.OnChain(file: string_cid)
-        case "jpg": return DAAM_V18.OnChain(file: string_cid)
-        case "png": return DAAM_V18.OnChain(file: string_cid)
-        case "bmp": return DAAM_V18.OnChain(file: string_cid)
-        case "gif": return DAAM_V18.OnChain(file: string_cid)
+        case "text": return DAAM_V21.OnChain(file: string_cid)
+        case "jpg": return DAAM_V21.OnChain(file: string_cid)
+        case "jpg": return DAAM_V21.OnChain(file: string_cid)
+        case "png": return DAAM_V21.OnChain(file: string_cid)
+        case "bmp": return DAAM_V21.OnChain(file: string_cid)
+        case "gif": return DAAM_V21.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
     panic("Type is invalid")
@@ -37,10 +37,10 @@ transaction(
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
     )
 {    
-    let requestGen  : &DAAM_V18.RequestGenerator
-    let metadataGen : &DAAM_V18.MetadataGenerator
-    let metadataCap : Capability<&DAAM_V18.MetadataGenerator{DAAM_V18.MetadataGeneratorMint}>
-    let auctionHouse: &AuctionHouse_V11.AuctionWallet
+    let requestGen  : &DAAM_V21.RequestGenerator
+    let metadataGen : &DAAM_V21.MetadataGenerator
+    let metadataCap : Capability<&DAAM_V21.MetadataGenerator{DAAM_V21.MetadataGeneratorMint}>
+    let auctionHouse: &AuctionHouse_V14.AuctionWallet
 
     let name        : String
     let max         : UInt64?
@@ -65,10 +65,10 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-        self.metadataGen  = creator.borrow<&DAAM_V18.MetadataGenerator>(from: DAAM_V18.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM_V18.RequestGenerator>( from: DAAM_V18.requestStoragePath)!
-        self.auctionHouse = creator.borrow<&AuctionHouse_V11.AuctionWallet>(from: AuctionHouse_V11.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM_V18.MetadataGenerator{DAAM_V18.MetadataGeneratorMint}>(DAAM_V18.metadataPublicPath)!
+        self.metadataGen  = creator.borrow<&DAAM_V21.MetadataGenerator>(from: DAAM_V21.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V21.RequestGenerator>( from: DAAM_V21.requestStoragePath)!
+        self.auctionHouse = creator.borrow<&AuctionHouse_V14.AuctionWallet>(from: AuctionHouse_V14.auctionStoragePath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V21.MetadataGenerator{DAAM_V21.MetadataGeneratorMint}>(DAAM_V21.metadataPublicPath)!
         
         self.name         = name
         self.max          = max
@@ -81,7 +81,7 @@ transaction(
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
 
         let royalties    = [ MetadataViews.Royalty(
-            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/fusdReceiver),
+            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
             cut: percentage,
             description: "Creator Royalty" )
         ]
@@ -104,7 +104,7 @@ transaction(
         self.reprint          = reprint 
     }
 
-    pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
+    pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,

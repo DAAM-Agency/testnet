@@ -1,33 +1,37 @@
 // transfer.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V18 from 0xa4ad5ea5c0bd2fba
+import DAAM_V21 from 0xa4ad5ea5c0bd2fba
 
 /// This transaction is for transferring and NFT from
 /// one account to another
 transaction(recipient: Address, withdrawID: UInt64) {
 
     /// Reference to the withdrawer's collection
-    let withdrawRef: &DAAM_V18.Collection
+    let withdrawRef: &DAAM_V21.Collection
 
     /// Reference of the collection to deposit the NFT to
     let depositRef: &{NonFungibleToken.CollectionPublic}
 
     prepare(signer: AuthAccount) {
         // borrow a reference to the signer's NFT collection
-        self.withdrawRef = signer.borrow<&DAAM_V18.Collection>(from: DAAM_V18.collectionStoragePath)
+        self.withdrawRef = signer
+            .borrow<&DAAM_V21.Collection>(from: DAAM_V21.collectionStoragePath)
             ?? panic("Account does not store an object at the specified path")
 
         // get the recipients public account object
         let recipient = getAccount(recipient)
 
         // borrow a public reference to the receivers collection
-        self.depositRef = recipient.getCapability(DAAM_V18.collectionPublicPath).borrow<&{NonFungibleToken.CollectionPublic}>()
+        self.depositRef = recipient
+            .getCapability(DAAM_V21.collectionPublicPath)
+            .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not borrow a reference to the receiver's collection")
 
     }
 
     execute {
+
         // withdraw the NFT from the owner's collection
         let nft <- self.withdrawRef.withdraw(withdrawID: withdrawID)
 
@@ -39,7 +43,7 @@ transaction(recipient: Address, withdrawID: UInt64) {
     }
 
     post {
-        !self.withdrawRef.getIDs().contains(withdrawID) : "Original owner should not have the NFT anymore"
-        self.depositRef.getIDs().contains(withdrawID)   : "The reciever should now own the NFT"
+        !self.withdrawRef.getIDs().contains(withdrawID): "Original owner should not have the NFT anymore"
+        self.depositRef.getIDs().contains(withdrawID): "The reciever should now own the NFT"
     }
 }
