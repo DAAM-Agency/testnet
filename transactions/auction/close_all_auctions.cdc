@@ -1,19 +1,19 @@
 // close_all_auctions.cdc
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
-import AuctionHouse_V12 from 0x045a1763c93006ca
+import AuctionHouse_V14 from 0x045a1763c93006ca
 
 // Returns all Sellers and their auction IDs of auctions that have ended
 pub fun getClosedAuctions(): {Address: [UInt64]} {
-    let currentAuctions = AuctionHouse_V12.getCurrentAuctions() // Get auctioneers and AIDs {Address : [AID]}
+    let currentAuctions = AuctionHouse_V14.getCurrentAuctions() // Get auctioneers and AIDs {Address : [AID]}
     var list: {Address: [UInt64]} = {}
 
     for seller in currentAuctions.keys {
-        let auctionHouse = getAccount(seller).getCapability<&AuctionHouse_V12.AuctionWallet{AuctionHouse_V12.AuctionWalletPublic}>(AuctionHouse_V12.auctionPublicPath).borrow()!
+        let auctionHouse = getAccount(seller).getCapability<&AuctionHouse_V14.AuctionWallet{AuctionHouse_V14.AuctionWalletPublic}>(AuctionHouse_V14.auctionPublicPath).borrow()!
         let auctions = currentAuctions[seller]!
 
         for aid in auctions {
-            let auctionRef = auctionHouse.item(aid) as &AuctionHouse_V12.Auction{AuctionHouse_V12.AuctionPublic}?
+            let auctionRef = auctionHouse.item(aid) as &AuctionHouse_V14.Auction{AuctionHouse_V14.AuctionPublic}?
             if auctionRef!.getStatus() == false {
                 if list.containsKey(seller) {
                     assert(!list[seller]!.contains(aid), message: "Already contains aid" )
@@ -29,14 +29,14 @@ pub fun getClosedAuctions(): {Address: [UInt64]} {
 }
 
 transaction() {
-    let auctionHouse : [&AuctionHouse_V12.AuctionWallet{AuctionHouse_V12.AuctionWalletPublic}]
+    let auctionHouse : [&AuctionHouse_V14.AuctionWallet{AuctionHouse_V14.AuctionWalletPublic}]
    
     prepare(signer: AuthAccount) {
         self.auctionHouse = []
         let list = getClosedAuctions()
         for l in list.keys {
             self.auctionHouse.append(
-                getAccount(l).getCapability<&AuctionHouse_V12.AuctionWallet{AuctionHouse_V12.AuctionWalletPublic}>(AuctionHouse_V12.auctionPublicPath).borrow()! )
+                getAccount(l).getCapability<&AuctionHouse_V14.AuctionWallet{AuctionHouse_V14.AuctionWalletPublic}>(AuctionHouse_V14.auctionPublicPath).borrow()! )
         }
     }
 

@@ -6,7 +6,7 @@ import NonFungibleToken from 0x631e88ae7f1d7c20
 import MetadataViews    from 0x631e88ae7f1d7c20
 import DAAM_V20             from 0xa4ad5ea5c0bd2fba
 
-pub contract AuctionHouse_V12 {
+pub contract AuctionHouse_V14 {
     // Event
     pub event AuctionCreated(auctionID: UInt64, start: UFix64)   // Auction has been created. 
     pub event AuctionClosed(auctionID: UInt64)    // Auction has been finalized and has been removed.
@@ -81,7 +81,7 @@ pub struct AuctionHolder {
         pub let reserve       : UFix64   // the reserve. must be sold at min price.
         pub let fee           : UFix64   // the fee
         pub let price         : UFix64   // original price
-        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse_V12.fee)
+        pub let buyNow        : UFix64   // buy now price (original price + AuctionHouse_V14.fee)
         pub let reprintSeries : UInt64?  // Active Series Minter (if series)
         pub let auctionLog    : {Address: UFix64}    // {Bidders, Amount} // Log of the Auction
         pub let requiredCurrency: Type
@@ -107,7 +107,7 @@ pub struct AuctionHolder {
                 self.reserve       = reserve   // the reserve. must be sold at min price.
                 self.fee           = fee   // the fee
                 self.price         = price   // original price
-                self.buyNow        = buyNow   // buy now price (original price + AuctionHouse_V12.fee)
+                self.buyNow        = buyNow   // buy now price (original price + AuctionHouse_V14.fee)
                 self.reprintSeries = reprintSeries     // Active Series Minter (if series)
                 self.auctionLog    = auctionLog    // {Bidders, Amount} // Log of the Auction
                 self.requiredCurrency = requiredCurrency
@@ -157,9 +157,9 @@ pub struct AuctionHolder {
                 assert(DAAM_V20.getCopyright(mid: id) != DAAM_V20.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
                 assert(DAAM_V20.getCopyright(mid: id) != DAAM_V20.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
 
-                AuctionHouse_V12.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
+                AuctionHouse_V14.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
                 let metadataRef = metadataGenerator!.borrow()! as &DAAM_V20.MetadataGenerator{DAAM_V20.MetadataGeneratorMint} // Get MetadataHolder
-                let minterAccess <- AuctionHouse_V12.minterAccess()
+                let minterAccess <- AuctionHouse_V14.minterAccess()
                 let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: id)      // Create MetadataHolder
                 // Create Auctions
                 let old <- auction <- create Auction(metadata: <-metadata!, nft: nil, start: start, length: length, isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
@@ -176,7 +176,7 @@ pub struct AuctionHolder {
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction!) // Store Auction
             destroy oldAuction // destroy placeholder
 
-            AuctionHouse_V12.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
+            AuctionHouse_V14.currentAuctions.insert(key:self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             return aid
         }        
 
@@ -203,9 +203,9 @@ pub struct AuctionHolder {
                     
                     // Update Current Auctions List
                     if self.currentAuctions.keys.length == 0 {
-                        AuctionHouse_V12.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
+                        AuctionHouse_V14.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
                     } else {
-                        AuctionHouse_V12.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list with reset values
+                        AuctionHouse_V14.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list with reset values
                     }
 
                     log("Auction Closed: ".concat(auctionID.toString()) )                    
@@ -322,10 +322,10 @@ pub struct AuctionHolder {
             if incrementByPrice == false && incrementAmount > 0.05  { panic("The maximum increment is 5.0%.")     }
             if incrementByPrice == true  && incrementAmount < 1.0   { panic("The minimum increment is 1 Crypto.") }
 
-            AuctionHouse_V12.auctionCounter = AuctionHouse_V12.auctionCounter + 1 // increment Auction Counter
+            AuctionHouse_V14.auctionCounter = AuctionHouse_V14.auctionCounter + 1 // increment Auction Counter
             self.status = nil // nil = auction not started, true = auction ongoing, false = auction ended
             self.height = nil  // when auction is ended does it get a value
-            self.auctionID = AuctionHouse_V12.auctionCounter // Auction uinque ID number
+            self.auctionID = AuctionHouse_V14.auctionCounter // Auction uinque ID number
             
             self.start = start        // When auction start
             self.length = length      // Length of auction
@@ -352,7 +352,7 @@ pub struct AuctionHolder {
             }              
             
             self.mid = ref.mid! // Meta   data ID
-            self.fee = AuctionHouse_V12.getFee(mid: self.mid)
+            self.fee = AuctionHouse_V14.getFee(mid: self.mid)
             self.buyNow = self.price
 
             self.auctionLog = {} // Maintain record of Crypto // {Address : Crypto}
@@ -505,7 +505,7 @@ pub struct AuctionHolder {
             if pass { // leader met the reserve price              
                 if self.auctionMetadata != nil { // If Metadata turn into nFt
                     let metadata <- self.auctionMetadata <- nil
-                    let old <-  self.auctionNFT <- AuctionHouse_V12.mintNFT(metadata: <-metadata!)
+                    let old <-  self.auctionNFT <- AuctionHouse_V14.mintNFT(metadata: <-metadata!)
                     destroy old
                 }
                 // remove leader from log before returnFunds()!!
@@ -521,7 +521,7 @@ pub struct AuctionHolder {
                 self.finalise(receiver: self.leader!, nft: <-nft!, pass: pass)
                 log("Item: Won")
                 let saleHistoryEntry = SaleHistoryEntry(id: id, auctionHolder: self.auctionInfo(), price: amount, from: self.owner!.address, to: leader)
-                AuctionHouse_V12.updateAllHistory(mid: self.mid, id: id, metadata: metadata, history: saleHistoryEntry)
+                AuctionHouse_V14.updateAllHistory(mid: self.mid, id: id, metadata: metadata, history: saleHistoryEntry)
 
                 emit ItemWon(auctionID: self.auctionID, winner: leader, tokenID: id, amount: amount, sale: saleHistoryEntry) // Auction Ended, but Item not delivered yet.
             } else {   
@@ -641,7 +641,7 @@ pub struct AuctionHolder {
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V12.getCrypto(crypto: self.requiredCurrency))
+                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency))
                     .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
@@ -761,10 +761,10 @@ pub struct AuctionHolder {
         // Returns a percentage of Group. Ex: Bob owns 10%, with percentage at 0.2, will return Bob at 8% along with the rest of Group
         priv fun payFirstSale() {
             post { self.auctionVault.balance == 0.0 : "Royalty Error: ".concat(self.auctionVault.balance.toString() ) } // The Vault should always end empty
-            let price       = self.auctionVault.balance / (1.0 + AuctionHouse_V12.getFee(mid: self.mid))
+            let price       = self.auctionVault.balance / (1.0 + AuctionHouse_V14.getFee(mid: self.mid))
             let fee         = self.auctionVault.balance - price   // Get fee amount
             let creatorRoyalties = self.convertTo100Percent() // get Royalty data
-            let daamRoyalty = AuctionHouse_V12.getAgencyFirstSale(mid: self.mid)
+            let daamRoyalty = AuctionHouse_V14.getAgencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let daamAmount = (price * daamRoyalty) + fee
@@ -776,7 +776,7 @@ pub struct AuctionHolder {
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
                 let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V12.getCrypto(crypto: self.requiredCurrency)!)
+                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency)!)
                     .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
@@ -796,7 +796,7 @@ pub struct AuctionHolder {
             let agency = 1.0 - inHouse
             // If 1st sale is 'new' remove from 'new list'
             if DAAM_V20.isNFTNew(id: tokenID) {
-                AuctionHouse_V12.notNew(tokenID: tokenID) 
+                AuctionHouse_V14.notNew(tokenID: tokenID) 
                 self.payFirstSale()
             } else {   // 2nd Sale
                 let price   = self.auctionVault.balance / (1.0 + self.fee)
@@ -808,7 +808,7 @@ pub struct AuctionHolder {
                 self.payRoyalty(price: fee * agency, royalties: DAAM_V20.agency.getRoyalties() ) // Pay Agency the fee
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V12.getCrypto(crypto: self.requiredCurrency))!
+                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency))!
                     .borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
@@ -851,10 +851,10 @@ pub struct AuctionHolder {
             if self.reprintSeries == 1 { return } // if reprint is set to off (false) return
             if self.creatorInfo.creator != self.owner!.address { return } // Verify Owner is Creator (element 0) otherwise skip function
 
-            let metadataRef = AuctionHouse_V12.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
-            let minterAccess <- AuctionHouse_V12.minterAccess()
+            let metadataRef = AuctionHouse_V14.metadataGen[self.mid]!.borrow()!   // get Metadata Generator Reference
+            let minterAccess <- AuctionHouse_V14.minterAccess()
             let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess, mid: self.mid)
-            let old <- self.auctionNFT <- AuctionHouse_V12.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
+            let old <- self.auctionNFT <- AuctionHouse_V14.mintNFT(metadata: <-metadata) // Mint NFT and deposit into auction
             destroy old // destroy place holder
 
             self.resetAuction() // reset variables for next auction
@@ -900,7 +900,7 @@ pub struct AuctionHolder {
         }
     }
 /************************************************************************/
-// AuctionHouse_V12 Functions & Constructor
+// AuctionHouse_V14 Functions & Constructor
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
