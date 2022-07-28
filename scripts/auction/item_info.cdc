@@ -1,10 +1,10 @@
 // item_info.cdc
 // Return item info of auction
 
-import DAAM_V20          from 0xa4ad5ea5c0bd2fba
+import DAAM_V21          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse_V14  from 0x045a1763c93006ca
 
-pub fun main(auction: Address, aid: UInt64): DAAM_V20.MetadataHolder? {    
+pub fun main(auction: Address, aid: UInt64): DAAM_V21.MetadataHolder? {    
     let auctionHouse = getAccount(auction)
         .getCapability<&AuctionHouse_V14.AuctionWallet{AuctionHouse_V14.AuctionWalletPublic}>
         (AuctionHouse_V14.auctionPublicPath)

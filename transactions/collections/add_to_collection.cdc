@@ -1,18 +1,18 @@
 // add_to_collection.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V20 from 0xa4ad5ea5c0bd2fba
+import DAAM_V21 from 0xa4ad5ea5c0bd2fba
 
 transaction(collectionName: String, tokenID: UInt64) {
     let name: String
     let tokenID : UInt64
-    let collectionRef: &DAAM_V20.Collection
+    let collectionRef: &DAAM_V21.Collection
 
     prepare(acct: AuthAccount) {
         self.name = collectionName // Get name of collection
         self.tokenID = tokenID
         // Borrow a reference from the stored collection
-        self.collectionRef = acct.borrow<&DAAM_V20.Collection>(from: DAAM_V20.collectionStoragePath)
+        self.collectionRef = acct.borrow<&DAAM_V21.Collection>(from: DAAM_V21.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
     }
 
