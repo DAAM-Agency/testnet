@@ -49,6 +49,7 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
 
   execute {
       let vault <- FUSD.createEmptyVault()
+      log(vault.getType())
 
       var nft: @DAAM.NFT? <- nil
       if !self.isMetadata {

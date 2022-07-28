@@ -38,6 +38,10 @@ export FOUNDER3_PUBKEY=$(tail -1 ./keys/founder3_keys   | awk '{print $3}' | tr 
 export FOUNDER4_PUBKEY=$(tail -1 ./keys/founder4_keys   | awk '{print $3}' | tr -d '\n')
 export FOUNDER5_PUBKEY=$(tail -1 ./keys/founder5_keys   | awk '{print $3}' | tr -d '\n')
 
+export MFT_PUBKEY=$(tail -1 ./keys/mft_keys   | awk '{print $3}' | tr -d '\n')
+export TOKENA_PUBKEY=$(tail -1 ./keys/tokenA_keys   | awk '{print $3}' | tr -d '\n')
+export TOKENB_PUBKEY=$(tail -1 ./keys/tokenB_keys   | awk '{print $3}' | tr -d '\n')
+
 echo "---------- Setup: Priavte Keys ----------"
 export CREATOR_PRIVKEY=$(tail -2 ./keys/creator_keys     | awk '{print $3}' | tr -d '\n')
 export ADMIN_PRIVKEY=$(tail -2 ./keys/admin_keys         | awk '{print $3}' | tr -d '\n')
@@ -55,6 +59,10 @@ export AGENT_PRIVKEY=$(tail -2 ./keys/agent_keys         | awk '{print $3}' | tr
 export AGENT2_PRIVKEY=$(tail -2 ./keys/agent2_keys       | awk '{print $3}' | tr -d '\n')
 export CREATOR2_PRIVKEY=$(tail -2 ./keys/creator2_keys   | awk '{print $3}' | tr -d '\n')
 export CLIENT2_PRIVKEY=$(tail -2 ./keys/client2_keys     | awk '{print $3}' | tr -d '\n')
+
+export MTF_PRIVKEY=$(tail -2 ./keys/mft_keys     | awk '{print $3}' | tr -d '\n')
+export TOKENA_PRIVKEY=$(tail -2 ./keys/tokenA_keys     | awk '{print $3}' | tr -d '\n')
+export TOKENB_PRIVKEY=$(tail -2 ./keys/tokenB_keys     | awk '{print $3}' | tr -d '\n')
 
 # init accounts; Must be in order
 echo "------------ Saving Account information ----------"
@@ -80,6 +88,10 @@ flow accounts create --key $FOUNDER2_PUBKEY --save founder2
 flow accounts create --key $FOUNDER3_PUBKEY --save founder3
 flow accounts create --key $FOUNDER4_PUBKEY --save founder4
 flow accounts create --key $FOUNDER5_PUBKEY --save founder5
+
+flow accounts create --key $MFT_PUBKEY --save mft
+flow accounts create --key $TOKENA_PUBKEY --save tokenA
+flow accounts create --key $TOKENB_PUBKEY --save tokenB
 
 # Get & print Address
 export CREATOR=$(head -1 creator | awk '{print $2}')
@@ -124,6 +136,13 @@ echo FOUNDER4: $FOUNDER4
 export FOUNDER5=$(head -1 founder5 | awk '{print $2}')
 echo FOUNDER5: $FOUNDER5
 
+export MFT=$(head -1 mft | awk '{print $2}')
+echo MTF: $MFT
+export TOKENA=$(head -1 tokenA | awk '{print $2}')
+echo TOKENA: $TOKENA
+export TOKENB=$(head -1 tokenB | awk '{print $2}')
+echo TOKENB: $TOKENB
+
 echo "---------- Sending Flow for basic transactions -----------"
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN
@@ -149,6 +168,10 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER3 # G.P
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER4 # A.K
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER5 # M.H
 
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $MTF 
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $TOKENA
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $TOKENB
+
 # Init Contracts
 
 # FUSD Enulator Contract
@@ -156,6 +179,16 @@ echo "========== Publish Test FUSD Contract =========="
 flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
 flow transactions send ./transactions/fusd/setup_fusd.cdc 100000000.0 $CTO --signer profile
+
+echo "========== Publish Test TokenA Contract =========="
+flow accounts add-contract TokenA ./contracts/TokenA.cdc --signer tokenA
+flow transactions send ./transactions/tokenA/setup_fusd_vault.cdc --signer tokenA
+flow transactions send ./transactions/tokenA/setup_fusd.cdc 100000000.0 $TOKENA --signer tokenA
+
+echo "========== Publish Test TokenB Contract =========="
+flow accounts add-contract TokenB ./contracts/TokenB.cdc --signer tokenB
+flow transactions send ./transactions/tokenB/setup_fusd_vault.cdc --signer tokenB
+flow transactions send ./transactions/tokenB/setup_fusd.cdc 100000000.0 $TOKENB --signer tokenB
 
 echo "========== Send 100K FUSD to All Accounts =========="
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
@@ -206,7 +239,7 @@ flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
 echo "========= Publish DAAM Contracts =========="
 # Categories
 flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
-flow accounts add-contract MultiFungibleToken ./contracts/MultiFungibleToken.cdc --signer profile
+flow accounts add-contract MultiFungibleToken ./contracts/MultiFungibleToken.cdc --signer mft
 
 flow transactions send ./transactions/send_flow_em.cdc --args-json \
 '[{"type": "UFix64", "value": "11.0"}, {"type": "Address", "value": "0x0f7025fa05b578e3"}]'

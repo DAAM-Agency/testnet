@@ -1,0 +1,16 @@
+Address	 0x082fb01090d0eed5
+Balance	 0.00100000
+Keys	 1
+
+Key 0	Public Key		 7e3538cdf20f4088722181be67e84406577a32a5217125c633712aaa9406d3c7136972ef868b9aa3fd6e81c09e513bc1a4cb5b06310fff1ff1a0a6adc68ac6a8
+	Weight			 1000
+	Signature Algorithm	 ECDSA_P256
+	Hash Algorithm		 SHA3_256
+	Revoked 		 false
+	Sequence Number 	 0
+	Index 			 0
+
+Contracts Deployed: 0
+
+
+Contracts (hidden, use --include contracts)

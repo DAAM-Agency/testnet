@@ -5,7 +5,7 @@
 import NonFungibleToken   from 0xf8d6e0586b0a20c7
 import FungibleToken      from 0xee82856bf20e2aa6
 import MetadataViews      from 0xf8d6e0586b0a20c7
-import MultiFungibleToken from 0x192440c99cb17282
+import MultiFungibleToken from 0xfa1c6cfe182ee46b
 import DAAM               from 0xfd43f9148d4b725d
 
 transaction(public: Bool)

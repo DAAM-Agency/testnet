@@ -1,7 +1,7 @@
 // setup_mft_receiver.cdc
 
 import FungibleToken    from 0xee82856bf20e2aa6
-import MultiFungibleToken from 0x192440c99cb17282
+import MultiFungibleToken from 0xfa1c6cfe182ee46b
 
 transaction()
 {

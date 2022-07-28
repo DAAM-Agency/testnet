@@ -119,7 +119,19 @@
 		"founder5": {
 			"address": "0x1e7bd52309d4e4b4",
 			"keys": "9bc18a070ace16803b1ec6815b8e2f84433fbe339014038d50404c18a14cf00a"
-		}  
+		},
+		"mft": {
+			"address": "0xfa1c6cfe182ee46b",
+			"keys": "d9ce6a263a740cd767302b973bd341d3ecf3df6669e06c118717647a707912db"
+		}, 
+		"tokenA": {
+			"address": "0xec4809cd812aee0a",
+			"keys": "0fa97fdfa3be7f64283a1c30a007ca6e6dfef51e48b9ac2fd4c6a8a95ca870b5"
+		}, 
+		"tokenB": {
+			"address": "0x082fb01090d0eed5",
+			"keys": "9ff9626196aa266a11b80626a6eca46ed99617d52202b36182da3fb7e180447e"
+		} 
 	},
 	"deployments": {
 		"emulator": {
