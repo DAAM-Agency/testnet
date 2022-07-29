@@ -200,7 +200,7 @@ pub resource RequestGenerator {
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
         pub let featured    : Bool                              // True = Special Feature NFT
         pub let category    : [Categories.Category] 
-        pub var inCollection: {String:[UInt64]}?
+        pub var inCollection: {String:[UInt64]}?    // { Collection name : [MIDs] } 
         pub let description : String                // NFT description is stored here
         pub let misc        : String
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here

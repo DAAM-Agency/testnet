@@ -44,7 +44,7 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
         self.description  = description
         self.inCollection = inCollection
         self.interact     = interact
-        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: thumbnailType_path)}
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
@@ -55,8 +55,8 @@ transaction(name: String, max: UInt64?, categories: [String], inCollection: {Str
     }
 
     execute {
-        let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories, inCollection: self.inCollection,
-        description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
+        let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, featured: self.featured, categories: self.categories, inCollection: self.inCollection,
+            misc: self.misc, description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
 
         log("Metadata Submitted: ".concat(mid.toString()))
     }
