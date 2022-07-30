@@ -66,7 +66,7 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
         }
     }
 
-    pre { percentage >= 0.1 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
+    pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, featured: self.featured, categories: self.categories, inCollection: self.inCollection,
