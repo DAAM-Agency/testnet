@@ -767,8 +767,15 @@ pub struct AuctionHolder {
             let daamRoyalty = AuctionHouse.getAgencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
-                let daamAmount = (price * daamRoyalty) + fee
-                let creatorAmount = price - daamAmount
+                let inHouse = 0.5 // Main setting here
+                
+                // Below changes are calculated from above settings
+                let agency = 1.0 - inHouse
+                let nonCreatorAmont = (price * daamRoyalty) + fee
+                let inHouseAmount = nonCreatorAmont * inHouse
+                let daamAmount = nonCreatorAmont - inHouseAmount
+                let creatorAmount = price - nonCreatorAmont
+                self.payRoyalty(price: inHouseAmount, royalties: [DAAM.company])
                 self.payRoyalty(price: daamAmount, royalties: DAAM.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
