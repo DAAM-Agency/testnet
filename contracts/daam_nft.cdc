@@ -198,7 +198,7 @@ pub resource RequestGenerator {
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
-        pub let featured    : Bool                              // True = Special Feature NFT
+        pub var featured    : Bool                              // True = Special Feature NFT
         pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?
         pub let description : String                // NFT description is stored here
