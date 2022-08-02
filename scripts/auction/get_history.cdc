@@ -6,5 +6,5 @@
 import AuctionHouse_V14 from 0x045a1763c93006ca
 
 pub fun main(mid: UInt64?): {UInt64 : {UInt64: AuctionHouse_V14.SaleHistory}} { // MID : {TokenID:SaleHistory} }
-    return AuctionHouse_V14.getHistory(mid: mid) // Get SaleHostory {TokenID : SaleHstory}
+    return AuctionHouse_V14.getHistory(mid: mid)! // Get SaleHostory {TokenID : SaleHstory}
 }
