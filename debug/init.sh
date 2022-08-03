@@ -288,6 +288,7 @@ flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false -
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder3
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder4
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer founder5
+flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer agency
 
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer agent
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc true --signer agent2

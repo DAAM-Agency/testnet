@@ -14,6 +14,7 @@ transaction {
 
         // It's OK if the account already has a Vault, but we don't want to replace it
         if(signer.borrow<&TokenA.Vault>(from: /storage/tokenAVault) != nil) {
+            log("Already have a wallet.")
             return
         }
         
