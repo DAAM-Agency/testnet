@@ -5,9 +5,9 @@
 
 # Start Bidding
 # starts in 30 seconds
-CURRENT_TIME=$(date +%s)
-OFFSET=10.0
-START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+OFFSET=30
+START=$(echo $(expr $(date +%s) + $OFFSET).0)
+echo "START: "$START
 
 echo "========== Create Auctions II =========="
 

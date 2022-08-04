@@ -42,15 +42,22 @@ pub contract MultiFungibleToken
             let type = from.getType()
             let identifier = type.identifier
             let balance = from.balance
-            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) ?? panic(identifier.concat(" is not accepted."))
-            
-            let ref = self.owner!.getCapability(ftInfo.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
-            if (ref != nil) {
-                ref!.deposit(from: <-from)    // Deposit the withdrawn tokens in the recipient's receiver
-            } else {
+            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) 
+
+            if ftInfo == nil {
                 self.storeDeposit(<-from)
                 emit CreateNewWallet(user: self.owner!.address, type: type, amount: balance)
+                return
             }
+            
+            let ref = self.owner!.getCapability(ftInfo!.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
+            if (ref == nil) {
+                self.storeDeposit(<-from)
+                emit CreateNewWallet(user: self.owner!.address, type: type, amount: balance)
+                return
+            }
+
+            ref!.deposit(from: <-from)    // Deposit the withdrawn tokens in the recipient's receiver
         }
 
         priv fun storeDeposit(_ from: @FungibleToken.Vault) {

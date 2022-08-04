@@ -11,9 +11,8 @@
 # reserve: UFix64, buyNow: UFix64, reprintSeries: Bool
 
 # Starts in 30 seconds
-CURRENT_TIME=$(date +%s)
-OFFSET=30.0
-START=$(echo "${CURRENT_TIME} + ${OFFSET}" |bc)
+OFFSET=30
+START=$(echo $(expr $(date +%s) + $OFFSET).0)
 echo "START: "$START
 
 echo "========== Create Original Auctions Tests II =========="
