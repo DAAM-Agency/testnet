@@ -238,11 +238,7 @@ pub struct AuctionHolder {
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
             let type = vault.getType()
             let identifier = type.identifier
-            switch identifier {
-                case "A.192440c99cb17282.FUSD.Vault"  : return true
-                case "A.ec4809cd812aee0a.TokenA.Vault": return true
-            }
-            return false
+            return AuctionHouse.crypto.containsKey(identifier)
         }
 
         destroy() { destroy self.currentAuctions }
@@ -1039,5 +1035,6 @@ pub struct AuctionHolder {
         self.auctionPublicPath  = /public/DAAM_Auction
         // init accepted cryptos
         self.crypto = {"A.192440c99cb17282.FUSD.Vault" : /public/fusdReceiver}
+        self.crypto .insert(key: "A.ec4809cd812aee0a.TokenA.Vault", /public/tokenAReceiver)
     }
 }

@@ -7,7 +7,7 @@
 # Start Bidding
 # Starts in 30 seconds
 
-OFFSET=30.0
+OFFSET=30
 START=$(echo $(expr $(date +%s) + $OFFSET).0)
 echo "START: "$START
 
