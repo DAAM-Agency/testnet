@@ -638,7 +638,7 @@ pub struct AuctionHolder {
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))
+                    (MetadataViews.getRoyaltyReceiverPublicPath())
                     .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
@@ -780,7 +780,7 @@ pub struct AuctionHolder {
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
                 let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency)!)
+                    (MetadataViews.getRoyaltyReceiverPublicPath()!)
                     .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
@@ -812,7 +812,7 @@ pub struct AuctionHolder {
                 self.payRoyalty(price: fee * agency, royalties: DAAM.agency.getRoyalties() ) // Pay Agency the fee
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse.getCrypto(crypto: self.requiredCurrency))!
+                    (MetadataViews.getRoyaltyReceiverPublicPath())!
                     .borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
@@ -995,12 +995,6 @@ pub struct AuctionHolder {
             self.fee[mid] != nil : "No set Fee for this MID."
         }
         self.agencyFirstSale.remove(key: mid)
-    }
-
-    pub fun getCrypto(crypto: Type): PublicPath {
-        let identifier = crypto.identifier
-        assert( self.crypto.containsKey(identifier))
-        return self.crypto[identifier]!
     }
 
     pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin) {
