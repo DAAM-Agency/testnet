@@ -238,10 +238,8 @@ pub struct AuctionHolder {
         priv fun validToken(vault: &FungibleToken.Vault): Bool {
             let type = vault.getType()
             let identifier = type.identifier
-            switch identifier {
-                case "A.e223d8a629e49c68.FUSD.Vault": return true
-            }
-            return false
+            return AuctionHouse_V14.crypto.containsKey(identifier)
+
         }
 
         destroy() { destroy self.currentAuctions }
@@ -641,7 +639,7 @@ pub struct AuctionHolder {
             for bidder in self.auctionLog.keys {
                 // get Crypto Wallet capability
                 let bidderRef =  getAccount(bidder).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency))
+                    (MetadataViews.getRoyaltyReceiverPublicPath())
                     .borrow()!
                 let amount <- self.auctionVault.withdraw(amount: self.auctionLog[bidder]!)  // Withdraw amount
                 self.auctionLog.remove(key: bidder)
@@ -767,16 +765,24 @@ pub struct AuctionHolder {
             let daamRoyalty = AuctionHouse_V14.getAgencyFirstSale(mid: self.mid)
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
-                let daamAmount = (price * daamRoyalty) + fee
-                let creatorAmount = price - daamAmount
-                self.payRoyalty(price: daamAmount, royalties: DAAM_V21.agency.getRoyalties())
+                let inHouse = 0.5 // Main setting here
+                 
+                 // Below changes are calculated from above settings
+                 let agency = 1.0 - inHouse
+                 let nonCreatorAmont = (price * daamRoyalty) + fee
+                 let inHouseAmount = nonCreatorAmont * inHouse
+                 let daamAmount = nonCreatorAmont - inHouseAmount
+                 let creatorAmount = price - nonCreatorAmont
+                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V21.company])
+                 self.payRoyalty(price: daamAmount, royalties: DAAM_V21.agency.getRoyalties())
+
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
                 // Agent payment
                 let agentAmount  = price * self.auctionNFT?.metadata!.creatorInfo.firstSale!
                 let agentAddress = self.auctionNFT?.metadata!.creatorInfo.agent!
                 let agent = getAccount(agentAddress).getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency)!)
+                    (MetadataViews.getRoyaltyReceiverPublicPath()!)
                     .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
                 agent.deposit(from: <-agentCut ) // deposit amount                
@@ -808,7 +814,7 @@ pub struct AuctionHolder {
                 self.payRoyalty(price: fee * agency, royalties: DAAM_V21.agency.getRoyalties() ) // Pay Agency the fee
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
-                    (AuctionHouse_V14.getCrypto(crypto: self.requiredCurrency))!
+                    (MetadataViews.getRoyaltyReceiverPublicPath())!
                     .borrow()! // get Seller FUSD Wallet Capability
                 let sellerCut <-! self.auctionVault.withdraw(amount: self.auctionVault.balance) // Calcuate actual amount
                 seller.deposit(from: <-sellerCut ) // deposit amount
@@ -991,12 +997,6 @@ pub struct AuctionHolder {
             self.fee[mid] != nil : "No set Fee for this MID."
         }
         self.agencyFirstSale.remove(key: mid)
-    }
-
-    pub fun getCrypto(crypto: Type): PublicPath {
-        let identifier = crypto.identifier
-        assert( self.crypto.containsKey(identifier))
-        return self.crypto[identifier]!
     }
 
     pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM_V21.Admin) {
