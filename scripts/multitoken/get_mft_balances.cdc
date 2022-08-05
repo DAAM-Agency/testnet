@@ -9,5 +9,5 @@ pub fun main(account: Address): {String : UFix64} { // { FungibleToken Type.inst
         (MultiFungibleToken.MultiFungibleTokenBalancePath)
         .borrow()
     
-    return collectionRef!.getBalances()!
+    return collectionRef!.getStorageBalances()!
 }
