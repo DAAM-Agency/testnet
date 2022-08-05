@@ -2,7 +2,7 @@
 // Used for direct purchases
 
 import FungibleToken from 0xee82856bf20e2aa6
-import FUSD          from 0x192440c99cb17282
+import FUSD          from 0xe223d8a629e49c68
 import AuctionHouse  from 0x045a1763c93006ca
 import DAAM          from 0xfd43f9148d4b725d
 

@@ -6,7 +6,7 @@
 // - FungibleToken.Balance: this capability allows anybody to inspect the FUSD balance of this account.
 
 import FungibleToken from 0xee82856bf20e2aa6
-import FUSD from 0x192440c99cb17282
+import FUSD from 0xe223d8a629e49c68
 
 transaction {
 

@@ -7,7 +7,7 @@ import Categories    from 0xfd43f9148d4b725d
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM          from 0xfd43f9148d4b725d
 import AuctionHouse  from 0x045a1763c93006ca
-import FUSD          from 0x192440c99cb17282
+import FUSD          from 0xe223d8a629e49c68
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
