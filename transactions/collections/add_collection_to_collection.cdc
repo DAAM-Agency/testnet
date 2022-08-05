@@ -1,6 +1,6 @@
 // add_collection_to_collection.cdc
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM from 0xfd43f9148d4b725d
 
 transaction(collectionName: String, collection: String) {

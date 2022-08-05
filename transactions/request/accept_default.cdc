@@ -2,7 +2,7 @@
 // Creator selects Royalty between 10% to 30%
 
 import FungibleToken from 0xee82856bf20e2aa6 
-import MetadataViews from 0xf8d6e0586b0a20c7
+import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM          from 0xfd43f9148d4b725d
 
 transaction(mid: UInt64, percentage: UFix64) {
