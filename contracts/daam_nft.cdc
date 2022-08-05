@@ -198,7 +198,7 @@ pub resource RequestGenerator {
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
-        pub let featured    : Bool                              // True = Special Feature NFT
+        pub let featured    : Bool                  // True = Special Feature NFT
         pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?    // { Collection name : [MIDs] } 
         pub let description : String                // NFT description is stored here
@@ -838,7 +838,6 @@ pub resource Admin: Agent
             }
             post { !DAAM_V21.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
             DAAM_V21.minters.remove(key: minter)    // Remove Agent from list
-            log("Removed Minter")
             emit MinterRemoved(minter: minter)
         }
 

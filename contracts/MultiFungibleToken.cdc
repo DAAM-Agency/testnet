@@ -43,13 +43,12 @@ pub contract MultiFungibleToken
             let identifier = type.identifier
             let balance = from.balance
             let ftInfo = MultiFungibleToken.getFungibleTokenInfo(type) 
- 
-             if ftInfo == nil {
-                 self.storeDeposit(<-from)
-                 emit CreateNewWallet(user: self.owner!.address, type: type, amount: balance)
-                 return
-             }
 
+            if ftInfo == nil {
+                self.storeDeposit(<-from)
+                emit CreateNewWallet(user: self.owner!.address, type: type, amount: balance)
+                return
+            }
             
             let ref = self.owner!.getCapability(ftInfo!.publicPath!)!.borrow<&{FungibleToken.Receiver}>() // Get a reference to the recipient's Receiver
             if (ref == nil) {
@@ -98,26 +97,34 @@ pub contract MultiFungibleToken
     }
 
     pub fun createMissingWalletsAndDeposit(_ owner: AuthAccount, _ mft: &MultiFungibleTokenManager) {
-        for identifier in mft.storage.keys {          
-            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(mft.storage[identifier].getType()) ?? panic(identifier.concat(" is not accepted."))
-            switch identifier {
-                    case "A.192440c99cb17282.FUSD.Vault":
-                    if owner.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: ftInfo.storagePath) == nil {
-                            owner.save(<-FUSD.createEmptyVault(), to: ftInfo.storagePath)
-                            owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo.publicPath, target: ftInfo.storagePath)
-                        }
-                    let coins <- mft.removeDeposit(identifier)
-                    mft.deposit(from: <- coins)
+        for identifier in mft.storage.keys {
+            let ref = &mft.storage[identifier] as &FungibleToken.Vault?
+            let type = ref!.getType()
+            let ftInfo = MultiFungibleToken.getFungibleTokenInfo(type)
+            
+            if ftInfo == nil { continue }
+            switch identifier
+            {
+                case "A.ba1132bc08f82fe2.FUSD.Vault":
+                    if owner.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: ftInfo!.storagePath) == nil {
+                            owner.save(<-FUSD.createEmptyVault(), to: ftInfo!.storagePath)
+                            owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo!.publicPath, target: ftInfo!.storagePath)
+                    }
             }
+            let coins <- mft.removeDeposit(identifier)
+            mft.deposit(from: <- coins)
         }
     }
 
     access(contract) fun getFungibleTokenInfo(_ type: Type): FungibleTokenVaultInfo? {
         let identifier = type.identifier
+        var publicPath : PublicPath?  = nil
+        var storagePath: StoragePath? = nil
+
         switch identifier {
-                /* FUSD */ case "A.e223d8a629e49c68.FUSD.Vault": return FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: /public/fusdReceiver, storagePath: /storage/fusdVault)
+                /* FUSD   */ case "A.ba1132bc08f82fe2.FUSD.Vault"   : log("A"); publicPath = /public/fusdReceiver;   storagePath = /storage/fusdVault
         }
-        return nil
+        return (publicPath != nil && storagePath != nil) ? FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: publicPath!, storagePath: storagePath!) : nil
     }    
     // Contract Init ---------------------------------------------------------------------------------
     init() {

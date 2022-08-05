@@ -27,9 +27,10 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     panic("Type is invalid")
 }
 
-transaction(name: String, max: UInt64?, featured: Bool, categories: [String], inCollection: {String:[UInt64]}?, description: String, misc: String, // Metadata information
-    ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain) // thumbnail_cid = file
-    ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain) // file_cid = file
+transaction(
+    name: String, max: UInt64?, feature: Bool, categories: [String], inCollection: {String:[UInt64]}?, description: String, misc: String,  // Metadata information
+    ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
+    ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
     interact: AnyStruct?, percentage: UFix64,
     
     start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*requiredCurrency: Type,*/
@@ -48,6 +49,7 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
     let inCollection: {String:[UInt64]}?
     let interact    : AnyStruct?
     let description : String
+    let misc        : String
     let thumbnail   : {String : {MetadataViews.File}}
     let misc        : String
     let file        : {String : MetadataViews.Media}
@@ -73,10 +75,12 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
         
         self.name         = name
         self.max          = max
+        self.featured     = featured
         self.description  = description
         self.inCollection = inCollection
         self.interact     = interact
-        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: thumbnailType_path)}
+        self.misc         = misc
+        self.thumbnail    = {thumbnailType_path : setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: fileType_path)}
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
@@ -109,7 +113,7 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, featured: self.featured, categories: self.categories, inCollection: self.inCollection,
-            misc: self.misc, description: self.description, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
+        description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact, )
 
         self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
         let vault <- FUSD.createEmptyVault()

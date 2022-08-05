@@ -239,7 +239,6 @@ pub struct AuctionHolder {
             let type = vault.getType()
             let identifier = type.identifier
             return AuctionHouse_V14.crypto.containsKey(identifier)
-
         }
 
         destroy() { destroy self.currentAuctions }
@@ -766,16 +765,15 @@ pub struct AuctionHolder {
             
             if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
                 let inHouse = 0.5 // Main setting here
-                 
-                 // Below changes are calculated from above settings
-                 let agency = 1.0 - inHouse
-                 let nonCreatorAmont = (price * daamRoyalty) + fee
-                 let inHouseAmount = nonCreatorAmont * inHouse
-                 let daamAmount = nonCreatorAmont - inHouseAmount
-                 let creatorAmount = price - nonCreatorAmont
-                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V21.company])
-                 self.payRoyalty(price: daamAmount, royalties: DAAM_V21.agency.getRoyalties())
-
+                
+                // Below changes are calculated from above settings
+                let agency = 1.0 - inHouse
+                let nonCreatorAmont = (price * daamRoyalty) + fee
+                let inHouseAmount = nonCreatorAmont * inHouse
+                let daamAmount = nonCreatorAmont - inHouseAmount
+                let creatorAmount = price - nonCreatorAmont
+                self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V21.company])
+                self.payRoyalty(price: daamAmount, royalties: DAAM_V21.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
                 // Agent payment
@@ -1030,6 +1028,6 @@ pub struct AuctionHolder {
         self.auctionStoragePath = /storage/DAAM_V21_Auction
         self.auctionPublicPath  = /public/DAAM_V21_Auction
         // init accepted cryptos
-        self.crypto = {"A.192440c99cb17282.FUSD.Vault" : /public/fusdReceiver}
+        self.crypto = {"A.e223d8a629e49c682.FUSD.Vault" : /public/fusdReceiver}
     }
 }

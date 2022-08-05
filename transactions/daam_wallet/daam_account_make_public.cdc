@@ -9,7 +9,7 @@ transaction()
     prepare(acct: AuthAccount) {
         if acct.borrow<&{DAAM_V21.CollectionPublic}>(from: DAAM_V21.collectionStoragePath) != nil {
             acct.link<&{DAAM_V21.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V21.collectionPublicPath, target: DAAM_V21.collectionStoragePath)
-            log("DAAM_V21 Account Created, you now have a Public DAAM_V21 Collection to store NFTs'")
+            log("DAAM_V21.Account Created, you now have a Public DAAM_V21 Collection to store NFTs'")
         } else {
             log("You do not have an Account. Make one first.")
         }
