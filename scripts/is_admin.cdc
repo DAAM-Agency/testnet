@@ -1,8 +1,8 @@
 // is_admin.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V21 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(admin: Address): Bool? {
-    return DAAM.isAdmin(admin)
+    return DAAM_V21.isAdmin(admin)
 }
 // nil = not an admin, false = invited to be an admin, true = is an admin

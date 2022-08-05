@@ -1,14 +1,14 @@
 // transfer.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V21.V21 from 0xa4ad5ea5c0bd2fba
 
 /// This transaction is for transferring and NFT from
 /// one account to another
 transaction(recipient: Address, withdrawID: UInt64) {
 
     /// Reference to the withdrawer's collection
-    let withdrawRef: &DAAM.Collection
+    let withdrawRef: &DAAM_V21.Collection
 
     /// Reference of the collection to deposit the NFT to
     let depositRef: &{NonFungibleToken.CollectionPublic}
@@ -16,7 +16,7 @@ transaction(recipient: Address, withdrawID: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the signer's NFT collection
         self.withdrawRef = signer
-            .borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+            .borrow<&DAAM_V21.Collection>(from: DAAM_V21.V21.collectionStoragePath)
             ?? panic("Account does not store an object at the specified path")
 
         // get the recipients public account object
@@ -24,7 +24,7 @@ transaction(recipient: Address, withdrawID: UInt64) {
 
         // borrow a public reference to the receivers collection
         self.depositRef = recipient
-            .getCapability(DAAM.collectionPublicPath)
+            .getCapability(DAAM_V21.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not borrow a reference to the receiver's collection")
 

@@ -1,10 +1,10 @@
 // submit_accept.cdc
 // Creator uses to submit Metadata & Approve Rpyalty
 
-import FungibleToken from 0xee82856bf20e2aa6 
-import Categories    from 0xfd43f9148d4b725d
+import FungibleToken from 0x9a0766d93b6608b7 
+import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM          from 0xfd43f9148d4b725d
+import DAAM_V21.V21          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -14,7 +14,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM.OnChain(file: string_cid)
+        default: return DAAM_V21.V21.OnChain(file: string_cid)
     }
 }
 
@@ -24,8 +24,8 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
     interact: AnyStruct?, percentage: UFix64)                                                      // Royalty percentage for Creator(s)
 {    
     //let creator     : AuthAccount
-    let requestGen  : &DAAM.RequestGenerator
-    let metadataGen : &DAAM.MetadataGenerator
+    let requestGen  : &DAAM_V21.RequestGenerator
+    let metadataGen : &DAAM_V21.MetadataGenerator
 
     let name        : String
     let max         : UInt64?
@@ -40,8 +40,8 @@ transaction(name: String, max: UInt64?, featured: Bool, categories: [String], in
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
-        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V21.MetadataGenerator>(from: DAAM_V21.V21.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V21.RequestGenerator>( from: DAAM_V21.V21.requestStoragePath)!
 
         self.name         = name
         self.max          = max

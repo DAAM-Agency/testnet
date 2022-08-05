@@ -1,15 +1,15 @@
 // daam_account_make_public.cdc
-// Make DAAM Wallet Public
+// Make DAAM_V21.V21 Wallet Public
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import MetadataViews    from 0x631e88ae7f1d7c20
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V21.V21 from 0xa4ad5ea5c0bd2fba
 transaction()
 {
     prepare(acct: AuthAccount) {
-        if acct.borrow<&{DAAM.CollectionPublic}>(from: DAAM.collectionStoragePath) != nil {
-            acct.link<&{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)
-            log("DAAM Account Created, you now have a Public DAAM Collection to store NFTs'")
+        if acct.borrow<&{DAAM_V21.CollectionPublic}>(from: DAAM_V21.V21.collectionStoragePath) != nil {
+            acct.link<&{DAAM_V21.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V21.collectionPublicPath, target: DAAM_V21.V21.collectionStoragePath)
+            log("DAAM_V21.Account Created, you now have a Public DAAM_V21.V21 Collection to store NFTs'")
         } else {
             log("You do not have an Account. Make one first.")
         }

@@ -1,7 +1,7 @@
 // answer_admin_invite.cdc
 // Answer the invitation to be an Admin.
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_V21.V21 from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -13,19 +13,19 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let admin <- DAAM.answerAdminInvite(newAdmin: self.signer, submit: self.submit)
+        let admin <- DAAM_V21.V21.answerAdminInvite(newAdmin: self.signer, submit: self.submit)
         if admin != nil {
-            let old_admin <- self.signer.load<@AnyResource>(from: DAAM.adminStoragePath)
-            self.signer.save<@DAAM.Admin>(<- admin!, to: DAAM.adminStoragePath)
-            let adminRef = self.signer.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+            let old_admin <- self.signer.load<@AnyResource>(from: DAAM_V21.V21.adminStoragePath)
+            self.signer.save<@DAAM_V21.Admin>(<- admin!, to: DAAM_V21.V21.adminStoragePath)
+            let adminRef = self.signer.borrow<&DAAM_V21.Admin>(from: DAAM_V21.V21.adminStoragePath)!
             destroy old_admin
 
-            let old_request <- self.signer.load<@AnyResource>(from: DAAM.requestStoragePath)
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V21.V21.requestStoragePath)
             let requestGen <-! adminRef.newRequestGenerator()
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
+            self.signer.save<@DAAM_V21.RequestGenerator>(<- requestGen, to: DAAM_V21.V21.requestStoragePath)
             destroy old_request
             
-            log("You are now a DAAM.Admin: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_V21.V21.Admin: ".concat(self.signer.address.toString()) )
         } else {
             destroy admin
             log("Thank You for your consoderation.")

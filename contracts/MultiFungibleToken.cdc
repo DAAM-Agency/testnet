@@ -1,4 +1,4 @@
-import FungibleToken from 0xee82856bf20e2aa6
+import FungibleToken from 0x9a0766d93b6608b7
 import MetadataViews from 0x631e88ae7f1d7c20 // Only used for initializing MultiFungibleTokenReceiverPath
 // Supported FungibleTokens
 import FUSD from 0xe223d8a629e49c68
@@ -105,7 +105,7 @@ pub contract MultiFungibleToken
             if ftInfo == nil { continue }
             switch identifier
             {
-                case "A.192440c99cb17282.FUSD.Vault":
+                case "A.ba1132bc08f82fe2.FUSD.Vault":
                     if owner.borrow<&FUSD.Vault{FungibleToken.Receiver}>(from: ftInfo!.storagePath) == nil {
                             owner.save(<-FUSD.createEmptyVault(), to: ftInfo!.storagePath)
                             owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo!.publicPath, target: ftInfo!.storagePath)
@@ -122,7 +122,7 @@ pub contract MultiFungibleToken
         var storagePath: StoragePath? = nil
 
         switch identifier {
-                /* FUSD   */ case "A.192440c99cb17282.FUSD.Vault"   : log("A"); publicPath = /public/fusdReceiver;   storagePath = /storage/fusdVault
+                /* FUSD   */ case "A.ba1132bc08f82fe2.FUSD.Vault"   : log("A"); publicPath = /public/fusdReceiver;   storagePath = /storage/fusdVault
         }
         return (publicPath != nil && storagePath != nil) ? FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: publicPath!, storagePath: storagePath!) : nil
     }    
