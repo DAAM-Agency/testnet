@@ -143,7 +143,7 @@ pub resource RequestGenerator {
             if !DAAM.creatorHistory.containsKey(creator.receiver.address) { DAAM.creatorHistory[creator.receiver.address] = [mid]}
             if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) { DAAM.creatorHistory[creator.receiver.address]!.append(mid) }
         }
-        assert(totalCut >= 0.1 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
+        assert(totalCut >= 0.01 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 
         for founder in agency {
             assert(founder.receiver.borrow() != nil, message: "Illegal Operation 2: AcceptDefault" )
@@ -198,7 +198,7 @@ pub resource RequestGenerator {
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
-        pub let featured    : Bool                              // True = Special Feature NFT
+        pub let featured    : Bool                  // True = Special Feature NFT
         pub let category    : [Categories.Category] 
         pub var inCollection: {String:[UInt64]}?
         pub let description : String                // NFT description is stored here
