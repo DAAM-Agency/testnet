@@ -745,7 +745,7 @@ pub struct AuctionHolder {
                     totalCut = totalCut + offset
                 }
                 rlist.append(MetadataViews.Royalty(
-                    recipient: r.receiver!,
+                    receiver: r.receiver!,
                     cut: cut,
                     description: "Royalty Rate"
                 ))

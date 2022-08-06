@@ -168,7 +168,7 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER3 # G.P
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER4 # A.K
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $FOUNDER5 # M.H
 
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $MTF 
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $MFT 
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $TOKENA
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $TOKENB
 

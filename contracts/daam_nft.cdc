@@ -135,7 +135,7 @@ pub resource RequestGenerator {
             assert(creator.receiver.borrow() != nil, message: "Illegal Operation 1: AcceptDefault" )
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: creator.receiver!,
+                    receiver: creator.receiver!,
                     cut: newCut,
                     description: "Creator Royalty")
             ) // end append    
@@ -149,7 +149,7 @@ pub resource RequestGenerator {
             assert(founder.receiver.borrow() != nil, message: "Illegal Operation 2: AcceptDefault" )
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: founder.receiver!,
+                    receiver: founder.receiver!,
                     cut: founder.cut * rateCut,
                     description: "Agency Royalty")
             ) // end append 
@@ -1222,7 +1222,7 @@ pub resource MinterAccess
         for founder in founders.keys {
             royalty_list.append(
                 MetadataViews.Royalty(
-                    recepient: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+                    receiver: getAccount(founder).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
                     cut: founders[founder]!,
                     description: "Founder: ".concat(founder.toString()).concat("Percentage: ").concat(founders[founder]!.toString())
                 ) // end royalty_list
@@ -1233,7 +1233,7 @@ pub resource MinterAccess
         
         self.agency = MetadataViews.Royalties(royalty_list)
         self.company = MetadataViews.Royalty(
-            recepient: getAccount(company).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+            receiver: getAccount(company).getCapability<&{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
             cut: 1.0,
             description: "Comapny Holding"
         ) // end royalty_list
