@@ -19,7 +19,7 @@ transaction(mid: UInt64, percentage: UFix64) {
         self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
 
         let royalties    = [ MetadataViews.Royalty(
-            recipient: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+            receiver: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
             cut: percentage,
             description: "Creator Royalty" )
         ]

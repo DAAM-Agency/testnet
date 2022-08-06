@@ -16,7 +16,7 @@ transaction(mid: UInt64, copyright: UInt8) {
     let mid   : UInt64
 
     prepare(agent: AuthAccount) {
-        self.cr = DAAM.CopyrightStatus(copyright)!                             // init copyright
+        self.cr = DAAM.CopyrightStatus(rawValue: copyright)!                             // init copyright
         self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)! // init admin
         self.mid = mid                                                         // init mid
     }

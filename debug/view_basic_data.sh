@@ -107,7 +107,7 @@ done
 echo "========= Verify Metadata ========="
 for user in $CREATOR $CREATOR2
 do
-    flow -o json scripts execute ./scripts/get_mids.cdc $CREATOR | jq ' .value' 
+    flow -o json scripts execute ./scripts/get_mids.cdc $user | jq ' .value' 
 done
 
 # Verify TokenIDs

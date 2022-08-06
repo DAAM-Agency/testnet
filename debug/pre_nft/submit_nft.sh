@@ -17,10 +17,5 @@ flow transactions send ./transactions/creator/submit_accept.cdc "Name J" nil fal
 echo "========= Verify Metadata ========="
 for user in $CREATOR $CREATOR2
 do
-    METADATA=$(flow -o json scripts execute ./scripts/get_mids.cdc $user | jq ' .value' | grep value | awk '{print $2}' | tr -d '"')
-    #echo "Metadata: "$METADATA
-    for list in $METADATA
-    do
-        flow scripts execute ./scripts/view_metadata.cdc $user $list
-    done
+    flow -o json scripts execute ./scripts/get_mids.cdc $user | jq ' .value' 
 done
