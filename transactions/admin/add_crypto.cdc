@@ -1,22 +1,28 @@
 // add_fee.cdc
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
-import DAAM         from 0xfd43f9148d4b725d
-import AuctionHouse from 0x045a1763c93006ca
+import FungibleToken from 0xee82856bf20e2aa6
+import FUSD          from 0x192440c99cb17282
+import DAAM          from 0xfd43f9148d4b725d
+import AuctionHouse  from 0x045a1763c93006ca
 
-transaction(mid: UInt64, fee: UFix64)
+
+transaction()
 {
-    let mid: UInt64
-    let fee: UFix64
-    let admin: &DAAM.Admin
+    //let crypto: &FungibleToken.Vault
+    let path  : PublicPath
+    let admin : &DAAM.Admin
 
     prepare(admin: AuthAccount) {
-        self.mid = mid
-        self.fee = fee
-        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+       
+        //self.crypto = crypto
+        self.path   = /public/fusdReceiver
+        self.admin  = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
     }
 
     execute {
-        AuctionHouse.addFee(mid: self.mid, fee: self.fee, permission: self.admin)
+        let vault <-FUSD.createEmptyVault()
+        AuctionHouse_V14.addCrypto(crypto: &vault as &FungibleToken.Vault, path: self.path, permission: self.admin)
+        destroy vault
     }
 }
