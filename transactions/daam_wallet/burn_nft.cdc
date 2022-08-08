@@ -22,12 +22,12 @@ transaction(burn: UInt64) {
 
     execute {
         // withdraw the NFT from the owner's collection
-        let nft <- self.withdrawRef.withdraw(withdrawID: self.burn)
+        let nft <- self.withdrawRef.withdraw(withdrawID: self.tokenID)
         destroy nft
-        log("TokenID: ".concat(self.burn.toString()).concat(" is been destroyed.") )
+        log("TokenID: ".concat(self.tokenID.toString()).concat(" is been destroyed.") )
     }
 
     post {
-        !self.withdrawRef.getIDs().contains(withdrawID): "Original owner should not have the NFT anymore"
+        !self.withdrawRef.getIDs().contains(self.tokenID): "Original owner should not have the NFT anymore"
     }
 }

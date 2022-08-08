@@ -100,7 +100,7 @@ echo "---------- Verify Collections ----------"
 for user in $CREATOR $CREATOR2 $CLIENT $CLIENT2 $NOBODY
 do
     getAddressName $user
-    flow -o json scripts execute ./scripts/daam_wallet/get_collections.cdc $user | jq ' .value | .v| jq ' .value | .value'alue'
+    flow -o json scripts execute ./scripts/daam_wallet/get_collections.cdc $user | jq ' .value | .value'
 done
 
 # Verify Metadata
