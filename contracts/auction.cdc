@@ -771,7 +771,7 @@ pub struct AuctionHolder {
                 let nonCreatorAmont = (price * daamRoyalty) + fee
                 let inHouseAmount = nonCreatorAmont * inHouse
                 let daamAmount = nonCreatorAmont - inHouseAmount
-                let creatorAmount = self.auctionVault.balance- nonCreatorAmont
+                let creatorAmount = self.auctionVault.balance - nonCreatorAmont
                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V21.company])
                 self.payRoyalty(price: daamAmount, royalties: DAAM_V21.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
