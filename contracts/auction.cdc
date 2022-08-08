@@ -745,7 +745,7 @@ pub struct AuctionHolder {
                     totalCut = totalCut + offset
                 }
                 rlist.append(MetadataViews.Royalty(
-                    recipient: r.receiver!,
+                    receiver: r.receiver!,
                     cut: cut,
                     description: "Royalty Rate"
                 ))
@@ -771,7 +771,7 @@ pub struct AuctionHolder {
                 let nonCreatorAmont = (price * daamRoyalty) + fee
                 let inHouseAmount = nonCreatorAmont * inHouse
                 let daamAmount = nonCreatorAmont - inHouseAmount
-                let creatorAmount = price - nonCreatorAmont
+                let creatorAmount = self.auctionVault.balance - nonCreatorAmont
                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM.company])
                 self.payRoyalty(price: daamAmount, royalties: DAAM.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
