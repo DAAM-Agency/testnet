@@ -35,6 +35,7 @@ pub contract DAAM: NonFungibleToken {
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
     pub event CreatorAddAgent(creator: Address, agent: Address)
+    pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64, burner: Address) // Emit when an NFT is burned.
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -481,13 +482,16 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<MetadataHolder>()        : return self.metadata
-                case Type<MetadataViews.Display>() :return MetadataViews.Display(
-                    name: self.metadata.edition.name!, description: self.metadata.description, thumbnail: self.metadata.thumbnail[self.metadata.thumbnail.keys[0]]!)
-                //case Type<MetadataViews.NFTCollectionDisplay>() : return MetadataViews.NFTCollectionDisplay() TODO UPGRADE
                 default: return nil
             }
         }
+        
+        destroy() {
+            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp, burner: self.owner!.address)
+        }
     }
+
+    
 /************************************************************************/
 pub struct OnChain: MetadataViews.File {
     priv let file: String
@@ -498,42 +502,43 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getPersonalCollection(): {String: PersonalCollection}
+    pub fun getCollection(): [MetadataViews.NFTCollectionDisplay] 
 }
 /************************************************************************/
-pub struct PersonalCollection {
-    pub var id: [UInt64]
-    pub var personalCollections: [String]
-
-    init(id: UInt64) {
-        post { self.id.length == 1 }
-        self.id = [id]
-        self.personalCollections = []
+// Standand Flow Collection Wallet
+pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic,
+    CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
+    // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
+    pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
+    pub var collections : [MetadataViews.NFTCollectionDisplay]
+                    
+    init() {
+        self.ownedNFTs <- {} // List of owned NFTs
+        self.collections = []
     }
 
-    pub fun appendID(_ id: UInt64) { self.id.append(id) }
-    pub fun removeID(at: UInt64) { self.id.remove(at: at) }
+    pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
+        squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
+        self.collections.append(
+            MetadataViews.NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
+                bannerImage: bannerImage, socials: socials)
+        )
+    }
 
-    pub fun appendCollection(_ collection: String) { self.personalCollections.append(collection) }
-    pub fun removeCollection(at: UInt64) { self.personalCollections.remove(at: at) }
-}
-// Standand Flow Collection Wallet
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic,
-        CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
-        // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-        pub var collections : {String: PersonalCollection}
-                        
-        init() {
-            self.ownedNFTs <- {} // List of owned NFTs
-            self.collections = {}
-        }
+    pub fun getCollection(): [MetadataViews.NFTCollectionDisplay] {
+        return self.collections
+    }
 
-        pub fun getViews(): [Type] { return []/*return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>()]*/ }
+    pub fun removeCollection(element: Int) {
+        pre { element < self.collections.length }
+        self.collections.remove(at: element)
+    }
 
-        pub fun resolveView(_ view: Type): AnyStruct? {
-            switch view {
-                /*case Type<MetadataViews.NFTCollectionData>() : 
+    pub fun getViews(): [Type] { return []/*return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>()]*/ }
+
+    pub fun resolveView(_ view: Type): AnyStruct? {
+        switch view {
+            /*
                 return MetadataViews.NFTCollectionData (
                     storagePath: DAAM.collectionStoragePath,
                     publicPath: DAAM.collectionPublicPath,
@@ -543,131 +548,70 @@ pub struct PersonalCollection {
                     providerLinkedType: ?????, // TODO  ???
                     createEmptyCollectionFunction: (DAAM.createEmptyCollection() : @DAAM.Collection) // TODO ???
                 )*/
-                default: return nil
-                
-            }
+
+            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0]
+
+            default: return nil
+            
         }
-
-        // adds to a personal collection, has no actual bearing on nfts. The same NFTs can be added to multiple personal collections
-        pub fun addToPersonalCollection(collectionName: String, tokenID: UInt64) {
-            pre { self.ownedNFTs.containsKey(tokenID) : "Can not add an NFT you do not have into a Personal Collection." } 
-                if self.collections.containsKey(collectionName) {
-                    if !self.collections[collectionName]!.id.contains(tokenID) { self.collections[collectionName]!.appendID(tokenID) }
-                } else {
-                    self.collections.insert(key:collectionName, PersonalCollection(id: tokenID))
-                }
-        }
-
-        // remvoves NFT from ALL person collection when name is nill, otherwise the specific Personal Collection.
-        pub fun removeFromPersonalCollection(collectionName: String?, tokenID: UInt64) {
-            pre { self.ownedNFTs.containsKey(tokenID) : "Can not remove an NFT you do not have from any Personal Collection." }
-            assert(collectionName == nil || self.collections.containsKey(collectionName!), message: "This Personal Collection does not exist.")
-
-            var counter: UInt64 = 0
-            if collectionName == nil {
-                for key in self.collections.keys {
-                    if !self.collections[key]!.id.contains(tokenID) { continue }
-                    self.collections[key]!.removeID(at: counter)
-                    counter = counter + 1
-                }
-            }else {
-                for key in self.collections[collectionName!]!.id { 
-                    if key != tokenID { continue }
-                    self.collections[collectionName!]!.removeID(at: counter)
-                    counter = counter + 1
-                }
-
-            }
-        } 
-
-        // Add a Personal Collection to a Personal Collection
-        pub fun addPersonalCollection(addCollection: String, collectionName: String) {
-            pre {
-                self.collections.containsKey(addCollection)       : "Personal Collection: ".concat(addCollection).concat(" does not exist.")
-                self.collections.containsKey(collectionName) : "Personal Collection: ".concat(collectionName).concat(" does not exist.")
-                !self.collections[addCollection]!.personalCollections.contains(collectionName) : "Already added."
-            }
-            self.collections[addCollection]!.appendCollection(collectionName)
-        }
-
-        pub fun removePersonalCollection(remove: String, collectionName: String?) {
-            assert(collectionName == nil || self.collections.containsKey(collectionName!), message: "This Personal Collection does not exist.")
-            var counter: UInt64 = 0 
-            if collectionName == nil {
-                for key in self.collections.keys {
-                    if !self.collections[key]!.personalCollections.contains(remove) { continue }
-                    self.collections[key]!.removeCollection(at: counter) 
-                    counter = counter + 1
-                }
-            }else {
-                for key in self.collections[collectionName!]!.personalCollections {
-                    if key != remove { continue }
-                    self.collections[collectionName!]!.removeCollection(at: counter)
-                    counter = counter + 1
-                }
-            }
-        }
-
-        pub fun getPersonalCollection(): {String: PersonalCollection} { return self.collections }
-
-        pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
-            pre { self.ownedNFTs.containsKey(id) : "TokenID: ".concat(id.toString().concat(" is not in this collection.")) }
-            let mRef = &self.ownedNFTs[id] as &NonFungibleToken.NFT?
-            return mRef as! &DAAM.NFT{MetadataViews.Resolver}
-        }
-
-        // withdraw removes an NFT from the collection and moves it to the caller
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            self.removeFromPersonalCollection(collectionName: nil, tokenID: withdrawID)
-            let token <- self.ownedNFTs.remove(key: withdrawID)! as! @DAAM.NFT // Get NFT
-            emit Withdraw(id: token.id, from: self.owner?.address)
-            return <-token
-        }
-
-        // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
-        pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
-            let id = token.id        // Save Token ID
-            let name = token.metadata.edition.name!
-            // add the new token to the dictionary which removes the old one
-            let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
-            self.addToPersonalCollection(collectionName: name, tokenID: id)
-            emit Deposit(id: id, to: self.owner?.address) 
-            destroy oldToken                              // destroy place holder
-        }
-
-        // getIDs returns an array of the IDs that are in the collection
-        pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
-
-        // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
-            return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
-        }
-
-        // borrowDAAM gets a reference to an DAAM.NFT
-        pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
-            pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
-            let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
-            let daam = ref as! &DAAM.NFT
-            return daam
-        }
-
-        destroy() { destroy self.ownedNFTs } // Destructor
     }
+
+    pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
+        pre { self.ownedNFTs.containsKey(id) : "TokenID: ".concat(id.toString().concat(" is not in this collection.")) }
+        let mRef = &self.ownedNFTs[id] as &NonFungibleToken.NFT?
+        return mRef as! &DAAM.NFT{MetadataViews.Resolver}
+    }
+
+    // withdraw removes an NFT from the collection and moves it to the caller
+    pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+        let token <- self.ownedNFTs.remove(key: withdrawID)! as! @DAAM.NFT // Get NFT
+        emit Withdraw(id: token.id, from: self.owner?.address)
+        return <-token
+    }
+
+    // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
+    pub fun deposit(token: @NonFungibleToken.NFT) {
+        let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
+        let id = token.id        // Save Token ID
+        let name = token.metadata.edition.name!
+        // add the new token to the dictionary which removes the old one
+        let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
+        emit Deposit(id: id, to: self.owner?.address) 
+        destroy oldToken                              // destroy place holder
+    }
+
+    // getIDs returns an array of the IDs that are in the collection
+    pub fun getIDs(): [UInt64] { return self.ownedNFTs.keys }        
+
+    // borrowNFT gets a reference to an NonFungibleToken.NFT in the collection.
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
+        pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
+        return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
+    }
+
+    // borrowDAAM gets a reference to an DAAM.NFT
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
+        pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
+        let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
+        let daam = ref as! &DAAM.NFT
+        return daam
+    }
+
+    destroy() { destroy self.ownedNFTs } // Destructor
+}
 /************************************************************************/
 // Agent interface. List of all powers belonging to the Agent
-    pub resource interface Agent 
-    {
-        pub var status: Bool // the current status of the Admin
+pub resource interface Agent 
+{
+    pub var status: Bool // the current status of the Admin
 
-        pub fun inviteCreator(_ creator: Address, agentCut: UFix64?)                   // Admin invites a new creator       
-        pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
-        pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
-        pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
-        pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
-    }
+    pub fun inviteCreator(_ creator: Address, agentCut: UFix64?)                   // Admin invites a new creator       
+    pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
+    pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
+    pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
+    pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
+    pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
+}
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
 pub resource Admin: Agent

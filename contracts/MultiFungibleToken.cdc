@@ -1,8 +1,9 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import MetadataViews from 0xf8d6e0586b0a20c7 // Only used for initializing MultiFungibleTokenReceiverPath
+
 // Supported FungibleTokens
 import FUSD from 0x192440c99cb17282
-import TokenA from 0xec4809cd812aee0a
+//import TokenA from 0xec4809cd812aee0a
 
 pub contract MultiFungibleToken
 {
@@ -112,11 +113,11 @@ pub contract MultiFungibleToken
                             owner.link<&FUSD.Vault{FungibleToken.Receiver}>(ftInfo!.publicPath, target: ftInfo!.storagePath)
                     }
 
-                case "A.ec4809cd812aee0a.TokenA.Vault":
+                /*case "A.ec4809cd812aee0a.TokenA.Vault":
                     if owner.borrow<&TokenA.Vault{FungibleToken.Receiver}>(from: ftInfo!.storagePath) == nil {
                             owner.save(<-TokenA.createEmptyVault(), to: ftInfo!.storagePath)
                             owner.link<&TokenA.Vault{FungibleToken.Receiver}>(ftInfo!.publicPath, target: ftInfo!.storagePath)
-                    }
+                    }*/
             }
             let coins <- mft.removeDeposit(identifier)
             mft.deposit(from: <- coins)
@@ -129,8 +130,8 @@ pub contract MultiFungibleToken
         var storagePath: StoragePath? = nil
 
         switch identifier {
-                /* FUSD   */ case "A.192440c99cb17282.FUSD.Vault"   : log("A"); publicPath = /public/fusdReceiver;   storagePath = /storage/fusdVault
-                /* TokenA */ case "A.ec4809cd812aee0a.TokenA.Vault" : log("B"); publicPath = /public/tokenAReceiver; storagePath = /storage/tokenAVault
+                /* FUSD   */ case "A.192440c99cb17282.FUSD.Vault": publicPath = /public/fusdReceiver; storagePath = /storage/fusdVault;
+                ///* TokenA */ case "A.ec4809cd812aee0a.TokenA.Vault" : log("B"); publicPath = /public/tokenAReceiver; storagePath = /storage/tokenAVault
         }
         return (publicPath != nil && storagePath != nil) ? FungibleTokenVaultInfo(type: type, identifier: identifier, publicPath: publicPath!, storagePath: storagePath!) : nil
     }    

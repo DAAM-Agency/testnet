@@ -180,15 +180,15 @@ flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
 flow transactions send ./transactions/fusd/setup_fusd.cdc 100000000.0 $CTO --signer profile
 
-echo "========== Publish Test TokenA Contract =========="
-flow accounts add-contract TokenA ./contracts/TokenA.cdc --signer tokenA
-flow transactions send ./transactions/tokenA/setup_fusd_vault.cdc --signer tokenA
-flow transactions send ./transactions/tokenA/setup_fusd.cdc 100000000.0 $TOKENA --signer tokenA
+#echo "========== Publish Test TokenA Contract =========="
+#flow accounts add-contract TokenA ./contracts/TokenA.cdc --signer tokenA
+#flow transactions send ./transactions/tokenA/setup_fusd_vault.cdc --signer tokenA
+#flow transactions send ./transactions/tokenA/setup_fusd.cdc 100000000.0 $TOKENA --signer tokenA
 
-echo "========== Publish Test TokenB Contract =========="
-flow accounts add-contract TokenB ./contracts/TokenB.cdc --signer tokenB
-flow transactions send ./transactions/tokenB/setup_fusd_vault.cdc --signer tokenB
-flow transactions send ./transactions/tokenB/setup_fusd.cdc 100000000.0 $TOKENB --signer tokenB
+#echo "========== Publish Test TokenB Contract =========="
+#flow accounts add-contract TokenB ./contracts/TokenB.cdc --signer tokenB
+#flow transactions send ./transactions/tokenB/setup_fusd_vault.cdc --signer tokenB
+#flow transactions send ./transactions/tokenB/setup_fusd.cdc 100000000.0 $TOKENB --signer tokenB
 
 echo "========== Send 100K FUSD to All Accounts =========="
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer agency
