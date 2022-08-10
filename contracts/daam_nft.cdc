@@ -529,9 +529,9 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         return self.collections
     }
 
-    pub fun removeCollection(element: Int) {
-        pre { element < self.collections.length }
-        self.collections.remove(at: element)
+    pub fun removeCollection(at: Int) {
+        pre { at < self.collections.length }
+        self.collections.remove(at: at)
     }
 
     pub fun getViews(): [Type] { return []/*return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>()]*/ }
@@ -549,7 +549,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
                     createEmptyCollectionFunction: (DAAM.createEmptyCollection() : @DAAM.Collection) // TODO ???
                 )*/
 
-            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0]
+            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0] // TODO
 
             default: return nil
             
