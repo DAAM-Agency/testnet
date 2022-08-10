@@ -505,12 +505,50 @@ pub resource interface CollectionPublic {
     pub fun getCollection(): [MetadataViews.NFTCollectionDisplay] 
 }
 /************************************************************************/
+pub struct NFTCollectionDisplay {
+    pub var display: MetadataViews.NFTCollectionDisplay
+    pub var mids: [UInt64]
+    pub var ids: [UInt64]
+
+    init(name: String, description: String, externalURL: MetadataViews.ExternalURL, squareImage: MetadataViews.Media,
+        bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL}) {
+        self.collection = MetadataViews.NFTCollectionDisplay(name: name, description: description, externalURL: externalURL,
+            squareImage: squareImage, bannerImage: bannerImage, socials: socials)
+        self.MIDs = []
+        self.ids  = []
+    }
+
+    access(contract) fun addMID(_ mid: UInt64) { // change to &Metadata // TODO
+        pre  { !self.mids.contains(mid)}
+        post { self.mids.contains(mid) }
+        self.mids.append(mid)
+    }
+
+    access(contract) fun addTokenID(_ id: UInt64) { // change to &NFT // TODO
+        pre  { !self.ids.contains(id)}
+        post { self.ids.contains(id) }
+        self.ids.append(id)
+    }
+
+    access(contract) fun removeMID(at: UInt64) { // change to &Metadata // TODO
+        pre  { at < self.mids.length }
+        post { !self.mids.contains(mid)}
+        self.mids.remove(at: at)
+    }
+
+    access(contract) fun removeTokenID(at: UInt64) { // change to &NFT // TODO
+        pre  { at < self.ids.length }
+        post { !self.ids.contains(id)}
+        self.ids.remove(at: at)
+    }
+}
+/************************************************************************/
 // Standand Flow Collection Wallet
 pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic,
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    pub var collections : [MetadataViews.NFTCollectionDisplay]
+    pub var collections : [NFTCollectionDisplay]
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
@@ -520,12 +558,12 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
         squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
         self.collections.append(
-            MetadataViews.NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
+            NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
                 bannerImage: bannerImage, socials: socials)
         )
     }
 
-    pub fun getCollection(): [MetadataViews.NFTCollectionDisplay] {
+    pub fun getCollection(): [NFTCollectionDisplay] {
         return self.collections
     }
 
@@ -549,7 +587,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
                     createEmptyCollectionFunction: (DAAM.createEmptyCollection() : @DAAM.Collection) // TODO ???
                 )*/
 
-            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0] // TODO
+            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0]?.display
 
             default: return nil
             
