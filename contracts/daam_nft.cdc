@@ -502,44 +502,54 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getCollection(): [MetadataViews.NFTCollectionDisplay] 
+    pub fun getCollection(): [NFTCollectionDisplay] 
 }
 /************************************************************************/
 pub struct NFTCollectionDisplay {
     pub var display: MetadataViews.NFTCollectionDisplay
-    pub var mids: [UInt64]
-    pub var ids: [UInt64]
+    pub var mid: {UInt64 : Bool } // { MID : Featured }
+    pub var id : {UInt64 : Bool } // { TokenID : Featured }
 
     init(name: String, description: String, externalURL: MetadataViews.ExternalURL, squareImage: MetadataViews.Media,
         bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL}) {
-        self.collection = MetadataViews.NFTCollectionDisplay(name: name, description: description, externalURL: externalURL,
+        self.display = MetadataViews.NFTCollectionDisplay(name: name, description: description, externalURL: externalURL,
             squareImage: squareImage, bannerImage: bannerImage, socials: socials)
-        self.MIDs = []
-        self.ids  = []
+        self.mid = {}
+        self.id  = {}
     }
 
-    access(contract) fun addMID(_ mid: UInt64) { // change to &Metadata // TODO
-        pre  { !self.mids.contains(mid)}
-        post { self.mids.contains(mid) }
-        self.mids.append(mid)
+    access(contract) fun addMID(_ mid: UInt64, feature: Bool) { // change to &Metadata // TODO
+        pre  { !self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
+        post { self.mid.containsKey(mid)  : "Illegal Operation: addMID: ".concat(mid.toString()) }
+        self.mid.insert(key: mid, feature)
     }
 
-    access(contract) fun addTokenID(_ id: UInt64) { // change to &NFT // TODO
-        pre  { !self.ids.contains(id)}
-        post { self.ids.contains(id) }
-        self.ids.append(id)
+    pub fun addTokenID(_ id: UInt64, feature: Bool) { // change to &NFT // TODO
+        pre  { !self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
+        post { self.id.containsKey(id) : "Illegal Operation: addTokenID: ".concat(id.toString()) }
+        self.id.insert(key: id, feature)
     }
 
-    access(contract) fun removeMID(at: UInt64) { // change to &Metadata // TODO
-        pre  { at < self.mids.length }
-        post { !self.mids.contains(mid)}
-        self.mids.remove(at: at)
+    access(contract) fun removeMID(mid: UInt64) { // change to &Metadata // TODO
+        pre  { self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
+        post { !self.mid.containsKey(mid) : "Illegal Operation: removeMID: ".concat(mid.toString()) }
+        self.mid.remove(key: mid)
     }
 
-    access(contract) fun removeTokenID(at: UInt64) { // change to &NFT // TODO
-        pre  { at < self.ids.length }
-        post { !self.ids.contains(id)}
-        self.ids.remove(at: at)
+    pub fun removeTokenID(id: UInt64) { // change to &NFT // TODO
+        pre  { !self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
+        post { !self.id.containsKey(id) : "Illegal Operation: removeTokenID: ".concat(id.toString()) }
+        self.id.remove(key: id)
+    }
+
+    access(contract) fun adjustFeatureByMID(mid: UInt64, feature: Bool) {
+        pre { self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
+        self.mid[mid] = feature
+    }
+
+    pub fun adjustFeatureByID(id: UInt64, feature: Bool) {
+        pre { self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
+        self.id[id] = feature
     }
 }
 /************************************************************************/
@@ -572,7 +582,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         self.collections.remove(at: at)
     }
 
-    pub fun getViews(): [Type] { return []/*return [Type<MetadataViews.NFTCollectionData>(), Type<MetadataViews.NFTCollectionDisplay>()]*/ }
+    pub fun getViews(): [Type] { return [Type<MetadataViews.NFTCollectionDisplay>()] /*, Type<MetadataViews.NFTCollectionDisplay>()]*/ }
 
     pub fun resolveView(_ view: Type): AnyStruct? {
         switch view {
@@ -587,7 +597,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
                     createEmptyCollectionFunction: (DAAM.createEmptyCollection() : @DAAM.Collection) // TODO ???
                 )*/
 
-            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections[0]?.display
+            case Type<MetadataViews.NFTCollectionDisplay>() : return self.collections
 
             default: return nil
             
