@@ -653,7 +653,7 @@ pub resource interface Agent
 {
     pub var status: Bool // the current status of the Admin
 
-    pub fun inviteCreator(_ creator: Address, agentCut: UFix64?)                   // Admin invites a new creator       
+    pub fun inviteCreator(_ creator: Address, agentCut: UFix64)                   // Admin invites a new creator       
     pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
     pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
     pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
@@ -722,7 +722,7 @@ pub resource Admin: Agent
             emit AgentInvited(agent: agent)         
         }
 
-        pub fun inviteCreator(_ creator: Address, agentCut: UFix64? ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
+        pub fun inviteCreator(_ creator: Address, agentCut: UFix64 ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
             pre {
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
@@ -733,7 +733,8 @@ pub resource Admin: Agent
                 Profile.check(creator)        : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
             post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
-            let agent: Address? = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : nil
+            //let agent: Address = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : nil
+            let agent =  DAAM.agents[self.owner!.address]==true ? self.owner!.address : DAAM.company.receiver.address
             let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
             DAAM.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
 
@@ -916,13 +917,11 @@ pub resource Admin: Agent
 /************************************************************************/
 pub struct CreatorInfo {
     pub let creator   : Address
-    pub let agent     : Address?
-    pub let firstSale : UFix64?
-    pub var status    : Bool?
+    pub let agent     : Address
+    pub let firstSale : UFix64
+    pub var status    : Bool? // nil = invited, false = frozen, true = active
 
-    init(creator: Address, agent: Address?, firstSale: UFix64? ) {
-        pre { agent == nil && firstSale == nil || agent != nil && firstSale != nil : "Agent and First Sale Argument do not match." }
-        
+    init(creator: Address, agent: Address, firstSale: UFix64 ) {
         self.creator   = creator
         self.agent     = agent
         self.firstSale = firstSale

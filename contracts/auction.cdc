@@ -763,7 +763,7 @@ pub struct AuctionHolder {
             let creatorRoyalties = self.convertTo100Percent() // get Royalty data
             let daamRoyalty = AuctionHouse.getAgencyFirstSale(mid: self.mid)
             
-            if self.auctionNFT?.metadata!.creatorInfo.agent == nil {
+            if self.auctionNFT?.metadata!.creatorInfo.agent == DAAM.company.receiver.address {
                 let inHouse = 0.5 // Main setting here
                 
                 // Below changes are calculated from above settings
