@@ -28,7 +28,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
 }
 
 transaction(
-    name: String, max: UInt64?, feature: Bool, categories: [String], description: String, misc: String,  // Metadata information
+    name: String, max: UInt64?, categories: [String], description: String, misc: String,  // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
     interact: AnyStruct?, percentage: UFix64,
@@ -109,7 +109,7 @@ transaction(
     pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
-        let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, featured: self.featured, categories: self.categories,
+        let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories,
         description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact, )
 
         self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)

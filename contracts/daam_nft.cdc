@@ -174,23 +174,19 @@ pub resource RequestGenerator {
         pub let creatorInfo : CreatorInfo               // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
         pub let category    : [Categories.Category]
-        pub var inCollection: {String:[UInt64]}?    // {name: [MIDs in Collection] }
         pub let description : String                            // JSON see metadata.json all data ABOUT the NFT is stored here
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
-        pub let featured    : Bool                              // True = Special Feature NFT
         pub let misc        : String
         
-        init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, featured: Bool, categories: [Categories.Category], inCollection: {String:[UInt64]}?,
+        init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category],
             description: String, misc: String, thumbnail: {String : {MetadataViews.File}})
         {
             self.mid          = mid
             self.creatorInfo  = creator      // creator of NFT
             self.edition      = edition      // total prints
             self.category     = categories
-            self.inCollection = inCollection // total prints
             self.description  = description  // data,about,misc page
             self.thumbnail    = thumbnail    // thumbnail are stored here
-            self.featured     = featured     // Specal NFT
             self.misc         = misc         // Misc.
         }
     }
@@ -199,26 +195,24 @@ pub resource RequestGenerator {
         pub let mid         : UInt64                // Metadata ID number
         pub let creatorInfo : CreatorInfo           // Creator of NFT
         pub let edition     : MetadataViews.Edition // series total, number of prints. [counter, total]
-        pub let featured    : Bool                  // True = Special Feature NFT
         pub let category    : [Categories.Category] 
-        pub var inCollection: {String:[UInt64]}?
         pub let description : String                // NFT description is stored here
         pub let misc        : String
         pub let thumbnail   : {String : {MetadataViews.File}}   // JSON see metadata.json all thumbnails are stored here
         pub let interact    : AnyStruct?
         pub let file        : {String : MetadataViews.Media}   // JSON see metadata.json all NFT file formats are stored here
 
-        init(creator: CreatorInfo?, name: String?, max: UInt64?, featured: Bool?, categories: [Categories.Category]?, inCollection: {String:[UInt64]}?, description: String?,
-            misc: String?, thumbnail: {String:{MetadataViews.File}}?, interact: AnyStruct?, file: {String:MetadataViews.Media}?, metadata: &Metadata?)
+        init(creator: CreatorInfo?, name: String?, max: UInt64?, categories: [Categories.Category]?, description: String?, misc: String?,
+            thumbnail: {String:{MetadataViews.File}}?, interact: AnyStruct?, file: {String:MetadataViews.Media}?, metadata: &Metadata?)
         {            
             pre {
                 DAAM.validInteract(interact) : "This Interaction is not Authorized"
                 max != 0 : "Max has an incorrect value of 0."
                 // Increment Metadata Counter; Make sure Arguments are blank except for Metadata; This also excludes all non consts
-                (creator==nil && name==nil && featured==nil && categories==nil && description==nil && misc==nil && thumbnail==nil && file==nil && metadata != nil)
+                (creator==nil && name==nil && categories==nil && description==nil && misc==nil && thumbnail==nil && file==nil && metadata != nil)
                 || // or
                 // New Metadata (edition.number = 1) Make sure Arguments are full except for Metadata; This also excludes all non consts
-                (creator!=nil && name!=nil && featured!=nil && categories!=nil && description!=nil && misc!=nil && thumbnail!=nil && file!=nil && metadata == nil)
+                (creator!=nil && name!=nil && categories!=nil && description!=nil && misc!=nil && thumbnail!=nil && file!=nil && metadata == nil)
             }
 
             if metadata == nil {
@@ -226,27 +220,23 @@ pub resource RequestGenerator {
                 self.mid         = DAAM.metadataCounterID // init MID with counter
                 self.creatorInfo = creator!               // creator of NFT
                 self.edition     = MetadataViews.Edition(name: name, number: 1, max: max) // total prints
-                self.featured    = featured!              // Add feature setting
                 self.category    = categories!            // categories 
                 self.description = description!           // data,about,misc page
                 self.misc        = misc!                  // Misc String
                 self.thumbnail   = thumbnail!             // thumbnail are stored here
                 self.file        = file!                  // NFT data is stored hereere
                 // below are not Constant or Optional
-                self.inCollection = inCollection 
                 self.interact = interact
             } else {                
                 self.mid         = metadata!.mid         // init MID with counter
                 self.creatorInfo = metadata!.creatorInfo // creator of NFT
                 self.edition     = MetadataViews.Edition(name: metadata!.edition.name, number: metadata!.edition.number+1, max: metadata!.edition.max) // Total prints
-                self.featured    = metadata!.featured    // Add feature setting
                 self.category    = metadata!.category    // categories 
                 self.description = metadata!.description // data,about,misc page
                 self.misc        = metadata!.misc        // Misc String
                 self.thumbnail   = metadata!.thumbnail   // thumbnail are stored here
                 self.file        = metadata!.file
                 // below are not Constant or Optional
-                self.inCollection = metadata!.inCollection
                 self.interact     = metadata!.interact
 
                 // Error checking; Re-prints do not excede series limit or is Unlimited prints
@@ -255,8 +245,8 @@ pub resource RequestGenerator {
         }
 
         pub fun getHolder(): MetadataHolder {
-            return MetadataHolder(creator: self.creatorInfo, mid: self.mid, edition: self.edition, featured: self.featured, categories: self.category,
-                inCollection: self.inCollection, description: self.description, misc: self.misc, thumbnail: self.thumbnail )
+            return MetadataHolder(creator: self.creatorInfo, mid: self.mid, edition: self.edition, categories: self.category,
+                description: self.description, misc: self.misc, thumbnail: self.thumbnail )
         }
 
         pub fun getDisplay(): MetadataViews.Display {
@@ -294,7 +284,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
-        pub fun addMetadata(name: String, max: UInt64?, featured: Bool, categories: [Categories.Category], inCollection: {String:[UInt64]}?, description: String,
+        pub fun addMetadata(name: String, max: UInt64?, categories: [Categories.Category], description: String,
             misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct? ): UInt64
         {
             pre{
@@ -303,7 +293,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             }
 
-            let metadata <- create Metadata(creator: DAAM.creators[self.grantee], name: name, max: max, featured: featured, categories: categories, inCollection: inCollection,
+            let metadata <- create Metadata(creator: DAAM.creators[self.grantee], name: name, max: max, categories: categories,
                 description: description, misc: misc, thumbnail: thumbnail, interact: interact, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
@@ -375,8 +365,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if mRef!.edition.max != nil {
                 // if not last, print
                 if mRef!.edition.number < mRef!.edition.max! {            
-                    let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, featured:nil, categories:nil, inCollection:nil,
-                        description:nil, misc: nil, thumbnail:nil, interact: nil, file:nil, metadata: mRef)
+                    let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, description:nil,
+                        misc: nil, thumbnail:nil, interact: nil, file:nil, metadata: mRef)
                     let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
                     return <- orig_metadata! // Return current Metadata
                 } else if mRef!.edition.number == mRef!.edition.max! { // Last print
@@ -387,8 +377,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 }
             }
             // unlimited prints
-            let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, featured:nil, categories:nil, inCollection:nil,
-                description:nil, misc:nil, thumbnail:nil, interact: nil, file:nil, metadata: mRef)
+            let new_metadata <- create Metadata(creator:nil, name:nil, max:nil, categories:nil, description:nil,
+                misc:nil, thumbnail:nil, interact: nil, file:nil, metadata: mRef)
             let orig_metadata <- self.metadata[mid] <- new_metadata // Update to new incremented (counter) Metadata
             return <- orig_metadata!
         }
