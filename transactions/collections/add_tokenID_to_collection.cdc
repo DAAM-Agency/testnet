@@ -14,6 +14,7 @@ transaction(id: UInt64, feature: Bool, element: UInt64) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.id = id
         self.feature = feature
+        self.element = element
     }
 
     execute {
