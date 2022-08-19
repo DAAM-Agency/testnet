@@ -508,13 +508,13 @@ pub struct NFTCollectionDisplay {
         self.id  = {}
     }
 
-    access(contract) fun addMID(_ mid: UInt64, feature: Bool) { // change to &Metadata // TODO
+    access(contract) fun addMID(mid: UInt64, feature: Bool) { // change to &Metadata // TODO
         pre  { !self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
         post { self.mid.containsKey(mid)  : "Illegal Operation: addMID: ".concat(mid.toString()) }
         self.mid.insert(key: mid, feature)
     }
 
-    pub fun addTokenID(_ id: UInt64, feature: Bool) { // change to &NFT // TODO
+    pub fun addTokenID(id: UInt64, feature: Bool) { // change to &NFT // TODO
         pre  { !self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
         post { self.id.containsKey(id) : "Illegal Operation: addTokenID: ".concat(id.toString()) }
         self.id.insert(key: id, feature)
@@ -527,7 +527,7 @@ pub struct NFTCollectionDisplay {
     }
 
     pub fun removeTokenID(id: UInt64) { // change to &NFT // TODO
-        pre  { !self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
+        pre  { self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
         post { !self.id.containsKey(id) : "Illegal Operation: removeTokenID: ".concat(id.toString()) }
         self.id.remove(key: id)
     }
