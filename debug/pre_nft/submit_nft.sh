@@ -2,16 +2,166 @@
 # Tests: #A 1-Shot, #B Series(of 7), #C to be deleted by Creator. #D Disapproved by Admin, #E False Copyright,
 #F Unlimited Print, #G 10 series
 echo "========= Submit NFTs ========="
-flow transactions send ./transactions/creator/submit_accept.cdc "Name A" 2 '["Digital","Image"]' "description A" "misc A" false "thumbnail A" "text" false  "file A" "text" nil 0.10 --signer creator # Will be MID 1
-flow transactions send ./transactions/creator/submit_accept.cdc "Name B" 7 '["Digital","Image"]' "description B" "misc B" false "thumbnail B" "text" false  "file B" "text" nil 0.12 --signer creator # Will be MID 2
-flow transactions send ./transactions/creator/submit_accept.cdc "Name C" 2 '["Digital","Image"]' "description C" "misc C" false "thumbnail C" "text" false  "file C" "text" nil 0.13 --signer creator # Will be MID 3
-flow transactions send ./transactions/creator/submit_accept.cdc "Name D" nil '["Digital","Image"]' "description D" "misc D" false "thumbnail D" "text" false  "file D" "text" nil 0.14 --signer creator # Will be MID 4
-flow transactions send ./transactions/creator/submit_accept.cdc "Name E" 3 '["Digital","Image"]' "description E" "misc E" false "thumbnail E" "text" false  "file E" "text" nil 0.15 --signer creator # Will be MID 5
-flow transactions send ./transactions/creator/submit_accept.cdc "Name F" 2 '["Digital","Image"]' "description F" "misc f" false "thumbnail F" "text" false  "file F" "text" nil 0.16 --signer creator2 # Will be MID 6
-flow transactions send ./transactions/creator/submit_accept.cdc "Name G" 2 '["Digital","Image"]' "descrip]' tion G" "misc G" false "thumbnail G" "text" false  "file G" "text" nil 0.17 --signer creator2 # Will be MID 7
-flow transactions send ./transactions/creator/submit_accept.cdc "Name H" 4 '["Digital","Image"]' "description H" "misc h" false "thumbnail H" "text" false  "file H" "text" nil 0.18 --signer creator2 # Will be MID 8
-flow transactions send ./transactions/creator/submit_accept.cdc "Name I" 2 '["Digital","Image"]' "description I" "misc I" false  "thumbnail I" "text" false  "file I" "text" nil 0.19 --signer creator2 # Will be MID 9
-flow transactions send ./transactions/creator/submit_accept.cdc "Name J" nil '["Digital","Image"]' "description J" "misc j" false "thumbnail J" "text" false  "file J" "text" nil 0.20 --signer creator2 # Will be MID 10
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name A"},
+    {"type": "UInt64", "value": "2"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description A"},
+    {"type": "String", "value": "misc A"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail A"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file A"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.10"}
+    ]' --signer creator # Will be MID 1
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name B"},
+    {"type": "UInt64", "value": "7"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description B"},
+    {"type": "String", "value": "misc B"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail B"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file B"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.12"}
+    ]' --signer creator # Will be MID 2
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name C"},
+    {"type": "UInt64", "value": "2"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description C"},
+    {"type": "String", "value": "misc C"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail C"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file C"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.13"}
+    ]' --signer creator # Will be MID 3
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name D"},
+    {"type": "Optional", "value": null},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description D"},
+    {"type": "String", "value": "misc D"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail D"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file D"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.14"}
+    ]' --signer creator # Will be MID 4
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name E"},
+    {"type": "UInt64", "value": "3"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description E"},
+    {"type": "String", "value": "misc E"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail E"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file E"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.15"}
+    ]' --signer creator # Will be MID 5
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name F"},
+    {"type": "UInt64", "value": "2"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description F"},
+    {"type": "String", "value": "misc F"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail F"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file F"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.16"}
+    ]' --signer creator2 # Will be MID 6
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name G"},
+    {"type": "UInt64", "value": "2"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description G"},
+    {"type": "String", "value": "misc G"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail G"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file G"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.17"}
+    ]' --signer creator2 # Will be MID 7
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name H"},
+    {"type": "UInt64", "value": "4"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description H"},
+    {"type": "String", "value": "misc H"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail H"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file H"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.18"}
+    ]' --signer creator2 # Will be MID 8
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name I"},
+    {"type": "UInt64", "value": "2"},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description I"},
+    {"type": "String", "value": "misc I"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail I"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file I"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.19"}
+    ]' --signer creator2 # Will be MID 9
+
+flow transactions send ./transactions/creator/submit_accept.cdc --args-json '[
+    {"type": "String", "value": "Name J"},
+    {"type": "Optional", "value": null},
+    {"type": "Array", "value": [{"type": "String", "value": "Digital"}, {"type": "String", "value": "Image"}]},
+    {"type": "String", "value": "description J"},
+    {"type": "String", "value": "misc J"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "thumbnail J"},
+    {"type": "String", "value": "text"},
+    {"type": "Bool", "value": false},
+    {"type": "String", "value": "file J"},
+    {"type": "String", "value": "text"},
+    {"type": "Optional", "value": null},
+    {"type": "UFix64", "value": "0.20"}
+    ]' --signer creator2 # Will be MID 10
+
 
 # Verify Metadata
 echo "========= Verify Metadata ========="
