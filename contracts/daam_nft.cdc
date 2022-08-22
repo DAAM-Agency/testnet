@@ -55,17 +55,18 @@ pub contract DAAM: NonFungibleToken {
     access(contract) var admins  : {Address: Bool}    // {Admin Address : status}  Admin address are stored here
     access(contract) var agents  : {Address: Bool}    // {Agents Address : status} Agents address are stored here // preparation for V2
     access(contract) var minters : {Address: Bool}    // {Minters Address : status} Minter address are stored here // preparation for V2
-    access(contract) var creators: {Address: CreatorInfo}    // {Creator Address : status} Creator address are stored here
-    access(contract) var creatorHistory : {Address : [UInt64]} // Stores creator history using the MID as a center point of search. {Address : UInt64 }
-    access(contract) var metadata: {UInt64 : Bool}    // {MID : Approved by Admin } Metadata ID status is stored here
+    access(contract) var creators: {Address: CreatorInfo}       // {Creator Address : status} Creator address are stored here
+    access(contract) var creatorHistory : {Address : [UInt64]}  // Stores creator history using the MID as a center point of search. {Creator : [MID] }
+    access(contract) var agentHistory   : {Address : [Address]} // Stores Agent and their Creators {Agent Address : [Its' Creator Address] }
+    access(contract) var metadata: {UInt64 : Bool}              // {MID : Approved by Admin } Metadata ID status is stored here
     access(contract) var metadataCap: {Address : Capability<&MetadataGenerator{MetadataGeneratorPublic}> }    // {MID : Approved by Admin } Metadata ID status is stored here
-    access(contract) var request : @{UInt64: Request} // {MID : @Request } Request are stored here by MID
-    access(contract) var copyright: {UInt64: CopyrightStatus} // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
+    access(contract) var request : @{UInt64: Request}           // {MID : @Request } Request are stored here by MID
+    access(contract) var copyright: {UInt64: CopyrightStatus}   // {NFT.id : CopyrightStatus} Get Copyright Status by Token ID
     // Variables 
     access(contract) var metadataCounterID : UInt64   // The Metadta ID counter for MetadataID.
     access(contract) var newNFTs: [UInt64]    // A list of newly minted NFTs. 'New' is defined as 'never sold'. Age is Not a consideration.
     pub let agency : MetadataViews.Royalties  // DAAM Agency Founder Royaly Addresses
-    pub let company: MetadataViews.Royalty     // DAAM Company Address
+    pub let company: MetadataViews.Royalty    // DAAM Company Address
 /***********************************************************************/
 // Copyright enumeration status // Worst(0) to best(4) as UInt8
 pub enum CopyrightStatus: UInt8 {
@@ -85,6 +86,8 @@ pub resource Request {
     access(contract) var agreement : [Bool; 2]               // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
+        pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
+
         self.mid = mid          // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
         self.royalty = nil               // royalty is initialized
@@ -116,12 +119,14 @@ pub resource RequestGenerator {
     // Percentages are between 10% - 30%
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalties: MetadataViews.Royalties) {
         pre {
+            mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
             self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
             metadataGen.getMIDs().contains(mid)     : "MID: ".concat(mid.toString()).concat(" is Incorrect")
             DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
             DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             //percentage >= 0.1 && percentage <= 0.3  : "Percentage must be inbetween 10% to 30%."
         }
+
         // Getting Agency royalties
         let agency   = DAAM.agency.getRoyalties()
         let rate     = 0.025
@@ -141,6 +146,7 @@ pub resource RequestGenerator {
                     description: "Creator Royalty")
             ) // end append    
             rateCut = rateCut + (creator.cut - newCut)
+            // Update Creator History
             if !DAAM.creatorHistory.containsKey(creator.receiver.address) { DAAM.creatorHistory[creator.receiver.address] = [mid]}
             if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) { DAAM.creatorHistory[creator.receiver.address]!.append(mid) }
         }
@@ -179,8 +185,9 @@ pub resource RequestGenerator {
         pub let misc        : String
         
         init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category],
-            description: String, misc: String, thumbnail: {String : {MetadataViews.File}})
-        {
+            description: String, misc: String, thumbnail: {String : {MetadataViews.File}}) {
+            pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
+
             self.mid          = mid
             self.creatorInfo  = creator      // creator of NFT
             self.edition      = edition      // total prints
@@ -257,7 +264,7 @@ pub resource RequestGenerator {
 pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess
-    pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata
+    pub fun generateMetadata(minter: @MinterAccess) : @Metadata
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
@@ -313,6 +320,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
+                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
                 self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
                 DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
@@ -326,7 +334,8 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         // Used to remove Metadata from the Creators metadata dictionary list.
-        priv fun clearMetadata(mid: UInt64): @Metadata {            
+        priv fun clearMetadata(mid: UInt64): @Metadata {         
+            pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
             DAAM.metadata.remove(key: mid) // Metadata removed from DAAM. Logging no longer neccessary
             DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
@@ -337,17 +346,18 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         // Remove Metadata as Resource. Metadata + Request = NFT.
         // The Metadata will be destroyed along with a matching Request (same MID) in order to create the NFT
-        pub fun generateMetadata(minter: @MinterAccess, mid: UInt64) : @Metadata {
+        pub fun generateMetadata(minter: @MinterAccess) : @Metadata {
             pre {
-                self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
-                minter.validate()                       : "Account: ".concat(self.owner!.address.toString()).concat("Minter Access Denied")
+                self.grantee == self.owner!.address     : "Account: ".concat(self.grantee.toString()).concat(" Permission Denied")
+                minter.validate(creator: self.grantee) : "Account: ".concat(self.grantee.toString()).concat("Minter Access Denied")
                 DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
                 
-                self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" does not exist.")
-                DAAM.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" This already has been published.")
-                DAAM.metadata[mid]!       : "MetadataID: ".concat(mid.toString()).concat(" Submission has been Disapproved.")
+                self.metadata[minter.mid] != nil : "MetadataID: ".concat(minter.mid.toString()).concat(" does not exist.")
+                DAAM.metadata[minter.mid] != nil : "MetadataID: ".concat(minter.mid.toString()).concat(" This already has been published.")
+                DAAM.metadata[minter.mid]!       : "MetadataID: ".concat(minter.mid.toString()).concat(" Submission has been Disapproved.")
             }
+            let mid = minter.mid
             destroy minter
 
             // Create Metadata with incremented counter/print
@@ -399,7 +409,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun viewMetadata(mid: UInt64): MetadataHolder? {
-            pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
+            pre {
+                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
+                self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.")
+            }
             let mRef = &self.metadata[mid] as &Metadata?
             let data: MetadataHolder? = mRef!.getHolder() // as MetadataHolder// as &Metadata
             return data
@@ -415,7 +428,10 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
 
         pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
-            pre { self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.") }
+            pre {
+                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
+                self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.")
+            }
             let mRef = &self.metadata[mid] as &Metadata?
             return mRef!.getDisplay()
         }
@@ -495,7 +511,13 @@ pub resource interface CollectionPublic {
     pub fun getCollection(): [NFTCollectionDisplay] 
 }
 /************************************************************************/
-pub struct NFTCollectionDisplay {
+pub struct interface CollectionDisplay {
+    pub var display: MetadataViews.NFTCollectionDisplay
+    pub var mid: {UInt64 : Bool } // { MID : Featured }
+    pub var id : {UInt64 : Bool } // { TokenID : Featured }    
+}
+/************************************************************************/
+pub struct NFTCollectionDisplay: CollectionDisplay {
     pub var display: MetadataViews.NFTCollectionDisplay
     pub var mid: {UInt64 : Bool } // { MID : Featured }
     pub var id : {UInt64 : Bool } // { TokenID : Featured }
@@ -508,20 +530,28 @@ pub struct NFTCollectionDisplay {
         self.id  = {}
     }
 
-    access(contract) fun addMID(mid: UInt64, feature: Bool) { // change to &Metadata // TODO
-        pre  { !self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
-        post { self.mid.containsKey(mid)  : "Illegal Operation: addMID: ".concat(mid.toString()) }
-        self.mid.insert(key: mid, feature)
+    pub fun addMID(creator: &Creator, metadata: &Metadata, feature: Bool) {
+        pre  {
+            metadata != nil : "Metadata is null"
+            !self.mid.containsKey(metadata.mid) : "Already is in this Collection."
+            DAAM.isCreator(creator.grantee) == true : "You are not a Creator or your account is Frozen."
+        }
+        post { self.mid.containsKey(metadata.mid)  : "Illegal Operation: addMID: ".concat(metadata.mid.toString()) }
+        self.mid.insert(key: metadata.mid, feature)
     }
 
-    pub fun addTokenID(id: UInt64, feature: Bool) { // change to &NFT // TODO
+    pub fun addTokenID(id: UInt64, feature: Bool) {
         pre  { !self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
         post { self.id.containsKey(id) : "Illegal Operation: addTokenID: ".concat(id.toString()) }
         self.id.insert(key: id, feature)
     }
 
-    access(contract) fun removeMID(mid: UInt64) { // change to &Metadata // TODO
-        pre  { self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
+    pub fun removeMID(creator: &Creator, metadata: &Metadata, mid: UInt64) {
+        pre  {
+            metadata != nil : "Metadata is null"
+            self.mid.containsKey(metadata.mid) : "Already is not in this Collection."
+            DAAM.isCreator(creator.grantee) == true : "You are not a Creator or your account is Frozen."
+        }
         post { !self.mid.containsKey(mid) : "Illegal Operation: removeMID: ".concat(mid.toString()) }
         self.mid.remove(key: mid)
     }
@@ -532,7 +562,7 @@ pub struct NFTCollectionDisplay {
         self.id.remove(key: id)
     }
 
-    access(contract) fun adjustFeatureByMID(mid: UInt64, feature: Bool) {
+    pub fun adjustFeatureByMID(metadata: &Metadata, mid: UInt64, feature: Bool) {
         pre { self.mid.containsKey(mid) : "You do not have MID: ".concat(mid.toString()) }
         self.mid[mid] = feature
     }
@@ -548,7 +578,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    pub var collections : [NFTCollectionDisplay]
+    access(contract) var collections : [NFTCollectionDisplay]
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
@@ -563,7 +593,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         )
     }
 
-    pub fun getCollection(): [NFTCollectionDisplay] {
+    pub fun getCollection(): [NFTCollectionDisplay{CollectionDisplay}] {
         return self.collections
     }
 
@@ -630,7 +660,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     // borrowDAAM gets a reference to an DAAM.NFT
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
         pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
-        let ref = (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)!
+        let ref = (&self.ownedNFTs[id] as! auth &NonFungibleToken.NFT?)!
         let daam = ref as! &DAAM.NFT
         return daam
     }
@@ -723,8 +753,7 @@ pub resource Admin: Agent
                 Profile.check(creator)        : "You can't be a DAAM Creator without a Profile! Go make one Fool!!"
             }
             post { DAAM.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
-            //let agent: Address = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : nil
-            let agent =  DAAM.agents[self.owner!.address]==true ? self.owner!.address : DAAM.company.receiver.address
+            let agent: Address = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : DAAM.company.receiver.address 
             let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
             DAAM.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
 
@@ -876,6 +905,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre {
+                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
@@ -887,6 +917,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a MIDs copyright status.
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre {
+                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
@@ -956,6 +987,7 @@ pub struct CreatorInfo {
     pub resource Minter
     {
         priv let grantee: Address
+        //priv let type: Type? TODO for seperation of Agent and Marketplace minting.
 
         init(_ minter: Address) {
             self.grantee = minter
@@ -964,7 +996,6 @@ pub struct CreatorInfo {
 
         pub fun mintNFT(metadata: @Metadata): @DAAM.NFT {
             pre{
-                //metadata.edition.number <= metadata.edition.max || metadata.edition == 0 : "Internal Error: Mint Counter"
                 DAAM.isCreator(metadata.creatorInfo.creator) == true :
                     "Account: ".concat(metadata.creatorInfo.creator.toString()).concat(" This is not our Creator.")
                 DAAM.isMinter(self.grantee) == true      : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
@@ -991,8 +1022,8 @@ pub struct CreatorInfo {
             return <- nft  // return NFT
         }
 
-        pub fun createMinterAccess(): @MinterAccess {
-            return <- create MinterAccess(self.grantee)
+        pub fun createMinterAccess(mid: UInt64): @MinterAccess {
+            return <- create MinterAccess(self.grantee, mid: mid)
         }
 
         // Removes token from 'new' list. 'new' is defines as newly Mited. Age is not a consideration.
@@ -1026,8 +1057,30 @@ pub struct CreatorInfo {
 pub resource MinterAccess 
 {
     pub let minter: Address
-    init(_ minter : Address) { self.minter = minter }
-    pub fun validate(): Bool { return DAAM.minters[self.minter]==true ? true : false }
+    pub var mid   : UInt64
+
+    init(_ minter : Address, mid: UInt64) {
+        self.minter = minter
+        self.mid    = mid
+    }
+
+    pub fun validate(creator: Address): Bool {
+        pre {
+            self.owner!.address == self.minter : "No transfering access"
+            DAAM.isMinter(self.minter)==true   : "You access has been denied."
+        }
+        let minterStatus = DAAM.minters[self.minter]==true ? true : false
+        if !minterStatus { return false }
+
+        switch(DAAM.isAgent(self.minter)) {
+            case nil  : return minterStatus // A Marketplace, Access Approvd, minterStatus is always true
+            case false: return false        // Access is Frozen
+            case true :                     // is an Agent, verify creator & mid relationship to agent
+                if !DAAM.creatorHistory[creator]!.contains(self.mid) { return false } // Verify MID belongs to Creator
+                if DAAM.agentHistory[self.minter]!.contains(creator) { return true  } // Verify Agent is Creators'
+        }
+        return false
+    }
 }
 /************************************************************************/
     // Public DAAM functions
@@ -1095,7 +1148,12 @@ pub resource MinterAccess
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.creators[newCreator.address]!.setStatus(submit)        // Add Creator & set Status (True)
+        DAAM.creators[newCreator.address]!.setStatus(submit) // Add Creator & set Status (True)
+        let agent = DAAM.creators[newCreator.address!]?.agent!
+        var list:[Address] = DAAM.agentHistory.containsKey(agent) ? DAAM.agentHistory[agent]! : []
+        list.append(newCreator.address!)
+        DAAM.agentHistory.insert(key: agent, list)
+
         log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreator.address)
         return <- create Creator(newCreator.address)!                         // Return Creator Resource
@@ -1135,12 +1193,16 @@ pub resource MinterAccess
     }
 
     // Return Copyright Status. nil = non-existent MID
-    pub fun getCopyright(mid: UInt64): CopyrightStatus? { 
+    pub fun getCopyright(mid: UInt64): CopyrightStatus? {
+        pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
         return self.copyright[mid]
     }
 
     pub fun getRoyalties(mid: UInt64): MetadataViews.Royalties {
-        pre {DAAM.request.containsKey(mid) : "Invalid MID" }
+        pre {
+            mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
+            DAAM.request.containsKey(mid) : "Invalid MID"
+        }
         let request = &DAAM.request[mid] as &Request?
         let royalty = request!.royalty!
         return royalty
@@ -1226,11 +1288,12 @@ pub resource MinterAccess
         self.copyright = {}
         self.agents    = {} 
         self.creators  = {}
-        self.creatorHistory = {}
         self.minters   = {}
         self.metadata  = {}
-        self.metadataCap = {}
         self.newNFTs   = []
+        self.metadataCap = {}
+        self.agentHistory   = {} 
+        self.creatorHistory = {}
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
         self.metadataCounterID   = 0  // Incremental Serial Number for the MetadataGenerator
