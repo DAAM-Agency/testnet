@@ -86,11 +86,7 @@ pub resource Request {
     access(contract) var agreement : [Bool; 2]               // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
-<<<<<<< HEAD
-        pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
-=======
         pre { mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate" }
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
 
         self.mid = mid          // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
@@ -123,11 +119,7 @@ pub resource RequestGenerator {
     // Percentages are between 10% - 30%
     pub fun acceptDefault(mid: UInt64, metadataGen: &MetadataGenerator{MetadataGeneratorPublic}, royalties: MetadataViews.Royalties) {
         pre {
-<<<<<<< HEAD
-            mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
             mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
             self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
             metadataGen.getMIDs().contains(mid)     : "MID: ".concat(mid.toString()).concat(" is Incorrect")
             DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
@@ -194,11 +186,7 @@ pub resource RequestGenerator {
         
         init(creator: CreatorInfo, mid: UInt64, edition: MetadataViews.Edition, categories: [Categories.Category],
             description: String, misc: String, thumbnail: {String : {MetadataViews.File}}) {
-<<<<<<< HEAD
-            pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
-=======
             pre { mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate" }
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
 
             self.mid          = mid
             self.creatorInfo  = creator      // creator of NFT
@@ -332,11 +320,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         // But when deleting a submission the request must also be deleted.
         pub fun removeMetadata(mid: UInt64) {
             pre {
-<<<<<<< HEAD
-                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
                 self.grantee == self.owner!.address     : "Account: ".concat(self.owner!.address.toString()).concat(" Permission Denied")
                 DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
@@ -351,11 +335,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         // Used to remove Metadata from the Creators metadata dictionary list.
         priv fun clearMetadata(mid: UInt64): @Metadata {         
-<<<<<<< HEAD
-            pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
-=======
             pre { mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate" }
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
             DAAM.metadata.remove(key: mid) // Metadata removed from DAAM. Logging no longer neccessary
             DAAM.copyright.remove(key:mid) // remove metadata copyright            
             
@@ -430,11 +410,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun viewMetadata(mid: UInt64): MetadataHolder? {
             pre {
-<<<<<<< HEAD
-                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
                 self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.")
             }
             let mRef = &self.metadata[mid] as &Metadata?
@@ -453,11 +429,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
         pub fun viewDisplay(mid: UInt64): MetadataViews.Display? {
             pre {
-<<<<<<< HEAD
-                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
                 self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.")
             }
             let mRef = &self.metadata[mid] as &Metadata?
@@ -933,11 +905,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a Metadata status.
         pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
             pre {
-<<<<<<< HEAD
-                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
@@ -949,11 +917,7 @@ pub resource Admin: Agent
         // Admin or Agent can change a MIDs copyright status.
         pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
             pre {
-<<<<<<< HEAD
-                mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
@@ -1188,11 +1152,7 @@ pub resource MinterAccess
         // Invitation accepted at this point
         DAAM.creators[newCreator.address]!.setStatus(submit) // Add Creator & set Status (True)
         let agent = DAAM.creators[newCreator.address!]?.agent!
-<<<<<<< HEAD
-        var list:[Address] = DAAM.agentHistory.containsKey(agent) ? DAAM.agentHistory[agent]! : []
-=======
         var list = DAAM.agentHistory[agent]!
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
         list.append(newCreator.address!)
         DAAM.agentHistory.insert(key: agent, list)
 
@@ -1236,21 +1196,13 @@ pub resource MinterAccess
 
     // Return Copyright Status. nil = non-existent MID
     pub fun getCopyright(mid: UInt64): CopyrightStatus? {
-<<<<<<< HEAD
-        pre { mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate" }
-=======
         pre { mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate" }
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
         return self.copyright[mid]
     }
 
     pub fun getRoyalties(mid: UInt64): MetadataViews.Royalties {
         pre {
-<<<<<<< HEAD
-            mid !=0 && mid < DAAM.metadataCounterID : "Illegal Operation: validate"
-=======
             mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
             DAAM.request.containsKey(mid) : "Invalid MID"
         }
         let request = &DAAM.request[mid] as &Request?
@@ -1342,11 +1294,7 @@ pub resource MinterAccess
         self.metadata  = {}
         self.newNFTs   = []
         self.metadataCap = {}
-<<<<<<< HEAD
-        self.agentHistory   = {} 
-=======
         self.agentHistory   = {self.company.receiver.address: []} 
->>>>>>> 7da9ab7f (added: Agent Minting, Collections, and Features)
         self.creatorHistory = {}
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
