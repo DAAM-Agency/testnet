@@ -12,6 +12,7 @@ transaction(id: UInt64, element: UInt64) {
         self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
         self.id = id
+        self.element = element
     }
 
     execute {
