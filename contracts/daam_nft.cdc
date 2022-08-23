@@ -548,14 +548,14 @@ pub struct NFTCollectionDisplay: CollectionDisplay {
         self.id.insert(key: id, feature)
     }
 
-    pub fun removeMID(creator: &Creator, metadata: &Metadata, mid: UInt64) {
-        pre  {
-            metadata != nil : "Metadata is null"
-            self.mid.containsKey(metadata.mid) : "Already is not in this Collection."
+    pub fun removeMID(creator: &Creator, mid: UInt64) {
+        pre {
+            mid != 0 && mid <= DAAM.metadataCounterID : "Illegal Operation: removeMID (pre)" 
+            self.mid.containsKey(mid) : "Already is not in this Collection."
             DAAM.isCreator(creator.grantee) == true : "You are not a Creator or your account is Frozen."
             DAAM.creatorHistory[creator.grantee]!.contains(mid) : "This MID does not belong to this Creator."
         }
-        post { !self.mid.containsKey(mid) : "Illegal Operation: removeMID: ".concat(mid.toString()) }
+        post { !self.mid.containsKey(mid) : "Illegal Operation: removeMID (post) ".concat(mid.toString()) }
         self.mid.remove(key: mid)
     }
 
