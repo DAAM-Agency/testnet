@@ -530,14 +530,16 @@ pub struct NFTCollectionDisplay: CollectionDisplay {
         self.id  = {}
     }
 
-    pub fun addMID(creator: &Creator, metadata: &Metadata, feature: Bool) {
+    pub fun addMID(creator: &Creator, mid: UInt64, feature: Bool) {
         pre  {
-            metadata != nil : "Metadata is null"
-            !self.mid.containsKey(metadata.mid) : "Already is in this Collection."
-            DAAM.isCreator(creator.grantee) == true : "You are not a Creator or your account is Frozen."
+            mid != 0 && mid <= DAAM.metadataCounterID : "Illegal Operation on MID"
+            !self.mid.containsKey(mid)       : "Already is in this Collection."
+            DAAM.isCreator(creator.grantee) == true   : "You are not a Creator or your account is Frozen."
+            DAAM.creatorHistory[creator.grantee]!.contains(mid) : "This MID does not belong to this Creator."
         }
-        post { self.mid.containsKey(metadata.mid)  : "Illegal Operation: addMID: ".concat(metadata.mid.toString()) }
-        self.mid.insert(key: metadata.mid, feature)
+        post { self.mid.containsKey(mid)  : "Illegal Operation: addMID: ".concat(mid.toString()) }
+
+        self.mid.insert(key: mid, feature)
     }
 
     pub fun addTokenID(id: UInt64, feature: Bool) {
@@ -578,7 +580,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    access(contract) var collections : [NFTCollectionDisplay]
+    pub var collections : [NFTCollectionDisplay]
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
@@ -1065,10 +1067,8 @@ pub resource MinterAccess
     }
 
     pub fun validate(creator: Address): Bool {
-        pre {
-            self.owner!.address == self.minter : "No transfering access"
-            DAAM.isMinter(self.minter)==true   : "You access has been denied."
-        }
+        pre { DAAM.isMinter(self.minter)==true   : "You access has been denied." }
+
         let minterStatus = DAAM.minters[self.minter]==true ? true : false
         if !minterStatus { return false }
 
