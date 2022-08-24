@@ -177,10 +177,10 @@ pub struct AuctionHolder {
             assert(self.owner?.address! == agent, message: "You are not a DAAM Agent.")
             
             let creator = metadataRef.viewMetadata(mid : mid)!.creatorInfo.creator
-            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: mid, start: start, length: length,
-                isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
-                incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
-            let aid = auction?.auctionID! // Auction ID           
+            let auction <- self.createAuctionResource(metadataGenerator:metadataGenerator, nft:nil, id:mid, start:start, length:length,
+                isExtended:isExtended, extendedTime:extendedTime, vault:<-vault, incrementByPrice:incrementByPrice, incrementAmount:incrementAmount,
+                startingBid:startingBid, reserve:reserve, buyNow: buyNow, reprintSeries:reprintSeries)
+            let aid = auction.auctionID! // Auction ID           
 
             self.approveAuctions.append(<- auction) // Update Current Auctions
             return aid
