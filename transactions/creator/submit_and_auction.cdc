@@ -28,7 +28,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
 }
 
 transaction(
-    name: String, max: UInt64?, feature: Bool, categories: [String], inCollection: {String:[UInt64]}?, description: String, misc: String,  // Metadata information
+    name: String, max: UInt64?, featured: Bool, categories: [String], inCollection: {String:[UInt64]}?, description: String, misc: String,  // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
     interact: AnyStruct?, percentage: UFix64,
