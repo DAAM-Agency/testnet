@@ -8,7 +8,7 @@ pub fun main(auction: Address): Bool {
     let auctionHouse = getAccount(auction)
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
         (AuctionHouse.auctionPublicPath)
-        .borrow()!
+        .borrow()
         
     return auctionHouse != nil
 }
