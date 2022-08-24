@@ -126,7 +126,7 @@ pub struct AuctionHolder {
     }
 /************************************************************************/
     pub resource AuctionWallet: AuctionWalletPublic {
-        priv var currentAuctions: @{UInt64 : Auction}  // { TokenID : Auction }
+        priv var currentAuctions: @{UInt64 : Auction}  // { AuctionID : Auction }
         priv var approveAuctions: @[Auction]
 
         init() {  // Auction Resources are stored here. The Auctions themselves.
@@ -173,27 +173,29 @@ pub struct AuctionHolder {
             pre { DAAM.isAgent(self.owner?.address!) == true : "Not a DAAM Agent." }
 
             let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
-            let agent   = metadataRef.metadata[mid].creatorInfo.agent!
+            let agent   = metadataRef.viewMetadata(mid : mid)!.creatorInfo.agent
             assert(self.owner?.address! == agent, message: "You are not a DAAM Agent.")
             
-            let creator = metadataRef.metadata[mid].creatorInfo.creator
-            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: mid, start: start, length: length, isExtended: isExtended,
-                extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid,
-                reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
+            let creator = metadataRef.viewMetadata(mid : mid)!.creatorInfo.creator
+            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: mid, start: start, length: length,
+                isExtended: isExtended, extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice,
+                incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
             let aid = auction?.auctionID! // Auction ID           
 
-            AuctionHouse.approveAuctions[creator].append(<- auction) // Update Current Auctions
+            self.approveAuctions.append(<- auction) // Update Current Auctions
             return aid
         }
 
         pub fun agentAuction(index: Int, approve: Bool) {
+            pre { index < self.approveAuctions.length }
+
+            let removed <- self.approveAuctions.remove(at: index)
             if approve {
-                let approve <- self.approveAuction[self.owner?.address!]
-                let old <- self.currentAuctions[self.owner?.address!] <-  approve
+                let old <- self.currentAuctions.insert(key: removed.auctionID, <- removed)
                 destroy old
             } else {
-                let disapprove <- self.approveAuction[self.owner?.address!].remove(at: index)
-                destroy disapprove
+                emit AuctionCancelled(auctionID: removed.auctionID)
+                destroy removed
             }
         }
 
@@ -290,7 +292,11 @@ pub struct AuctionHolder {
             return AuctionHouse.crypto.containsKey(identifier)
         }
 
-        destroy() { destroy self.currentAuctions }
+        destroy() {
+        pre { self.currentAuctions.length == 0 && self.approveAuctions.length == 0 }
+            destroy self.currentAuctions
+            destroy self.approveAuctions
+        }
     }
 /************************************************************************/
     pub resource interface AuctionPublic {
@@ -574,7 +580,7 @@ pub struct AuctionHolder {
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
                     let metadata <- self.auctionMetadata <- nil
-                    let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
+                    let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath).borrow()!
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")                   

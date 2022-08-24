@@ -268,6 +268,7 @@ pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess
     pub fun generateMetadata(minter: @MinterAccess) : @Metadata
+    pub fun viewMetadata(mid: UInt64): MetadataHolder?
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
