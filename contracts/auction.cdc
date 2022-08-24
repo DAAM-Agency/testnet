@@ -580,7 +580,7 @@ pub struct AuctionHolder {
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
                     let metadata <- self.auctionMetadata <- nil
-                    let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath).borrow()!
+                    let ref = getAccount(receiver!).getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")                   
