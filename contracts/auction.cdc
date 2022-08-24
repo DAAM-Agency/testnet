@@ -116,10 +116,13 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
-        pub fun getAuctions(): [UInt64] // MIDs in Auctions
+        pub fun getAuctions(): [UInt64]                      // MIDs in Auctions
         pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
-        pub fun closeAuctions()
-        pub fun deposit(auction: @Auction, agent: &Agent)
+        pub fun closeAuctions()                              // Close all finilise auctions
+
+        pub fun deposit(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+            length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
+            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
     }
 /************************************************************************/
     pub resource AuctionWallet: AuctionWalletPublic {
@@ -151,11 +154,11 @@ pub struct AuctionHolder {
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
-            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: id, start: start, length: length, isExtended: isExtended,
+            let auction <- self.createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: id, start: start, length: length, isExtended: isExtended,
                 extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid,
                 reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)            
             // Add Auction
-            let aid = auction?.auctionID! // Auction ID
+            let aid = auction.auctionID // Auction ID
             let oldAuction <- self.currentAuctions.insert(key: aid, <- auction!) // Store Auction
             destroy oldAuction // destroy placeholder
 
@@ -165,22 +168,33 @@ pub struct AuctionHolder {
 
         pub fun deposit(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
-            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?, permission: &DAAM.Admin{DAAM.Agent}): UInt64
+            startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
-            pre { DAAM.isAgent(self.owner?.address!)==true : "Not a DAAM Agent." }
+            pre { DAAM.isAgent(self.owner?.address!) == true : "Not a DAAM Agent." }
 
             let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
             let agent   = metadataRef.metadata[mid].creatorInfo.agent!
-            assert(self.owner?.address!==agent, message: "You are not a DAAM Agent.")
+            assert(self.owner?.address! == agent, message: "You are not a DAAM Agent.")
             
             let creator = metadataRef.metadata[mid].creatorInfo.creator
-            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: id, start: start, length: length, isExtended: isExtended,
+            let auction <- createAuctionResource(metadataGenerator: metadataGenerator, nft: <-nft, id: mid, start: start, length: length, isExtended: isExtended,
                 extendedTime: extendedTime, vault: <-vault, incrementByPrice: incrementByPrice, incrementAmount: incrementAmount, startingBid: startingBid,
                 reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
             let aid = auction?.auctionID! // Auction ID           
 
-            AuctionHouse.approveAuctions.insert(key: creator, <-auction) // Update Current Auctions
+            AuctionHouse.approveAuctions[creator].append(<- auction) // Update Current Auctions
             return aid
+        }
+
+        pub fun agentAuction(index: Int, approve: Bool) {
+            if approve {
+                let approve <- self.approveAuction[self.owner?.address!]
+                let old <- self.currentAuctions[self.owner?.address!] <-  approve
+                destroy old
+            } else {
+                let disapprove <- self.approveAuction[self.owner?.address!].remove(at: index)
+                destroy disapprove
+            }
         }
 
         priv fun createAuctionResource(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, id: UInt64, start: UFix64,
@@ -212,7 +226,7 @@ pub struct AuctionHolder {
                     incrementAmount: incrementAmount, startingBid: startingBid, reserve: reserve, buyNow: buyNow, reprintSeries: reprintSeries)
                 destroy old
             }
-            return <- auction
+            return <- auction!
         }    
 
         // Resolves all Auctions. Closes ones that have been ended or restarts them due to being a reprintSeries auctions.
@@ -1067,3 +1081,4 @@ pub struct AuctionHolder {
         self.crypto .insert(key: "A.ec4809cd812aee0a.TokenA.Vault", /public/tokenAReceiver)
     }
 }
+ 
