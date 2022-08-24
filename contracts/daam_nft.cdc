@@ -147,8 +147,11 @@ pub resource RequestGenerator {
             ) // end append    
             rateCut = rateCut + (creator.cut - newCut)
             // Update Creator History
-            if !DAAM.creatorHistory.containsKey(creator.receiver.address) { DAAM.creatorHistory[creator.receiver.address] = [mid]}
-            if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) { DAAM.creatorHistory[creator.receiver.address]!.append(mid) }
+            if !DAAM.creatorHistory.containsKey(creator.receiver.address) {
+                DAAM.creatorHistory[creator.receiver.address] = [mid]
+            } else if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) {
+                DAAM.creatorHistory[creator.receiver.address]!.append(mid)
+            }
         }
         assert(totalCut >= 0.01 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
 
@@ -349,9 +352,9 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         pub fun generateMetadata(minter: @MinterAccess) : @Metadata {
             pre {
                 self.grantee == self.owner!.address     : "Account: ".concat(self.grantee.toString()).concat(" Permission Denied")
-                minter.validate(creator: self.grantee) : "Account: ".concat(self.grantee.toString()).concat("Minter Access Denied")
-                DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat("You are not a Creator")
-                DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
+                minter.validate(creator: self.grantee)  : "Account: ".concat(self.grantee.toString()).concat(" Minter Access Denied")
+                DAAM.creators.containsKey(self.grantee) : "Account: ".concat(self.grantee.toString()).concat(" You are not a Creator")
+                DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat(" Your Creator account is Frozen.")
                 
                 self.metadata[minter.mid] != nil : "MetadataID: ".concat(minter.mid.toString()).concat(" does not exist.")
                 DAAM.metadata[minter.mid] != nil : "MetadataID: ".concat(minter.mid.toString()).concat(" This already has been published.")
@@ -994,7 +997,6 @@ pub struct CreatorInfo {
     pub resource Minter
     {
         priv let grantee: Address
-        //priv let type: Type? TODO for seperation of Agent and Marketplace minting.
 
         init(_ minter: Address) {
             self.grantee = minter
@@ -1074,15 +1076,11 @@ pub resource MinterAccess
     pub fun validate(creator: Address): Bool {
         pre { DAAM.isMinter(self.minter)==true   : "You access has been denied." }
 
-        let minterStatus = DAAM.minters[self.minter]==true ? true : false
-        if !minterStatus { return false }
-
-        switch(DAAM.isAgent(self.minter)) {
-            case nil  : return minterStatus // A Marketplace, Access Approvd, minterStatus is always true
-            case false: return false        // Access is Frozen
-            case true :                     // is an Agent, verify creator & mid relationship to agent
-                if !DAAM.creatorHistory[creator]!.contains(self.mid) { return false } // Verify MID belongs to Creator
-                if DAAM.agentHistory[self.minter]!.contains(creator) { return true  } // Verify Agent is Creators'
+        if DAAM.isAgent(self.minter) == nil   { return true  } // Is a Marketplace, Access Approvd, minterStatus is always true
+        if DAAM.isAgent(self.minter) == false { return false } // Access is Frozen or Invitation has not been acccepted.
+        if DAAM.isAgent(self.minter) == true  {  // is an Agent, verify creator & mid relationship to agent
+                // Verify MID belongs to Creator && Verify Agent is Creators'
+                return DAAM.creatorHistory[creator]!.contains(self.mid) && DAAM.agentHistory[self.minter]!.contains(creator)
         }
         return false
     }
@@ -1102,17 +1100,18 @@ pub resource MinterAccess
             self.isAdmin(newAdmin.address) == false : "Account: ".concat(newAdmin.address.toString()).concat(" You got no DAAM Admin invite.")
             Profile.check(newAdmin.address)  : "You can't be a DAAM Admin without a Profile first. Go make a Profile first."
         }
+        let newAdminAddress:Address = newAdmin.address
 
         if !submit { 
-            DAAM.admins.remove(key: newAdmin.address) // Release Admin
+            DAAM.admins.remove(key: newAdminAddress) // Release Admin
             return nil
         }  // Refused invitation. Return and end function
         
         // Invitation accepted at this point
-        DAAM.admins[newAdmin.address] = submit // Insert new Admin in admins list.
-        log("Admin: ".concat(newAdmin.address.toString()).concat(" added to DAAM") )
-        emit NewAdmin(admin: newAdmin.address)
-        return <- create Admin(newAdmin.address)      // Accepted and returning Admin Resource
+        DAAM.admins[newAdminAddress] = submit // Insert new Admin in admins list.
+        log("Admin: ".concat(newAdminAddress.toString()).concat(" added to DAAM") )
+        emit NewAdmin(admin: newAdminAddress)
+        return <- create Admin(newAdminAddress)      // Accepted and returning Admin Resource
     }
 
     // // The Agent potential can accept (True) or deny (False)
@@ -1124,21 +1123,22 @@ pub resource MinterAccess
             self.isAgent(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" You got no DAAM Agent invite.")
             Profile.check(newAgent.address) : "You can't be a DAAM Agent without a Profile first. Go make a Profile first."
         }
+        let newAgentAddress:Address = newAgent.address
 
         if !submit {                                  // Refused invitation. 
-            DAAM.admins.remove(key: newAgent.address) // Remove potential from Agent list
-            DAAM.agents.remove(key: newAgent.address) // Remove potential from Agent list
+            DAAM.admins.remove(key: newAgentAddress) // Remove potential from Agent list
+            DAAM.agents.remove(key: newAgentAddress) // Remove potential from Agent list
             return nil                                // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.admins[newAgent.address] = submit        // Add Admin & set Status (True)
-        DAAM.agents[newAgent.address] = submit        // Add Agent & set Status (True)
-        DAAM.agentHistory.insert(key: newAgent.address, [])      // Setup Agent History
+        DAAM.admins[newAgentAddress] = submit        // Add Admin & set Status (True)
+        DAAM.agents[newAgentAddress] = submit        // Add Agent & set Status (True)
+        DAAM.agentHistory[newAgentAddress] = []     // Setup Agent History
 
 
-        log("Agent: ".concat(newAgent.address.toString()).concat(" added to DAAM") )
-        emit NewAgent(agent: newAgent.address)
-        return <- create Admin(newAgent.address)!             // Return Admin Resource as {Agent}
+        log("Agent: ".concat(newAgentAddress.toString()).concat(" added to DAAM") )
+        emit NewAgent(agent: newAgentAddress)
+        return <- create Admin(newAgentAddress)!             // Return Admin Resource as {Agent}
     }
 
     // // The Creator potential can accept (True) or deny (False)
@@ -1149,34 +1149,39 @@ pub resource MinterAccess
             self.isCreator(newCreator.address) == false : "Account: ".concat(newCreator.address.toString()).concat(" You got no DAAM Creator invite.")
             Profile.check(newCreator.address) : "You can't be a DAAM Creator without a Profile first. Go make a Profile first."
         }
+        let newCreatorAddress:Address = newCreator.address
 
         if !submit {                                       // Refused invitation.
-            DAAM.creators.remove(key: newCreator.address)  // Remove potential from Agent list
+            DAAM.creators.remove(key: newCreatorAddress)  // Remove potential from Agent list
             return nil                                     // Return and end function
         }
         // Invitation accepted at this point
-        DAAM.creators[newCreator.address]!.setStatus(submit) // Add Creator & set Status (True)
-        let agent = DAAM.creators[newCreator.address!]?.agent!
-        var list = DAAM.agentHistory[agent]!
-        list.append(newCreator.address!)
-        DAAM.agentHistory.insert(key: agent, list)
+        DAAM.creators[newCreatorAddress]!.setStatus(submit) // Add Creator & set Status (True)
 
-        log("Creator: ".concat(newCreator.address.toString()).concat(" added to DAAM") )
-        emit NewCreator(creator: newCreator.address)
-        return <- create Creator(newCreator.address)!                         // Return Creator Resource
+        let agent = DAAM.creators[newCreatorAddress]!.agent
+        log("Agent: ".concat(agent.toString()) )
+        // Add to AgentHistory if not aleady entered. Considering re-invites.
+        if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
+            DAAM.agentHistory[agent]!.append(newCreatorAddress)
+        }
+
+        log("Creator: ".concat(newCreatorAddress.toString()).concat(" added to DAAM") )
+        emit NewCreator(creator: newCreatorAddress)
+        return <- create Creator(newCreatorAddress)!                         // Return Creator Resource
     }
 
     pub fun answerMinterInvite(newMinter: AuthAccount, submit: Bool): @Minter? {
         pre { self.isMinter(newMinter.address) == false : "Account: ".concat(newMinter.address.toString()).concat(" You do not have a Minter Invitation") }
 
+        let newMinterAddress: Address = newMinter.address
         if !submit {                                      // Refused invitation. 
-            DAAM.minters.remove(key: newMinter.address) // Remove potential from Agent list
+            DAAM.minters.remove(key: newMinterAddress) // Remove potential from Agent list
             return nil                                    // Return and end function
         }
         // Invitation accepted at this point
-        log("Minter: ".concat(newMinter.address.toString()) )
-        emit NewMinter(minter: newMinter.address)
-        return <- create Minter(newMinter.address)             // Return Minter (Key) Resource
+        log("Minter: ".concat(newMinterAddress.toString()) )
+        emit NewMinter(minter: newMinterAddress)
+        return <- create Minter(newMinterAddress)             // Return Minter (Key) Resource
     }
     
     // Create an new Collection to store NFTs
@@ -1299,7 +1304,7 @@ pub resource MinterAccess
         self.metadata  = {}
         self.newNFTs   = []
         self.metadataCap = {}
-        self.agentHistory   = {self.company.receiver.address: []} 
+        self.agentHistory   = {} 
         self.creatorHistory = {}
         // Counter varibbles
         self.totalSupply         = 0  // Initialize the total supply of NFTs
