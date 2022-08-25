@@ -190,15 +190,12 @@ pub struct AuctionHolder {
 
         pub fun agentAuction(auctionID: UInt64, approve: Bool) {
             pre { self.approveAuctions.containsKey(auctionID) : "AID does not exist." }
-
+            // set to Approve, regardless
             let removed <- self.approveAuctions.remove(key: auctionID)!
-            if approve {
-                let old <- self.currentAuctions.insert(key: auctionID, <- removed)
-                destroy old
-            } else {
-                destroy removed
-                emit AuctionCancelled(auctionID: auctionID)
-            }
+            let old <- self.currentAuctions.insert(key: auctionID, <- removed)
+            destroy old
+            // If (dis)approve (false) cancel Auction
+            if !approve { self.cancelAuction(auctionID: auctionID) }
         }
 
         priv fun createAuctionResource(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, id: UInt64, start: UFix64,
