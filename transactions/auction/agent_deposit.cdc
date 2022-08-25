@@ -2,16 +2,16 @@
 // Used for Agent deposit Auction for Creator Approval/Disapproval
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V22             from 0xa4ad5ea5c0bd2fba
-import FUSD             from 0xba1132bc08f82fe2
+import DAAM_V22.V22             from 0xa4ad5ea5c0bd2fba
+import FUSD             from 0xe223d8a629e49c68
 import AuctionHouse_V15     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
     let auctionHouse     : &AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}
-    let metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-    let agent       : &DAAM.Admin{DAAM.Agent}
+    let metadataGenerator: Capability<&DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint}>
+    let agent       : &DAAM_V22.Admin{DAAM_V22.Agent}
     let mid         : UInt64
     let start       : UFix64
     let length      : UFix64
@@ -25,11 +25,11 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
     let reprintSeries   : UInt64?
 
     prepare(agent: AuthAccount) {
-        self.agent = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM_V22.adminStoragePath)!
+        self.agent = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.V22.adminStoragePath)!
 
         self.metadataGenerator  = getAccount(creator)
-            .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-            (DAAM.metadataPublicPath)
+            .getCapability<&DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint}>
+            (DAAM_V22.metadataPublicPath)
 
         self.auctionHouse = getAccount(creator)
             .getCapability<&AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}>
