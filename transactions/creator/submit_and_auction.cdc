@@ -5,7 +5,7 @@
 import FungibleToken from 0x9a0766d93b6608b7 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V22          from 0xa4ad5ea5c0bd2fba
+import DAAM_V23          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse_V17  from 0x045a1763c93006ca
 import FUSD          from 0xe223d8a629e49c68
 
@@ -16,12 +16,12 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     pre { ipfs || !ipfs && type_path != nil }
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
-        case "text": return DAAM_V22.OnChain(file: string_cid)
-        case "jpg": return DAAM_V22.OnChain(file: string_cid)
-        case "jpg": return DAAM_V22.OnChain(file: string_cid)
-        case "png": return DAAM_V22.OnChain(file: string_cid)
-        case "bmp": return DAAM_V22.OnChain(file: string_cid)
-        case "gif": return DAAM_V22.OnChain(file: string_cid)
+        case "text": return DAAM_V23.OnChain(file: string_cid)
+        case "jpg": return DAAM_V23.OnChain(file: string_cid)
+        case "jpg": return DAAM_V23.OnChain(file: string_cid)
+        case "png": return DAAM_V23.OnChain(file: string_cid)
+        case "bmp": return DAAM_V23.OnChain(file: string_cid)
+        case "gif": return DAAM_V23.OnChain(file: string_cid)
         case "http": return MetadataViews.HTTPFile(url: string_cid)
     }
     panic("Type is invalid")
@@ -37,9 +37,9 @@ transaction(
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
     )
 {    
-    let requestGen  : &DAAM_V22.RequestGenerator
-    let metadataGen : &DAAM_V22.MetadataGenerator
-    let metadataCap : Capability<&DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint}>
+    let requestGen  : &DAAM_V23.RequestGenerator
+    let metadataGen : &DAAM_V23.MetadataGenerator
+    let metadataCap : Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse_V17.AuctionWallet
 
     let name        : String
@@ -66,10 +66,10 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-        self.metadataGen  = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.requestStoragePath)!
+        self.metadataGen  = creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse_V17.AuctionWallet>(from: AuctionHouse_V17.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint}>(DAAM_V22.metadataPublicPath)!
+        self.metadataCap  = creator.getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>(DAAM_V23.metadataPublicPath)!
         
         self.name         = name
         self.max          = max
