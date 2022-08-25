@@ -11,7 +11,7 @@ transaction() {
     prepare(signer: AuthAccount) {
         self.signer        = signer
 
-        self.name          = "DAAM_V22"
+        self.name          = "DAAM_V23"
         self.company       = 0xf0653a06e7de7dbd
         self.founders      = {0x39c1129f876512be :0.19, 0xdf446d3db90c7c0a :0.23, 0x3b23d4e0a8f67cd5 :0.11, 0xd46e5fa475890223 :0.11, 0x3009e679647302fc :0.19,0x265d834afd77089d:0.17}
         self.defaultAdmins = [0x39c1129f876512be, 0xdf446d3db90c7c0a, 0x3b23d4e0a8f67cd5, 0xd46e5fa475890223, 0x3009e679647302fc, 0x265d834afd77089d, 0xa71e33abb26f6b09]

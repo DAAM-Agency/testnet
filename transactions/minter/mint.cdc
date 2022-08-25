@@ -2,28 +2,28 @@
 // Used for Admin / minters to change Creator status. True = active, False = frozen
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V22         from 0xa4ad5ea5c0bd2fba
+import DAAM_V23         from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64) {
-    let minterRef : &DAAM_V22.Minter
+    let minterRef : &DAAM_V23.Minter
     let creator   : Address
     let mid       : UInt64
-    let metadataRef : &{DAAM_V22.MetadataGeneratorMint}
+    let metadataRef : &{DAAM_V23.MetadataGeneratorMint}
     let receiverRef : &{NonFungibleToken.CollectionPublic}
 
     prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_V23.Minter>(from: DAAM_V23.minterStoragePath)!
         self.creator   = creator
         self.mid       = mid
 
         self.receiverRef  = getAccount(self.creator)
-            .getCapability(DAAM_V22.collectionPublicPath)
+            .getCapability(DAAM_V23.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()!
 
 
         self.metadataRef = getAccount(self.creator)
-            .getCapability(DAAM_V22.metadataPublicPath)
-            .borrow<&{DAAM_V22.MetadataGeneratorMint}>()!
+            .getCapability(DAAM_V23.metadataPublicPath)
+            .borrow<&{DAAM_V23.MetadataGeneratorMint}>()!
     }
 
     execute {

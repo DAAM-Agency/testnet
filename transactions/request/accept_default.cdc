@@ -3,20 +3,20 @@
 
 import FungibleToken from 0x9a0766d93b6608b7 
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V22          from 0xa4ad5ea5c0bd2fba
+import DAAM_V23          from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64) {
     let mid         : UInt64
     let percentage  : UFix64
-    let requestGen  : &DAAM_V22.RequestGenerator
-    let metadataGen : &DAAM_V22.MetadataGenerator
+    let requestGen  : &DAAM_V23.RequestGenerator
+    let metadataGen : &DAAM_V23.MetadataGenerator
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
         self.mid     = mid
         self.percentage  = percentage
-        self.requestGen  = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.requestStoragePath)!
-        self.metadataGen = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
 
         let royalties    = [ MetadataViews.Royalty(
             receiver: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
