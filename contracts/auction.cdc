@@ -127,11 +127,11 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource AuctionWallet: AuctionWalletPublic {
         priv var currentAuctions: @{UInt64 : Auction}  // { AuctionID : Auction }
-        priv var approveAuctions: @[Auction]
+        priv var approveAuctions: @{UInt64 : Auction}
 
         init() {  // Auction Resources are stored here. The Auctions themselves.
             self.currentAuctions <- {}
-            self.approveAuctions <- []
+            self.approveAuctions <- {}
         }      
 
         // createAuction: An Original Auction is defined as a newly minted NFT.
@@ -182,20 +182,21 @@ pub struct AuctionHolder {
                 startingBid:startingBid, reserve:reserve, buyNow: buyNow, reprintSeries:reprintSeries)
             let aid = auction.auctionID! // Auction ID           
 
-            self.approveAuctions.append(<- auction) // Update Current Auctions
+            let old <- self.approveAuctions.insert(key: aid, <- auction) // Update Current Auctions
+            destroy old
             return aid
         }
 
-        pub fun agentAuction(index: Int, approve: Bool) {
-            pre { index < self.approveAuctions.length }
+        pub fun agentAuction(aid: UInt64, approve: Bool) {
+            pre { self.approveAuctions.containsKey(aid) : "AID does not exist." }
 
-            let removed <- self.approveAuctions.remove(at: index)
+            let removed <- self.approveAuctions.remove(key: aid)!
             if approve {
-                let old <- self.currentAuctions.insert(key: removed.auctionID, <- removed)
+                let old <- self.currentAuctions.insert(key: aid, <- removed)
                 destroy old
             } else {
-                emit AuctionCancelled(auctionID: removed.auctionID)
                 destroy removed
+                emit AuctionCancelled(auctionID: aid)
             }
         }
 
@@ -273,15 +274,7 @@ pub struct AuctionHolder {
 
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
 
-        pub fun getAgentAuctions(): [AuctionHolder] {
-            var list: [AuctionHolder] = []
-
-            for auction in self.approveAuctions {
-                let ref = &auction
-                list.append(ref.auctionInfo())
-            }
-            return list
-        } // Return all auctions by User
+        pub fun getAgentAuctions(): [UInt64] { return self.approveAuctions.keys } // Return all auctions by Agent, requires Approval
 
         pub fun endReprints(auctionID: UInt64) { // Toggles the reprint to OFF. Note: This is not a toggle
             pre {
