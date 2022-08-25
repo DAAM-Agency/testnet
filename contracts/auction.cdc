@@ -266,6 +266,16 @@ pub struct AuctionHolder {
             }
         }
 
+        // Auctions can be cancelled if they have no bids.
+        pub fun cancelAuction(aid: UInt64) {
+            pre {
+                self.currentAuctions.containsKey(aid) : "AID: ".concat(aid.toString().concat(" is not in your Wallet."))
+                self.currentAuctions[aid]?.updateStatus() == nil || true : "Too late to cancel Auction."
+                self.currentAuctions[aid]?.auctionLog.length == 0        : "You already have a bid. Too late to Cancel."
+            }
+            self.currentAuctions[auctionID]!.cancelAuction()
+        } 
+
         // item(Auction ID) return a reference of the auctionID Auction
         pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? { 
             pre { self.currentAuctions.containsKey(aid) }
@@ -925,21 +935,7 @@ pub struct AuctionHolder {
            }
            self.reprintSeries = 0
         }
-
-        // Auctions can be cancelled if they have no bids.
-        pub fun cancelAuction() {
-            pre {
-                self.updateStatus() == nil || true         : "Too late to cancel Auction."
-                self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
-            }
-            
-            self.status = false
-            self.length = 0.0 as UFix64
-
-            log("Auction Cancelled: ".concat(self.auctionID.toString()) )
-            emit AuctionCancelled(auctionID: self.auctionID)
-        } 
-
+        
         destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
                 self.auctionNFT == nil           : "Illegal Operation: Auction still contains NFT Token ID: ".concat(self.auctionNFT?.metadata!.mid.toString())

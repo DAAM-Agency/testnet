@@ -2,7 +2,7 @@
 . ./debug/view_basic_data.sh
 
 echo "========= Reset Copyright ========="
-flow transactions send ./transactions/admin/change_copyright.cdc $DISAPPROVED_COPYRIGHT 3 --signer cto #E Verfied
+flow transactions send ./transactions/admin/change_copyright.cdc $CREATOR $DISAPPROVED_COPYRIGHT 3 --signer cto #E Verfied
 
 . ./debug/create_auctions/original_auctions_buy_it_now.sh
 . ./debug/view_basic_data.sh
