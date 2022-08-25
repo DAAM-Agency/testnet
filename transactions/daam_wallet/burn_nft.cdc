@@ -1,7 +1,7 @@
 // transfer.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V22.V22 from 0xa4ad5ea5c0bd2fba
+import DAAM_V22 from 0xa4ad5ea5c0bd2fba
 
 /// This transaction is for transferring and NFT from
 /// one account to another
@@ -15,7 +15,7 @@ transaction(burn: UInt64) {
         // borrow a reference to the signer's NFT collection
         self.withdrawRef = signer
 <<<<<<< HEAD
-            .borrow<&DAAM_V22.Collection>(from: DAAM_V22.V22.collectionStoragePath)
+            .borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
 =======
             .borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
 >>>>>>> 586a0096 (updated FUSD Address)

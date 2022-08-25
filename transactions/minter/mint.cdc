@@ -3,7 +3,7 @@
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 <<<<<<< HEAD
-import DAAM_V22.V22             from 0xa4ad5ea5c0bd2fba
+import DAAM_V22             from 0xa4ad5ea5c0bd2fba
 =======
 import DAAM_V22         from 0xa4ad5ea5c0bd2fba
 >>>>>>> 586a0096 (updated FUSD Address)
@@ -17,7 +17,7 @@ transaction(creator: Address, mid: UInt64) {
 
     prepare(minter: AuthAccount) {
 <<<<<<< HEAD
-        self.minterRef = minter.borrow<&DAAM_V22.Minter>(from: DAAM_V22.V22.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)!
 =======
         self.minterRef = minter.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)!
 >>>>>>> 586a0096 (updated FUSD Address)

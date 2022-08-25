@@ -1,6 +1,6 @@
 // add_tokenID_to_collection.cdc
 
-import DAAM_V22.V22 from 0xa4ad5ea5c0bd2fba
+import DAAM_V22 from 0xa4ad5ea5c0bd2fba
 
 transaction(id: UInt64, feature: Bool, element: UInt64) {
     let collectionRef: &DAAM_V22.Collection
@@ -11,7 +11,7 @@ transaction(id: UInt64, feature: Bool, element: UInt64) {
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
 <<<<<<< HEAD
-        self.collectionRef = acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.V22.collectionStoragePath)
+        self.collectionRef = acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
 =======
         self.collectionRef = acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
 >>>>>>> 586a0096 (updated FUSD Address)

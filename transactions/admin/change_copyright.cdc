@@ -1,18 +1,18 @@
 // change_copyright.cdc
 // Used for Admin / Agents to change Copyright status of MID
 /*
-0 as int 8 = DAAM_V22.V22.CopyrightStatus.FRAUD
-1 as int 8 = DAAM_V22.V22.CopyrightStatus.CLAIM
-2 as int 8 = DAAM_V22.V22.CopyrightStatus.UNVERIFIED
-3 as int 8 = DAAM_V22.V22.CopyrightStatus.VERIFIED
-4 as int 8 = DAAM_V22.V22.CopyrightStatus.INCLUDED
+0 as int 8 = DAAM_V22.CopyrightStatus.FRAUD
+1 as int 8 = DAAM_V22.CopyrightStatus.CLAIM
+2 as int 8 = DAAM_V22.CopyrightStatus.UNVERIFIED
+3 as int 8 = DAAM_V22.CopyrightStatus.VERIFIED
+4 as int 8 = DAAM_V22.CopyrightStatus.INCLUDED
 */
 
-import DAAM_V22.V22 from 0xa4ad5ea5c0bd2fba
+import DAAM_V22 from 0xa4ad5ea5c0bd2fba
     
 transaction(creator: Address, mid: UInt64, copyright: UInt8) {
 <<<<<<< HEAD
-    let cr     : DAAM_V22.V22.CopyrightStatus
+    let cr     : DAAM_V22.CopyrightStatus
 =======
     let cr     : DAAM_V22.CopyrightStatus
 >>>>>>> 586a0096 (updated FUSD Address)
@@ -22,8 +22,8 @@ transaction(creator: Address, mid: UInt64, copyright: UInt8) {
 
     prepare(agent: AuthAccount) {
 <<<<<<< HEAD
-        self.cr      = DAAM_V22.V22.CopyrightStatus(rawValue: copyright)!                             // init copyright
-        self.admin   = agent.borrow<&{DAAM_V22.Agent}>(from: DAAM_V22.V22.adminStoragePath)! // init admin
+        self.cr      = DAAM_V22.CopyrightStatus(rawValue: copyright)!                             // init copyright
+        self.admin   = agent.borrow<&{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)! // init admin
 =======
         self.cr      = DAAM_V22.CopyrightStatus(rawValue: copyright)!                             // init copyright
         self.admin   = agent.borrow<&{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)! // init admin
@@ -32,7 +32,7 @@ transaction(creator: Address, mid: UInt64, copyright: UInt8) {
         self.creator = creator                                                        // init mid
     }
 
-    pre { copyright < 5 : "Copyright: Invalid Entry" } // Verify copyright is within DAAM_V22.V22.CopyrightStatus length
+    pre { copyright < 5 : "Copyright: Invalid Entry" } // Verify copyright is within DAAM_V22.CopyrightStatus length
 
     execute {
         self.admin.changeCopyright(creator: self.creator, mid: self.mid, copyright: self.cr)  // Change Copyright status

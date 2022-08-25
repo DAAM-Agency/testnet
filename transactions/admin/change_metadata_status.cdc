@@ -1,7 +1,7 @@
 // change_metadata_status.cdc
 // Used for Admin / Agents to Approve/Disapprove Metadata via MID. True = Approved, False = Disapproved
 
-import DAAM_V22.V22 from 0xa4ad5ea5c0bd2fba
+import DAAM_V22 from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64, status: Bool)
 {
@@ -12,7 +12,7 @@ transaction(creator: Address, mid: UInt64, status: Bool)
 
     prepare(agent: AuthAccount) {
 <<<<<<< HEAD
-        self.admin   = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.V22.adminStoragePath)!
+        self.admin   = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)!
 =======
         self.admin   = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)!
 >>>>>>> 586a0096 (updated FUSD Address)

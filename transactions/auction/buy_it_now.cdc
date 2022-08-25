@@ -4,7 +4,7 @@
 import FungibleToken from 0x9a0766d93b6608b7
 import FUSD          from 0xe223d8a629e49c68
 import AuctionHouse_V15  from 0x045a1763c93006ca
-import DAAM_V22.V22          from 0xa4ad5ea5c0bd2fba
+import DAAM_V22          from 0xa4ad5ea5c0bd2fba
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
@@ -21,7 +21,7 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
         self.fusdStoragePath = /storage/fusdVault
         self.vaultRef   = bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
 <<<<<<< HEAD
-        self.collection = bidder.borrow<&{DAAM_V22.CollectionPublic}>(from: DAAM_V22.V22.collectionStoragePath)!
+        self.collection = bidder.borrow<&{DAAM_V22.CollectionPublic}>(from: DAAM_V22.collectionStoragePath)!
 =======
         self.collection = bidder.borrow<&{DAAM_V22.CollectionPublic}>(from: DAAM_V22.collectionStoragePath)!
 >>>>>>> 586a0096 (updated FUSD Address)

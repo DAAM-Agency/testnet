@@ -1,12 +1,12 @@
 // setup_daam_account.cdc
-// Create A DAAM_V22.V22 Wallet to store DAAM_V22.V22 NFTs
+// Create A DAAM_V22 Wallet to store DAAM_V22 NFTs
 // Includes: /multitoken/setup_mft_receiver.cdc
 
 import NonFungibleToken   from 0x631e88ae7f1d7c20
 import FungibleToken      from 0x9a0766d93b6608b7
 import MetadataViews      from 0x631e88ae7f1d7c20
 import MultiFungibleToken from 0xfa1c6cfe182ee46b
-import DAAM_V22.V22               from 0xa4ad5ea5c0bd2fba
+import DAAM_V22               from 0xa4ad5ea5c0bd2fba
 
 transaction(public: Bool)
 {
@@ -15,8 +15,8 @@ transaction(public: Bool)
 
     prepare(acct: AuthAccount) {
 <<<<<<< HEAD
-        if acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.V22.collectionStoragePath) != nil {
-            panic("You already have a DAAM_V22.V22 Collection.")
+        if acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath) != nil {
+            panic("You already have a DAAM_V22 Collection.")
 =======
         if acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath) != nil {
             panic("You already have a DAAM_V22 Collection.")
@@ -30,15 +30,15 @@ transaction(public: Bool)
     }
 
     execute {
-        let collection <- DAAM_V22.V22.createEmptyCollection()    // Create a new empty collection
-        self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V22.V22.collectionStoragePath) // save the new account
+        let collection <- DAAM_V22.createEmptyCollection()    // Create a new empty collection
+        self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V22.collectionStoragePath) // save the new account
         
         if self.public {
 <<<<<<< HEAD
-            self.acct.link<&{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V22.collectionPublicPath, target: DAAM_V22.V22.collectionStoragePath)
-            log("DAAM_V22.Account Created. You have a DAAM_V22.V22 Collection (Public) to store NFTs'")
+            self.acct.link<&{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V22.collectionPublicPath, target: DAAM_V22.collectionStoragePath)
+            log("DAAM_V22.Account Created. You have a DAAM_V22 Collection (Public) to store NFTs'")
         } else {
-            log("DAAM_V22.Account Created. You have a DAAM_V22.V22 Collection (Non-Public) to store NFTs'")
+            log("DAAM_V22.Account Created. You have a DAAM_V22 Collection (Non-Public) to store NFTs'")
 =======
             self.acct.link<&{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V22.collectionPublicPath, target: DAAM_V22.collectionStoragePath)
             log("DAAM_V22.Account Created. You have a DAAM_V22 Collection (Public) to store NFTs'")
