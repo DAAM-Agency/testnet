@@ -2,7 +2,7 @@
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
 import DAAM_V22         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse from 0x045a1763c93006ca
+import AuctionHouse_V15 from 0x045a1763c93006ca
 
 transaction(mid: UInt64)
 {
@@ -15,6 +15,6 @@ transaction(mid: UInt64)
     }
 
     execute {
-        AuctionHouse.removeFee(mid: self.mid, permission: self.admin)
+        AuctionHouse_V15.removeFee(mid: self.mid, permission: self.admin)
     }
 }

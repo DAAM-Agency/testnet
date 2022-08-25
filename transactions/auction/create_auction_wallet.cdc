@@ -1,7 +1,7 @@
 // create_auction_wallet.cdc
 // Create an auction wallet. Used to store auctions.
 
-import AuctionHouse from 0x045a1763c93006ca
+import AuctionHouse_V15 from 0x045a1763c93006ca
 
 transaction() {
     let signer: AuthAccount
@@ -11,12 +11,12 @@ transaction() {
     }
 
     execute {
-        if self.signer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath) == nil {
-            let old <- self.signer.load<@AnyResource>(from: AuctionHouse.auctionStoragePath)
-            let auctionWallet <- AuctionHouse.createAuctionWallet()
-            self.signer.save<@AuctionHouse.AuctionWallet> (<- auctionWallet, to: AuctionHouse.auctionStoragePath)
-            self.signer.link<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
-                (AuctionHouse.auctionPublicPath, target: AuctionHouse.auctionStoragePath)
+        if self.signer.borrow<&AuctionHouse_V15.AuctionWallet>(from: AuctionHouse_V15.auctionStoragePath) == nil {
+            let old <- self.signer.load<@AnyResource>(from: AuctionHouse_V15.auctionStoragePath)
+            let auctionWallet <- AuctionHouse_V15.createAuctionWallet()
+            self.signer.save<@AuctionHouse_V15.AuctionWallet> (<- auctionWallet, to: AuctionHouse_V15.auctionStoragePath)
+            self.signer.link<&AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}>
+                (AuctionHouse_V15.auctionPublicPath, target: AuctionHouse_V15.auctionStoragePath)
             destroy old
             log("Auction House Created, you can now have Auctions.")
         }
