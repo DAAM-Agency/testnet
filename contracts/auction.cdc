@@ -187,16 +187,16 @@ pub struct AuctionHolder {
             return aid
         }
 
-        pub fun agentAuction(aid: UInt64, approve: Bool) {
-            pre { self.approveAuctions.containsKey(aid) : "AID does not exist." }
+        pub fun agentAuction(auctionID: UInt64, approve: Bool) {
+            pre { self.approveAuctions.containsKey(auctionID) : "AID does not exist." }
 
-            let removed <- self.approveAuctions.remove(key: aid)!
+            let removed <- self.approveAuctions.remove(key: auctionID)!
             if approve {
-                let old <- self.currentAuctions.insert(key: aid, <- removed)
+                let old <- self.currentAuctions.insert(key: auctionID, <- removed)
                 destroy old
             } else {
                 destroy removed
-                emit AuctionCancelled(auctionID: aid)
+                emit AuctionCancelled(auctionID: auctionID)
             }
         }
 
@@ -267,13 +267,9 @@ pub struct AuctionHolder {
         }
 
         // Auctions can be cancelled if they have no bids.
-        pub fun cancelAuction(aid: UInt64) {
-            pre {
-                self.currentAuctions.containsKey(aid) : "AID: ".concat(aid.toString().concat(" is not in your Wallet."))
-                self.currentAuctions[aid]?.updateStatus() == nil || true : "Too late to cancel Auction."
-                self.currentAuctions[aid]?.auctionLog.length == 0        : "You already have a bid. Too late to Cancel."
-            }
-            self.currentAuctions[auctionID]!.cancelAuction()
+        pub fun cancelAuction(auctionID: UInt64) {
+            pre { self.currentAuctions.containsKey(auctionID) : "AID is not in your Wallet." }
+            self.currentAuctions[auctionID]?.cancelAuction()
         } 
 
         // item(Auction ID) return a reference of the auctionID Auction
@@ -935,6 +931,20 @@ pub struct AuctionHolder {
            }
            self.reprintSeries = 0
         }
+
+        // Auctions can be cancelled if they have no bids.
+        pub fun cancelAuction() {
+            pre {
+                self.updateStatus() == nil || true         : "Too late to cancel Auction."
+                self.auctionLog.length == 0                : "You already have a bid. Too late to Cancel."
+            }
+            
+            self.status = false
+            self.length = 0.0
+
+            log("Auction Cancelled: ".concat(self.auctionID.toString()) )
+            emit AuctionCancelled(auctionID: self.auctionID)
+        } 
         
         destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
