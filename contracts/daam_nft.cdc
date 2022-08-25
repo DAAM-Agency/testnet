@@ -148,15 +148,9 @@ pub resource RequestGenerator {
             rateCut = rateCut + (creator.cut - newCut)
             // Update Creator History
             if !DAAM_V22.creatorHistory.containsKey(creator.receiver.address) {
-<<<<<<< HEAD
                 DAAM_V22.creatorHistory[creator.receiver.address] = [mid]
             } else if !DAAM_V22.creatorHistory[creator.receiver.address]!.contains(mid) {
                 DAAM_V22.creatorHistory[creator.receiver.address]!.append(mid)
-=======
-                DAAM_V22.creatorHistory[creator.receiver.address] = [mid]
-            } else if !DAAM_V22.creatorHistory[creator.receiver.address]!.contains(mid) {
-                DAAM_V22.creatorHistory[creator.receiver.address]!.append(mid)
->>>>>>> 586a0096 (updated FUSD Address)
             }
         }
         assert(totalCut >= 0.01 && totalCut <= 0.3, message: "Percentage must be inbetween 10% to 30%.")
@@ -297,11 +291,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.metadata <- {}  // Init Metadata
             self.returns <- {}   // Metadata Returns, when a metadata is not sold
             self.grantee = grantee
-<<<<<<< HEAD
             DAAM_V22.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM_V22.metadataPublicPath))
-=======
-            DAAM_V22.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM_V22.metadataPublicPath))
->>>>>>> 586a0096 (updated FUSD Address)
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
@@ -521,11 +511,7 @@ pub struct OnChain: MetadataViews.File {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-<<<<<<< HEAD
     pub fun borrowDAAM_V22.id: UInt64): &DAAM_V22.NFT // Get NFT as DAAM_V22.NFT
-=======
-    pub fun borrowDAAM_V22.id: UInt64): &DAAM_V22.NFT // Get NFT as DAAM_V22.NFT
->>>>>>> 586a0096 (updated FUSD Address)
     pub fun getCollection(): [NFTCollectionDisplay] 
 }
 /************************************************************************/
@@ -633,15 +619,9 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         switch view {
             /*
                 return MetadataViews.NFTCollectionData (
-<<<<<<< HEAD
                     storagePath: DAAM_V22.collectionStoragePath,
                     publicPath: DAAM_V22.collectionPublicPath,
                     providerPath: DAAM_V22.collectionPrivatePath,
-=======
-                    storagePath: DAAM_V22.collectionStoragePath,
-                    publicPath: DAAM_V22.collectionPublicPath,
-                    providerPath: DAAM_V22.collectionPrivatePath,
->>>>>>> 586a0096 (updated FUSD Address)
                     publicCollection: Type<@DAAM_V22.Collection>(),
                     publicLinkedType: Type<&DAAM_V22.Collection{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
                     providerLinkedType: ?????, // TODO  ???
@@ -670,11 +650,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
 
     // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
     pub fun deposit(token: @NonFungibleToken.NFT) {
-<<<<<<< HEAD
         let token <- token as! @DAAM_V22.NFT // Get NFT as DAAM_V22.GFT
-=======
-        let token <- token as! @DAAM_V22.NFT // Get NFT as DAAM_V22.GFT
->>>>>>> 586a0096 (updated FUSD Address)
         let id = token.id        // Save Token ID
         let name = token.metadata.edition.name!
         // add the new token to the dictionary which removes the old one
@@ -692,11 +668,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
     }
 
-<<<<<<< HEAD
     // borrowDAAM_V22.gets a reference to an DAAM_V22.NFT
-=======
-    // borrowDAAM_V22.gets a reference to an DAAM_V22.NFT
->>>>>>> 586a0096 (updated FUSD Address)
     pub fun borrowDAAM_V22.id: UInt64): &DAAM_V22.NFT {
         pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
         let ref = (&self.ownedNFTs[id] as! auth &NonFungibleToken.NFT?)!
@@ -891,11 +863,7 @@ pub resource Admin: Agent
                 DAAM_V22.isMinter(minter) != nil     : "This is not a Minter Address."
             }
             post { !DAAM_V22.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
-<<<<<<< HEAD
             DAAM_V22.minters.remove(key: minter)    // Remove Agent from list
-=======
-            DAAM_V22.minters.remove(key: minter)    // Remove Agent from list
->>>>>>> 586a0096 (updated FUSD Address)
             log("Removed Minter")
             emit MinterRemoved(minter: minter)
         }
@@ -1102,13 +1070,8 @@ pub struct CreatorInfo {
         // Add NFT to 'new' list
         priv fun newNFT(id: UInt64) {
             pre  { !DAAM_V22.newNFTs.contains(id) : "Token ID: ".concat(id.toString()).concat(" is already set to New.") }
-<<<<<<< HEAD
             post { DAAM_V22.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
                 DAAM_V22.newNFTs.append(id)       // Append 'new' list
-=======
-            post { DAAM_V22.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
-                DAAM_V22.newNFTs.append(id)       // Append 'new' list
->>>>>>> 586a0096 (updated FUSD Address)
         }        
     }
 

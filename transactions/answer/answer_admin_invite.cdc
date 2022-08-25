@@ -15,24 +15,14 @@ transaction(submit: Bool) {
     execute {
         let admin <- DAAM_V22.answerAdminInvite(newAdmin: self.signer, submit: self.submit)
         if admin != nil {
-<<<<<<< HEAD
             let old_admin <- self.signer.load<@AnyResource>(from: DAAM_V22.adminStoragePath)
             self.signer.save<@DAAM_V22.Admin>(<- admin!, to: DAAM_V22.adminStoragePath)
             let adminRef = self.signer.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath)!
-=======
-            let old_admin <- self.signer.load<@AnyResource>(from: DAAM_V22.adminStoragePath)
-            self.signer.save<@DAAM_V22.Admin>(<- admin!, to: DAAM_V22.adminStoragePath)
-            let adminRef = self.signer.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath)!
->>>>>>> 586a0096 (updated FUSD Address)
             destroy old_admin
 
             let old_request <- self.signer.load<@AnyResource>(from: DAAM_V22.requestStoragePath)
             let requestGen <-! adminRef.newRequestGenerator()
-<<<<<<< HEAD
             self.signer.save<@DAAM_V22.RequestGenerator>(<- requestGen, to: DAAM_V22.requestStoragePath)
-=======
-            self.signer.save<@DAAM_V22.RequestGenerator>(<- requestGen, to: DAAM_V22.requestStoragePath)
->>>>>>> 586a0096 (updated FUSD Address)
             destroy old_request
             
             log("You are now a DAAM_V22.Admin: ".concat(self.signer.address.toString()) )

@@ -11,23 +11,14 @@
 import DAAM_V22 from 0xa4ad5ea5c0bd2fba
     
 transaction(creator: Address, mid: UInt64, copyright: UInt8) {
-<<<<<<< HEAD
     let cr     : DAAM_V22.CopyrightStatus
-=======
-    let cr     : DAAM_V22.CopyrightStatus
->>>>>>> 586a0096 (updated FUSD Address)
     let admin  : &{DAAM_V22.Agent}
     let mid    : UInt64
     let creator: Address
 
     prepare(agent: AuthAccount) {
-<<<<<<< HEAD
         self.cr      = DAAM_V22.CopyrightStatus(rawValue: copyright)!                             // init copyright
         self.admin   = agent.borrow<&{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)! // init admin
-=======
-        self.cr      = DAAM_V22.CopyrightStatus(rawValue: copyright)!                             // init copyright
-        self.admin   = agent.borrow<&{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)! // init admin
->>>>>>> 586a0096 (updated FUSD Address)
         self.mid     = mid 
         self.creator = creator                                                        // init mid
     }

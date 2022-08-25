@@ -38,13 +38,8 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
         self.metadataGen = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.requestStoragePath)!
-=======
-        self.metadataGen = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.requestStoragePath)!
->>>>>>> 586a0096 (updated FUSD Address)
 
         self.name         = name
         self.max          = max

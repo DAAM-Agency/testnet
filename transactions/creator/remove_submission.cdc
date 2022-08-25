@@ -12,11 +12,7 @@ transaction(mid: UInt64)
 
     prepare(creator: AuthAccount) {
         self.creator = creator
-<<<<<<< HEAD
         self.metadataGen = self.creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
-=======
-        self.metadataGen = self.creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
->>>>>>> 586a0096 (updated FUSD Address)
         self.mid = mid
     }
 

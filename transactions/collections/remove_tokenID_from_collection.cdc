@@ -9,11 +9,7 @@ transaction(id: UInt64, element: UInt64) {
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
-<<<<<<< HEAD
         self.collectionRef = acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
-=======
-        self.collectionRef = acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
->>>>>>> 586a0096 (updated FUSD Address)
             ?? panic("Could not borrow a reference to the owner's collection")
         self.id = id
         self.element = element

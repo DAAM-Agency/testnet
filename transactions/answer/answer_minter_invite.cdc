@@ -15,13 +15,8 @@ transaction(submit: Bool) {
     execute {
         let minter <- DAAM_V22.answerMinterInvite(newMinter: self.signer, submit: self.submit)
         if minter != nil {
-<<<<<<< HEAD
             let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V22.minterStoragePath)
             self.signer.save<@DAAM_V22.Minter>(<- minter!, to: DAAM_V22.minterStoragePath)
-=======
-            let old_minter <- self.signer.load<@AnyResource>(from: DAAM_V22.minterStoragePath)
-            self.signer.save<@DAAM_V22.Minter>(<- minter!, to: DAAM_V22.minterStoragePath)
->>>>>>> 586a0096 (updated FUSD Address)
             destroy old_minter
             log("You are now a DAAM_V22.Minter")
         } else {
