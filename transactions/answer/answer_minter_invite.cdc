@@ -1,7 +1,7 @@
 // answer_minter_invite.cdc
 // Answer the invitation to be a Minter. Typically only for Auctions & Marketplaces
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
