@@ -1271,18 +1271,18 @@ pub resource MinterAccess
         //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
         //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
         // Paths
-        self.collectionPublicPath  = /public/DAAM_V22.Collection
-        self.collectionStoragePath = /storage/DAAM_V22.Collection
-        self.metadataPublicPath    = /public/DAAM_V22.SubmitNFT
-        self.metadataStoragePath   = /storage/DAAM_V22.SubmitNFT
-        self.adminPrivatePath      = /private/DAAM_V22.Admin
-        self.adminStoragePath      = /storage/DAAM_V22.Admin
-        self.minterPrivatePath     = /private/DAAM_V22.Minter
-        self.minterStoragePath     = /storage/DAAM_V22.Minter
-        self.creatorPrivatePath    = /private/DAAM_V22.Creator
-        self.creatorStoragePath    = /storage/DAAM_V22.Creator
-        self.requestPrivatePath    = /private/DAAM_V22.Request
-        self.requestStoragePath    = /storage/DAAM_V22.Request
+        self.collectionPublicPath  = /public/DAAM_V23_Collection
+        self.collectionStoragePath = /storage/DAAM_V23_Collection
+        self.metadataPublicPath    = /public/DAAM_V23_SubmitNFT
+        self.metadataStoragePath   = /storage/DAAM_V23_SubmitNFT
+        self.adminPrivatePath      = /private/DAAM_V23_Admin
+        self.adminStoragePath      = /storage/DAAM_V23_Admin
+        self.minterPrivatePath     = /private/DAAM_V23_Minter
+        self.minterStoragePath     = /storage/DAAM_V23_Minter
+        self.creatorPrivatePath    = /private/DAAM_V23_Creator
+        self.creatorStoragePath    = /storage/DAAM_V23_Creator
+        self.requestPrivatePath    = /private/DAAM_V23_Request
+        self.requestStoragePath    = /storage/DAAM_V23_Request
 
         // Setup Up Founders
         var royalty_list: [MetadataViews.Royalty] = []

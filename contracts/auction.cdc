@@ -1080,8 +1080,8 @@ pub struct AuctionHolder {
         self.history         = {}
         self.agencyFirstSale = {}
         self.auctionCounter  = 0
-        self.auctionStoragePath = /storage/DAAM_V22.Auction
-        self.auctionPublicPath  = /public/DAAM_V22.Auction
+        self.auctionStoragePath = /storage/DAAM_Auction
+        self.auctionPublicPath  = /public/DAAM_Auction
         // init accepted cryptos
         self.crypto = {"A.e223d8a629e49c68.FUSD.Vault" : /public/fusdReceiver}
     }
