@@ -4,12 +4,12 @@
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V23             from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xe223d8a629e49c68
-import AuctionHouse_V15     from 0x045a1763c93006ca
+import AuctionHouse_V16     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
-    let auctionHouse     : &AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}
+    let auctionHouse     : &AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}
     let metadataGenerator: Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
     let agent       : &DAAM_V23.Admin{DAAM_V23.Agent}
     let mid         : UInt64
@@ -32,8 +32,8 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
             (DAAM_V23.metadataPublicPath)
 
         self.auctionHouse = getAccount(creator)
-            .getCapability<&AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}>
-            (AuctionHouse_V15.auctionPublicPath)
+            .getCapability<&AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}>
+            (AuctionHouse_V16.auctionPublicPath)
             .borrow()!
         
         self.mid              = mid
