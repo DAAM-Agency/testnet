@@ -20,7 +20,11 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
         self.bidder = bidder.address
         self.fusdStoragePath = /storage/fusdVault
         self.vaultRef   = bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
+<<<<<<< HEAD
         self.collection = bidder.borrow<&{DAAM_V22.CollectionPublic}>(from: DAAM_V22.V22.collectionStoragePath)!
+=======
+        self.collection = bidder.borrow<&{DAAM_V22.CollectionPublic}>(from: DAAM_V22.collectionStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
         self.auctionHouse = getAccount(auction)
             .getCapability<&AuctionHouse_V15.AuctionWallet{AuctionHouse_V15.AuctionWalletPublic}>
             (AuctionHouse_V15.auctionPublicPath)

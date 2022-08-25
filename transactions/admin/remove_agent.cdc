@@ -9,7 +9,11 @@ transaction(exAgent: Address) {
     let exAgent : Address
 
     prepare(admin: AuthAccount) {
+<<<<<<< HEAD
         self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.V22.adminStoragePath) ?? panic(exAgent.toString().concat(" is not an Agent."))
+=======
+        self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath) ?? panic(exAgent.toString().concat(" is not an Agent."))
+>>>>>>> 586a0096 (updated FUSD Address)
 	    self.exAgent = exAgent
     }
 

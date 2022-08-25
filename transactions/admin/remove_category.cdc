@@ -10,7 +10,11 @@ transaction(category: String) {
 
     prepare(admin: AuthAccount) {
         self.category = category
+<<<<<<< HEAD
         self.admin    = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.V22.adminStoragePath)!
+=======
+        self.admin    = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
     }
 
     pre { Categories.getCategories().contains(category) }

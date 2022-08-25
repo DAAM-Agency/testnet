@@ -14,8 +14,13 @@ transaction(public: Bool)
     let acct: AuthAccount
 
     prepare(acct: AuthAccount) {
+<<<<<<< HEAD
         if acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.V22.collectionStoragePath) != nil {
             panic("You already have a DAAM_V22.V22 Collection.")
+=======
+        if acct.borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath) != nil {
+            panic("You already have a DAAM_V22 Collection.")
+>>>>>>> 586a0096 (updated FUSD Address)
         }
         if acct.borrow<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>(from: MultiFungibleToken.MultiFungibleTokenStoragePath) != nil {
             panic("You already have a Multi-FungibleToken-Manager.")
@@ -29,10 +34,17 @@ transaction(public: Bool)
         self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V22.V22.collectionStoragePath) // save the new account
         
         if self.public {
+<<<<<<< HEAD
             self.acct.link<&{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V22.collectionPublicPath, target: DAAM_V22.V22.collectionStoragePath)
             log("DAAM_V22.Account Created. You have a DAAM_V22.V22 Collection (Public) to store NFTs'")
         } else {
             log("DAAM_V22.Account Created. You have a DAAM_V22.V22 Collection (Non-Public) to store NFTs'")
+=======
+            self.acct.link<&{DAAM_V22.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V22.collectionPublicPath, target: DAAM_V22.collectionStoragePath)
+            log("DAAM_V22.Account Created. You have a DAAM_V22 Collection (Public) to store NFTs'")
+        } else {
+            log("DAAM_V22.Account Created. You have a DAAM_V22 Collection (Non-Public) to store NFTs'")
+>>>>>>> 586a0096 (updated FUSD Address)
         }
 
         // MultiFungibleToken

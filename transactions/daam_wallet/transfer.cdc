@@ -16,7 +16,11 @@ transaction(recipient: Address, withdrawID: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the signer's NFT collection
         self.withdrawRef = signer
+<<<<<<< HEAD
             .borrow<&DAAM_V22.Collection>(from: DAAM_V22.V22.collectionStoragePath)
+=======
+            .borrow<&DAAM_V22.Collection>(from: DAAM_V22.collectionStoragePath)
+>>>>>>> 586a0096 (updated FUSD Address)
             ?? panic("Account does not store an object at the specified path")
 
         // get the recipients public account object

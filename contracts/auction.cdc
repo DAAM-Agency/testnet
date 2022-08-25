@@ -211,8 +211,13 @@ pub struct AuctionHolder {
             var auction: @Auction? <- nil
             // Is Metadata, not NFT
             if metadataGenerator != nil {
+<<<<<<< HEAD
                 assert(DAAM_V22.getCopyright(mid: id) != DAAM_V22.V22.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
                 assert(DAAM_V22.getCopyright(mid: id) != DAAM_V22.V22.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
+=======
+                assert(DAAM_V22.getCopyright(mid: id) != DAAM_V22.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
+                assert(DAAM_V22.getCopyright(mid: id) != DAAM_V22.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
+>>>>>>> 586a0096 (updated FUSD Address)
 
                 AuctionHouse_V15.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
                 let metadataRef = metadataGenerator!.borrow()! as &DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint} // Get MetadataHolder
@@ -828,7 +833,11 @@ pub struct AuctionHolder {
                 let daamAmount = nonCreatorAmont - inHouseAmount
                 let creatorAmount = self.auctionVault.balance - nonCreatorAmont
                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V22.company])
+<<<<<<< HEAD
                 self.payRoyalty(price: daamAmount, royalties: DAAM_V22.V22.agency.getRoyalties())
+=======
+                self.payRoyalty(price: daamAmount, royalties: DAAM_V22.agency.getRoyalties())
+>>>>>>> 586a0096 (updated FUSD Address)
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
                 // Agent payment
@@ -864,7 +873,11 @@ pub struct AuctionHolder {
 
                 self.payRoyalty(price: price, royalties:royalties)
                 self.payRoyalty(price: fee * inHouse, royalties: [DAAM_V22.company] ) // get Comapny share of fee
+<<<<<<< HEAD
                 self.payRoyalty(price: fee * agency, royalties: DAAM_V22.V22.agency.getRoyalties() ) // Pay Agency the fee
+=======
+                self.payRoyalty(price: fee * agency, royalties: DAAM_V22.agency.getRoyalties() ) // Pay Agency the fee
+>>>>>>> 586a0096 (updated FUSD Address)
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
                     (MetadataViews.getRoyaltyReceiverPublicPath())!
@@ -963,7 +976,11 @@ pub struct AuctionHolder {
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
+<<<<<<< HEAD
         let minter = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.V22.minterStoragePath)!
+=======
+        let minter = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
         minter.notNew(tokenID: tokenID) // Set to not new
     }
 
@@ -974,14 +991,22 @@ pub struct AuctionHolder {
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM_V22.Metadata): @DAAM_V22.NFT {
+<<<<<<< HEAD
         let minterRef = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.V22.minterStoragePath)! // get Minter Reference
+=======
+        let minterRef = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)! // get Minter Reference
+>>>>>>> 586a0096 (updated FUSD Address)
         let nft <- minterRef.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun minterAccess(mid: UInt64): @DAAM_V22.MinterAccess {
+<<<<<<< HEAD
         let minterRef = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.V22.minterStoragePath)! // get Minter Reference
+=======
+        let minterRef = self.account.borrow<&DAAM_V22.Minter>(from: DAAM_V22.minterStoragePath)! // get Minter Reference
+>>>>>>> 586a0096 (updated FUSD Address)
         let minter_access <- minterRef.createMinterAccess(mid: mid)
         return <- minter_access                                  // Return NFT
     }
@@ -1023,7 +1048,11 @@ pub struct AuctionHolder {
     }
 
     pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM_V22.Admin) {
+<<<<<<< HEAD
         pre { DAAM_V22.V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+=======
+        pre { DAAM_V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+>>>>>>> 586a0096 (updated FUSD Address)
         self.fee[mid] = fee
     }
 
@@ -1040,7 +1069,11 @@ pub struct AuctionHolder {
     }
 
     pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM_V22.Admin) {
+<<<<<<< HEAD
         pre { DAAM_V22.V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+=======
+        pre { DAAM_V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+>>>>>>> 586a0096 (updated FUSD Address)
         self.agencyFirstSale[mid] = fee
     }
 
@@ -1053,7 +1086,11 @@ pub struct AuctionHolder {
     }
 
     pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM_V22.Admin) {
+<<<<<<< HEAD
         pre { DAAM_V22.V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+=======
+        pre { DAAM_V22.isAdmin(permission.owner!.address) == true : "Permission Denied" }
+>>>>>>> 586a0096 (updated FUSD Address)
         let type = crypto.getType()
         let identifier = type.identifier
         self.crypto.insert(key: identifier, path)

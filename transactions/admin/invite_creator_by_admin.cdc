@@ -10,7 +10,11 @@ transaction(creator: Address)
     let creator : Address
 
     prepare(agent: AuthAccount) {
+<<<<<<< HEAD
         self.admin   = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.V22.adminStoragePath)!
+=======
+        self.admin   = agent.borrow<&DAAM_V22.Admin{DAAM_V22.Agent}>(from: DAAM_V22.adminStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
         self.creator = creator
     }
 

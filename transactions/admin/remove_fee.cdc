@@ -11,7 +11,11 @@ transaction(mid: UInt64)
 
     prepare(admin: AuthAccount) {
         self.mid = mid
+<<<<<<< HEAD
         self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.V22.adminStoragePath) ?? panic("You are not an Admin.")
+=======
+        self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath) ?? panic("You are not an Admin.")
+>>>>>>> 586a0096 (updated FUSD Address)
     }
 
     execute {

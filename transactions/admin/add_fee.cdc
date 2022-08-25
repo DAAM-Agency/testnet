@@ -13,7 +13,11 @@ transaction(mid: UInt64, fee: UFix64)
     prepare(admin: AuthAccount) {
         self.mid = mid
         self.fee = fee
+<<<<<<< HEAD
         self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.V22.adminStoragePath)!
+=======
+        self.admin = admin.borrow<&DAAM_V22.Admin>(from: DAAM_V22.adminStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
     }
 
     execute {

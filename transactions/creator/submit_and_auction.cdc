@@ -66,8 +66,13 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
+<<<<<<< HEAD
         self.metadataGen  = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.V22.metadataStoragePath)!
         self.requestGen   = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.V22.requestStoragePath)!
+=======
+        self.metadataGen  = creator.borrow<&DAAM_V22.MetadataGenerator>(from: DAAM_V22.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_V22.RequestGenerator>( from: DAAM_V22.requestStoragePath)!
+>>>>>>> 586a0096 (updated FUSD Address)
         self.auctionHouse = creator.borrow<&AuctionHouse_V15.AuctionWallet>(from: AuctionHouse_V15.auctionStoragePath)!
         self.metadataCap  = creator.getCapability<&DAAM_V22.MetadataGenerator{DAAM_V22.MetadataGeneratorMint}>(DAAM_V22.metadataPublicPath)!
         
