@@ -1,6 +1,6 @@
 // view_metadatas.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V22 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(creator: Address): [DAAM.MetadataHolder] {
     let metadataRef = getAccount(creator)

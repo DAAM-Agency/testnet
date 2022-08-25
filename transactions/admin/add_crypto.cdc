@@ -3,7 +3,7 @@
 
 import FungibleToken from 0x9a0766d93b6608b7
 import FUSD          from 0xba1132bc08f82fe2
-import DAAM          from 0xa4ad5ea5c0bd2fba
+import DAAM_V22          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse  from 0x045a1763c93006ca
 
 
@@ -17,7 +17,7 @@ transaction()
        
         //self.crypto = crypto
         self.path   = /public/fusdReceiver
-        self.admin  = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin  = admin.borrow<&DAAM.Admin>(from: DAAM_V22.adminStoragePath)!
     }
 
     execute {

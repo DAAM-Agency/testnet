@@ -2,7 +2,7 @@
 // Add a new category to contract Category
 
 import Categories from 0xa4ad5ea5c0bd2fba
-import DAAM       from 0xa4ad5ea5c0bd2fba
+import DAAM_V22       from 0xa4ad5ea5c0bd2fba
 
 transaction(category: String) {
     let category: String
@@ -10,7 +10,7 @@ transaction(category: String) {
 
     prepare(admin: AuthAccount) {
         self.category = category
-        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
+        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM_V22.adminStoragePath)!
     }
 
     pre { !Categories.getCategories().contains(category) }
