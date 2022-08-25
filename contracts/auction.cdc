@@ -116,7 +116,8 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
-        pub fun getAuctions(): [UInt64]                      // MIDs in Auctions
+        pub fun getAuctions()     : [UInt64]                 // MIDs in Auctions
+        pub fun getAgentAuctions(): [UInt64]                 // Returns the Auctions deposited by Agent 
         pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
 
