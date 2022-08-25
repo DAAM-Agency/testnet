@@ -17,6 +17,7 @@ transaction(aid: UInt64)
     }
 
     execute {
-        self.auctionHouse.setting(self.aid)!.cancelAuction()!
+        self.auctionHouse.cancelAuction(auctionID: self.aid)
     }
 }
+ 
