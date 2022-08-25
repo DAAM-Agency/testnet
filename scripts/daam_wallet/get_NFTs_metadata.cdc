@@ -13,6 +13,6 @@ pub fun main(account: Address): [&DAAM_V22.NFT] {
      let ids = collectionRef.getIDs()
      var nfts: [&DAAM_V22.NFT] = []
 
-     for id in ids { nfts.append(daamRef.borrowDAAM_V22.id: id)) }
+     for id in ids { nfts.append(daamRef.borrowDAAM(id: id)) }
      return nfts
 }
