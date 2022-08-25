@@ -120,7 +120,7 @@ pub struct AuctionHolder {
         pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
 
-        pub fun deposit(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+        pub fun deposit(agent: &DAAM.Admin{DAAM.Agent}, metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
     }
@@ -166,15 +166,15 @@ pub struct AuctionHolder {
             return aid
         }
 
-        pub fun deposit(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+        pub fun deposit(agent: &DAAM.Admin{DAAM.Agent}, metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
-            pre { DAAM.isAgent(self.owner?.address!) == true : "Not a DAAM Agent." }
+            pre { DAAM.isAgent(agent.grantee) == true : "Not a DAAM Agent." }
 
             let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
-            let agent   = metadataRef.viewMetadata(mid : mid)!.creatorInfo.agent
-            assert(self.owner?.address! == agent, message: "You are not a DAAM Agent.")
+            let creatorAgent   = metadataRef.viewMetadata(mid : mid)!.creatorInfo.agent
+            assert(agent.grantee == creatorAgent, message: "You are not a DAAM Agent.")
             
             let creator = metadataRef.viewMetadata(mid : mid)!.creatorInfo.creator
             let auction <- self.createAuctionResource(metadataGenerator:metadataGenerator, nft:nil, id:mid, start:start, length:length,

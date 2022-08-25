@@ -683,6 +683,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
 pub resource interface Agent 
 {
     pub var status: Bool // the current status of the Admin
+    pub let grantee: Address
 
     pub fun inviteCreator(_ creator: Address, agentCut: UFix64)                   // Admin invites a new creator       
     pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
@@ -696,7 +697,7 @@ pub resource interface Agent
 pub resource Admin: Agent
 {
         pub var status: Bool       // The current status of the Admin
-        priv let grantee: Address
+        pub let grantee: Address
 
         init(_ admin: Address) {
             self.status  = true      // Default Admin status: True
