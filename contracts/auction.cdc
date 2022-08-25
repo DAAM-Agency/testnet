@@ -271,12 +271,17 @@ pub struct AuctionHolder {
             return &self.currentAuctions[aid] as &Auction{AuctionPublic}?
         }
 
-        pub fun setting(_ aid: UInt64): &Auction? { 
-            pre { self.currentAuctions.containsKey(aid) }
-            return &self.currentAuctions[aid] as &Auction?
-        }
-        
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
+
+        pub fun getAgentAuctions(): [AuctionHolder] {
+            var list: [AuctionHolder] = []
+
+            for auction in self.approveAuctions {
+                let ref = &auction
+                list.append(ref.auctionInfo())
+            }
+            return list
+        } // Return all auctions by User
 
         pub fun endReprints(auctionID: UInt64) { // Toggles the reprint to OFF. Note: This is not a toggle
             pre {
