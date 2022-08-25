@@ -2,12 +2,12 @@
 // Checks to see if there is an Auction Wallet
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import AuctionHouse_V17     from 0x045a1763c93006ca
+import AuctionHouse_V16     from 0x045a1763c93006ca
 
 pub fun main(auction: Address): Bool {
     let auctionHouse = getAccount(auction)
-        .getCapability<&AuctionHouse_V17.AuctionWallet{AuctionHouse_V17.AuctionWalletPublic}>
-        (AuctionHouse_V17.auctionPublicPath)
+        .getCapability<&AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}>
+        (AuctionHouse_V16.auctionPublicPath)
         .borrow()
         
     return auctionHouse != nil

@@ -1,14 +1,14 @@
 // auction_info.cdc
 // Return auction info in Auction Wallet. Identified by AuctionIDs
 
-import AuctionHouse_V17 from 0x045a1763c93006ca
+import AuctionHouse_V16 from 0x045a1763c93006ca
 
-pub fun main(auction: Address, aid: UInt64): AuctionHouse_V17.AuctionHolder
+pub fun main(auction: Address, aid: UInt64): AuctionHouse_V16.AuctionHolder
 {    
     let auctionHouse = getAccount(auction)
-        .getCapability<&AuctionHouse_V17.AuctionWallet{AuctionHouse_V17.AuctionWalletPublic}>(AuctionHouse_V17.auctionPublicPath)
+        .getCapability<&AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}>(AuctionHouse_V16.auctionPublicPath)
         .borrow()!
 
-    let mRef = auctionHouse.item(aid) as &AuctionHouse_V17.Auction{AuctionHouse_V17.AuctionPublic}?
+    let mRef = auctionHouse.item(aid) as &AuctionHouse_V16.Auction{AuctionHouse_V16.AuctionPublic}?
     return mRef!.auctionInfo()
 }
