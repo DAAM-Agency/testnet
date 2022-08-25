@@ -268,6 +268,7 @@ pub resource interface MetadataGeneratorMint {
     // Used to generate a Metadata either new or one with an incremented counter
     // Requires a Minters Key to generate MinterAccess
     pub fun generateMetadata(minter: @MinterAccess) : @Metadata
+    pub fun viewMetadata(mid: UInt64): MetadataHolder?
 }
 /************************************************************************/
 pub resource interface MetadataGeneratorPublic {
@@ -685,8 +686,8 @@ pub resource interface Agent
 
     pub fun inviteCreator(_ creator: Address, agentCut: UFix64)                   // Admin invites a new creator       
     pub fun changeCreatorStatus(creator: Address, status: Bool) // Admin or Agent change Creator status        
-    pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
-    pub fun changeMetadataStatus(mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
+    pub fun changeCopyright(creator: Address, mid: UInt64, copyright: CopyrightStatus) // Admin or Agenct can change MID copyright status
+    pub fun changeMetadataStatus(creator: Address, mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
     pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
     pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
 }
@@ -842,6 +843,8 @@ pub resource Admin: Agent
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                        : "You're no longer a have Access."
                 DAAM.creators.containsKey(creator) : "This is not a Creator address."
+                DAAM.isAgent(self.owner!.address) == nil || // Verify Agent or Admin
+                DAAM.agentHistory[self.owner!.address]!.contains(creator) : "Access Denied!"
             }
             post { !DAAM.creators.containsKey(creator) : "Illegal operation: removeCreator" } // Unreachable
 
@@ -888,6 +891,8 @@ pub resource Admin: Agent
                 self.status                         : "You're no longer a have Access."
                 DAAM.creators.containsKey(creator)  : "Wrong Address. This is not a Creator."
                 DAAM.isCreator(creator) != status    : "Agent already has this Status."
+                DAAM.isAgent(self.owner!.address) == nil || // Verify Agent or Admin
+                DAAM.agentHistory[self.owner!.address]!.contains(creator) : "Access Denied!"
             }
             post { DAAM.isCreator(creator) == status : "Illegal Operation: changeCreatorStatus" } // Unreachable
 
@@ -913,25 +918,32 @@ pub resource Admin: Agent
         }
 
         // Admin or Agent can change a Metadata status.
-        pub fun changeMetadataStatus(mid: UInt64, status: Bool) {
+        pub fun changeMetadataStatus(creator: Address, mid: UInt64, status: Bool) {
             pre {
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                DAAM.admins[self.owner!.address] == true : "Permission Denied"
+                self.grantee == self.owner!.address  : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
+                DAAM.isAgent(self.owner!.address) == nil || // Verify Agent or Admin
+                DAAM.agentHistory[self.owner!.address]!.contains(creator) : "Access Denied!"
+                DAAM.creatorHistory[creator]!.contains(mid) : "This Creator does not have this MID"
             }            
+                
             DAAM.metadata[mid] = status // change to a new Metadata status
         }      
 
         // Admin or Agent can change a MIDs copyright status.
-        pub fun changeCopyright(mid: UInt64, copyright: CopyrightStatus) {
+        pub fun changeCopyright(creator: Address, mid: UInt64, copyright: CopyrightStatus) {
             pre {
                 mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address : "Permission Denied"
                 self.status                          : "You're no longer a have Access."
                 DAAM.copyright.containsKey(mid)      : "This is an Invalid MID"
+                DAAM.isAgent(self.owner!.address) == nil || // Verify Agent or Admin
+                DAAM.agentHistory[self.owner!.address]!.contains(creator) : "Access Denied!"
+                DAAM.creatorHistory[creator]!.contains(mid) : "This Creator does not have this MID"
             }
             post { DAAM.copyright[mid] == copyright  : "Illegal Operation: changeCopyright" } // Unreachable
 
@@ -1161,9 +1173,9 @@ pub resource MinterAccess
         let agent = DAAM.creators[newCreatorAddress]!.agent
         log("Agent: ".concat(agent.toString()) )
         // Add to AgentHistory if not aleady entered. Considering re-invites.
-        if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
-            DAAM.agentHistory[agent]!.append(newCreatorAddress)
-        }
+        //if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
+            //DAAM.agentHistory[agent]!.append(newCreatorAddress)
+        //}
 
         log("Creator: ".concat(newCreatorAddress.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreatorAddress)
