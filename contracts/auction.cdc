@@ -198,7 +198,7 @@ pub struct AuctionHolder {
             if !approve {
                 self.cancelAuction(auctionID: auctionID)
             } else {
-                AuctionHouse_V16.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
+                AuctionHouse.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             }
         }
 
