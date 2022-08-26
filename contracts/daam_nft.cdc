@@ -1254,6 +1254,10 @@ pub resource MinterAccess
         return DAAM_V23.creators[creator]?.status // nil = not a creator, false = invited to be a creator, true = is a creator
     }
 
+    pub fun getAgentCreators(agent: Address): [Address]? { // returns a list of Creators
+        return self.agentHistory[agent]
+    }
+
     priv fun validInteract(_ interact: AnyStruct?): Bool {
             if interact == nil { return true } //pass no interact 
             let type = interact.getType()
