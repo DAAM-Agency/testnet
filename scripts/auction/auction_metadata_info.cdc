@@ -1,7 +1,7 @@
 // auction_info.cdc
 // Return auction info in Auction Wallet. Identified by AuctionIDs
 
-import AuctionHouse_V16 from 0x045a1763c93006ca
+import AuctionHouse_V16 from 0x01837e15023c9249
 
 pub fun main(auction: Address, aid: UInt64): [AnyStruct]
 {    

@@ -116,7 +116,8 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
-        pub fun getAuctions(): [UInt64]                      // MIDs in Auctions
+        pub fun getAuctions()     : [UInt64]                 // MIDs in Auctions
+        pub fun getAgentAuctions(): [UInt64]                 // Returns the Auctions deposited by Agent 
         pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
 
@@ -127,11 +128,11 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource AuctionWallet: AuctionWalletPublic {
         priv var currentAuctions: @{UInt64 : Auction}  // { AuctionID : Auction }
-        priv var approveAuctions: @[Auction]
+        priv var approveAuctions: @{UInt64 : Auction}
 
         init() {  // Auction Resources are stored here. The Auctions themselves.
             self.currentAuctions <- {}
-            self.approveAuctions <- []
+            self.approveAuctions <- {}
         }      
 
         // createAuction: An Original Auction is defined as a newly minted NFT.
@@ -182,20 +183,22 @@ pub struct AuctionHolder {
                 startingBid:startingBid, reserve:reserve, buyNow: buyNow, reprintSeries:reprintSeries)
             let aid = auction.auctionID! // Auction ID           
 
-            self.approveAuctions.append(<- auction) // Update Current Auctions
+            let old <- self.approveAuctions.insert(key: aid, <- auction) // Update Current Auctions
+            destroy old
             return aid
         }
 
-        pub fun agentAuction(index: Int, approve: Bool) {
-            pre { index < self.approveAuctions.length }
-
-            let removed <- self.approveAuctions.remove(at: index)
-            if approve {
-                let old <- self.currentAuctions.insert(key: removed.auctionID, <- removed)
-                destroy old
+        pub fun agentAuction(auctionID: UInt64, approve: Bool) {
+            pre { self.approveAuctions.containsKey(auctionID) : "AID does not exist." }
+            // set to Approve, regardless
+            let removed <- self.approveAuctions.remove(key: auctionID)!
+            let old <- self.currentAuctions.insert(key: auctionID, <- removed)
+            destroy old
+            // If (dis)approve (false) cancel Auction
+            if !approve {
+                self.cancelAuction(auctionID: auctionID)
             } else {
-                emit AuctionCancelled(auctionID: removed.auctionID)
-                destroy removed
+                AuctionHouse_V16.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
             }
         }
 
@@ -265,18 +268,21 @@ pub struct AuctionHolder {
             }
         }
 
+        // Auctions can be cancelled if they have no bids.
+        pub fun cancelAuction(auctionID: UInt64) {
+            pre { self.currentAuctions.containsKey(auctionID) : "AID is not in your Wallet." }
+            self.currentAuctions[auctionID]?.cancelAuction()
+        } 
+
         // item(Auction ID) return a reference of the auctionID Auction
         pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? { 
             pre { self.currentAuctions.containsKey(aid) }
             return &self.currentAuctions[aid] as &Auction{AuctionPublic}?
         }
 
-        pub fun setting(_ aid: UInt64): &Auction? { 
-            pre { self.currentAuctions.containsKey(aid) }
-            return &self.currentAuctions[aid] as &Auction?
-        }
-        
         pub fun getAuctions(): [UInt64] { return self.currentAuctions.keys } // Return all auctions by User
+
+        pub fun getAgentAuctions(): [UInt64] { return self.approveAuctions.keys } // Return all auctions by Agent, requires Approval
 
         pub fun endReprints(auctionID: UInt64) { // Toggles the reprint to OFF. Note: This is not a toggle
             pre {
@@ -936,12 +942,12 @@ pub struct AuctionHolder {
             }
             
             self.status = false
-            self.length = 0.0 as UFix64
+            self.length = 0.0
 
             log("Auction Cancelled: ".concat(self.auctionID.toString()) )
             emit AuctionCancelled(auctionID: self.auctionID)
         } 
-
+        
         destroy() { // Verify no Funds, NFT are NOT in storage, Auction has ended/closed.
             pre{
                 self.auctionNFT == nil           : "Illegal Operation: Auction still contains NFT Token ID: ".concat(self.auctionNFT?.metadata!.mid.toString())
@@ -1080,8 +1086,8 @@ pub struct AuctionHolder {
         self.history         = {}
         self.agencyFirstSale = {}
         self.auctionCounter  = 0
-        self.auctionStoragePath = /storage/DAAM_Auction
-        self.auctionPublicPath  = /public/DAAM_Auction
+        self.auctionStoragePath = /storage/DAAM_V23_Auction
+        self.auctionPublicPath  = /public/DAAM_V23_Auction
         // init accepted cryptos
         self.crypto = {"A.e223d8a629e49c68.FUSD.Vault" : /public/fusdReceiver}
     }

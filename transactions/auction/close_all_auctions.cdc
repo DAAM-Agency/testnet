@@ -1,7 +1,7 @@
 // close_all_auctions.cdc
 // Settles all auctions that have ended. Including Items, returning funds, etc.
 
-import AuctionHouse_V16 from 0x045a1763c93006ca
+import AuctionHouse_V16 from 0x01837e15023c9249
 
 // Returns all Sellers and their auction IDs of auctions that have ended
 pub fun getClosedAuctions(): {Address: [UInt64]} {

@@ -1,7 +1,7 @@
 // cancel_auction.cdc
 // Used to cancel an auction. There must have been be no bids made in order to cancel an auction.
 
-import AuctionHouse_V16  from 0x045a1763c93006ca
+import AuctionHouse_V16  from 0x01837e15023c9249
 import DAAM_V23          from 0xa4ad5ea5c0bd2fba
 
 transaction(aid: UInt64)
@@ -17,6 +17,7 @@ transaction(aid: UInt64)
     }
 
     execute {
-        self.auctionHouse.setting(self.aid)!.cancelAuction()!
+        self.auctionHouse.cancelAuction(auctionID: self.aid)
     }
 }
+ 
