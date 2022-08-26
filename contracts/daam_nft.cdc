@@ -497,7 +497,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         
         destroy() {
-            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp, burner: self.owner!.address)
+            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp, burner: 0x0)
         }
     }
 
