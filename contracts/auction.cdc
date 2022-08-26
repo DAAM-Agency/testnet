@@ -195,7 +195,11 @@ pub struct AuctionHolder {
             let old <- self.currentAuctions.insert(key: auctionID, <- removed)
             destroy old
             // If (dis)approve (false) cancel Auction
-            if !approve { self.cancelAuction(auctionID: auctionID) }
+            if !approve {
+                self.cancelAuction(auctionID: auctionID)
+            } else {
+                AuctionHouse_V16.currentAuctions.insert(key: self.owner?.address!, self.currentAuctions.keys) // Update Current Auctions
+            }
         }
 
         priv fun createAuctionResource(metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?, nft: @DAAM.NFT?, id: UInt64, start: UFix64,
