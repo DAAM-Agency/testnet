@@ -35,7 +35,7 @@ pub contract DAAM: NonFungibleToken {
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
     pub event CreatorAddAgent(creator: Address, agent: Address)
-    pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64, burner: Address) // Emit when an NFT is burned.
+    pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64) // Emit when an NFT is burned.
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -497,7 +497,7 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         
         destroy() {
-            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp, burner: self.owner!.address)
+            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp)
         }
     }
 

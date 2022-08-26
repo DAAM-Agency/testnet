@@ -78,6 +78,7 @@ pub contract Categories {
         self.addCategory(name:"Image")
         self.addCategory(name:"Audio")
         self.addCategory(name:"Video")
+        self.addCategory(name:"Text")
         self.addCategory(name:"Photography")
         self.addCategory(name:"Virtual Reality")
         self.addCategory(name:"Augmented Reality")
