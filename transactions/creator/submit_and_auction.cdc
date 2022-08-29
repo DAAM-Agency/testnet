@@ -44,7 +44,6 @@ transaction(
 
     let name        : String
     let max         : UInt64?
-    let featured    : Bool
     var categories  : [Categories.Category]
     let interact    : AnyStruct?
     let description : String
@@ -73,7 +72,6 @@ transaction(
         
         self.name         = name
         self.max          = max
-        self.featured     = featured
         self.description  = description
         self.interact     = interact
         self.misc         = misc
