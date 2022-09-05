@@ -27,7 +27,7 @@ transaction(creator: Address, mid: UInt64) {
     }
 
     execute {
-        let minterAccess <- self.minterRef.createMinterAccess(mid: mid)
+        let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
         self.receiverRef.deposit(token: <-nft )

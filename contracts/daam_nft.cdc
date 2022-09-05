@@ -757,7 +757,7 @@ pub resource Admin: Agent
         pub fun inviteCreator(_ creator: Address, agentCut: UFix64 ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
             pre {
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
                 self.status                   : "You're no longer a have Access."
                 DAAM.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
@@ -768,7 +768,7 @@ pub resource Admin: Agent
             let agent: Address = DAAM.isAgent(self.owner!.address)==true ? self.owner!.address : DAAM.company.receiver.address 
             let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
             DAAM.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
-
+            
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
@@ -962,8 +962,8 @@ pub resource Admin: Agent
 pub struct CreatorInfo {
     pub let creator   : Address
     pub let agent     : Address
-    pub let firstSale : UFix64
-    pub var status    : Bool? // nil = invited, false = frozen, true = active
+    pub let firstSale : UFix64 // Agent First Sale
+    pub var status    : Bool?  // nil = invited, false = frozen, true = active
 
     init(creator: Address, agent: Address, firstSale: UFix64 ) {
         self.creator   = creator
@@ -1087,13 +1087,18 @@ pub resource MinterAccess
     }
 
     pub fun validate(creator: Address): Bool {
-        pre { DAAM.isMinter(self.minter)==true   : "You access has been denied." }
+        pre {
+            DAAM.isMinter(self.minter) == true : "You access has been denied."
+            DAAM.isCreator(creator)    == true : creator.toString().concat(" is not a Creator or account is Frozen.")     
+        }
 
         if DAAM.isAgent(self.minter) == nil   { return true  } // Is a Marketplace, Access Approvd, minterStatus is always true
         if DAAM.isAgent(self.minter) == false { return false } // Access is Frozen or Invitation has not been acccepted.
         if DAAM.isAgent(self.minter) == true  {  // is an Agent, verify creator & mid relationship to agent
                 // Verify MID belongs to Creator && Verify Agent is Creators'
-                return DAAM.creatorHistory[creator]!.contains(self.mid) && DAAM.agentHistory[self.minter]!.contains(creator)
+                let valid_mid = DAAM.getCreatorMIDs(creator: creator)!.contains(self.mid)
+        		let is_creators_agent = DAAM.agentHistory[self.minter]!.contains(creator)
+                return valid_mid && is_creators_agent
         }
         return false
     }
@@ -1173,10 +1178,13 @@ pub resource MinterAccess
 
         let agent = DAAM.creators[newCreatorAddress]!.agent
         log("Agent: ".concat(agent.toString()) )
-        // Add to AgentHistory if not aleady entered. Considering re-invites.
-        //if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
-            //DAAM.agentHistory[agent]!.append(newCreatorAddress)
-        //}
+        
+        // Update agent History with Creator Address
+        if DAAM.agentHistory[agent] == nil {
+            DAAM.agentHistory[agent] = [newCreatorAddress]
+        } else if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
+            DAAM.agentHistory[agent]!.append(newCreatorAddress)
+        }
 
         log("Creator: ".concat(newCreatorAddress.toString()).concat(" added to DAAM") )
         emit NewCreator(creator: newCreatorAddress)
@@ -1203,6 +1211,19 @@ pub resource MinterAccess
         return <- create DAAM.Collection() // Return Collection Resource
     }
 
+    // Return list of Agents
+    pub fun getAgents(): {Address:[CreatorInfo]} {
+        var list: {Address:[CreatorInfo]} = {}
+
+        for agent in self.agentHistory.keys {
+            if self.agents[agent] != true { continue }
+            var creatorList: [CreatorInfo] = []
+            for creator in self.agentHistory[agent]! { creatorList.append(self.creators[creator]!) }
+            list.insert(key: agent, creatorList)
+        }
+        return list
+    }
+
     // Return list of Creators
     pub fun getCreators(): {Address:CreatorInfo} {
         let creators = self.creators.keys
@@ -1211,6 +1232,10 @@ pub resource MinterAccess
             if self.creators[creator]!.status != true { list.remove(key: creator) } 
         }
         return list
+    }
+
+    pub fun getAgentCreators(agent: Address): [Address]? { // returns a list of Creators
+        return self.agentHistory[agent]
     }
 
     pub fun getCreatorMIDs(creator: Address): [UInt64]? {
@@ -1252,10 +1277,6 @@ pub resource MinterAccess
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
         return DAAM.creators[creator]?.status // nil = not a creator, false = invited to be a creator, true = is a creator
-    }
-
-    pub fun getAgentCreators(agent: Address): [Address]? { // returns a list of Creators
-        return self.agentHistory[agent]
     }
 
     priv fun validInteract(_ interact: AnyStruct?): Bool {
@@ -1333,4 +1354,5 @@ pub resource MinterAccess
         emit ContractInitialized()
 	}
 }
+ 
  
