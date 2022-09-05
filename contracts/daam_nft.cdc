@@ -581,7 +581,7 @@ pub struct NFTCollectionDisplay: CollectionDisplay {
     pub fun adjustFeatureByID(id: UInt64, feature: Bool) {
         pre { self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
         self.id[id] = feature
-    }
+    }    
 }
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -596,7 +596,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         self.collections = []
     }
 
-    pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
+    access(contract) fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
         squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
         self.collections.append(
             NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
@@ -953,9 +953,33 @@ pub resource Admin: Agent
             emit ChangedCopyright(metadataID: mid)            
         }
 
-        pub fun addCategory(name: String) { Categories.addCategory(name: name) }
+        pub fun addCategory(name: String) {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+            }
+            Categories.addCategory(name: name)
+        }
 
-        pub fun removeCategory(name: String) { Categories.removeCategory(name: name) }
+        pub fun removeCategory(name: String) {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+            }
+            Categories.removeCategory(name: name)
+        }
+
+        pub fun addCreatorCollection(collectionRef: &Collection, name: String, description: String, externalURL: MetadataViews.ExternalURL,
+            squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL}) {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+            }
+            collectionRef.addCollection(name: name, description: description, externalURL: externalURL, squareImage: squareImage, bannerImage: bannerImage,socials: socials)      
+        }
         
 	}
 /************************************************************************/
