@@ -12,7 +12,7 @@ import DAAM from 0xfd43f9148d4b725d
     
 transaction(creator: Address, mid: UInt64, copyright: UInt8) {
     let cr     : DAAM.CopyrightStatus
-    let admin  : &{DAAM.Agent}
+    let admin  : &DAAM.Admin{DAAM.Agent}
     let mid    : UInt64
     let creator: Address
 

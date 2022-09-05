@@ -6,7 +6,7 @@ import DAAM from 0xfd43f9148d4b725d
 
 transaction(creator: Address, agentCut: UFix64)
 {
-    let admin   : &{DAAM.Agent}
+    let admin  : &DAAM.Admin{DAAM.Agent}
     let creator : Address
     let agentCut: UFix64
 
