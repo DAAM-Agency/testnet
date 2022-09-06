@@ -14,7 +14,7 @@ pub fun setFile(string: String, type: String): {MetadataViews.File} {
 transaction(creator: Address, name: String, description: String, externalURL: String, squareImage: String, squareImageType: String, bannerImage: String,
     bannerImageType: String, socials: {String: MetadataViews.ExternalURL} )
 {
-    let admin   : &{DAAM.Agent}
+    let admin   : &DAAM{DAAM.Agent}
     let collectionRef: &DAAM.Collection
     let name: String
     let description : String

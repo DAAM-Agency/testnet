@@ -979,8 +979,7 @@ pub resource Admin: Agent
                 self.status                               : "You're no longer a have Access."
             }
             collectionRef.addCollection(name: name, description: description, externalURL: externalURL, squareImage: squareImage, bannerImage: bannerImage,socials: socials)      
-        }
-        
+        }        
 	}
 /************************************************************************/
 pub struct CreatorInfo {
