@@ -652,7 +652,6 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     pub fun deposit(token: @NonFungibleToken.NFT) {
         let token <- token as! @DAAM.NFT // Get NFT as DAAM.GFT
         let id = token.id        // Save Token ID
-        let name = token.metadata.edition.name!
         // add the new token to the dictionary which removes the old one
         let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
         emit Deposit(id: id, to: self.owner?.address) 
@@ -970,16 +969,6 @@ pub resource Admin: Agent
             }
             Categories.removeCategory(name: name)
         }
-
-        pub fun addCreatorCollection(collectionRef: &Collection, name: String, description: String, externalURL: MetadataViews.ExternalURL,
-            squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL}) {
-            pre {
-                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address       : "Permission Denied"
-                self.status                               : "You're no longer a have Access."
-            }
-            collectionRef.addCollection(name: name, description: description, externalURL: externalURL, squareImage: squareImage, bannerImage: bannerImage,socials: socials)      
-        }        
 	}
 /************************************************************************/
 pub struct CreatorInfo {
