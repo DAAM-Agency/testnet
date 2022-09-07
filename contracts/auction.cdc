@@ -410,6 +410,11 @@ pub struct AuctionHolder {
             }              
             
             self.mid = ref.mid! // Meta   data ID
+            if metadata != nil && !AuctionHouse_V16.history.containsKey(self.mid) { // is Metadata and first Auction of Metadata
+                let metadataHolder =  metadata?.getHolder()! //as &DAAM.MetadataHolder
+                AuctionHouse_V16.history.insert(key: self.mid, {0 : SaleHistory(metadata: metadataHolder)} ) // Element 0 if for data gathering of Metadata/Auction Holder through History.
+            }
+
             self.fee = AuctionHouse_V16.getFee(mid: self.mid)
             self.buyNow = self.price
 
