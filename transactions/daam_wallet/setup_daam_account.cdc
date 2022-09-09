@@ -40,7 +40,7 @@ transaction(public: Bool)
             self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V23.collectionStoragePath) // save the new account
             
             if self.public {
-                self.acct.link<&{DAAM_V23.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V23.collectionPublicPath, target: DAAM_V23.collectionStoragePath)
+                self.acct.link<&DAAM_V23{DAAM_V23.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V23.collectionPublicPath, target: DAAM_V23.collectionStoragePath)
                 log("DAAM_V23.Account Created. You have a DAAM_V23 Collection (Public) to store NFTs'")
             } else {
                 log("DAAM_V23.Account Created. You have a DAAM_V23 Collection (Non-Public) to store NFTs'")
