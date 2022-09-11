@@ -278,6 +278,7 @@ pub resource interface MetadataGeneratorPublic {
     pub fun viewDisplay(mid: UInt64): MetadataViews.Display?
     pub fun viewDisplays(): [MetadataViews.Display]
     pub fun returnMetadata(metadata: @Metadata)
+    pub fun getFile(mid: UInt64): {String: MetadataViews.Media}
 }
 /************************************************************************/
 // Verifies each Metadata gets a Metadata ID, and stores the Creators' Metadatas'.
@@ -447,6 +448,15 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 list.append(mRef!.getDisplay() )
             } 
             return list
+        }
+
+        pub fun getFile(mid: UInt64): {String: MetadataViews.Media} {
+            pre {
+                mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate"
+                self.metadata[mid] != nil : "MetadataID: ".concat(mid.toString()).concat(" is not a valid Entry.")
+            }
+            let mRef = &self.metadata[mid] as &Metadata?
+            return mRef!.file
         }
 
         destroy() {
