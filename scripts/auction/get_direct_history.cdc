@@ -1,9 +1,9 @@
 // get_direct.history.cdc
 // Return all (nil) or spcific history
 
-import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM          from 0xfd43f9148d4b725d
-import AuctionHouse  from 0x045a1763c93006ca
+import MetadataViews    from 0x631e88ae7f1d7c20
+import DAAM_V23         from 0xa4ad5ea5c0bd2fba
+import AuctionHouse_V16 from 0x01837e15023c9249
 
 pub struct DirectHistory {
     pub let mid : UInt64
@@ -11,22 +11,22 @@ pub struct DirectHistory {
 	pub let file: {String: MetadataViews.Media}
 	pub let creator: Address
 	pub let royalty: MetadataViews.Royalties
-	pub var collection : [DAAM.NFTCollectionDisplay] // contains feature
-	pub var saleHistory: {UInt64: AuctionHouse.SaleHistory}//[AuctionHouse.SaleHistoryEntry]
+	pub var collection : [DAAM_V23.NFTCollectionDisplay] // contains feature
+	pub var saleHistory: {UInt64: AuctionHouse_V16.SaleHistory}//[AuctionHouse_V16.SaleHistoryEntry]
 
     init(creator:Address, mid: UInt64) {
         let metadataRef = getAccount(creator)
-			.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
+			.getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorPublic}>(DAAM_V23.metadataPublicPath).borrow()!
 		let metadata = metadataRef.viewMetadata(mid: mid)!
 		
 		self.mid  = metadata.mid!
         self.name = metadata.edition.name!
         self.file = metadataRef.getFile(mid: self.mid)
         self.creator = metadata.creatorInfo!.creator!
-		self.royalty = DAAM.getRoyalties(mid: self.mid)
+		self.royalty = DAAM_V23.getRoyalties(mid: self.mid)
 
         let collectionRef = getAccount(creator)
-			.getCapability<&DAAM.Collection{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!    
+			.getCapability<&DAAM_V23.Collection{DAAM_V23.CollectionPublic}>(DAAM_V23.collectionPublicPath).borrow()!    
         let collections   = collectionRef.getCollection()
 
         self.collection  = []
@@ -36,7 +36,7 @@ pub struct DirectHistory {
 			}
         }
 
-        let history = AuctionHouse.getHistory(mid: self.mid)!
+        let history = AuctionHouse_V16.getHistory(mid: self.mid)!
 		let saleHistory = history[self.mid]!
 		self.saleHistory = saleHistory
     }
