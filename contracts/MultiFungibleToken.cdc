@@ -119,9 +119,13 @@ pub contract MultiFungibleToken
                             owner.link<&TokenA.Vault{FungibleToken.Receiver}>(ftInfo!.publicPath, target: ftInfo!.storagePath)
                     }*/
             }
-            let coins <- mft.removeDeposit(identifier)
-            mft.deposit(from: <- coins)
+            self.depositCoins(mft, identifier)
         }
+    }
+
+    priv fun depositCoins(_ mft: &MultiFungibleTokenManager,_ identifier: String) {
+        let coins <- mft.removeDeposit(identifier)
+        mft.deposit(from: <- coins)
     }
 
     access(contract) fun getFungibleTokenInfo(_ type: Type): FungibleTokenVaultInfo? {
