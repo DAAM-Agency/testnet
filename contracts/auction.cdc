@@ -252,9 +252,8 @@ pub struct AuctionHolder {
                         continue
                     }  
 
-                    let auction <- self.currentAuctions.remove(key:auctionID)!   // No Series minting or last mint
-                    destroy auction                                              // end auction.
-                    
+                    self.removeAuction(auctionID)
+                     
                     // Update Current Auctions List
                     if self.currentAuctions.keys.length == 0 {
                         AuctionHouse_V16.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
@@ -266,6 +265,11 @@ pub struct AuctionHolder {
                     emit AuctionClosed(auctionID: auctionID)
                 }
             }
+        }
+
+        priv fun removeAuction(_ auctionID: UInt64) {
+            let auction <- self.currentAuctions.remove(key:auctionID)!   // No Series minting or last mint
+            destroy auction                                              // end auction.
         }
 
         // Auctions can be cancelled if they have no bids.
