@@ -26,7 +26,7 @@ pub struct DirectHistory {
 		self.royalty = DAAM.getRoyalties(mid: self.mid)
 
         let collectionRef = getAccount(creator)
-			.getCapability<&DAAM.Collection{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!    
+			.getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!    
         let collections   = collectionRef.getCollection()
 
         self.collection  = []
