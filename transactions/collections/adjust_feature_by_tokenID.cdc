@@ -1,4 +1,4 @@
-// remove_tokenID_from_collection.cdc
+// adjust_feature_by_tokenid.cdc
 
 import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
