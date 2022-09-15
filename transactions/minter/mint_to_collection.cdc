@@ -1,36 +1,43 @@
-// mint.cdc
+// mint_to_collection.cdc
 // Used for Admin / Agent to mint on behalf in their Creator
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+//import NonFungibleToken from 0xf8d6e0586b0a20c7
 import MetadataViews    from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(creator: Address, mid: UInt64)
+transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
 {
     let minterRef : &DAAM.Minter
     let mid       : UInt64
-    let metadataRef : &{DAAM.MetadataGeneratorMint}
-    let receiverRef : &{NonFungibleToken.CollectionPublic}
+    let index     : Int?
+    let feature   : Bool
+    let metadataRef  : &{DAAM.MetadataGeneratorMint}
+    let receiverRef  : &DAAM.Collection{DAAM.CollectionPublic}
+    let agentRef     : &DAAM.Admin{DAAM.Agent}
 
     prepare(minter: AuthAccount) {
         self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
         self.mid       = mid
+        self.index     = index
+        self.feature   = feature
 
         self.receiverRef  = getAccount(creator)
             .getCapability(DAAM.collectionPublicPath)
-            .borrow<&{NonFungibleToken.CollectionPublic}>()!
-
+            .borrow<&DAAM.Collection{DAAM.CollectionPublic}>()!
 
         self.metadataRef = getAccount(creator)
             .getCapability(DAAM.metadataPublicPath)
             .borrow<&{DAAM.MetadataGeneratorMint}>()!
+        
+        self.agentRef = minter.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
     }
 
-    execute {
+    execute
+    {
         let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-        self.receiverRef.deposit(token: <-nft )
+        self.receiverRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature, permission: self.agentRef)
         
         log("Minted & Transfered")
     }

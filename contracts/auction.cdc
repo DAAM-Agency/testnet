@@ -252,19 +252,22 @@ pub struct AuctionHolder {
                         continue
                     }  
 
-                    let auction <- self.currentAuctions.remove(key:auctionID)!   // No Series minting or last mint
-                    destroy auction                                              // end auction.
-                    
-                    // Update Current Auctions List
-                    if self.currentAuctions.keys.length == 0 {
-                        AuctionHouse.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
-                    } else {
-                        AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list with reset values
-                    }
+                    self.removeAuction(auctionID)
 
                     log("Auction Closed: ".concat(auctionID.toString()) )                    
                     emit AuctionClosed(auctionID: auctionID)
                 }
+            }
+        }
+
+        priv fun removeAuction(_ auctionID: UInt64) {
+            let auction <- self.currentAuctions.remove(key:auctionID)!   // No Series minting or last mint
+            destroy auction                                              // end auction.!
+            // Update Current Auctions List
+            if self.currentAuctions.keys.length == 0 {
+                AuctionHouse.currentAuctions.remove(key:self.owner!.address) // If auctioneer has no more auctions remove from list
+            } else {
+                AuctionHouse.currentAuctions.insert(key:self.owner!.address, self.currentAuctions.keys) // otherwise update list with reset values
             }
         }
 
@@ -409,7 +412,12 @@ pub struct AuctionHolder {
                 self.reprintSeries = nil
             }              
             
-            self.mid = ref.mid! // Meta   data ID
+            self.mid = ref.mid! // Metadata ID            
+            if metadata != nil && !AuctionHouse.history.containsKey(self.mid) { // is Metadata and first Auction of Metadata
+                let metadataHolder =  metadata?.getHolder()! //as &DAAM.MetadataHolder
+                AuctionHouse.history.insert(key: self.mid, {0 : SaleHistory(metadata: metadataHolder)} ) // Element 0 if for data gathering of Metadata/Auction Holder through History.
+            }
+
             self.fee = AuctionHouse.getFee(mid: self.mid)
             self.buyNow = self.price
 

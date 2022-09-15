@@ -4,7 +4,7 @@
 import DAAM from 0xfd43f9148d4b725d
 
 transaction(creator: Address, status: Bool) {
-    let admin   : &{DAAM.Agent}
+    let admin  : &DAAM.Admin{DAAM.Agent}
     let creator : Address
     let status  : Bool
 
