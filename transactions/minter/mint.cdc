@@ -8,22 +8,20 @@ import DAAM             from 0xfd43f9148d4b725d
 transaction(creator: Address, mid: UInt64)
 {
     let minterRef : &DAAM.Minter
-    let creator   : Address
     let mid       : UInt64
     let metadataRef : &{DAAM.MetadataGeneratorMint}
     let receiverRef : &{NonFungibleToken.CollectionPublic}
 
     prepare(minter: AuthAccount) {
         self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
-        self.creator   = creator
         self.mid       = mid
 
-        self.receiverRef  = getAccount(self.creator)
+        self.receiverRef  = getAccount(creator)
             .getCapability(DAAM.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()!
 
 
-        self.metadataRef = getAccount(self.creator)
+        self.metadataRef = getAccount(creator)
             .getCapability(DAAM.metadataPublicPath)
             .borrow<&{DAAM.MetadataGeneratorMint}>()!
     }
