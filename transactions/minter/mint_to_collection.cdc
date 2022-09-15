@@ -13,7 +13,6 @@ transaction(creator: Address, mid: UInt64, index: UInt64? )
     let index     : UInt64?
     let metadataRef  : &{DAAM.MetadataGeneratorMint}
     let receiverRef  : &{NonFungibleToken.CollectionPublic}
-    let collectionRef: &DAAM.Collection
 
     prepare(minter: AuthAccount) {
         self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
@@ -39,7 +38,6 @@ transaction(creator: Address, mid: UInt64, index: UInt64? )
         let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-        //self.receiverRef.deposit(token: <-nft)
         self.receiverRef.depositByAgent(token: <-nft, index: self.index, permission: self.agent)
         
         log("Minted & Transfered")

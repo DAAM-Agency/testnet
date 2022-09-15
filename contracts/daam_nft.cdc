@@ -523,6 +523,7 @@ pub struct OnChain: MetadataViews.File {
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
     pub fun getCollection(): [NFTCollectionDisplay] 
+    //pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -676,7 +677,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         let id = token.id
         self.deposit(token: <-token)
         if !self.collections[index]!.id.containsKey(id) {
-            self.collections[index]!.id.insert(key:id, feature)
+            self.collections[index]!.addTokenID(id: id, feature: feature)
         }
     }
 
