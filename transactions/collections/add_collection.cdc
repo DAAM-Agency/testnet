@@ -10,7 +10,7 @@ pub fun setFile(string: String, type: String): {MetadataViews.File} {
     }
 }
 
-transaction(creator: Address, name: String, description: String, externalURL: String, squareImage: String, squareImageType: String,
+transaction(name: String, description: String, externalURL: String, squareImage: String, squareImageType: String,
     bannerImage: String, bannerImageType: String, socials:  {String: MetadataViews.ExternalURL} )
 {
     let collectionRef: &DAAM.Collection
@@ -23,7 +23,7 @@ transaction(creator: Address, name: String, description: String, externalURL: St
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
-        self.collectionRef = getAccount(creator).getCapability(capabilityPath)<&DAAM.Collection>(from: DAAM.collectionStoragePath).borrow()!
+        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!
             //?? panic("Could not borrow a reference to the owner's collection")
         self.name = name // Get name of collection
         self.description = description
