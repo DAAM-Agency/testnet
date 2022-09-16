@@ -3,7 +3,7 @@
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM             from 0xa4ad5ea5c0bd2fba
-import FUSD             from 0x192440c99cb17282
+import FUSD             from 0x0xe223d8a629e49c68
 import AuctionHouse     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/

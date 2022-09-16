@@ -6,7 +6,8 @@ grep -rl fd43f9148d4b725d --exclude-dir={.*,keys}  --exclude={*.sh,*.md,*.json} 
 grep -rl fd43f9148d4b725d --exclude-dir={.*,keys}  --exclude={*.sh,*.md,*.json} | xargs sed -i 's|fd43f9148d4b725d|a4ad5ea5c0bd2fba|g' # DAAM_V21 Contract
 grep -rl 0ae53cb6e3f42a79 --exclude-dir={.*,keys}  --exclude={*.sh,*.md,*.json} | xargs sed -i 's|0ae53cb6e3f42a79|7e60df042a9c0868|g' # Flow Token
 
-#grep -rl 192440c99cb17282 --exclude-dir={.*,keys,fusd,auction}  --exclude={*.sh,*.md,*.json,*fusd*.*,MultiFungibleToken.cdc,auction.cdc,add_crypto.cdc,submit_and_auction.cdc} | xargs sed -i 's|192440c99cb17282|ba1132bc08f82fe2|g' # Profile Contract
+grep -rl 192440c99cb17282 --exclude-dir={.*,keys}  --exclude={*.sh,*.md,*.json} | xargs sed -i 's|192440c99cb17282|0xe223d8a629e49c68|g' #FUSD
+
 
 grep -rl " DAAM" --exclude-dir={.*,keys}  --exclude={*.sh,*.md,*.json} | xargs sed -i 's| DAAM| DAAM_V23|g' # 
 
