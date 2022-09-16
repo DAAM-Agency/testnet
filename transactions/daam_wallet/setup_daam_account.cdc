@@ -1,12 +1,12 @@
 // setup_daam_account.cdc
-// Create A DAAM Wallet to store DAAM NFTs
+// Create A DAAM_V23 Wallet to store DAAM_V23 NFTs
 // Includes: /multitoken/setup_mft_receiver.cdc
 
 import NonFungibleToken   from 0x631e88ae7f1d7c20
 import FungibleToken      from 0x9a0766d93b6608b7
 import MetadataViews      from 0x631e88ae7f1d7c20
 import MultiFungibleToken from 0xfa1c6cfe182ee46b
-import DAAM               from 0xa4ad5ea5c0bd2fba
+import DAAM_V23               from 0xa4ad5ea5c0bd2fba
 
 transaction(public: Bool)
 {
@@ -16,9 +16,9 @@ transaction(public: Bool)
     let have_mft: Bool
 
     prepare(acct: AuthAccount) {
-        if acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath) != nil {
+        if acct.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath) != nil {
             self.have_collection = true
-            panic("You already have a DAAM Collection.")
+            panic("You already have a DAAM_V23 Collection.")
         } else {
             self.have_collection = false
         }
@@ -36,14 +36,14 @@ transaction(public: Bool)
 
     execute {
         if !self.have_collection {
-            let collection <- DAAM.createEmptyCollection()    // Create a new empty collection
-            self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM.collectionStoragePath) // save the new account
+            let collection <- DAAM_V23.createEmptyCollection()    // Create a new empty collection
+            self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V23.collectionStoragePath) // save the new account
             
             if self.public {
-                self.acct.link<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM.collectionPublicPath, target: DAAM.collectionStoragePath)
-                log("DAAM Account Created. You have a DAAM Collection (Public) to store NFTs'")
+                self.acct.link<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM.collectionPublicPath, target: DAAM_V23.collectionStoragePath)
+                log("DAAM Account Created. You have a DAAM_V23 Collection (Public) to store NFTs'")
             } else {
-                log("DAAM Account Created. You have a DAAM Collection (Non-Public) to store NFTs'")
+                log("DAAM Account Created. You have a DAAM_V23 Collection (Non-Public) to store NFTs'")
             }
         }
 

@@ -2,7 +2,7 @@
 // Answer the invitation to be a Creator.
 
 import Profile from 0xba1132bc08f82fe2
-import DAAM    from 0xa4ad5ea5c0bd2fba
+import DAAM_V23    from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -19,25 +19,25 @@ transaction(submit: Bool) {
             self.signer.link<&Profile.Base{Profile.Public}>(Profile.publicPath, target: Profile.privatePath)
         }
 
-        let creator <- DAAM.answerCreatorInvite(newCreator: self.signer, submit: self.submit)
+        let creator <- DAAM_V23.answerCreatorInvite(newCreator: self.signer, submit: self.submit)
         if creator != nil {
-            let old_creator <- self.signer.load<@AnyResource>(from: DAAM.creatorStoragePath)
-            self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM.creatorStoragePath)
-            let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+            let old_creator <- self.signer.load<@AnyResource>(from: DAAM_V23.creatorStoragePath)
+            self.signer.save<@DAAM.Creator>(<- creator!, to: DAAM_V23.creatorStoragePath)
+            let creatorRef = self.signer.borrow<&DAAM.Creator>(from: DAAM_V23.creatorStoragePath)!
             destroy old_creator
 
-            let old_mg <- self.signer.load<@AnyResource>(from: DAAM.metadataStoragePath)
+            let old_mg <- self.signer.load<@AnyResource>(from: DAAM_V23.metadataStoragePath)
             let metadataGen <- creatorRef.newMetadataGenerator()
-            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath, target: DAAM.metadataStoragePath)
-            self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM.metadataStoragePath)
+            self.signer.link<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM_V23.MetadataGeneratorPublic}>(DAAM.metadataPublicPath, target: DAAM_V23.metadataStoragePath)
+            self.signer.save<@DAAM.MetadataGenerator>(<- metadataGen, to: DAAM_V23.metadataStoragePath)
             destroy old_mg
 
-            let old_request <- self.signer.load<@AnyResource>(from: DAAM.requestStoragePath)
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_V23.requestStoragePath)
             let requestGen  <- creatorRef.newRequestGenerator()
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)
+            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM_V23.requestStoragePath)
             destroy old_request
 
-            log("You are now a DAAM.Creator." )        
+            log("You are now a DAAM_V23.Creator." )        
         } else {
             destroy creator
             log("Thank You for your Consoderation.")

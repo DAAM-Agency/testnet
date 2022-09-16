@@ -2,7 +2,7 @@
 // Return all (nil) or spcific history
 
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM          from 0xa4ad5ea5c0bd2fba
+import DAAM_V23          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse  from 0x045a1763c93006ca
 
 pub struct DirectHistory {
@@ -23,7 +23,7 @@ pub struct DirectHistory {
         self.name = metadata.edition.name!
         self.file = metadataRef.getFile(mid: self.mid)!
         self.creator = metadata.creatorInfo!.creator!
-		self.royalty = DAAM.getRoyalties(mid: self.mid)
+		self.royalty = DAAM_V23.getRoyalties(mid: self.mid)
 
         let collectionRef = getAccount(creator)
 			.getCapability<&{DAAM.CollectionPublic}>(DAAM.collectionPublicPath).borrow()!    

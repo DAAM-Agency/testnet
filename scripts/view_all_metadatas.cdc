@@ -1,10 +1,10 @@
 // view_all_metadatas.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(): {Address: [DAAM.MetadataHolder]}
 {
-    let creators = DAAM.getCreators()
+    let creators = DAAM_V23.getCreators()
     var list: {Address: [DAAM.MetadataHolder]} = {}
 
     for creator in creators.keys {

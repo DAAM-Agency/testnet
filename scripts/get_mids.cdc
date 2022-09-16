@@ -1,6 +1,6 @@
 // get_mids.cdc
 
-import DAAM from 0xa4ad5ea5c0bd2fba
+import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
 pub fun main(creator: Address): [UInt64] {
     let metadataRef = getAccount(creator)
