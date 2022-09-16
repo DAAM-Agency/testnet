@@ -1,7 +1,7 @@
 // daam_nft.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import FungibleToken    from 0xee82856bf20e2aa6 
+import FungibleToken    from 0x9a0766d93b6608b7 
 import MetadataViews    from 0x631e88ae7f1d7c20
 import Profile          from 0x192440c99cb17282
 import Categories       from 0xfd43f9148d4b725d

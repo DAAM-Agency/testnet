@@ -11,7 +11,7 @@
 // or initialize a new vault, use check_fusd_vault_setup.cdc and setup_fusd_vault.cdc
 // respectively.
 
-import FungibleToken from 0xee82856bf20e2aa6
+import FungibleToken from 0x9a0766d93b6608b7
 import FUSD from 0x192440c99cb17282
 
 transaction(amount: UFix64, to: Address) {
