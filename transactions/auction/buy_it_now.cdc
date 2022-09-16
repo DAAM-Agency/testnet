@@ -2,13 +2,8 @@
 // Used for direct purchases
 
 import FungibleToken from 0x9a0766d93b6608b7
-<<<<<<< HEAD
 import FUSD          from 0xe223d8a629e49c68
 import AuctionHouse_V16  from 0x01837e15023c9249
-=======
-import FUSD          from 0x0xe223d8a629e49c68
-import AuctionHouse_V16  from 0x01837e15023c9249
->>>>>>> tomerge
 import DAAM_V23          from 0xa4ad5ea5c0bd2fba
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
@@ -25,11 +20,7 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
         self.bidder = bidder.address
         self.fusdStoragePath = /storage/fusdVault
         self.vaultRef   = bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
-<<<<<<< HEAD
         self.collection = bidder.borrow<&{DAAM_V23.CollectionPublic}>(from: DAAM_V23.collectionStoragePath)!
-=======
-        self.collection = bidder.borrow<&{DAAM.CollectionPublic}>(from: DAAM_V23.collectionStoragePath)!
->>>>>>> tomerge
         self.auctionHouse = getAccount(auction)
             .getCapability<&AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}>
             (AuctionHouse_V16.auctionPublicPath)

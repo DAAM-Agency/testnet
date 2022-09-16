@@ -5,13 +5,8 @@
 import NonFungibleToken   from 0x631e88ae7f1d7c20
 import FungibleToken      from 0x9a0766d93b6608b7
 import MetadataViews      from 0x631e88ae7f1d7c20
-<<<<<<< HEAD
 import MultiFungibleToken from 0xf0653a06e7de7dbd
 import DAAM_V23           from 0xa4ad5ea5c0bd2fba
-=======
-import MultiFungibleToken from 0xfa1c6cfe182ee46b
-import DAAM_V23               from 0xa4ad5ea5c0bd2fba
->>>>>>> tomerge
 
 transaction(public: Bool)
 {
@@ -23,26 +18,16 @@ transaction(public: Bool)
     let have_mft: Bool
 
     prepare(acct: AuthAccount) {
-<<<<<<< HEAD
         if acct.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath) != nil {
             self.have_collection = true
             log("You already have a DAAM_V23 Collection.")
-=======
-        if acct.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath) != nil {
-            self.have_collection = true
-            panic("You already have a DAAM_V23 Collection.")
->>>>>>> tomerge
         } else {
             self.have_collection = false
         }
 
         if acct.borrow<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>(from: MultiFungibleToken.MultiFungibleTokenStoragePath) != nil {
             self.have_mft = true
-<<<<<<< HEAD
             log("You already have a Multi-FungibleToken-Manager.")
-=======
-            panic("You already have a Multi-FungibleToken-Manager.")
->>>>>>> tomerge
         } else {
             self.have_mft = false
         }
@@ -57,17 +42,10 @@ transaction(public: Bool)
             self.acct.save<@NonFungibleToken.Collection>(<-collection, to: DAAM_V23.collectionStoragePath) // save the new account
             
             if self.public {
-<<<<<<< HEAD
                 self.acct.link<&{DAAM_V23.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_V23.collectionPublicPath, target: DAAM_V23.collectionStoragePath)
                 log("DAAM_V23.Account Created. You have a DAAM_V23 Collection (Public) to store NFTs'")
             } else {
                 log("DAAM_V23.Account Created. You have a DAAM_V23 Collection (Non-Public) to store NFTs'")
-=======
-                self.acct.link<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM.collectionPublicPath, target: DAAM_V23.collectionStoragePath)
-                log("DAAM Account Created. You have a DAAM_V23 Collection (Public) to store NFTs'")
-            } else {
-                log("DAAM Account Created. You have a DAAM_V23 Collection (Non-Public) to store NFTs'")
->>>>>>> tomerge
             }
         }
 

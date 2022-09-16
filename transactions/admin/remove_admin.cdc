@@ -9,11 +9,7 @@ transaction(exAdmin: Address)
     let exAdmin : Address
 
     prepare(admin: AuthAccount) {
-<<<<<<< HEAD
         self.admin = admin.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath) ?? panic(exAdmin.toString().concat(" is not an Admin."))
-=======
-        self.admin = admin.borrow<&DAAM.Admin>(from: DAAM_V23.adminStoragePath) ?? panic(exAdmin.toString().concat(" is not an Admin."))
->>>>>>> tomerge
 	    self.exAdmin = exAdmin
     }
 

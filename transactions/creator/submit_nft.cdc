@@ -36,13 +36,8 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
 
     prepare(creator: AuthAccount) {
         //self.creator     = creator
-<<<<<<< HEAD
         self.metadataGen = creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
-=======
-        self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
->>>>>>> tomerge
 
         self.name         = name
         self.max          = max

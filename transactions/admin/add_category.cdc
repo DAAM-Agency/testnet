@@ -10,11 +10,7 @@ transaction(category: String) {
 
     prepare(admin: AuthAccount) {
         self.category = category
-<<<<<<< HEAD
         self.admin    = admin.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath)!
-=======
-        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM_V23.adminStoragePath)!
->>>>>>> tomerge
     }
 
     pre { !Categories.getCategories().contains(category) }

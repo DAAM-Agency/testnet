@@ -10,17 +10,10 @@ transaction(mid: UInt64, feature: Bool, element: UInt64) {
     let element: UInt64
 
     prepare(acct: AuthAccount) {
-<<<<<<< HEAD
         self.creatorRef = acct.borrow<&DAAM_V23.Creator>(from: DAAM_V23.creatorStoragePath)!
         let metadataGen = acct.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
         // Borrow a reference from the stored collection
         self.collectionRef = acct.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)
-=======
-        self.creatorRef = acct.borrow<&DAAM.Creator>(from: DAAM_V23.creatorStoragePath)!
-        let metadataGen = acct.borrow<&DAAM.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
-        // Borrow a reference from the stored collection
-        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath)
->>>>>>> tomerge
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid = mid
         self.feature = feature

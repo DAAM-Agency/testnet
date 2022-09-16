@@ -9,11 +9,7 @@ transaction(exCreator: Address)
     let creator : Address
 
     prepare(agent: AuthAccount) {
-<<<<<<< HEAD
         self.admin   = agent.borrow<&DAAM_V23.Admin{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath) ?? panic(exCreator.toString().concat(" is not a Creator."))
-=======
-        self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM_V23.adminStoragePath) ?? panic(exCreator.toString().concat(" is not a Creator."))
->>>>>>> tomerge
         self.creator = exCreator
     }
 

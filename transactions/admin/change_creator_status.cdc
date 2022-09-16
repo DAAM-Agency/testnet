@@ -4,22 +4,14 @@
 import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, status: Bool) {
-<<<<<<< HEAD
     let admin   : &{DAAM_V23.Agent}
-=======
-    let admin  : &DAAM.Admin{DAAM.Agent}
->>>>>>> tomerge
     let creator : Address
     let status  : Bool
 
     prepare(agent: AuthAccount) {
         self.creator = creator  
         self.status  = status
-<<<<<<< HEAD
         self.admin = agent.borrow<&{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)!
-=======
-        self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM_V23.adminStoragePath)!
->>>>>>> tomerge
     }
 
     pre { DAAM_V23.isCreator(creator) != nil : creator.toString().concat(" is not a Creator.") }

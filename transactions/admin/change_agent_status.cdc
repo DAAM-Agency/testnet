@@ -11,11 +11,7 @@ transaction(agent: Address, status: Bool) {
     prepare(agent: AuthAccount) {
         self.agent = agent  
         self.status  = status
-<<<<<<< HEAD
         self.admin = agent.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath)!
-=======
-        self.admin = agent.borrow<&DAAM.Admin>(from: DAAM_V23.adminStoragePath)!
->>>>>>> tomerge
     }
 
     pre { DAAM_V23.isAgent(agent) != nil : agent.toString().concat(" is not a Agent.") }

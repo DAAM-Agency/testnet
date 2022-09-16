@@ -8,11 +8,7 @@ transaction(element: Int) {
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
-<<<<<<< HEAD
         self.collectionRef = acct.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)
-=======
-        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath)
->>>>>>> tomerge
             ?? panic("Could not borrow a reference to the owner's collection")
         self.element = element
     }

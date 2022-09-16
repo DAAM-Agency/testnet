@@ -6,13 +6,8 @@ import FungibleToken from 0x9a0766d93b6608b7
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V23          from 0xa4ad5ea5c0bd2fba
-<<<<<<< HEAD
 import AuctionHouse_V16  from 0x01837e15023c9249
 import FUSD          from 0xe223d8a629e49c68
-=======
-import AuctionHouse_V16  from 0x01837e15023c9249
-import FUSD          from 0x0xe223d8a629e49c68
->>>>>>> tomerge
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -42,15 +37,9 @@ transaction(
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
     )
 {    
-<<<<<<< HEAD
     let requestGen  : &DAAM_V23.RequestGenerator
     let metadataGen : &DAAM_V23.MetadataGenerator
     let metadataCap : Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
-=======
-    let requestGen  : &DAAM.RequestGenerator
-    let metadataGen : &DAAM.MetadataGenerator
-    let metadataCap : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
->>>>>>> tomerge
     let auctionHouse: &AuctionHouse_V16.AuctionWallet
 
     let name        : String
@@ -76,17 +65,10 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-<<<<<<< HEAD
         self.metadataGen  = creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
         self.requestGen   = creator.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse_V16.AuctionWallet>(from: AuctionHouse_V16.auctionStoragePath)!
         self.metadataCap  = creator.getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>(DAAM_V23.metadataPublicPath)!
-=======
-        self.metadataGen  = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAM.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
-        self.auctionHouse = creator.borrow<&AuctionHouse_V16.AuctionWallet>(from: AuctionHouse_V16.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
->>>>>>> tomerge
         
         self.name         = name
         self.max          = max
