@@ -4,7 +4,7 @@ import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
 import MetadataViews    from 0x631e88ae7f1d7c20
 import Profile          from 0xba1132bc08f82fe2
-import Categories       from 0xfd43f9148d4b725d
+import Categories       from 0xa4ad5ea5c0bd2fba
 
 /************************************************************************/
 pub contract DAAM: NonFungibleToken {

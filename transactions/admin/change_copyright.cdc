@@ -8,7 +8,7 @@
 4 as int 8 = DAAM.CopyrightStatus.INCLUDED
 */
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
     
 transaction(creator: Address, mid: UInt64, copyright: UInt8) {
     let cr     : DAAM.CopyrightStatus

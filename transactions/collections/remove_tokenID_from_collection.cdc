@@ -1,6 +1,6 @@
 // remove_tokenID_from_collection.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM from 0xa4ad5ea5c0bd2fba
 
 transaction(id: UInt64, element: UInt64) {
     let collectionRef: &DAAM.Collection
