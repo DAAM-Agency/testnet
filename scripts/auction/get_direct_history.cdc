@@ -21,7 +21,7 @@ pub struct DirectHistory {
 		
 		self.mid  = metadata.mid!
         self.name = metadata.edition.name!
-        self.file = metadataRef.getFile(mid: self.mid)
+        self.file = metadataRef.getFile(mid: self.mid)!
         self.creator = metadata.creatorInfo!.creator!
 		self.royalty = DAAM_V23.getRoyalties(mid: self.mid)
 

@@ -11,7 +11,11 @@ transaction(minter: Address, status: Bool) {
     prepare(agent: AuthAccount) {
         self.minter = minter  
         self.status  = status
+<<<<<<< HEAD
         self.admin = agent.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath)!
+=======
+        self.admin = agent.borrow<&DAAM.Admin>(from: DAAM_V23.adminStoragePath)!
+>>>>>>> tomerge
     }
 
     pre { DAAM_V23.isMinter(minter) != nil : minter.toString().concat(" is not a Minter.") }

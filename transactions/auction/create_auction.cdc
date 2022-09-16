@@ -1,10 +1,17 @@
 // create_auction.cdc
 // Used to create an auction for an NFT
 
+<<<<<<< HEAD
 import AuctionHouse_V16     from 0x01837e15023c9249
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V23             from 0xa4ad5ea5c0bd2fba
 import FUSD             from 0xe223d8a629e49c68
+=======
+import AuctionHouse_V16     from 0x01837e15023c9249
+import NonFungibleToken from 0x631e88ae7f1d7c20
+import DAAM_V23             from 0xa4ad5ea5c0bd2fba
+import FUSD             from 0x0xe223d8a629e49c68
+>>>>>>> tomerge
 
 transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64,
   /*requiredCurrency: Type,*/ incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64,
@@ -12,8 +19,13 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
 {
 
   let auctionHouse : &AuctionHouse_V16.AuctionWallet
+<<<<<<< HEAD
   let nftCollection: &DAAM_V23.Collection
   let metadataCap  : Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>?
+=======
+  let nftCollection: &DAAM.Collection
+  let metadataCap  : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>?
+>>>>>>> tomerge
 
   let id          : UInt64
   let start       : UFix64
@@ -30,8 +42,13 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
 
   prepare(auctioneer: AuthAccount) {
     self.auctionHouse  = auctioneer.borrow<&AuctionHouse_V16.AuctionWallet>(from: AuctionHouse_V16.auctionStoragePath)!
+<<<<<<< HEAD
     self.nftCollection = auctioneer.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)!
     self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>(DAAM_V23.metadataPublicPath) : nil
+=======
+    self.nftCollection = auctioneer.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath)!
+    self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath) : nil
+>>>>>>> tomerge
 
     self.id               = id
     self.start            = start

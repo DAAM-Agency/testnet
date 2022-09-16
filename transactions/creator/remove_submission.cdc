@@ -12,7 +12,11 @@ transaction(mid: UInt64)
 
     prepare(creator: AuthAccount) {
         self.creator = creator
+<<<<<<< HEAD
         self.metadataGen = self.creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
+=======
+        self.metadataGen = self.creator.borrow<&DAAM.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
+>>>>>>> tomerge
         self.mid = mid
     }
 

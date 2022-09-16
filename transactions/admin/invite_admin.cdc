@@ -10,7 +10,11 @@ transaction(newAdmin: Address)
     let newAdmin : Address 
 
     prepare(admin: AuthAccount) {
+<<<<<<< HEAD
         self.admin    = admin.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath)!
+=======
+        self.admin    = admin.borrow<&DAAM.Admin>(from: DAAM_V23.adminStoragePath)!
+>>>>>>> tomerge
         self.newAdmin = newAdmin
     }
 

@@ -1,7 +1,11 @@
 // add_to_collection.cdc
 
 import MetadataViews from 0x631e88ae7f1d7c20
+<<<<<<< HEAD
 import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+=======
+import DAAM_V23          from 0xa4ad5ea5c0bd2fba
+>>>>>>> tomerge
 
 pub fun setFile(string: String, type: String): {MetadataViews.File} {
     switch type! {
@@ -23,8 +27,13 @@ transaction(name: String, description: String, externalURL: String, squareImage:
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
+<<<<<<< HEAD
         self.collectionRef = acct.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
+=======
+        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath)!
+            //?? panic("Could not borrow a reference to the owner's collection")
+>>>>>>> tomerge
         self.name = name // Get name of collection
         self.description = description
         self.externalURL = MetadataViews.ExternalURL(externalURL)

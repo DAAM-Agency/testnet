@@ -6,9 +6,15 @@ import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 transaction()
 {
     prepare(acct: AuthAccount) {
+<<<<<<< HEAD
         if acct.borrow<&{DAAM_V23.CollectionPublic}>(from: DAAM_V23.collectionStoragePath) != nil {
             acct.unlink(DAAM_V23.collectionPublicPath)
             log("DAAM_V23.Account Created, you now have a Non-Public DAAM_V23 .Collection to store NFTs'")
+=======
+        if acct.borrow<&{DAAM.CollectionPublic}>(from: DAAM_V23.collectionStoragePath) != nil {
+            acct.unlink(DAAM.collectionPublicPath)
+            log("DAAM Account Created, you now have a Non-Public DAAM_V23 .Collection to store NFTs'")
+>>>>>>> tomerge
         } else {
             log("You do not have an Account. Make one first.")
         }

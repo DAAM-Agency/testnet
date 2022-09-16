@@ -12,13 +12,21 @@ import DAAM_V23 from 0xa4ad5ea5c0bd2fba
     
 transaction(creator: Address, mid: UInt64, copyright: UInt8) {
     let cr     : DAAM_V23.CopyrightStatus
+<<<<<<< HEAD
     let admin  : &{DAAM_V23.Agent}
+=======
+    let admin  : &DAAM.Admin{DAAM.Agent}
+>>>>>>> tomerge
     let mid    : UInt64
     let creator: Address
 
     prepare(agent: AuthAccount) {
         self.cr      = DAAM_V23.CopyrightStatus(rawValue: copyright)!                             // init copyright
+<<<<<<< HEAD
         self.admin   = agent.borrow<&{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)! // init admin
+=======
+        self.admin   = agent.borrow<&{DAAM.Agent}>(from: DAAM_V23.adminStoragePath)! // init admin
+>>>>>>> tomerge
         self.mid     = mid 
         self.creator = creator                                                        // init mid
     }

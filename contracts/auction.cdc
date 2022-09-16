@@ -4,7 +4,11 @@
 import FungibleToken    from 0x9a0766d93b6608b7
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import MetadataViews    from 0x631e88ae7f1d7c20
+<<<<<<< HEAD
 import DAAM_V23         from 0xa4ad5ea5c0bd2fba
+=======
+import DAAM_V23             from 0xa4ad5ea5c0bd2fba
+>>>>>>> tomerge
 
 pub contract AuctionHouse_V16 {
     // Event
@@ -214,11 +218,19 @@ pub struct AuctionHolder {
             var auction: @Auction? <- nil
             // Is Metadata, not NFT
             if metadataGenerator != nil {
+<<<<<<< HEAD
                 assert(DAAM_V23.getCopyright(mid: id) != DAAM_V23.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
                 assert(DAAM_V23.getCopyright(mid: id) != DAAM_V23.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
 
                 AuctionHouse_V16.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
                 let metadataRef = metadataGenerator!.borrow()! as &DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint} // Get MetadataHolder
+=======
+                assert(DAAM.getCopyright(mid: id) != DAAM_V23.CopyrightStatus.FRAUD, message: "This submission has been flaged for Copyright Issues.")
+                assert(DAAM.getCopyright(mid: id) != DAAM_V23.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
+
+                AuctionHouse_V16.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
+                let metadataRef = metadataGenerator!.borrow()! as &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint} // Get MetadataHolder
+>>>>>>> tomerge
                 let minterAccess <- AuctionHouse_V16.minterAccess(mid: id)
                 let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess)      // Create MetadataHolder
                 // Create Auctions
@@ -253,7 +265,11 @@ pub struct AuctionHolder {
                     }  
 
                     self.removeAuction(auctionID)
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> tomerge
                     log("Auction Closed: ".concat(auctionID.toString()) )                    
                     emit AuctionClosed(auctionID: auctionID)
                 }
@@ -412,7 +428,11 @@ pub struct AuctionHolder {
                 self.reprintSeries = nil
             }              
             
+<<<<<<< HEAD
             self.mid = ref.mid! // Meta   data ID
+=======
+            self.mid = ref.mid! // Metadata ID            
+>>>>>>> tomerge
             if metadata != nil && !AuctionHouse_V16.history.containsKey(self.mid) { // is Metadata and first Auction of Metadata
                 let metadataHolder =  metadata?.getHolder()! //as &DAAM.MetadataHolder
                 AuctionHouse_V16.history.insert(key: self.mid, {0 : SaleHistory(metadata: metadataHolder)} ) // Element 0 if for data gathering of Metadata/Auction Holder through History.
@@ -841,7 +861,11 @@ pub struct AuctionHolder {
                 let inHouseAmount = nonCreatorAmont * inHouse
                 let daamAmount = nonCreatorAmont - inHouseAmount
                 let creatorAmount = self.auctionVault.balance - nonCreatorAmont
+<<<<<<< HEAD
                 self.payRoyalty(price: inHouseAmount, royalties: [DAAM_V23.company])
+=======
+                self.payRoyalty(price: inHouseAmount, royalties: [DAAM.company])
+>>>>>>> tomerge
                 self.payRoyalty(price: daamAmount, royalties: DAAM_V23.agency.getRoyalties())
                 self.payRoyalty(price: creatorAmount, royalties: creatorRoyalties)
             } else {
@@ -877,7 +901,11 @@ pub struct AuctionHolder {
                 let royalties = self.auctionNFT?.royalty!.getRoyalties() // get Royalty data
 
                 self.payRoyalty(price: price, royalties:royalties)
+<<<<<<< HEAD
                 self.payRoyalty(price: fee * inHouse, royalties: [DAAM_V23.company] ) // get Comapny share of fee
+=======
+                self.payRoyalty(price: fee * inHouse, royalties: [DAAM.company] ) // get Comapny share of fee
+>>>>>>> tomerge
                 self.payRoyalty(price: fee * agency, royalties: DAAM_V23.agency.getRoyalties() ) // Pay Agency the fee
 
                 let seller = self.owner?.getCapability<&{FungibleToken.Receiver}>
@@ -977,7 +1005,11 @@ pub struct AuctionHolder {
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
+<<<<<<< HEAD
         let minter = self.account.borrow<&DAAM_V23.Minter>(from: DAAM_V23.minterStoragePath)!
+=======
+        let minter = self.account.borrow<&DAAM.Minter>(from: DAAM_V23.minterStoragePath)!
+>>>>>>> tomerge
         minter.notNew(tokenID: tokenID) // Set to not new
     }
 
@@ -987,15 +1019,25 @@ pub struct AuctionHolder {
     }    
 
     // Requires Minter Key // Minter function to mint
+<<<<<<< HEAD
     access(contract) fun mintNFT(metadata: @DAAM_V23.Metadata): @DAAM_V23.NFT {
         let minterRef = self.account.borrow<&DAAM_V23.Minter>(from: DAAM_V23.minterStoragePath)! // get Minter Reference
+=======
+    access(contract) fun mintNFT(metadata: @DAAM.Metadata): @DAAM.NFT {
+        let minterRef = self.account.borrow<&DAAM.Minter>(from: DAAM_V23.minterStoragePath)! // get Minter Reference
+>>>>>>> tomerge
         let nft <- minterRef.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 
     // Requires Minter Key // Minter function to mint
+<<<<<<< HEAD
     access(contract) fun minterAccess(mid: UInt64): @DAAM_V23.MinterAccess {
         let minterRef = self.account.borrow<&DAAM_V23.Minter>(from: DAAM_V23.minterStoragePath)! // get Minter Reference
+=======
+    access(contract) fun minterAccess(mid: UInt64): @DAAM.MinterAccess {
+        let minterRef = self.account.borrow<&DAAM.Minter>(from: DAAM_V23.minterStoragePath)! // get Minter Reference
+>>>>>>> tomerge
         let minter_access <- minterRef.createMinterAccess(mid: mid)
         return <- minter_access                                  // Return NFT
     }
@@ -1036,7 +1078,11 @@ pub struct AuctionHolder {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
 
+<<<<<<< HEAD
     pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM_V23.Admin) {
+=======
+    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+>>>>>>> tomerge
         pre { DAAM_V23.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.fee[mid] = fee
     }
@@ -1053,7 +1099,11 @@ pub struct AuctionHolder {
         return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
     }
 
+<<<<<<< HEAD
     pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM_V23.Admin) {
+=======
+    pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM.Admin) {
+>>>>>>> tomerge
         pre { DAAM_V23.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.agencyFirstSale[mid] = fee
     }
@@ -1066,7 +1116,11 @@ pub struct AuctionHolder {
         self.agencyFirstSale.remove(key: mid)
     }
 
+<<<<<<< HEAD
     pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM_V23.Admin) {
+=======
+    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM.Admin) {
+>>>>>>> tomerge
         pre { DAAM_V23.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         let type = crypto.getType()
         let identifier = type.identifier
@@ -1097,7 +1151,12 @@ pub struct AuctionHolder {
         self.auctionStoragePath = /storage/DAAM_V23_Auction
         self.auctionPublicPath  = /public/DAAM_V23_Auction
         // init accepted cryptos
+<<<<<<< HEAD
         self.crypto = {"A.e223d8a629e49c68.FUSD.Vault" : /public/fusdReceiver}
+=======
+        self.crypto = {"A.0xe223d8a629e49c68.FUSD.Vault" : /public/fusdReceiver}
+        self.crypto .insert(key: "A.ec4809cd812aee0a.TokenA.Vault", /public/tokenAReceiver)
+>>>>>>> tomerge
     }
 }
  

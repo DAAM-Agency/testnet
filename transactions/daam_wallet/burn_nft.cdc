@@ -14,7 +14,11 @@ transaction(burn: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the signer's NFT collection
         self.withdrawRef = signer
+<<<<<<< HEAD
             .borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)
+=======
+            .borrow<&DAAM.Collection>(from: DAAM_V23.collectionStoragePath)
+>>>>>>> tomerge
             ?? panic("Account does not store an object at the specified path")
 
         self.tokenID = burn

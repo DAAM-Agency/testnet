@@ -12,7 +12,11 @@
 // respectively.
 
 import FungibleToken from 0x9a0766d93b6608b7
+<<<<<<< HEAD
 import FUSD from 0xe223d8a629e49c68
+=======
+import FUSD from 0x0xe223d8a629e49c68
+>>>>>>> tomerge
 
 transaction(amount: UFix64, to: Address) {
 

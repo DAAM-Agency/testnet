@@ -3,15 +3,25 @@
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_V23             from 0xa4ad5ea5c0bd2fba
+<<<<<<< HEAD
 import FUSD             from 0xe223d8a629e49c68
 import AuctionHouse_V16     from 0x01837e15023c9249
+=======
+import FUSD             from 0x0xe223d8a629e49c68
+import AuctionHouse_V16     from 0x01837e15023c9249
+>>>>>>> tomerge
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
     let auctionHouse     : &AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}
+<<<<<<< HEAD
     let metadataGenerator: Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
     let agent       : &DAAM_V23.Admin{DAAM_V23.Agent}
+=======
+    let metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
+    let agent       : &DAAM.Admin{DAAM.Agent}
+>>>>>>> tomerge
     let mid         : UInt64
     let start       : UFix64
     let length      : UFix64
@@ -25,7 +35,11 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
     let reprintSeries   : UInt64?
 
     prepare(agent: AuthAccount) {
+<<<<<<< HEAD
         self.agent = agent.borrow<&DAAM_V23.Admin{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)!
+=======
+        self.agent = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM_V23.adminStoragePath)!
+>>>>>>> tomerge
 
         self.metadataGenerator  = getAccount(creator)
             .getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>

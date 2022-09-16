@@ -1,8 +1,12 @@
 // winner_collect.cdc
 // Used to claim an item. Must meet reserve price.
 
+<<<<<<< HEAD
 import AuctionHouse_V16  from 0x01837e15023c9249
 
+=======
+import AuctionHouse_V16  from 0x01837e15023c9249
+>>>>>>> tomerge
 transaction(auction: Address, aid: UInt64)
 { 
     let aid          : UInt64

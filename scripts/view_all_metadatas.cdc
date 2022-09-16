@@ -5,7 +5,11 @@ import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 pub fun main(): {Address: [DAAM_V23.MetadataHolder]}
 {
     let creators = DAAM_V23.getCreators()
+<<<<<<< HEAD
     var list: {Address: [DAAM_V23.MetadataHolder]} = {}
+=======
+    var list: {Address: [DAAM.MetadataHolder]} = {}
+>>>>>>> tomerge
 
     for creator in creators.keys {
         let metadataRef = getAccount(creator)

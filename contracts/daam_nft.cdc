@@ -35,7 +35,7 @@ pub contract DAAM_V23: NonFungibleToken {
     pub event RemovedMetadata(mid: UInt64)       // Metadata has been removed by Creator
     pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
     pub event CreatorAddAgent(creator: Address, agent: Address)
-    pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64, burner: Address) // Emit when an NFT is burned.
+    pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64) // Emit when an NFT is burned.
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -147,9 +147,15 @@ pub resource RequestGenerator {
             ) // end append    
             rateCut = rateCut + (creator.cut - newCut)
             // Update Creator History
+<<<<<<< HEAD
             if !DAAM_V23.creatorHistory.containsKey(creator.receiver.address) {
                 DAAM_V23.creatorHistory[creator.receiver.address] = [mid]
             } else if !DAAM_V23.creatorHistory[creator.receiver.address]!.contains(mid) {
+=======
+            if !DAAM.creatorHistory.containsKey(creator.receiver.address) {
+                DAAM_V23.creatorHistory[creator.receiver.address] = [mid]
+            } else if !DAAM.creatorHistory[creator.receiver.address]!.contains(mid) {
+>>>>>>> tomerge
                 DAAM_V23.creatorHistory[creator.receiver.address]!.append(mid)
             }
         }
@@ -292,7 +298,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             self.metadata <- {}  // Init Metadata
             self.returns <- {}   // Metadata Returns, when a metadata is not sold
             self.grantee = grantee
+<<<<<<< HEAD
             DAAM_V23.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM_V23.metadataPublicPath))
+=======
+            DAAM_V23.metadataCap.insert(key: self.grantee, getAccount(self.grantee).getCapability<&MetadataGenerator{MetadataGeneratorPublic}>(DAAM.metadataPublicPath))
+>>>>>>> tomerge
         }
 
         // addMetadata: Used to add a new Metadata. This sets up the Metadata to be approved by the Admin. Returns the new mid.
@@ -507,7 +517,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
         }
         
         destroy() {
+<<<<<<< HEAD
             emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp, burner: 0x0)
+=======
+            emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp)
+>>>>>>> tomerge
         }
     }
 
@@ -521,8 +535,13 @@ pub struct OnChain: MetadataViews.File {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
+<<<<<<< HEAD
     pub fun borrowDAAM(id: UInt64): &DAAM_V23.NFT // Get NFT as DAAM_V23.NFT
+=======
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM_V23.NFT
+>>>>>>> tomerge
     pub fun getCollection(): [NFTCollectionDisplay] 
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -591,7 +610,7 @@ pub struct NFTCollectionDisplay: CollectionDisplay {
     pub fun adjustFeatureByID(id: UInt64, feature: Bool) {
         pre { self.id.containsKey(id) : "You do not have TokenID: ".concat(id.toString()) }
         self.id[id] = feature
-    }
+    }    
 }
 /************************************************************************/
 // Standand Flow Collection Wallet
@@ -632,8 +651,13 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
                     storagePath: DAAM_V23.collectionStoragePath,
                     publicPath: DAAM_V23.collectionPublicPath,
                     providerPath: DAAM_V23.collectionPrivatePath,
+<<<<<<< HEAD
                     publicCollection: Type<@DAAM_V23.Collection>(),
                     publicLinkedType: Type<&DAAM_V23.Collection{DAAM_V23.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
+=======
+                    publicCollection: Type<@DAAM.Collection>(),
+                    publicLinkedType: Type<&DAAM.Collection{DAAM.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
+>>>>>>> tomerge
                     providerLinkedType: ?????, // TODO  ???
                     createEmptyCollectionFunction: (DAAM_V23.createEmptyCollection() : @DAAM_V23.Collection) // TODO ???
                 )*/
@@ -660,13 +684,28 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
 
     // deposit takes a NFT and adds it to the collections dictionary and adds the ID to the id array
     pub fun deposit(token: @NonFungibleToken.NFT) {
+<<<<<<< HEAD
         let token <- token as! @DAAM_V23.NFT // Get NFT as DAAM_V23.GFT
+=======
+        let token <- token as! @DAAM.NFT // Get NFT as DAAM_V23.GFT
+>>>>>>> tomerge
         let id = token.id        // Save Token ID
-        let name = token.metadata.edition.name!
         // add the new token to the dictionary which removes the old one
         let oldToken <- self.ownedNFTs[id] <- token   // Store NFT
         emit Deposit(id: id, to: self.owner?.address) 
         destroy oldToken                              // destroy place holder
+    }
+
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent}) {
+        pre {
+            DAAM_V23.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied."
+            index < self.collections.length : "Index out of Range."
+        }
+        let id = token.id
+        self.deposit(token: <-token)
+        if !self.collections[index]!.id.containsKey(id) {
+            self.collections[index]!.addTokenID(id: id, feature: feature)
+        }
     }
 
     // getIDs returns an array of the IDs that are in the collection
@@ -679,7 +718,11 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     }
 
     // borrowDAAM gets a reference to an DAAM_V23.NFT
+<<<<<<< HEAD
     pub fun borrowDAAM(id: UInt64): &DAAM_V23.NFT {
+=======
+    pub fun borrowDAAM(id: UInt64): &DAAM.NFT {
+>>>>>>> tomerge
         pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
         let ref = (&self.ownedNFTs[id] as! auth &NonFungibleToken.NFT?)!
         let daam = ref as! &DAAM_V23.NFT
@@ -767,7 +810,11 @@ pub resource Admin: Agent
         pub fun inviteCreator(_ creator: Address, agentCut: UFix64 ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
             pre {
                 DAAM_V23.admins[self.owner!.address] == true  : "Permission Denied"
+<<<<<<< HEAD
                 self.grantee == self.owner!.address : "Permission Denied"
+=======
+                self.grantee == self.owner!.address       : "Permission Denied"
+>>>>>>> tomerge
                 self.status                   : "You're no longer a have Access."
                 DAAM_V23.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM_V23.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
@@ -778,7 +825,11 @@ pub resource Admin: Agent
             let agent: Address = DAAM_V23.isAgent(self.owner!.address)==true ? self.owner!.address : DAAM_V23.company.receiver.address 
             let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
             DAAM_V23.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> tomerge
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
@@ -872,7 +923,11 @@ pub resource Admin: Agent
                 self.status                      : "You're no longer a have Access."
                 DAAM_V23.isMinter(minter) != nil     : "This is not a Minter Address."
             }
+<<<<<<< HEAD
             post { !DAAM_V23.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
+=======
+            post { !DAAM.minters.containsKey(minter) : "Illegal operation: removeAgent" } // Unreachable
+>>>>>>> tomerge
             DAAM_V23.minters.remove(key: minter)    // Remove Agent from list
             log("Removed Minter")
             emit MinterRemoved(minter: minter)
@@ -963,17 +1018,30 @@ pub resource Admin: Agent
             emit ChangedCopyright(metadataID: mid)            
         }
 
-        pub fun addCategory(name: String) { Categories.addCategory(name: name) }
+        pub fun addCategory(name: String) {
+            pre {
+                DAAM_V23.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+            }
+            Categories.addCategory(name: name)
+        }
 
-        pub fun removeCategory(name: String) { Categories.removeCategory(name: name) }
-        
+        pub fun removeCategory(name: String) {
+            pre {
+                DAAM_V23.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+            }
+            Categories.removeCategory(name: name)
+        }
 	}
 /************************************************************************/
 pub struct CreatorInfo {
     pub let creator   : Address
     pub let agent     : Address
-    pub let firstSale : UFix64
-    pub var status    : Bool? // nil = invited, false = frozen, true = active
+    pub let firstSale : UFix64 // Agent First Sale
+    pub var status    : Bool?  // nil = invited, false = frozen, true = active
 
     init(creator: Address, agent: Address, firstSale: UFix64 ) {
         self.creator   = creator
@@ -1079,7 +1147,11 @@ pub struct CreatorInfo {
 
         // Add NFT to 'new' list
         priv fun newNFT(id: UInt64) {
+<<<<<<< HEAD
             pre  { !DAAM_V23.newNFTs.contains(id) : "Token ID: ".concat(id.toString()).concat(" is already set to New.") }
+=======
+            pre  { !DAAM.newNFTs.contains(id) : "Token ID: ".concat(id.toString()).concat(" is already set to New.") }
+>>>>>>> tomerge
             post { DAAM_V23.newNFTs.contains(id)  : "Illegal Operation: newNFT" }
                 DAAM_V23.newNFTs.append(id)       // Append 'new' list
         }        
@@ -1097,13 +1169,26 @@ pub resource MinterAccess
     }
 
     pub fun validate(creator: Address): Bool {
+<<<<<<< HEAD
         pre { DAAM_V23.isMinter(self.minter)==true   : "You access has been denied." }
+=======
+        pre {
+            DAAM_V23.isMinter(self.minter) == true : "You access has been denied."
+            DAAM_V23.isCreator(creator)    == true : creator.toString().concat(" is not a Creator or account is Frozen.")     
+        }
+>>>>>>> tomerge
 
         if DAAM_V23.isAgent(self.minter) == nil   { return true  } // Is a Marketplace, Access Approvd, minterStatus is always true
         if DAAM_V23.isAgent(self.minter) == false { return false } // Access is Frozen or Invitation has not been acccepted.
         if DAAM_V23.isAgent(self.minter) == true  {  // is an Agent, verify creator & mid relationship to agent
                 // Verify MID belongs to Creator && Verify Agent is Creators'
+<<<<<<< HEAD
                 return DAAM_V23.creatorHistory[creator]!.contains(self.mid) && DAAM_V23.agentHistory[self.minter]!.contains(creator)
+=======
+                let valid_mid = DAAM_V23.getCreatorMIDs(creator: creator)!.contains(self.mid)
+        		let is_creators_agent = DAAM_V23.agentHistory[self.minter]!.contains(creator)
+                return valid_mid && is_creators_agent
+>>>>>>> tomerge
         }
         return false
     }
@@ -1183,10 +1268,20 @@ pub resource MinterAccess
 
         let agent = DAAM_V23.creators[newCreatorAddress]!.agent
         log("Agent: ".concat(agent.toString()) )
+<<<<<<< HEAD
         // Add to AgentHistory if not aleady entered. Considering re-invites.
         //if !DAAM_V23.agentHistory[agent]!.contains(newCreatorAddress) {
             //DAAM_V23.agentHistory[agent]!.append(newCreatorAddress)
         //}
+=======
+        
+        // Update agent History with Creator Address
+        if DAAM_V23.agentHistory[agent] == nil {
+            DAAM_V23.agentHistory[agent] = [newCreatorAddress]
+        } else if !DAAM.agentHistory[agent]!.contains(newCreatorAddress) {
+            DAAM_V23.agentHistory[agent]!.append(newCreatorAddress)
+        }
+>>>>>>> tomerge
 
         log("Creator: ".concat(newCreatorAddress.toString()).concat(" added to DAAM_V23") )
         emit NewCreator(creator: newCreatorAddress)
@@ -1211,6 +1306,22 @@ pub resource MinterAccess
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         post { result.getIDs().length == 0: "The created collection must be empty!" }
         return <- create DAAM_V23.Collection() // Return Collection Resource
+<<<<<<< HEAD
+=======
+    }
+
+    // Return list of Agents
+    pub fun getAgents(): {Address:[CreatorInfo]} {
+        var list: {Address:[CreatorInfo]} = {}
+
+        for agent in self.agentHistory.keys {
+            if self.agents[agent] != true { continue }
+            var creatorList: [CreatorInfo] = []
+            for creator in self.agentHistory[agent]! { creatorList.append(self.creators[creator]!) }
+            list.insert(key: agent, creatorList)
+        }
+        return list
+>>>>>>> tomerge
     }
 
     // Return list of Creators
@@ -1221,6 +1332,10 @@ pub resource MinterAccess
             if self.creators[creator]!.status != true { list.remove(key: creator) } 
         }
         return list
+    }
+
+    pub fun getAgentCreators(agent: Address): [Address]? { // returns a list of Creators
+        return self.agentHistory[agent]
     }
 
     pub fun getCreatorMIDs(creator: Address): [UInt64]? {
@@ -1262,10 +1377,13 @@ pub resource MinterAccess
 
     pub fun isCreator(_ creator: Address): Bool? { // Returns Creator status
         return DAAM_V23.creators[creator]?.status // nil = not a creator, false = invited to be a creator, true = is a creator
+<<<<<<< HEAD
     }
 
     pub fun getAgentCreators(agent: Address): [Address]? { // returns a list of Creators
         return self.agentHistory[agent]
+=======
+>>>>>>> tomerge
     }
 
     priv fun validInteract(_ interact: AnyStruct?): Bool {
@@ -1343,4 +1461,5 @@ pub resource MinterAccess
         emit ContractInitialized()
 	}
 }
+ 
  

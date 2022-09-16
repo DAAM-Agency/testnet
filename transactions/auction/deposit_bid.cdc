@@ -2,8 +2,13 @@
 // Used to make bids on item. Is accumulative with each bid. 
 
 import FungibleToken from 0x9a0766d93b6608b7
+<<<<<<< HEAD
 import FUSD          from 0xe223d8a629e49c68
 import AuctionHouse_V16  from 0x01837e15023c9249
+=======
+import FUSD          from 0x0xe223d8a629e49c68
+import AuctionHouse_V16  from 0x01837e15023c9249
+>>>>>>> tomerge
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
