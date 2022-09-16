@@ -3,7 +3,7 @@
 
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V23          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse_V16  from 0x045a1763c93006ca
 
 pub struct DirectHistory {
     pub let mid : UInt64
@@ -12,7 +12,7 @@ pub struct DirectHistory {
 	pub let creator: Address
 	pub let royalty: MetadataViews.Royalties
 	pub var collection : [DAAM.NFTCollectionDisplay] // contains feature
-	pub var saleHistory: {UInt64: AuctionHouse.SaleHistory}//[AuctionHouse.SaleHistoryEntry]
+	pub var saleHistory: {UInt64: AuctionHouse_V16.SaleHistory}//[AuctionHouse_V16.SaleHistoryEntry]
 
     init(creator:Address, mid: UInt64) {
         let metadataRef = getAccount(creator)
@@ -36,7 +36,7 @@ pub struct DirectHistory {
 			}
         }
 
-        let history = AuctionHouse.getHistory(mid: self.mid)!
+        let history = AuctionHouse_V16.getHistory(mid: self.mid)!
 		let saleHistory = history[self.mid]!
 		self.saleHistory = saleHistory
     }

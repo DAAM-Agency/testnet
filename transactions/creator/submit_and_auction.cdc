@@ -6,7 +6,7 @@ import FungibleToken from 0x9a0766d93b6608b7
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_V23          from 0xa4ad5ea5c0bd2fba
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse_V16  from 0x045a1763c93006ca
 import FUSD          from 0x0xe223d8a629e49c68
 
 // argument have two modes:
@@ -40,7 +40,7 @@ transaction(
     let requestGen  : &DAAM.RequestGenerator
     let metadataGen : &DAAM.MetadataGenerator
     let metadataCap : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-    let auctionHouse: &AuctionHouse.AuctionWallet
+    let auctionHouse: &AuctionHouse_V16.AuctionWallet
 
     let name        : String
     let max         : UInt64?
@@ -67,7 +67,7 @@ transaction(
     prepare(creator: AuthAccount) {
         self.metadataGen  = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
         self.requestGen   = creator.borrow<&DAAM.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
-        self.auctionHouse = creator.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+        self.auctionHouse = creator.borrow<&AuctionHouse_V16.AuctionWallet>(from: AuctionHouse_V16.auctionStoragePath)!
         self.metadataCap  = creator.getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>(DAAM.metadataPublicPath)!
         
         self.name         = name
