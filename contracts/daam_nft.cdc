@@ -522,8 +522,8 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getCollection(): [NFTCollectionDisplay] 
-    //pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
+    pub fun getCollection(): {String : NFTCollectionDisplay}
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -600,27 +600,27 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    pub var collections : [NFTCollectionDisplay]
+    pub var collections : {String: NFTCollectionDisplay}
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
-        self.collections = []
+        self.collections = {}
     }
 
     pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
         squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
-        self.collections.append(
+        self.collections.insert(key: name,
             NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
                 bannerImage: bannerImage, socials: socials)
         )
     }
 
-    pub fun getCollection(): [NFTCollectionDisplay{CollectionDisplay}] {
+    pub fun getCollection(): {String: NFTCollectionDisplay{CollectionDisplay}} {
         return self.collections
     }
 
-    pub fun removeCollection(at: Int) {
-        pre { at < self.collections.length }
+    pub fun removeCollection(name: String) {
+        pre { self.collections.containsKey(name) : "Collection does not exist." }
         self.collections.remove(at: at)
     }
 
