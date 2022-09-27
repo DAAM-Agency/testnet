@@ -523,7 +523,7 @@ pub struct OnChain: MetadataViews.File {
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
     pub fun getCollection(): {String : NFTCollectionDisplay}
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -621,7 +621,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
 
     pub fun removeCollection(name: String) {
         pre { self.collections.containsKey(name) : "Collection does not exist." }
-        self.collections.remove(at: at)
+        self.collections.remove(key: name)
     }
 
     pub fun getViews(): [Type] { return [Type<MetadataViews.NFTCollectionDisplay>()] /*, Type<MetadataViews.NFTCollectionDisplay>()]*/ }
@@ -669,15 +669,15 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         destroy oldToken                              // destroy place holder
     }
 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent}) {
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent}) {
         pre {
             DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied."
-            index < self.collections.length : "Index out of Range."
+            self.collections.containsKey(name) : "Collection does not exist."
         }
         let id = token.id
         self.deposit(token: <-token)
-        if !self.collections[index]!.id.containsKey(id) {
-            self.collections[index]!.addTokenID(id: id, feature: feature)
+        if !self.collections[name]!.id.containsKey(id) {
+            self.collections[name]!.addTokenID(id: id, feature: feature)
         }
     }
 

@@ -2,10 +2,10 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(id: UInt64, feature: Bool, element: UInt64) {
+transaction(id: UInt64, feature: Bool, name: String) {
     let collectionRef: &DAAM.Collection
     let id: UInt64
-    let element: UInt64
+    let name: String
     let feature: Bool
 
     prepare(acct: AuthAccount) {
@@ -14,11 +14,11 @@ transaction(id: UInt64, feature: Bool, element: UInt64) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.id = id
         self.feature = feature
-        self.element = element
+        self.name = name
     }
 
     execute {
-        self.collectionRef.collections[self.element].adjustFeatureByID(id: self.id, feature: self.feature) 
+        self.collectionRef.collections[self.name]!.adjustFeatureByID(id: self.id, feature: self.feature) 
         log("ID: ".concat(self.id.toString()).concat(" removed from Collection."))
     }
 }
