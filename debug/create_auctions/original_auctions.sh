@@ -27,7 +27,7 @@ flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
 {"type": "UFix64", "value": "20.0"},
 {"type": "UFix64", "value": "30.1"},
 {"type": "Optional", "value": null}
-]' --signer creator #A MID: 1, AID: 1  // Auction ID
+]' --gas-limit 9999 --signer creator  #A MID: 1, AID: 1  // Auction ID
 
 echo "Test Auction B: Item Won, Item not Collected"
 flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
@@ -43,22 +43,22 @@ flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
 {"type": "UFix64", "value": "25.0"},
 {"type": "UFix64", "value": "30.2"},
 {"type": "Optional", "value": null}
-]' --signer creator #B MID: 2, AID: 2
+]' --gas-limit 9999 --signer creator  #B MID: 2, AID: 2
 
 echo "FAIL TEST: Test Auction C Metadatanwas deleted by Creator. Does not exist."
 flow transactions send ./transactions/auction/create_auction.cdc true $REMOVED_METADATA $START \
 330.0 false 0.0 false 0.04 10.00 \
-26.0 30.3 1 --signer creator #C MID: 3
+26.0 30.3 1 --gas-limit 9999 --signer creator  #C MID: 3
 
 echo "FAIL TEST: Test Auction D, does not exist. Rejected by Admin. Metadata Removed"
 flow transactions send ./transactions/auction/create_auction.cdc true $DISAPPROVED_METADATA $START \
 330.0 false 0.0 false 0.04 10.00 \
-26.0 30.4 1 --signer creator #D MID: 4
+26.0 30.4 1 --gas-limit 9999 --signer creator  #D MID: 4
 
 echo "FAIL TEST: Test Auction E, Rejected by Copyright Claim"
 flow transactions send ./transactions/auction/create_auction.cdc true 5 $START \
 330.0 false 0.0 false 0.04 13.00 \
-26.0 30.5 1 --signer creator #E MID: 5
+26.0 30.5 1 --gas-limit 9999 --signer creator  #E MID: 5
 
 echo "Test Auction F: Item: Reserve not meet, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
@@ -74,23 +74,23 @@ flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
 {"type": "UFix64", "value": "27.0"},
 {"type": "UFix64", "value": "30.3"},
 {"type": "Optional", "value": null}
-]' --signer creator2 #F, MID: 6, AID: 3
+]' --gas-limit 9999 --signer creator 2 #F, MID: 6, AID: 3
 
 echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 7 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --signer creator2 #G, MID: 7, AID: 4, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator 2 #G, MID: 7, AID: 4, No Buy it now
 
 echo "Test Auction H: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 8 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --signer creator2 #H, MID: 8, AID: 5, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator 2 #H, MID: 8, AID: 5, No Buy it now
 
 
 echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 9 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --signer creator2 #G, MID: 9, AID: 6, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator 2 #G, MID: 9, AID: 6, No Buy it now
 
 
 # Auction Scripts

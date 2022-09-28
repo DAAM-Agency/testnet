@@ -2,12 +2,12 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(mid: UInt64, feature: Bool, element: UInt64) {
+transaction(mid: UInt64, feature: Bool, name: String) {
     let collectionRef: &DAAM.Collection
     let creatorRef   : &DAAM.Creator
     let mid: UInt64
     let feature: Bool
-    let element: UInt64
+    let name: String
 
     prepare(acct: AuthAccount) {
         self.creatorRef = acct.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
@@ -17,11 +17,11 @@ transaction(mid: UInt64, feature: Bool, element: UInt64) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid = mid
         self.feature = feature
-        self.element = element
+        self.name = name
     }
 
     execute {
-        self.collectionRef.collections[self.element].addMID(creator: self.creatorRef, mid: self.mid, feature: self.feature)
+        self.collectionRef.collections[self.name]!.addMID(creator: self.creatorRef, mid: self.mid, feature: self.feature)
         log("MID: ".concat(self.mid.toString()).concat(" added to Collection."))
     }
 }

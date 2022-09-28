@@ -2,19 +2,19 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(element: Int) {
+transaction(name: String) {
     let collectionRef: &DAAM.Collection
-    let element: Int
+    let name: String
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
         self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
-        self.element = element
+        self.name = name
     }
 
     execute {
-        self.collectionRef.removeCollection(at: self.element) 
-        log("Collection Removed: index ".concat(self.element.toString()))
+        self.collectionRef.removeCollection(name: self.name) 
+        log("Collection Removed: index ".concat(self.name))
     }
 }
