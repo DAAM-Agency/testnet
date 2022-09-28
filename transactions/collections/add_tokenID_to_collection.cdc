@@ -6,7 +6,7 @@ transaction(id: UInt64, feature: Bool, name: String) {
     let collectionRef: &DAAM.Collection
     let id: UInt64
     let feature: Bool
-    let name: Stirng
+    let name: String
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection

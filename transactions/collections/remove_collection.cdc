@@ -2,9 +2,9 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(name: Int) {
+transaction(name: String) {
     let collectionRef: &DAAM.Collection
-    let name: Int
+    let name: String
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection
@@ -14,7 +14,7 @@ transaction(name: Int) {
     }
 
     execute {
-        self.collectionRef.removeCollection(at: self.name) 
-        log("Collection Removed: index ".concat(self.name.toString()))
+        self.collectionRef.removeCollection(name: self.name) 
+        log("Collection Removed: index ".concat(self.name))
     }
 }
