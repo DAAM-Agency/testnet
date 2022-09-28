@@ -1,11 +1,11 @@
-// adjust_feature_by_tokenid.cdc
+// remove_tokenID_from_collection.cdc
 
 import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
-transaction(id: UInt64, feature: Bool, element: UInt64) {
+transaction(id: UInt64, feature: Bool, name: String) {
     let collectionRef: &DAAM_V23.Collection
     let id: UInt64
-    let element: UInt64
+    let name: String
     let feature: Bool
 
     prepare(acct: AuthAccount) {
@@ -14,11 +14,11 @@ transaction(id: UInt64, feature: Bool, element: UInt64) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.id = id
         self.feature = feature
-        self.element = element
+        self.name = name
     }
 
     execute {
-        self.collectionRef.collections[self.element].adjustFeatureByID(id: self.id, feature: self.feature) 
+        self.collectionRef.collections[self.name]!.adjustFeatureByID(id: self.id, feature: self.feature) 
         log("ID: ".concat(self.id.toString()).concat(" removed from Collection."))
     }
 }

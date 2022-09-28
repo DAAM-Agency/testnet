@@ -1,4 +1,4 @@
-// daam_nft.cdc
+// DAAM_V23_nft.cdc
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
@@ -522,8 +522,8 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM_V23.NFT // Get NFT as DAAM_V23.NFT
-    pub fun getCollection(): [NFTCollectionDisplay] 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
+    pub fun getCollection(): {String : NFTCollectionDisplay}
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -600,28 +600,28 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    pub var collections : [NFTCollectionDisplay]
+    pub var collections : {String: NFTCollectionDisplay}
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
-        self.collections = []
+        self.collections = {}
     }
 
     pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
         squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
-        self.collections.append(
+        self.collections.insert(key: name,
             NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
                 bannerImage: bannerImage, socials: socials)
         )
     }
 
-    pub fun getCollection(): [NFTCollectionDisplay{CollectionDisplay}] {
+    pub fun getCollection(): {String: NFTCollectionDisplay{CollectionDisplay}} {
         return self.collections
     }
 
-    pub fun removeCollection(at: Int) {
-        pre { at < self.collections.length }
-        self.collections.remove(at: at)
+    pub fun removeCollection(name: String) {
+        pre { self.collections.containsKey(name) : "Collection does not exist." }
+        self.collections.remove(key: name)
     }
 
     pub fun getViews(): [Type] { return [Type<MetadataViews.NFTCollectionDisplay>()] /*, Type<MetadataViews.NFTCollectionDisplay>()]*/ }
@@ -669,15 +669,15 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         destroy oldToken                              // destroy place holder
     }
 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent}) {
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent}) {
         pre {
             DAAM_V23.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied."
-            index < self.collections.length : "Index out of Range."
+            self.collections.containsKey(name) : "Collection does not exist."
         }
         let id = token.id
         self.deposit(token: <-token)
-        if !self.collections[index]!.id.containsKey(id) {
-            self.collections[index]!.addTokenID(id: id, feature: feature)
+        if !self.collections[name]!.id.containsKey(id) {
+            self.collections[name]!.addTokenID(id: id, feature: feature)
         }
     }
 
@@ -694,8 +694,8 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     pub fun borrowDAAM(id: UInt64): &DAAM_V23.NFT {
         pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
         let ref = (&self.ownedNFTs[id] as! auth &NonFungibleToken.NFT?)!
-        let daam = ref as! &DAAM_V23.NFT
-        return daam
+        let DAAM_V23 = ref as! &DAAM_V23.NFT
+        return DAAM_V23
     }
 
     destroy() { destroy self.ownedNFTs } // Destructor
@@ -779,7 +779,7 @@ pub resource Admin: Agent
         pub fun inviteCreator(_ creator: Address, agentCut: UFix64 ) {    // Admin or Agent invite a new creator, agentCut = nil no agent
             pre {
                 DAAM_V23.admins[self.owner!.address] == true  : "Permission Denied"
-                self.grantee == self.owner!.address : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
                 self.status                   : "You're no longer a have Access."
                 DAAM_V23.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM_V23.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
@@ -790,6 +790,7 @@ pub resource Admin: Agent
             let agent: Address = DAAM_V23.isAgent(self.owner!.address)==true ? self.owner!.address : DAAM_V23.company.receiver.address 
             let creatorInfo = CreatorInfo(creator: creator, agent: agent, firstSale: agentCut)
             DAAM_V23.creators.insert(key: creator,  creatorInfo) // Creator account is setup but not active untill accepted.
+            
             log("Sent Creator Invitation: ".concat(creator.toString()) )
             emit CreatorInvited(creator: creator)      
         }
@@ -1125,6 +1126,7 @@ pub resource MinterAccess
             DAAM_V23.isMinter(self.minter) == true : "You access has been denied."
             DAAM_V23.isCreator(creator)    == true : creator.toString().concat(" is not a Creator or account is Frozen.")     
         }
+
         if DAAM_V23.isAgent(self.minter) == nil   { return true  } // Is a Marketplace, Access Approvd, minterStatus is always true
         if DAAM_V23.isAgent(self.minter) == false { return false } // Access is Frozen or Invitation has not been acccepted.
         if DAAM_V23.isAgent(self.minter) == true  {  // is an Agent, verify creator & mid relationship to agent
