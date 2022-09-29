@@ -7,7 +7,7 @@ transaction(mid: UInt64, feature: Bool, name: String) {
     let creatorRef   : &DAAM.Creator
     let mid: UInt64
     let feature: Bool
-    let name: String
+    let element: Int?
 
     prepare(acct: AuthAccount) {
         self.creatorRef = acct.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
@@ -16,11 +16,24 @@ transaction(mid: UInt64, feature: Bool, name: String) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid = mid
         self.feature = feature
-        self.name = name
+
+        let list = self.collectionRef.getCollection()
+        var counter = 0
+        var elm_found = false
+
+        for elm in list {
+            if list[counter].display.name == name {
+                elm_found = true
+                break
+            }
+            counter = counter + 1
+        }
+
+        self.element = elm_found ? counter : nil
     }
 
     execute {
-        self.collectionRef.collections[self.name]!.adjustFeatureByMID(creator: self.creatorRef, mid: self.mid, feature: self.feature) 
+        self.collectionRef.collections[self.element!].adjustFeatureByMID(creator: self.creatorRef, mid: self.mid, feature: self.feature) 
         log("ID: ".concat(self.mid.toString()).concat(" removed from Collection."))
     }
 }

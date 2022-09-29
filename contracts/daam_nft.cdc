@@ -510,8 +510,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp)
         }
     }
-
-    
 /************************************************************************/
 pub struct OnChain: MetadataViews.File {
     priv let file: String
@@ -522,8 +520,8 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getCollection(): {String : NFTCollectionDisplay}
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
+    pub fun getCollection(): [NFTCollectionDisplay] 
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
