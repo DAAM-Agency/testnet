@@ -22,8 +22,9 @@ transaction(name: String, description: String, externalURL: String, squareImage:
     let socials     : {String: MetadataViews.ExternalURL}
 
     prepare(acct: AuthAccount) {
-        // Borrow a reference from the stored collection
+        // Borrow a reference from the stored collection`
         self.collectionRef = acct.borrow<&DAAM_V23.Collection>(from: DAAM_V23.collectionStoragePath)!
+            //?? panic("Could not borrow a reference to the owner's collection")
         self.name = name // Get name of collection
         self.description = description
         self.externalURL = MetadataViews.ExternalURL(externalURL)
