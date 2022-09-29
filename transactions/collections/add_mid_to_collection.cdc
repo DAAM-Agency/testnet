@@ -2,7 +2,7 @@
 
 import DAAM from 0xfd43f9148d4b725d
 
-transaction(mid: UInt64, feature: Bool, element: UInt64) {
+transaction(mid: UInt64, feature: Bool, name: String) {
     let collectionRef: &DAAM.Collection
     let creatorRef   : &DAAM.Creator
     let mid: UInt64
@@ -17,7 +17,16 @@ transaction(mid: UInt64, feature: Bool, element: UInt64) {
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid = mid
         self.feature = feature
-        self.element = element
+
+        let list = collectionRef.getCollection()
+        var counter = 0
+        for elm in list {
+            if elm.name == name {
+                self.element = counter
+                break
+            }
+            counter = counter + 1
+        }
     }
 
     execute {
