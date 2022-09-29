@@ -510,8 +510,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp)
         }
     }
-
-    
 /************************************************************************/
 pub struct OnChain: MetadataViews.File {
     priv let file: String

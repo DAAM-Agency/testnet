@@ -7,7 +7,7 @@ transaction(mid: UInt64, feature: Bool, name: String) {
     let creatorRef   : &DAAM.Creator
     let mid: UInt64
     let feature: Bool
-    let element: UInt64
+    var element: Int?
 
     prepare(acct: AuthAccount) {
         self.creatorRef = acct.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
@@ -18,19 +18,23 @@ transaction(mid: UInt64, feature: Bool, name: String) {
         self.mid = mid
         self.feature = feature
 
-        let list = collectionRef.getCollection()
+        let list = self.collectionRef.getCollection()
         var counter = 0
+        var elm_found = false
+
         for elm in list {
-            if elm.name == name {
-                self.element = counter
+            if list[counter].display.name == name {
+                elm_found = true
                 break
             }
             counter = counter + 1
         }
+
+        self.element = elm_found ? counter : nil
     }
 
     execute {
-        self.collectionRef.collections[self.element].addMID(creator: self.creatorRef, mid: self.mid, feature: self.feature)
+        self.collectionRef.collections[self.element!].addMID(creator: self.creatorRef, mid: self.mid, feature: self.feature)
         log("MID: ".concat(self.mid.toString()).concat(" added to Collection."))
     }
 }
