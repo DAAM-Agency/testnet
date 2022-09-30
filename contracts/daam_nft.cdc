@@ -305,6 +305,13 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             }
 
+            return self.addingMetadata(name: name, creator: DAAM.creators[self.grantee], max: max, categories: categories, description: description,
+                misc: misc, thumbnail: thumbnail, file: file, interact: interact)
+        }
+
+        access(contract) fun addingMetadata(name: String, creator: Address, max: UInt64?, categories: [Categories.Category], description: String,
+            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct? ): UInt64
+
             let metadata <- create Metadata(creator: DAAM.creators[self.grantee], name: name, max: max, categories: categories,
                 description: description, misc: misc, thumbnail: thumbnail, interact: interact, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
