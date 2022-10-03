@@ -305,19 +305,19 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
                 DAAM.isCreator(self.grantee) == true    : "Account: ".concat(self.grantee.toString()).concat("Your Creator account is Frozen.")
             }
 
-            return self.addingMetadata(name: name, creator: DAAM.creators[self.grantee], max: max, categories: categories, description: description,
-                misc: misc, thumbnail: thumbnail, file: file, interact: interact)
-        }
-
-        access(contract) fun addingMetadata(name: String, creator: Address, max: UInt64?, categories: [Categories.Category], description: String,
-            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct? ): UInt64
-
-            let metadata <- create Metadata(creator: DAAM.creators[self.grantee], name: name, max: max, categories: categories,
+            let metadata <- create Metadata(creator: creator, name: name, max: max, categories: categories,
                 description: description, misc: misc, thumbnail: thumbnail, interact: interact, file: file, metadata: nil) // Create Metadata
             let mid = metadata.mid
             let old <- self.metadata[mid] <- metadata // Save Metadata
             destroy old
 
+            self.saveMID(mid: mid)
+            
+            return mid
+
+        }
+        // Save Metadata & set copyright setting
+        access(contract) fun saveMID(mid: UInt64)  {
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
@@ -325,7 +325,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: self.grantee, mid: mid)
-            return mid
         }
 
         // RemoveMetadata uses clearMetadata to delete the Metadata.
@@ -411,6 +410,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if self.returns[metadata.mid] == nil { // If first return of a Metadata ID
                 let old <- self.returns[metadata.mid] <- []
                 destroy old
+
+                if self.metadata[metadata.mid] == nil {
+                    self.metadata[metadata.mid] <- metadata
+                    return                    
+                }
             }
             let ref = &self.returns[metadata.mid] as &[Metadata]?
             ref!.append(<- metadata)
@@ -718,6 +722,8 @@ pub resource interface Agent
     pub fun changeMetadataStatus(creator: Address, mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
     pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
     pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
+    pub fun createMetadata(creator: Address, name: String, max: UInt64?, categories: [Categories.Category], description: String,
+            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct?): @Metadata {
 }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -996,6 +1002,21 @@ pub resource Admin: Agent
                 self.status                               : "You're no longer a have Access."
             }
             Categories.removeCategory(name: name)
+        }
+
+        pub fun createMetadata(creator: Address, name: String, max: UInt64?, categories: [Categories.Category], description: String,
+            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct?): @Metadata {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+                DAAM.getAgentCreators.contains(creator)   : "This is not your Creator."
+            }
+            let metadata <- create Metadata(creator: creator, name: name, max: max, categories: categories,
+                description: description, misc: misc, thumbnail: thumbnail, interact: interact, file: file, metadata: nil) // Create Metadata
+            let mid = metadata.mid
+            Metadata.saveMID(mid: mid)
+            return <- metadata
         }
 	}
 /************************************************************************/
