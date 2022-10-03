@@ -311,6 +311,14 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             let old <- self.metadata[mid] <- metadata // Save Metadata
             destroy old
 
+            self.saveMID(mid: mid)
+            
+            return mid
+
+        }
+
+        // Save Metadata & set copyright setting
+        access(contract) fun saveMID(mid: UInt64)  {
             DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
             DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
 
@@ -318,7 +326,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
 
             log("Metadata Generatated ID: ".concat(mid.toString()) )
             emit AddMetadata(creator: self.grantee, mid: mid)
-            return mid
         }
 
         // RemoveMetadata uses clearMetadata to delete the Metadata.
@@ -404,6 +411,11 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             if self.returns[metadata.mid] == nil { // If first return of a Metadata ID
                 let old <- self.returns[metadata.mid] <- []
                 destroy old
+
+                if self.metadata[metadata.mid] == nil {
+                    self.metadata[metadata.mid] <-! metadata
+                    return                    
+                }
             }
             let ref = &self.returns[metadata.mid] as &[Metadata]?
             ref!.append(<- metadata)
@@ -510,8 +522,6 @@ pub resource MetadataGenerator: MetadataGeneratorPublic, MetadataGeneratorMint {
             emit BurnNFT(id: self.id, mid: self.mid, timestamp: getCurrentBlock().timestamp)
         }
     }
-
-    
 /************************************************************************/
 pub struct OnChain: MetadataViews.File {
     priv let file: String
@@ -522,8 +532,8 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getCollection(): {String : NFTCollectionDisplay}
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
+    pub fun getCollection(): [NFTCollectionDisplay] 
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -600,28 +610,28 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver {
     // dictionary of NFT conforming tokens. NFT is a resource type with an `UInt64` ID field
     pub var ownedNFTs   : @{UInt64: NonFungibleToken.NFT}  // Store NFTs via Token ID
-    pub var collections : {String: NFTCollectionDisplay}
+    pub var collections : [NFTCollectionDisplay]
                     
     init() {
         self.ownedNFTs <- {} // List of owned NFTs
-        self.collections = {}
+        self.collections = []
     }
 
     pub fun addCollection(name: String, description: String, externalURL: MetadataViews.ExternalURL,
         squareImage: MetadataViews.Media, bannerImage: MetadataViews.Media, socials: {String: MetadataViews.ExternalURL} ) {
-        self.collections.insert(key: name,
+        self.collections.append(
             NFTCollectionDisplay(name: name, description: description, externalURL: externalURL, squareImage: squareImage,
                 bannerImage: bannerImage, socials: socials)
         )
     }
 
-    pub fun getCollection(): {String: NFTCollectionDisplay{CollectionDisplay}} {
+    pub fun getCollection(): [NFTCollectionDisplay{CollectionDisplay}] {
         return self.collections
     }
 
-    pub fun removeCollection(name: String) {
-        pre { self.collections.containsKey(name) : "Collection does not exist." }
-        self.collections.remove(key: name)
+   pub fun removeCollection(at: Int) {
+        pre { at < self.collections.length }
+        self.collections.remove(at: at)
     }
 
     pub fun getViews(): [Type] { return [Type<MetadataViews.NFTCollectionDisplay>()] /*, Type<MetadataViews.NFTCollectionDisplay>()]*/ }
@@ -669,15 +679,15 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         destroy oldToken                              // destroy place holder
     }
 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent}) {
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent}) {
         pre {
             DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied."
-            self.collections.containsKey(name) : "Collection does not exist."
+            index < self.collections.length : "Index out of Range."
         }
         let id = token.id
         self.deposit(token: <-token)
-        if !self.collections[name]!.id.containsKey(id) {
-            self.collections[name]!.addTokenID(id: id, feature: feature)
+        if !self.collections[index]!.id.containsKey(id) {
+            self.collections[index]!.addTokenID(id: id, feature: feature)
         }
     }
 
@@ -713,6 +723,8 @@ pub resource interface Agent
     pub fun changeMetadataStatus(creator: Address, mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
     pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
     pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
+    pub fun createMetadata(creator: Address, name: String, max: UInt64?, categories: [Categories.Category], description: String,
+            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct?): @Metadata
 }
 /************************************************************************/
 // The Admin Resource deletgates permissions between Founders and Agents
@@ -991,6 +1003,31 @@ pub resource Admin: Agent
                 self.status                               : "You're no longer a have Access."
             }
             Categories.removeCategory(name: name)
+        }
+
+        pub fun createMetadata(creator: Address, name: String, max: UInt64?, categories: [Categories.Category], description: String,
+            misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct?): @Metadata {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+                DAAM.getAgentCreators(agent: self.owner!.address)!.contains(creator)   : "This is not your Creator."
+            }
+            let metadata <- create Metadata(creator: DAAM.creators[creator], name: name, max: max, categories: categories,
+                description: description, misc: misc, thumbnail: thumbnail, interact: interact, file: file, metadata: nil) // Create Metadata
+            let mid = metadata.mid
+
+            // copy of MetadataGenerator.saveMID function below
+            DAAM.metadata.insert(key: mid, false)   // a metadata ID for Admin approval, currently unapproved (false)
+            DAAM.copyright.insert(key: mid, CopyrightStatus.UNVERIFIED) // default copyright setting
+
+            DAAM.metadata[mid] = true // TODO REMOVE AUTO-APPROVE AFTER DEVELOPMENT
+
+            log("Metadata Generatated ID: ".concat(mid.toString()) )
+            emit AddMetadata(creator: self.grantee, mid: mid)
+            // end of copy
+
+            return <- metadata
         }
 	}
 /************************************************************************/
@@ -1389,5 +1426,4 @@ pub resource MinterAccess
         emit ContractInitialized()
 	}
 }
- 
  
