@@ -1,4 +1,4 @@
-// invite_creator.cdc
+// invite_creator by agent.cdc
 // Used for Admin / Agent to invite a Creator.
 // The invitee Must have a Profile before receiving or accepting this Invitation
 
