@@ -12,7 +12,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
     let index     : Int?
     let feature   : Bool
     let metadataRef  : &{DAAM.MetadataGeneratorMint}
-    let receiverRef  : &DAAM.Collection{DAAM.CollectionPublic}
+    let collectionRef  : &DAAM.Collection{DAAM.CollectionPublic}
     let agentRef     : &DAAM.Admin{DAAM.Agent}
 
     prepare(minter: AuthAccount) {
@@ -21,7 +21,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
         self.index     = index
         self.feature   = feature
 
-        self.receiverRef  = getAccount(creator)
+        self.collectionRef  = getAccount(creator)
             .getCapability(DAAM.collectionPublicPath)
             .borrow<&DAAM.Collection{DAAM.CollectionPublic}>()!
 
@@ -37,7 +37,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
         let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-        self.receiverRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature, permission: self.agentRef)
+        self.collectionRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature, permission: self.agentRef)
         
         log("Minted & Transfered")
     }
