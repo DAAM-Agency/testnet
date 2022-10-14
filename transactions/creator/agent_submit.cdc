@@ -1,5 +1,5 @@
-// submit_nft.cdc
-// Creator uses to submit Metadata
+// agent_submit.cdc
+// Agent uses to submit Metadata for their Creator
 
 import Categories    from 0xfd43f9148d4b725d
 import MetadataViews from 0xf8d6e0586b0a20c7
