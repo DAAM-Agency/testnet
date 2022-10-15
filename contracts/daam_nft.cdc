@@ -36,6 +36,8 @@ pub contract DAAM: NonFungibleToken {
     pub event RemovedAdminInvite(admin : Address)               // Admin invitation has been rescinded
     pub event CreatorAddAgent(creator: Address, agent: Address)
     pub event BurnNFT(id: UInt64, mid: UInt64, timestamp: UFix64) // Emit when an NFT is burned.
+    pub event RoyalityRequest(mid: UInt64)
+    pub event AgreementReached(mid: UInt64)
     // Paths
     pub let collectionPublicPath  : PublicPath   // Public path to Collection
     pub let collectionStoragePath : StoragePath  // Storage path to Collection
@@ -81,9 +83,9 @@ pub enum CopyrightStatus: UInt8 {
 // Request manage the royalty rate
 // Accept Default are auto agreements
 pub resource Request {
-    access(contract) let mid       : UInt64                  // Metadata ID number is stored
+    access(contract) let mid       : UInt64                   // Metadata ID number is stored
     access(contract) var royalty   : MetadataViews.Royalties? // current royalty neogoation.
-    access(contract) var agreement : [Bool; 2]               // State os agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
+    access(contract) var agreement : [Bool; 2]                // State of agreement [Admin (agrees/disagres),  Creator(agree/disagree)]
     
     init(mid: UInt64) {
         pre { mid !=0 && mid <= DAAM.metadataCounterID : "Illegal Operation: validate" }
@@ -91,15 +93,47 @@ pub resource Request {
         self.mid = mid          // Get Metadata ID
         DAAM.metadata[self.mid] != false // Can set a Request as long as the Metadata has not been Disapproved as oppossed to Aprroved or Not Set.
         self.royalty = nil               // royalty is initialized
-        self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to disagree by default
-    }
+        self.agreement = [false, false]  // [Agency/Admin, Creator] are both set to Disagree by default
+    }    
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
     
-    // Neogatator Removed, Re-Add Here, if re-implimented.
+    access(contract) fun bargin(mid: UInt64, royalty: MetadataViews.Royalties ) {
+        pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed." }
+        
+        // Elements: 0 = Admin, 1 = Creator
+        let receiver = royalty.getRoyalties()[0].receiver!
+        let cut = royalty.getRoyalties()[0].cut!
+        self.agreement[0] = self.royaltyMatch(mid, royalty)
+        self.agreement[1] = true
+        self.royalty = royalty
+
+        log("Negotiating")
+        if self.isValid() {
+            log("Agreement Reached")
+            emit AgreementReached(mid: mid)
+        }
+    }
+
+    priv fun royaltyMatch(_ mid: UInt64, _ royalties: MetadataViews.Royalties ): Bool {
+        //if self.royalty!.getRoyalties().length != royalties.getRoyalties().length { return false}
+        let ref = &DAAM.request[mid] as &Request?
+        let royalties_list = ref!.royalty!.getRoyalties()
+        let internal_royalties_list = self.royalty!.getRoyalties()
+        var counter = 0
+        for royalty in royalties_list {
+            if royalty.cut != internal_royalties_list[counter].cut { return false }
+            counter = counter + 1
+        }
+        return true
+    }
 
     // Accept Default royalty. Skip Neogations.
     access(contract) fun acceptDefault(royalty: MetadataViews.Royalties ) {
+        pre {  
+            !self.isValid() : "Neogoation is already closed. Both parties have already agreed."
+            royalty.getRoyalties()[0].cut >= 0.01 || royalty!.getRoyalties()[0].cut <= 0.3 : "Defaults are between 1 to 30%."
+        }
         self.royalty = royalty        // get royalty
         self.agreement = [true, true] // set agreement status to Both parties Agreed
     }
@@ -114,6 +148,21 @@ pub resource RequestGenerator {
     priv let grantee: Address
 
     init(_ grantee: Address) { self.grantee = grantee }
+
+    pub fun createRequest(mid: UInt64, royalty: MetadataViews.Royalties ) {
+        pre {
+            !DAAM.request.containsKey(mid) : "Already made request for this MID."
+
+            DAAM.isCreator(self.owner!.address) == true || DAAM.isAdmin(self.owner!.address) == true
+            : "You do not have access"
+        }
+        let request <-! create Request(mid: mid)!
+        let old <- DAAM.request.insert(key: mid, <-request) // advice DAAM of request
+        destroy old
+                    
+        log("Royality Request: ".concat(mid.toString()) )
+        emit RoyalityRequest(mid: mid)
+    }
 
     // Accept the default Request. No Neogoation is required.
     // Percentages are between 10% - 30%
@@ -1029,6 +1078,24 @@ pub resource Admin: Agent
 
             return <- metadata
         }
+        
+        pub fun bargin(mid: UInt64, royalty: UInt64 ) {
+            pre {
+                DAAM.admins[self.owner!.address] == true  : "Permission Denied"
+                self.grantee == self.owner!.address       : "Permission Denied"
+                self.status                               : "You're no longer a have Access."
+                !DAAM.getRequestValidity(mid: mid) : "Request already is settled."
+            }
+            let ref = &DAAM.request[mid] as &Request?
+            let royalties = ref!.royalty!.getRoyalties()
+            let creator = royalties[0].receiver.address!
+            assert(DAAM.getAgentCreators(agent: self.owner!.address)!.contains(creator), message: "This is not your Creator.")
+
+            let request <- DAAM.request.remove(key: mid)!
+            request.bargin(mid: mid, royalty: royalty)
+            let old <- DAAM.request[mid] <- request
+            destroy old
+        }
 	}
 /************************************************************************/
 pub struct CreatorInfo {
@@ -1074,6 +1141,22 @@ pub struct CreatorInfo {
                 DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
             }
             return <- create RequestGenerator(self.grantee) // return Request Generator
+        }
+
+        pub fun bargin(mid: UInt64, royalty: MetadataViews.Royalties ) {
+        // Verify is Creator
+        pre {
+            self.grantee == self.owner!.address : "Permission Denied"
+            DAAM.creators.containsKey(self.grantee) : "You're not a Creator."
+            DAAM.isCreator(self.grantee) == true    : "Your Creator account is Frozen."
+
+            !DAAM.getRequestValidity(mid: mid) : "Request already is settled."
+        }
+
+            let request <- DAAM.request.remove(key: mid)!
+            request.bargin(mid: mid, royalty: royalty)
+            let old <- DAAM.request[mid] <- request
+            destroy old
         }
     }
 /************************************************************************/
@@ -1329,6 +1412,16 @@ pub resource MinterAccess
         let royalty = request!.royalty!
         return royalty
     } 
+
+    pub fun getRequestValidity(mid: UInt64): Bool {
+        pre { self.request.containsKey(mid)}
+        return self.request[mid]?.isValid() == true ? true : false
+    }
+
+    
+    pub fun getRequestMIDs(): [UInt64] {
+        return self.request.keys
+    }
 
     pub fun isNFTNew(id: UInt64): Bool {  // Return True if new
         return self.newNFTs.contains(id)   // Note: 'New' is defined a newly minted. Age is not a consideration. 
