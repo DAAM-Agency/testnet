@@ -1,14 +1,14 @@
 // creator_request.cdc
 
-import FungibleToken from 0xee82856bf20e2aa6 
-import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM          from 0xfd43f9148d4b725d
+import FungibleToken from 0x9a0766d93b6608b7 
+import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_V23 from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64 ) {
     let mid        : UInt64
     let royalty    : MetadataViews.Royalties
-    let requestGen : &DAAM.RequestGenerator
-    let metadataGen: &DAAM.MetadataGenerator
+    let requestGen : &DAAM_V23.RequestGenerator
+    let metadataGen: &DAAM_V23.MetadataGenerator
 
     prepare(signer: AuthAccount) {
         let royalties    = [ MetadataViews.Royalty(
@@ -19,8 +19,8 @@ transaction(mid: UInt64, percentage: UFix64 ) {
         self.royalty = MetadataViews.Royalties(royalties)
 
         self.mid         = mid
-        self.requestGen  = signer.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
-        self.metadataGen = signer.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
+        self.requestGen  = signer.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
+        self.metadataGen = signer.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
     }
 
     execute {
