@@ -108,7 +108,7 @@ transaction(
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories,
-        description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact, )
+        description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
 
         self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
         let vault <- FUSD.createEmptyVault()

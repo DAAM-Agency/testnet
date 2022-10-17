@@ -21,9 +21,10 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
 transaction(name: String, max: UInt64?, categories: [String], description: String, misc: String, // Metadata information
     ipfs_thumbnail: Bool, thumbnail_cid: String, thumbnailType_path: String, // Thumbnail setting: IPFS, HTTP(S), FILE(OnChain)
     ipfs_file: Bool, file_cid: String, fileType_path: String,                // File setting: IPFS, HTTP(S), FILE(OnChain)
-    interact: AnyStruct?,  percentage: UFix64)                                                      // Royalty percentage for Creator(s)
+    interact: AnyStruct?,  percentage: UFix64?)                               // Royalty percentage for Creator(s), when nil only submitting and entering bargin mode unless
+                                                                                // within default range, then accept default can be used.
 {    
-    //let creator     : AuthAccount
+    let creatorCap  : Capability<&AnyResource{FungibleToken.Receiver}>
     let requestGen  : &DAAM.RequestGenerator
     let metadataGen : &DAAM.MetadataGenerator
 
@@ -35,9 +36,10 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
     let misc        : String
     let thumbnail   : {String : {MetadataViews.File}}
     let file        : {String : MetadataViews.Media}
-    let royalties   : MetadataViews.Royalties
+    let percentage  : UFix64?
 
     prepare(creator: AuthAccount) {
+        self.creatorCap  = creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
         self.metadataGen = creator.borrow<&DAAM.MetadataGenerator>(from: DAAM.metadataStoragePath)!
         self.requestGen  = creator.borrow<&DAAM.RequestGenerator>( from: DAAM.requestStoragePath)!
 
@@ -50,27 +52,36 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
         let fileData      = setFile(ipfs: ipfs_file, string_cid: file_cid, type_path: fileType_path)
         let fileType      = ipfs_file ? "ipfs" : fileType_path
         self.file         = {fileType : MetadataViews.Media(file: fileData, mediaType: fileType)}
-        let royalties    = [ MetadataViews.Royalty(
-            receiver: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
-            cut: percentage,
-            description: "Creator Royalty" )
-        ]
-        self.royalties = MetadataViews.Royalties(royalties)
+        
         self.categories = []
         for cat in categories {
             self.categories.append(Categories.Category(name: cat))
         }
+        self.percentage = percentage
     }
-
-    pre { percentage >= 0.01 || percentage <= 0.3 : "Percentage must be between 10% to 30%." }
 
     execute {
         let mid = self.metadataGen.addMetadata(name: self.name, max: self.max, categories: self.categories,
-        description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact, )
-
-        self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: self.royalties)
-
+        description: self.description, misc: self.misc, thumbnail: self.thumbnail, file: self.file, interact: self.interact)
+        
         log("Metadata Submitted: ".concat(mid.toString()))
+
+        if self.percentage != nil {
+            let royalties_init: [MetadataViews.Royalty] = [ MetadataViews.Royalty(
+                receiver: self.creatorCap,
+                cut: percentage!,
+                description: "Creator Royalty"
+            )]
+            let royalties = MetadataViews.Royalties(royalties_init) 
+            log(royalties)
+            if self.percentage! >= 0.01 && self.percentage! <= 0.3 {
+                self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: royalties)
+                log("Deal Accepted: ".concat(mid.toString()))
+            } else {
+                self.requestGen.createRequest(mid: mid, royalty: royalties)
+                log("Bargining Started: ".concat(mid.toString()))
+            }
+        }
     }
     
 }
