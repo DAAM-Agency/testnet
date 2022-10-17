@@ -98,14 +98,19 @@ pub resource Request {
 
     pub fun getMID(): UInt64 { return self.mid }  // return Metadata ID
     
-    access(contract) fun bargin(mid: UInt64, royalty: MetadataViews.Royalties ) {
+    access(contract) fun bargin(isCreator: Bool, mid: UInt64, royalty: MetadataViews.Royalties ) {
         pre { !self.isValid() : "Neogoation is already closed. Both parties have already agreed." }
         
         // Elements: 0 = Admin, 1 = Creator
         let receiver = royalty.getRoyalties()[0].receiver!
         let cut = royalty.getRoyalties()[0].cut!
-        self.agreement[0] = self.royaltyMatch(mid, royalty)
-        self.agreement[1] = true
+        if isCreator {
+            self.agreement[0] = self.royaltyMatch(mid, royalty)
+            self.agreement[1] = true
+        } else {
+            self.agreement[1] = self.royaltyMatch(mid, royalty)
+            self.agreement[0] = true
+        }
         self.royalty = royalty
 
         log("Negotiating")
@@ -117,11 +122,14 @@ pub resource Request {
 
     priv fun royaltyMatch(_ mid: UInt64, _ royalties: MetadataViews.Royalties ): Bool {
         //if self.royalty!.getRoyalties().length != royalties.getRoyalties().length { return false}
-        let ref = &DAAM.request[mid] as &Request?
-        let royalties_list = ref!.royalty!.getRoyalties()
-        let internal_royalties_list = self.royalty!.getRoyalties()
+        let royalties_list = self.royalty?.getRoyalties()
+        if royalties_list == nil { return false }
+        let internal_royalties_list = royalties.getRoyalties()
+        log("Royalty MAtch")
+        log(royalties_list)
+        log(internal_royalties_list)
         var counter = 0
-        for royalty in royalties_list {
+        for royalty in royalties_list! {
             if royalty.cut != internal_royalties_list[counter].cut { return false }
             counter = counter + 1
         }
@@ -139,7 +147,7 @@ pub resource Request {
     }
 
     // If both parties agree (Creator & Admin) return true
-    pub fun isValid(): Bool { return self.agreement[0]==true && self.agreement[1]==true }
+    pub fun isValid(): Bool { return self.agreement[0] && self.agreement[1] }
 }    
 /***********************************************************************/
 // Used to create Request Resources. Metadata ID is passed into Request.
@@ -772,6 +780,7 @@ pub resource interface Agent
     pub fun changeMetadataStatus(creator: Address, mid: UInt64, status: Bool)     // Admin or Agent can change Metadata Status
     pub fun removeCreator(creator: Address)                     // Admin or Agent can remove CAmiRajpal@hotmail.cometadata Status
     pub fun newRequestGenerator(): @RequestGenerator            // Create Request Generator
+    pub fun bargin(creator: Address, mid: UInt64, percentage: UFix64)
     pub fun createMetadata(creator: Address, name: String, max: UInt64?, categories: [Categories.Category], description: String,
             misc: String, thumbnail: {String:{MetadataViews.File}}, file: {String:MetadataViews.Media}, interact: AnyStruct?): @Metadata
 }
@@ -1079,20 +1088,24 @@ pub resource Admin: Agent
             return <- metadata
         }
         
-        pub fun bargin(mid: UInt64, royalty: UInt64 ) {
+        pub fun bargin(creator: Address, mid: UInt64, percentage: UFix64) {
             pre {
                 DAAM.admins[self.owner!.address] == true  : "Permission Denied"
                 self.grantee == self.owner!.address       : "Permission Denied"
                 self.status                               : "You're no longer a have Access."
                 !DAAM.getRequestValidity(mid: mid) : "Request already is settled."
+                DAAM.getAgentCreators(agent: self.owner!.address)!.contains(creator): "This is not your Creator."
             }
             let ref = &DAAM.request[mid] as &Request?
-            let royalties = ref!.royalty!.getRoyalties()
-            let creator = royalties[0].receiver.address!
-            assert(DAAM.getAgentCreators(agent: self.owner!.address)!.contains(creator), message: "This is not your Creator.")
 
+            let royalties    = [ MetadataViews.Royalty(
+            receiver: getAccount(creator).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+            cut: percentage,
+            description: "Creator Royalty" )
+            ]
+            let royalty = MetadataViews.Royalties(royalties)
             let request <- DAAM.request.remove(key: mid)!
-            request.bargin(mid: mid, royalty: royalty)
+            request.bargin(isCreator: false, mid: mid, royalty: royalty)
             let old <- DAAM.request[mid] <- request
             destroy old
         }
@@ -1143,7 +1156,7 @@ pub struct CreatorInfo {
             return <- create RequestGenerator(self.grantee) // return Request Generator
         }
 
-        pub fun bargin(mid: UInt64, royalty: MetadataViews.Royalties ) {
+        pub fun bargin(mid: UInt64, percentage: UFix64) {
         // Verify is Creator
         pre {
             self.grantee == self.owner!.address : "Permission Denied"
@@ -1152,9 +1165,16 @@ pub struct CreatorInfo {
 
             !DAAM.getRequestValidity(mid: mid) : "Request already is settled."
         }
+            let ref = &DAAM.request[mid] as &Request?
+            let royalties    = [ MetadataViews.Royalty(
+                receiver: getAccount(self.grantee).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
+                cut: percentage,
+                description: "Creator Royalty" )
+                ]
+            let royalty = MetadataViews.Royalties(royalties)
 
             let request <- DAAM.request.remove(key: mid)!
-            request.bargin(mid: mid, royalty: royalty)
+            request.bargin(isCreator: true, mid: mid, royalty: royalty)
             let old <- DAAM.request[mid] <- request
             destroy old
         }

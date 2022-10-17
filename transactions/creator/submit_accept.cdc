@@ -73,6 +73,7 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
                 description: "Creator Royalty"
             )]
             let royalties = MetadataViews.Royalties(royalties_init) 
+            log(royalties)
             if self.percentage! >= 0.01 && self.percentage! <= 0.3 {
                 self.requestGen.acceptDefault(mid: mid, metadataGen: self.metadataGen, royalties: royalties)
                 log("Deal Accepted: ".concat(mid.toString()))
