@@ -589,7 +589,7 @@ pub struct OnChain: MetadataViews.File {
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
-    pub fun getCollection(): [NFTCollectionDisplay] 
+    pub fun getCollection(): {String: NFTCollectionDisplay{CollectionDisplay}}
     pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
@@ -740,7 +740,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         pre { DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied." }
 
         let id = token.id
-        assert(self.collections[name]?.id.containsKey(id), message: "ID Entered is invalid.")
+        assert(self.collections[name]!.id.containsKey(id), message: "ID Entered is invalid.")
 
         self.deposit(token: <-token)
         self.collections[name]!.addTokenID(id: id, feature: feature)

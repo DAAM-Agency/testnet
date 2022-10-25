@@ -18,7 +18,7 @@ transaction(creator: Address, mid: UInt64, copyright: UInt8) {
 
     prepare(agent: AuthAccount) {
         self.cr      = DAAM.CopyrightStatus(rawValue: copyright)!                             // init copyright
-        self.admin   = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)! // init admin
+        self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)! // init admin
         self.mid     = mid 
         self.creator = creator                                                        // init mid
     }

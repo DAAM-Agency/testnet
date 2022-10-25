@@ -17,7 +17,7 @@ transaction(submit: Bool) {
         if agent != nil && submit {
             let old_admin <- self.signer.load<@AnyResource>(from: DAAM.adminStoragePath)
             self.signer.save<@DAAM.Admin{DAAM.Agent}>(<- agent!, to: DAAM.adminStoragePath)!
-            let agentRef = self.signer.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+            let agentRef = self.signer.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
             destroy old_admin
 
             let old_request <- self.signer.load<@AnyResource>(from: DAAM.requestStoragePath)
