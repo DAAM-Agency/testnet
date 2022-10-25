@@ -17,7 +17,7 @@ transaction(mid: UInt64, name: String) {
     }
 
     execute {
-        self.collectionRef.collections[self.name!].removeMID(creator: self.creatorRef, mid: self.mid) 
+        self.collectionRef.collections[self.name]!.removeMID(creator: self.creatorRef, mid: self.mid) 
         log("MID: ".concat(self.mid.toString()).concat(" added to Collection."))
     }
 }

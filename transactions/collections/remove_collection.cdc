@@ -14,7 +14,7 @@ transaction(name: String) {
     }
 
     execute {
-        self.collectionRef.removeCollection(at: self.name!) 
-        log("Collection Removed: index ".concat(self.name!.toString()))
+        self.collectionRef.removeCollection(name: self.name!) 
+        log("Collection Removed: index ".concat(self.name))
     }
 }

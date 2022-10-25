@@ -740,8 +740,6 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         pre { DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied." }
 
         let id = token.id
-        assert(self.collections[name]!.id.containsKey(id), message: "ID Entered is invalid.")
-
         self.deposit(token: <-token)
         self.collections[name]!.addTokenID(id: id, feature: feature)
     }

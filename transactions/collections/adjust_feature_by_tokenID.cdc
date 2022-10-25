@@ -18,7 +18,7 @@ transaction(id: UInt64, feature: Bool, name: String) {
     }
 
     execute {
-        self.collectionRef.collections[self.name!].adjustFeatureByID(id: self.id, feature: self.feature) 
+        self.collectionRef.collections[self.name]!.adjustFeatureByID(id: self.id, feature: self.feature) 
         log("ID: ".concat(self.id.toString()).concat(" removed from Collection."))
     }
 }

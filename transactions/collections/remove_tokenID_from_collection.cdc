@@ -16,7 +16,7 @@ transaction(id: UInt64, name: String) {
     }
 
     execute {
-        self.collectionRef.collections[self.name!].removeTokenID(id: self.id) 
+        self.collectionRef.collections[self.name]!.removeTokenID(id: self.id) 
         log("ID: ".concat(self.id.toString()).concat(" removed from Collection."))
     }
 }
