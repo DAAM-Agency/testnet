@@ -590,7 +590,7 @@ pub struct OnChain: MetadataViews.File {
 pub resource interface CollectionPublic {
     pub fun borrowDAAM(id: UInt64): &DAAM.NFT // Get NFT as DAAM.NFT
     pub fun getCollection(): [NFTCollectionDisplay] 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent})
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
 }
 /************************************************************************/
 pub struct interface CollectionDisplay {
@@ -736,16 +736,14 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
         destroy oldToken                              // destroy place holder
     }
 
-    pub fun depositByAgent(token: @NonFungibleToken.NFT, index: Int, feature: Bool, permission: &Admin{Agent}) {
-        pre {
-            DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied."
-            index < self.collections.length : "Index out of Range."
-        }
+    pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent}) {
+        pre { DAAM.getAgentCreators(agent: permission.grantee)!.contains(self.owner?.address!) : "Permission Denied." }
+
         let id = token.id
+        assert(self.collections[name]?.id.containsKey(id), message: "ID Entered is invalid.")
+
         self.deposit(token: <-token)
-        if !self.collections[index]!.id.containsKey(id) {
-            self.collections[index]!.addTokenID(id: id, feature: feature)
-        }
+        self.collections[name]!.addTokenID(id: id, feature: feature)
     }
 
     // getIDs returns an array of the IDs that are in the collection
