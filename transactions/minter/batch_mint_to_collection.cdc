@@ -16,7 +16,7 @@ transaction(creator: Address, mid: [UInt64], name: String, feature: [UInt64])
     let minterRef : &DAAM.Minter
     let mid       : [UInt64]
     let feature   : [UInt64]
-    let index     : Int?
+    let name      : String
     let metadataRef  : &{DAAM.MetadataGeneratorMint}
     let collectionRef: &DAAM.Collection{DAAM.CollectionPublic}
     let agentRef     : &DAAM.Admin{DAAM.Agent}
@@ -37,17 +37,7 @@ transaction(creator: Address, mid: [UInt64], name: String, feature: [UInt64])
         
         self.agentRef = minter.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
 
-        let list = self.collectionRef.getCollection()
-        var counter = 0
-        var elm_found = false
-        for elm in list {
-            if list[counter].display.name == name {
-                elm_found = true
-                break
-            }
-            counter = counter + 1
-        }
-        self.index = elm_found ? counter : nil
+        self.name = name
     }
 
     execute
@@ -56,7 +46,7 @@ transaction(creator: Address, mid: [UInt64], name: String, feature: [UInt64])
             let minterAccess <- self.minterRef.createMinterAccess(mid: m)
             let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
             let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-            self.collectionRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature.contains(m), permission: self.agentRef)
+            self.collectionRef.depositByAgent(token: <-nft, name: self.name, feature: self.feature.contains(m), permission: self.agentRef)
             
             log("Minted & Transfered")
         }

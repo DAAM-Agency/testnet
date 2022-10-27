@@ -11,7 +11,7 @@ transaction(creator: Address, status: Bool) {
     prepare(agent: AuthAccount) {
         self.creator = creator  
         self.status  = status
-        self.admin = agent.borrow<&{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+        self.admin = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
     }
 
     pre { DAAM.isCreator(creator) != nil : creator.toString().concat(" is not a Creator.") }

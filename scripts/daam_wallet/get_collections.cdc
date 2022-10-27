@@ -10,8 +10,8 @@ pub fun main(account: Address): {String: DAAM.NFTCollectionDisplay} {
         ?? panic("Could not borrow capability from public collection")
     
     let list = collectionRef.getCollection()
-    var value: {String: DAAM.NFTCollectionDisplay} = {}
-    for col in list { value.insert(key: col.display.name, col) }
-
-    return value
+    //var value: {String: DAAM.NFTCollectionDisplay} = {}
+    //for col in list { value.insert(key: col.display.name, col) }
+    //return value
+    return list
 }

@@ -5,11 +5,11 @@
 import MetadataViews    from 0xf8d6e0586b0a20c7
 import DAAM             from 0xfd43f9148d4b725d
 
-transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
+transaction(creator: Address, mid: UInt64, name: String, feature: Bool)
 {
     let minterRef : &DAAM.Minter
     let mid       : UInt64
-    let index     : Int?
+    let name      : String
     let feature   : Bool
     let metadataRef  : &{DAAM.MetadataGeneratorMint}
     let collectionRef: &DAAM.Collection{DAAM.CollectionPublic}
@@ -18,7 +18,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
     prepare(minter: AuthAccount) {
         self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
         self.mid       = mid
-        self.index     = index
+        self.name      = name
         self.feature   = feature
 
         self.collectionRef = getAccount(creator)
@@ -37,7 +37,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
         let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-        self.collectionRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature, permission: self.agentRef)
+        self.collectionRef.depositByAgent(token: <-nft, name: self.name, feature: self.feature, permission: self.agentRef)
         
         log("Minted & Transfered")
     }
