@@ -1474,8 +1474,10 @@ pub resource MinterAccess
     
     init(founders: {Address:UFix64}, company: Address, defaultAdmins: [Address])
     {
-        //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x1beecc6fef95b62e: 0.4}
+        //let founders: {Address:UFix64} = {0x1beecc6fef95b62e: 0.6, 0x0f7025fa05b578e3: 0.4}
         //let defaultAdmins: [Address] = [0x0f7025fa05b578e3, 0x1beecc6fef95b62e]
+        //let company: Address = 0x1beecc6fef95b62e
+
         // Paths
         self.collectionPublicPath  = /public/DAAM_Collection
         self.collectionStoragePath = /storage/DAAM_Collection
@@ -1503,7 +1505,7 @@ pub resource MinterAccess
             ) // end append
             totalCut = totalCut + founders[founder]!
         }
-        assert(totalCut == 1.0, message: "Shares Must equal 100%")
+        //assert(totalCut == 1.0, message: "Shares Must equal 100%. Currently: ".concat(totalCut.toString()))
         
         self.agency = MetadataViews.Royalties(royalty_list)
         self.company = MetadataViews.Royalty(
