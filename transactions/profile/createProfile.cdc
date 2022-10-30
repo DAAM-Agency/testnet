@@ -1,22 +1,24 @@
 // createProfile.cdc
 
-import DAAM_Profle from 0x192440c99cb17282
+import MetadataViews from 0xf8d6e0586b0a20c7
+import DAAM_Profile  from 0x192440c99cb17282
+import DAAM          from 0xfd43f9148d4b725d
 
-// argument have two modes:
-// when ipfs = true; first arument is cid, second argument is path 
-// when ipfs = false; first arument thumbnail String, second argument is thumbnailType and can not be nil
-pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataViews.File} {
-    pre { ipfs || !ipfs && type_path != nil }
-    if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
-    switch type_path! {
-        case "http"  : return MetadataViews.HTTPFile(url: string_cid)
-        case "https" : return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM.OnChain(file: string_cid)
+// Returns correct MetadataViews.File deping on type of data. Pic, Http, ipfs
+pub fun setFile(type: String, data: String, path: String?): AnyStruct{MetadataViews.File} {
+    pre { (type == "ipfs" && path != nil) || type != "ipfs" }
+    switch type {
+        case "http"  : return MetadataViews.HTTPFile(url: data)
+        case "https" : return MetadataViews.HTTPFile(url: data)
+        case "ipfs"  : return MetadataViews.IPFSFile(cid: data, path: path!)
+        default: return DAAM.OnChain(file: data)
     }
 }
 
-transaction(name: String, email: String?, about: String?, description: String?, web: String?, social: {String:String}?,
-    avatar: String?, heroImageType: String?, heroImage: String?, notes: {String:String}?)
+transaction(name: String, email: String?, about: String?, description: String?, web: String?, social: {String:String}?, notes: {String:String}?,
+    avatarType: String, avatar: String?, avatar_ipfsPath: String?,
+    heroImageType: String, heroImage: String?, heroImage_ipfsPath: String?
+    )
 {
     let signer: AuthAccount
     let name  : String
@@ -41,19 +43,22 @@ transaction(name: String, email: String?, about: String?, description: String?, 
 
         self.web       = web
         self.social    = social
-        self.avatar    = (avatar == nil) ? nil : DAAM.OnChain(file: avatar), setFile(ipfs: ipfs_thumbnail, string_cid: thumbnail_cid, type_path: thumbnailType_path)}
-        self.heroImage = heroImage
+        self.avatar    = (avatar == nil) ? nil : setFile(type: avatarType, data: avatar!, path: nil) //path: avatar_ipfsPath)
+        self.heroImage = (heroImage == nil) ? nil : setFile(type: heroImageType, data: heroImage!, path: nil)//path: heroImage_ipfsPath)
         self.notes     = notes        
     }
 
     pre {
-        (avatarType != nil && avatar != nil)    || (avatarType == nil && avatar == nil)    : ""
-        (heroImageType != nil && heroImage != nil) || (heroImageType == nil && heroImage == nil) : ""
+        (avatarType != "ipfs" && avatar_ipfsPath == nil) || (avatarType == "ipfs" && avatar_ipfsPath != nil) : "Avator Setting are Incorrect."
+        (heroImageType != "ipfs" && heroImage_ipfsPath != nil) || (heroImageType == "ipfs" && heroImage_ipfsPath != nil) : "Hero image Settings are Incorrect."
     }
 
     execute {
-        let profile <- DAAM_Profile.createProfile()
+        let profile <- DAAM_Profile.createProfile(
+            name:self.name, email:self.email, about:self.about, description:self.description, web:self.web, social:self.social,
+            avatar:self.avatar, heroImage:self.heroImage, notes:self.notes
+        )
         self.signer.save<@DAAM_Profile.User>(<-profile, to: DAAM_Profile.storagePath)
-        self.signer.link<&DAAM_Profile.User{DAAM_Profile.Public}>(from: DAAM_Profile.publicPath)
+        self.signer.link<&DAAM_Profile.User{DAAM_Profile.Public}>(DAAM_Profile.publicPath, target: DAAM_Profile.storagePath)
     }
 }
