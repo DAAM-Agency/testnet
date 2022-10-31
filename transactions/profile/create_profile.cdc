@@ -1,4 +1,4 @@
-// createProfile.cdc
+// create_profile.cdc
 
 import MetadataViews from 0xf8d6e0586b0a20c7
 import DAAM_Profile  from 0x192440c99cb17282
