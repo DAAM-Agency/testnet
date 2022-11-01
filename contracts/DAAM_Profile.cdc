@@ -89,7 +89,6 @@ pub contract DAAM_Profile {
         }
 
         priv fun validateEmailPortion(_ ref: [UInt8]) {
-            log(ref)
             for r in ref {
                 if ((r < 97 || r > 122) && r != 95) && (r < 48 || r > 57) {  // ascii: 97='a', 122='z', 95='_', '0', '9'
                     log(r)

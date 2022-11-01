@@ -468,7 +468,7 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder2"},
     {"type": "String", "value": "founder2"},
-    {"type": "String", "value": "daam},    
+    {"type": "String", "value": "daam"},    
     {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_founder2"},
     {"type": "String", "value": "desc_founder2"},
