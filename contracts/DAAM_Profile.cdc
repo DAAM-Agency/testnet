@@ -96,19 +96,19 @@ pub contract DAAM_Profile {
             let dot  = entered_dot.toLower().utf8
 
             for n in name {
-                if n < 97 || n > 122 || n != 95 {  // ascii: 97='a', 122='z', 95='_'
+                if n < 97 || n > 122 || n == 95 {  // ascii: 97='a', 122='z', 95='_'
                     panic("Invalid Email Entered")
                 }
             }
             
             for a in at {
-                if a < 97 || a > 122 || a != 95 {  // ascii: 97='a', 122='z', 95='_'
+                if a < 97 || a > 122 || a == 95 {  // ascii: 97='a', 122='z', 95='_'
                     panic("Invalid Email Entered")
                 }
             }
             
             for d in dot {
-                if d < 97 || d > 122 || d != 95 {  // ascii: 97='a', 122='z', 95='_'
+                if d < 97 || d > 122 || d == 95 {  // ascii: 97='a', 122='z', 95='_'
                     panic("Invalid Email Entered")
                 }
             }

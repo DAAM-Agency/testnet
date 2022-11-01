@@ -257,7 +257,9 @@ echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ====
 echo "========= Setup All Profiles ========="
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "cto"},
-    {"type": "String", "value": "cto@daam.agency"},    
+    {"type": "String", "value": "cto"},    
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_cto"},
     {"type": "String", "value": "desc_cto"},
     {"type": "String", "value": "web_cto"},
@@ -276,7 +278,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "creator"},
-    {"type": "String", "value": "creator@daam.agency"},    
+    {"type": "String", "value": "creator"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_creator"},
     {"type": "String", "value": "desc_creator"},
     {"type": "String", "value": "web_creator"},
@@ -295,7 +299,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "creator2"},
-    {"type": "String", "value": "creator2@daam.agency"},    
+    {"type": "String", "value": "creator2"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_creator2"},
     {"type": "String", "value": "desc_creator2"},
     {"type": "String", "value": "web_creator2"},
@@ -314,7 +320,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "admin"},
-    {"type": "String", "value": "admin@daam.agency"},    
+    {"type": "String", "value": "admin"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_admin"},
     {"type": "String", "value": "desc_admin"},
     {"type": "String", "value": "web_admin"},
@@ -333,7 +341,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "admin2"},
-    {"type": "String", "value": "admin2@daam.agency"},    
+    {"type": "String", "value": "admin2"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_admin2"},
     {"type": "String", "value": "desc_admin2"},
     {"type": "String", "value": "web_admin2"},
@@ -352,7 +362,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "agent"},
-    {"type": "String", "value": "agent@daam.agency"},    
+    {"type": "String", "value": "agent"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"}, 
     {"type": "String", "value": "about_agent"},
     {"type": "String", "value": "desc_agent"},
     {"type": "String", "value": "web_agent"},
@@ -371,7 +383,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "agent2"},
-    {"type": "String", "value": "agent2@daam.agency"},    
+    {"type": "String", "value": "agent2"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"}, 
     {"type": "String", "value": "about_agent2"},
     {"type": "String", "value": "desc_agent2"},
     {"type": "String", "value": "web_agent2"},
@@ -390,7 +404,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "client"},
-    {"type": "String", "value": "client@daam.agency"},    
+    {"type": "String", "value": "client"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_client"},
     {"type": "String", "value": "desc_client"},
     {"type": "String", "value": "web_client"},
@@ -409,7 +425,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "client2"},
-    {"type": "String", "value": "client2@daam.agency"},    
+    {"type": "String", "value": "client2"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_client2"},
     {"type": "String", "value": "desc_client2"},
     {"type": "String", "value": "web_client2"},
@@ -428,7 +446,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder1"},
-    {"type": "String", "value": "founder1@daam.agency"},    
+    {"type": "String", "value": "founder1"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_founder1"},
     {"type": "String", "value": "desc_founder1"},
     {"type": "String", "value": "web_founder1"},
@@ -447,7 +467,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder2"},
-    {"type": "String", "value": "founder2@daam.agency"},    
+    {"type": "String", "value": "founder2"},
+    {"type": "String", "value": "daam},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_founder2"},
     {"type": "String", "value": "desc_founder2"},
     {"type": "String", "value": "web_founder2"},
@@ -466,7 +488,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder3"},
-    {"type": "String", "value": "founder3@daam.agency"},    
+    {"type": "String", "value": "founder3"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_founder3"},
     {"type": "String", "value": "desc_founder3"},
     {"type": "String", "value": "web_founder3"},
@@ -485,7 +509,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder4"},
-    {"type": "String", "value": "founder4@daam.agency"},    
+    {"type": "String", "value": "founder4"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"}, 
     {"type": "String", "value": "about_founder4"},
     {"type": "String", "value": "desc_founder4"},
     {"type": "String", "value": "web_founder4"},
@@ -504,7 +530,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "founder5"},
-    {"type": "String", "value": "founder5@daam.agency"},    
+    {"type": "String", "value": "founder5"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_founder5"},
     {"type": "String", "value": "desc_founder5"},
     {"type": "String", "value": "web_founder5"},
@@ -523,7 +551,9 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
 
 flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     {"type": "String", "value": "nobody"},
-    {"type": "String", "value": "nobody@daam.agency"},    
+    {"type": "String", "value": "nobody"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
     {"type": "String", "value": "about_nobody"},
     {"type": "String", "value": "desc_nobody"},
     {"type": "String", "value": "web_nobody"},
