@@ -86,7 +86,15 @@ pub contract DAAM_Profile {
             self.notes  = (notes != nil) ? notes! : {}
 
             emit ProfileCreated(name: self.name)
-        }  
+        }
+
+        priv fun validateEmailPortion(_ ref: [UInt8]) {
+            for r in ref {
+                if r < 97 || r > 122 || r == 95 {  // ascii: 97='a', 122='z', 95='_'
+                    panic("Invalid Email Entered")
+                }
+            }
+        }
 
         // Functions
         // Internal Functions
@@ -95,11 +103,7 @@ pub contract DAAM_Profile {
             let at   = entered_at.toLower().utf8
             let dot  = entered_dot.toLower().utf8
 
-            for n in name {
-                if n < 97 || n > 122 || n == 95 {  // ascii: 97='a', 122='z', 95='_'
-                    panic("Invalid Email Entered")
-                }
-            }
+            self.validateEmailPortion(name)
             
             for a in at {
                 if a < 97 || a > 122 || a == 95 {  // ascii: 97='a', 122='z', 95='_'
@@ -114,6 +118,7 @@ pub contract DAAM_Profile {
             }
             
             let email = entered_name.toLower().concat("@").concat(entered_at.toLower()).concat(".").concat(entered_dot.toLower())
+            assert(email.length <= 40, message: "Email too long.")
             log("Email: ".concat(email))
             return email
         }
