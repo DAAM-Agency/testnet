@@ -89,8 +89,10 @@ pub contract DAAM_Profile {
         }
 
         priv fun validateEmailPortion(_ ref: [UInt8]) {
+            log(ref)
             for r in ref {
-                if r < 97 || r > 122 || r == 95 {  // ascii: 97='a', 122='z', 95='_'
+                if ((r < 97 || r > 122) && r != 95) && (r < 48 || r > 57) {  // ascii: 97='a', 122='z', 95='_', '0', '9'
+                    log(r)
                     panic("Invalid Email Entered")
                 }
             }
@@ -104,18 +106,8 @@ pub contract DAAM_Profile {
             let dot  = entered_dot.toLower().utf8
 
             self.validateEmailPortion(name)
-            
-            for a in at {
-                if a < 97 || a > 122 || a == 95 {  // ascii: 97='a', 122='z', 95='_'
-                    panic("Invalid Email Entered")
-                }
-            }
-            
-            for d in dot {
-                if d < 97 || d > 122 || d == 95 {  // ascii: 97='a', 122='z', 95='_'
-                    panic("Invalid Email Entered")
-                }
-            }
+            self.validateEmailPortion(at)
+            self.validateEmailPortion(dot)
             
             let email = entered_name.toLower().concat("@").concat(entered_at.toLower()).concat(".").concat(entered_dot.toLower())
             assert(email.length <= 40, message: "Email too long.")
