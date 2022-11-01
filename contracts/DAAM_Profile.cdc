@@ -11,6 +11,7 @@ pub contract DAAM_Profile {
     /******************************************************************************************/
     // Events:
     pub event ContractInitialized()
+    pub event ProfileCreated(name: String)
     pub event UpdateEmail(email: String?)
     pub event UpdateAbout(about: String?)
     pub event UpdateDescription(description: String?)
@@ -71,12 +72,11 @@ pub contract DAAM_Profile {
         pub var notes    : {String: String}  // {Types of Notes : Note}
 
         // Init
-        init(name: String, email: String?, about: String?, description: String?, web: String?, social: {String:String}?,
+        init(name: String, about: String?, description: String?, web: String?, social: {String:String}?,
             avatar: AnyStruct{MetadataViews.File}?, heroImage: AnyStruct{MetadataViews.File}?, notes: {String:String}? )
         {
-            post { self.verifyEmail(email) : "Invalid Format" }
             self.name   = name
-            self.email  = email
+            self.email  = nil
             self.about  = about
             self.description = description          
             self.web    = (web != nil) ? [MetadataViews.ExternalURL(web!)] : []
@@ -84,21 +84,49 @@ pub contract DAAM_Profile {
             self.avatar = avatar
             self.heroImage   = heroImage
             self.notes  = (notes != nil) ? notes! : {}
+
+            emit ProfileCreated(name: self.name)
         }  
 
         // Functions
         // Internal Functions
-        priv fun verifyEmail(_ email: String?): Bool {
-            if email == nil { return true } // no email entered, pass
-            // check email format here TODO
-            return true // TODO return false here
+        priv fun verifyEmail(_ entered_name: String, _ entered_at: String, _ entered_dot: String): String {
+            let name = entered_name.toLower().utf8
+            let at   = entered_at.toLower().utf8
+            let dot  = entered_dot.toLower().utf8
+
+            for n in name {
+                if n < 97 || n > 122 || n != 95 {  // ascii: 97='a', 122='z', 95='_'
+                    panic("Invalid Email Entered")
+                }
+            }
+            
+            for a in at {
+                if a < 97 || a > 122 || a != 95 {  // ascii: 97='a', 122='z', 95='_'
+                    panic("Invalid Email Entered")
+                }
+            }
+            
+            for d in dot {
+                if d < 97 || d > 122 || d != 95 {  // ascii: 97='a', 122='z', 95='_'
+                    panic("Invalid Email Entered")
+                }
+            }
+            
+            let email = entered_name.toLower().concat("@").concat(entered_at.toLower()).concat(".").concat(entered_dot.toLower())
+            log("Email: ".concat(email))
+            return email
         }
 
         // Set Functions
-        pub fun setEmail(_ email: String?) {
-            pre { self.verifyEmail(email) : "Invalid email address." }
-            self.email = email
-            emit UpdateEmail(email: email)
+        pub fun setEmail(name: String?, at: String?, dot: String?) {
+            pre { (name==nil && at==nil && dot==nil) || (name!=nil && at!=nil && dot!=nil) : "Invalid Email Entered." }
+            if name == nil {
+                self.email = nil
+                return
+            }
+            self.email = self.verifyEmail(name!, at!, dot!)
+            emit UpdateEmail(email: self.email)
         }
 
         pub fun setAbout(_ about: String?) {
@@ -177,10 +205,10 @@ pub contract DAAM_Profile {
     } // End User Resource
     /******************************************************************************************/
     // Contract Public Functions:
-    pub fun createProfile(name: String, email: String?, about: String?, description: String?, web: String?, social: {String:String}?,
+    pub fun createProfile(name: String, about: String?, description: String?, web: String?, social: {String:String}?,
             avatar: AnyStruct{MetadataViews.File}?, heroImage: AnyStruct{MetadataViews.File}?, notes: {String:String}?): @User
     {
-        return <- create User(name:name, email:email, about:about, description:description, web:web, social:social, avatar:avatar, heroImage:heroImage, notes:notes) 
+        return <- create User(name:name, about:about, description:description, web:web, social:social, avatar:avatar, heroImage:heroImage, notes:notes) 
     }
 
     pub fun check(_ address: Address): Bool {
