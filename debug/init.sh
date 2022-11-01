@@ -233,8 +233,8 @@ flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --
 # Emulator Contracts
 echo "========== Publish Supporting Contracts: NonFungibleToken & Profile"
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
-flow accounts add-contract Profile ./contracts/Profile.cdc --signer profile
 flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
+flow accounts add-contract DAAM_Profile ./contracts/DAAM_Profile.cdc --signer profile
 
 echo "========= Publish DAAM Contracts =========="
 # Categories
@@ -255,23 +255,321 @@ echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ====
 
 # Setup Profiles
 echo "========= Setup All Profiles ========="
-flow transactions send ./transactions/create_profile.cdc --signer cto
-flow transactions send ./transactions/create_profile.cdc --signer admin
-flow transactions send ./transactions/create_profile.cdc --signer admin2
-flow transactions send ./transactions/create_profile.cdc --signer agent
-flow transactions send ./transactions/create_profile.cdc --signer agent2
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "cto"},
+    {"type": "String", "value": "cto"},    
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_cto"},
+    {"type": "String", "value": "desc_cto"},
+    {"type": "String", "value": "web_cto"},
 
-flow transactions send ./transactions/create_profile.cdc --signer creator
-flow transactions send ./transactions/create_profile.cdc --signer creator2
-flow transactions send ./transactions/create_profile.cdc --signer client
-flow transactions send ./transactions/create_profile.cdc --signer client2
-flow transactions send ./transactions/create_profile.cdc --signer nobody
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
 
-flow transactions send ./transactions/create_profile.cdc --signer founder1
-flow transactions send ./transactions/create_profile.cdc --signer founder2
-flow transactions send ./transactions/create_profile.cdc --signer founder3
-flow transactions send ./transactions/create_profile.cdc --signer founder4
-flow transactions send ./transactions/create_profile.cdc --signer founder5
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "avatar_cto"},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_cto"},
+    {"type": "Optional", "value": null}
+    ]' --signer cto
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "creator"},
+    {"type": "String", "value": "creator"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_creator"},
+    {"type": "String", "value": "desc_creator"},
+    {"type": "String", "value": "web_creator"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "avatar_creator"},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_creator"},
+    {"type": "Optional", "value": null}
+    ]' --signer creator
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "creator2"},
+    {"type": "String", "value": "creator2"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_creator2"},
+    {"type": "String", "value": "desc_creator2"},
+    {"type": "String", "value": "web_creator2"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "avatar_creator2"},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_creator2"},
+    {"type": "Optional", "value": null}
+    ]' --signer creator2
+    
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "admin"},
+    {"type": "String", "value": "admin"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_admin"},
+    {"type": "String", "value": "desc_admin"},
+    {"type": "String", "value": "web_admin"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_admin"},
+    {"type": "String", "value": "avatar_admin"},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_admin"},
+    {"type": "Optional", "value": null}
+    ]' --signer admin
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "admin2"},
+    {"type": "String", "value": "admin2"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_admin2"},
+    {"type": "String", "value": "desc_admin2"},
+    {"type": "String", "value": "web_admin2"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_admin2"},
+    {"type": "String", "value": "avatar_admin2"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_admin2"},
+    {"type": "Optional", "value": null}
+    ]' --signer admin2
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "agent"},
+    {"type": "String", "value": "agent"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"}, 
+    {"type": "String", "value": "about_agent"},
+    {"type": "String", "value": "desc_agent"},
+    {"type": "String", "value": "web_agent"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_agent"},
+    {"type": "String", "value": "avatar_agent"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_agent"},
+    {"type": "Optional", "value": null}
+    ]' --signer agent
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "agent2"},
+    {"type": "String", "value": "agent2"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"}, 
+    {"type": "String", "value": "about_agent2"},
+    {"type": "String", "value": "desc_agent2"},
+    {"type": "String", "value": "web_agent2"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_agent2"},
+    {"type": "String", "value": "avatar_agent2"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_agent2"},
+    {"type": "Optional", "value": null}
+    ]' --signer agent2
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "client"},
+    {"type": "String", "value": "client"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_client"},
+    {"type": "String", "value": "desc_client"},
+    {"type": "String", "value": "web_client"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_client"},
+    {"type": "String", "value": "avatar_client"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_client"},
+    {"type": "Optional", "value": null}
+    ]' --signer client
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "client2"},
+    {"type": "String", "value": "client2"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_client2"},
+    {"type": "String", "value": "desc_client2"},
+    {"type": "String", "value": "web_client2"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_client2"},
+    {"type": "String", "value": "avatar_client2"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_client2"},
+    {"type": "Optional", "value": null}
+    ]' --signer client2
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "founder1"},
+    {"type": "String", "value": "founder1"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_founder1"},
+    {"type": "String", "value": "desc_founder1"},
+    {"type": "String", "value": "web_founder1"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_founder1"},
+    {"type": "String", "value": "avatar_founder1"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_founder1"},
+    {"type": "Optional", "value": null}
+    ]' --signer founder1
+    
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "founder2"},
+    {"type": "String", "value": "founder2"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_founder2"},
+    {"type": "String", "value": "desc_founder2"},
+    {"type": "String", "value": "web_founder2"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_founder2"},
+    {"type": "String", "value": "avatar_founder2"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_founder2"},
+    {"type": "Optional", "value": null}
+    ]' --signer founder2
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "founder3"},
+    {"type": "String", "value": "founder3"},
+    {"type": "String", "value": "daam"}, 
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_founder3"},
+    {"type": "String", "value": "desc_founder3"},
+    {"type": "String", "value": "web_founder3"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_founder3"},
+    {"type": "String", "value": "avatar_founder3"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_founder3"},
+    {"type": "Optional", "value": null}
+    ]' --signer founder3
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "founder4"},
+    {"type": "String", "value": "founder4"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"}, 
+    {"type": "String", "value": "about_founder4"},
+    {"type": "String", "value": "desc_founder4"},
+    {"type": "String", "value": "web_founder4"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_founder4"},
+    {"type": "String", "value": "avatar_founder4"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_founder4"},
+    {"type": "Optional", "value": null}
+    ]' --signer founder4
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "founder5"},
+    {"type": "String", "value": "founder5"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_founder5"},
+    {"type": "String", "value": "desc_founder5"},
+    {"type": "String", "value": "web_founder5"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_founder5"},
+    {"type": "String", "value": "avatar_founder5"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_founder5"},
+    {"type": "Optional", "value": null}
+    ]' --signer founder5
+
+flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
+    {"type": "String", "value": "nobody"},
+    {"type": "String", "value": "nobody"},
+    {"type": "String", "value": "daam"},    
+    {"type": "String", "value": "agency"},    
+    {"type": "String", "value": "about_nobody"},
+    {"type": "String", "value": "desc_nobody"},
+    {"type": "String", "value": "web_nobody"},
+
+    {"type": "Optional", "value": null},
+    {"type": "Optional", "value": null},
+
+    {"type": "String", "value": "text_nobody"},
+    {"type": "String", "value": "avatar_nobody"},
+    {"type": "Optional", "value": null},
+    
+    {"type": "String", "value": "text"},
+    {"type": "String", "value": "heroImage_nobody"},
+    {"type": "Optional", "value": null}
+    ]' --signer nobody
+
 
 # Setup DAAM Accounts
 echo "========= Setup All DAAM Accounts ========="

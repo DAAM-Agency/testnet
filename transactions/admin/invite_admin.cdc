@@ -1,6 +1,6 @@
 // invite_admin.cdc
 // Used for Admin to invite another Admin.
-// The invitee Must have a Profile before receiving or accepting this Invitation
+// The invitee Must have a DAAM_Profile before receiving or accepting this Invitation
 
 import DAAM from 0xfd43f9148d4b725d
 

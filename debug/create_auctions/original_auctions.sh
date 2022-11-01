@@ -74,23 +74,23 @@ flow transactions send ./transactions/auction/create_auction.cdc --args-json '[
 {"type": "UFix64", "value": "27.0"},
 {"type": "UFix64", "value": "30.3"},
 {"type": "Optional", "value": null}
-]' --gas-limit 9999 --signer creator 2 #F, MID: 6, AID: 3
+]' --gas-limit 9999 --signer creator2 #F, MID: 6, AID: 3
 
 echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 7 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --gas-limit 9999 --signer creator 2 #G, MID: 7, AID: 4, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator2 #G, MID: 7, AID: 4, No Buy it now
 
 echo "Test Auction H: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 8 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --gas-limit 9999 --signer creator 2 #H, MID: 8, AID: 5, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator2 #H, MID: 8, AID: 5, No Buy it now
 
 
 echo "Test Auction G: No Bids, Item returned."
 flow transactions send ./transactions/auction/create_auction.cdc true 9 $START \
 330.0 false 0.0 false 0.025 15.00 \
-28.0 0.0 1 --gas-limit 9999 --signer creator 2 #G, MID: 9, AID: 6, No Buy it now
+28.0 0.0 1 --gas-limit 9999 --signer creator2 #G, MID: 9, AID: 6, No Buy it now
 
 
 # Auction Scripts
