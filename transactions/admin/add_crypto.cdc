@@ -9,14 +9,9 @@ import AuctionHouse  from 0x045a1763c93006ca
 
 transaction()
 {
-    //let crypto: &FungibleToken.Vault
-    let path  : PublicPath
     let admin : &DAAM.Admin
 
     prepare(admin: AuthAccount) {
-       
-        //self.crypto = crypto
-        self.path   = /public/fusdReceiver
         self.admin  = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
     }
 
