@@ -7,22 +7,18 @@ import DAAM          from 0xfd43f9148d4b725d
 import AuctionHouse  from 0x045a1763c93006ca
 
 
-transaction()
+transaction(crypto: String)
 {
-    //let crypto: &FungibleToken.Vault
-    let path  : PublicPath
-    let admin : &DAAM.Admin
+    let crypto : String
+    let admin  : &DAAM.Admin
 
     prepare(admin: AuthAccount) {
        
-        //self.crypto = crypto
-        self.path   = /public/fusdReceiver
+        self.crypto = crypto
         self.admin  = admin.borrow<&DAAM.Admin>(from: DAAM.adminStoragePath)!
     }
 
     execute {
-        let vault <-FUSD.createEmptyVault()
-        AuctionHouse.addCrypto(crypto: &vault as &FungibleToken.Vault, path: self.path, permission: self.admin)
-        destroy vault
+        AuctionHouse.removeCrypto(crypto: self.crypto, permission: self.admin)
     }
 }
