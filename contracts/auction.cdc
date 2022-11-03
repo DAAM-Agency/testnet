@@ -1079,7 +1079,11 @@ pub struct AuctionHolder {
             self.crypto[crypto] != nil : "This Crypto is not accepted.."
         }
         self.crypto.remove(key: crypto)
-    }    
+    }   
+
+    pub fun getCrypto(): [String] {
+        return self.crypto.keys
+    }
 
     // Create Auction Wallet which is used for storing Auctions.
     pub fun createAuctionWallet(): @AuctionWallet { 
