@@ -6,7 +6,7 @@ import NonFungibleToken from 0xf8d6e0586b0a20c7
 import FUSD             from 0x192440c99cb17282
 import MetadataViews    from 0xf8d6e0586b0a20c7
 import Categories       from 0xfd43f9148d4b725d
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM_Mainnet             from 0xfd43f9148d4b725d
 import AuctionHouse     from 0x045a1763c93006ca
 
 // argument have two modes:
@@ -17,7 +17,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM.OnChain(file: string_cid)
+        default: return DAAM_Mainnet.OnChain(file: string_cid)
     }
 }
 // Metadata Arguments
@@ -31,7 +31,7 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
 {   
     // Metadata
     let creator     : Address   
-    let agent       : &DAAM.Admin{DAAM.Agent}
+    let agent       : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     let name        : String
     let max         : UInt64?
@@ -44,8 +44,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
 
     // Auction
     let auctionHouse    : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
-    let metadataCap     : Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-    let metadataGen     : &DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}
+    let metadataCap     : Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+    let metadataGen     : &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}
     let start           : UFix64
     let length          : UFix64
     let isExtended      : Bool
@@ -61,11 +61,11 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
         // Metadata
         self.creator      = creator
         self.metadataGen  = getAccount(self.creator)
-            .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint, DAAM.MetadataGeneratorPublic}>(DAAM.metadataPublicPath).borrow()!
+            .getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
 
         self.metadataCap  = getAccount(creator)
-            .getCapability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>
-            (DAAM.metadataPublicPath)
+            .getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+            (DAAM_Mainnet.metadataPublicPath)
 
         self.name         = name
         self.max          = max
@@ -82,7 +82,7 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
         }
 
         // Auction
-        self.agent = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+        self.agent = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.auctionHouse = getAccount(creator)
             .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>

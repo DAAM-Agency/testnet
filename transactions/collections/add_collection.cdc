@@ -1,19 +1,19 @@
 // add_to_collection.cdc
 
 import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM          from 0xfd43f9148d4b725d
+import DAAM_Mainnet          from 0xfd43f9148d4b725d
 
 pub fun setFile(string: String, type: String): {MetadataViews.File} {
     switch type! {
         case "http": return MetadataViews.HTTPFile(url: string)
-        default: return DAAM.OnChain(file: string)
+        default: return DAAM_Mainnet.OnChain(file: string)
     }
 }
 
 transaction(name: String, description: String, externalURL: String, squareImage: String, squareImageType: String,
     bannerImage: String, bannerImageType: String, social: String?, web: String? )
 {
-    let collectionRef : &DAAM.Collection
+    let collectionRef : &DAAMDAAM_Mainnet_Mainnet.Collection
     let name          : String
     let description   : String
     let externalURL   : MetadataViews.ExternalURL
@@ -23,7 +23,7 @@ transaction(name: String, description: String, externalURL: String, squareImage:
 
     prepare(acct: AuthAccount) {
         // Borrow a reference from the stored collection`
-        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)!
+        self.collectionRef = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)!
             //?? panic("Could not borrow a reference to the owner's collection")
         self.name              = name // Get name of collection
         self.description       = description

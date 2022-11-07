@@ -1,18 +1,18 @@
 // remove_tokenID_from_collection.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xfd43f9148d4b725d
 
 transaction(mid: UInt64, feature: Bool, name: String) {
-    let collectionRef : &DAAM.Collection
-    let creatorRef    : &DAAM.Creator
+    let collectionRef : &DAAMDAAM_Mainnet_Mainnet.Collection
+    let creatorRef    : &DAAMDAAM_Mainnet_Mainnet.Creator
     let mid           : UInt64
     let feature       : Bool
     let name          : String
 
     prepare(acct: AuthAccount) {
-        self.creatorRef = acct.borrow<&DAAM.Creator>(from: DAAM.creatorStoragePath)!
+        self.creatorRef = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
         // Borrow a reference from the stored collection
-        self.collectionRef = acct.borrow<&DAAM.Collection>(from: DAAM.collectionStoragePath)
+        self.collectionRef = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid     = mid
         self.feature = feature

@@ -5,8 +5,8 @@
 # CTO is must always stay Admin. 
 
 # This is the initialization setup. This setup all the emulator contracts such as NFT, FUSD, Profile.
-# Also DAAM contracts daam_nft, auction. All Accounts are generated and assigned the following:
-# DAAM Wallet to store NFTs
+# Also DAAM_Mainnet contracts daam_nft, auction. All Accounts are generated and assigned the following:
+# DAAM_Mainnet Wallet to store NFTs
 # AuctionWallet to store Auctions
 # FUSD Wallet
 
@@ -23,7 +23,7 @@ export NFT_PUBKEY=$(tail -1 ./keys/nft_keys             | awk '{print $3}' | tr 
 export PROFILE_PUBKEY=$(tail -1 ./keys/profile_keys     | awk '{print $3}' | tr -d '\n')
 export NOBODY_PUBKEY=$(tail -1 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
 export ADMIN2_PUBKEY=$(tail -1 ./keys/admin2_keys       | awk '{print $3}' | tr -d '\n')
-export DAAM_NFT_PUBKEY=$(tail -1 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
+export DAAM_Mainnet_NFT_PUBKEY=$(tail -1 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
 export AGENCY_PUBKEY=$(tail -1 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
 export CTO_PUBKEY=$(tail -1 ./keys/cto_keys             | awk '{print $3}' | tr -d '\n')
 
@@ -51,7 +51,7 @@ export NFT_PRIVKEY=$(tail -2 ./keys/nft_keys             | awk '{print $3}' | tr
 export PROFILE_PRIVKEY=$(tail -2 ./keys/profile_keys     | awk '{print $3}' | tr -d '\n')
 export NOBODY_PRIVKEY=$(tail -2 ./keys/nobody_keys       | awk '{print $3}' | tr -d '\n')
 export ADMIN2_PRIVKEY=$(tail -2 ./keys/admin2_keys       | awk '{print $3}' | tr -d '\n')
-export DAAM_NFT_PRIVKEY=$(tail -2 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
+export DAAM_Mainnet_NFT_PRIVKEY=$(tail -2 ./keys/daam_nft_keys   | awk '{print $3}' | tr -d '\n')
 export AGENCY_PRIVKEY=$(tail -2 ./keys/agency_keys       | awk '{print $3}' | tr -d '\n')
 export CTO_PRIVKEY=$(tail -2 ./keys/cto_keys             | awk '{print $3}' | tr -d '\n')
 
@@ -74,7 +74,7 @@ flow accounts create --key $MARKETPLACE_PUBKEY --save marketplace
 flow accounts create --key $NFT_PUBKEY --save nft
 flow accounts create --key $NOBODY_PUBKEY --save nobody
 flow accounts create --key $PROFILE_PUBKEY --save profile
-flow accounts create --key $DAAM_NFT_PUBKEY --save daam_nft
+flow accounts create --key $DAAM_Mainnet_NFT_PUBKEY --save daam_nft
 flow accounts create --key $AGENCY_PUBKEY --save agency
 flow accounts create --key $CTO_PUBKEY --save cto
 
@@ -118,8 +118,8 @@ export NFT=$(head -1 nft        | awk '{print $2}')
 echo NFT: $NFT
 export PROFILE=$(head -1 profile | awk '{print $2}')
 echo Profile: $PROFILE
-export DAAM_NFT=$(head -1 daam_nft | awk '{print $2}')
-echo DAAM NFT: $DAAM_NFT
+export DAAM_Mainnet_NFT=$(head -1 daam_nft | awk '{print $2}')
+echo DAAM_Mainnet NFT: $DAAM_Mainnet_NFT
 export AGENCY=$(head -1 agency | awk '{print $2}')
 echo Agency: $AGENCY
 
@@ -148,7 +148,7 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $CREATOR
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $ADMIN
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $NOBODY
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $NFT
-flow transactions send ./transactions/send_flow_em.cdc 200.0 $DAAM_NFT
+flow transactions send ./transactions/send_flow_em.cdc 200.0 $DAAM_Mainnet_NFT
 
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $MARKETPLACE
 flow transactions send ./transactions/send_flow_em.cdc 200.0 $CLIENT
@@ -218,7 +218,7 @@ flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer founder
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CREATOR --signer cto
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $ADMIN --signer cto
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $NOBODY --signer cto
-flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $DAAM_NFT --signer cto
+flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $DAAM_Mainnet_NFT --signer cto
 
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $MARKETPLACE --signer cto
 flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $CLIENT --signer cto
@@ -234,9 +234,9 @@ flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --
 echo "========== Publish Supporting Contracts: NonFungibleToken & Profile"
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
-flow accounts add-contract DAAM_Profile ./contracts/DAAM_Profile.cdc --signer profile
+flow accounts add-contract DAAM_Mainnet_Profile ./contracts/DAAM_Mainnet_Profile.cdc --signer profile
 
-echo "========= Publish DAAM Contracts =========="
+echo "========= Publish DAAM_Mainnet Contracts =========="
 # Categories
 flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
 flow accounts add-contract MultiFungibleToken ./contracts/MultiFungibleToken.cdc --signer mft
@@ -245,13 +245,13 @@ flow transactions send ./transactions/send_flow_em.cdc --args-json \
 '[{"type": "UFix64", "value": "11.0"}, {"type": "Address", "value": "0x0f7025fa05b578e3"}]'
 
 # NFT
-flow transactions send ./transactions/init_DAAM_Agency.cdc --signer daam_nft
-flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
+flow transactions send ./transactions/init_DAAM_Mainnet_Agency.cdc --signer daam_nft
+flow accounts update-contract DAAM_Mainnet ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
 flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
 
-echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ==========" 
+echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM_Mainnet, Profile, AuctionWallet  ==========" 
 
 # Setup Profiles
 echo "========= Setup All Profiles ========="
@@ -571,8 +571,8 @@ flow transactions send ./transactions/profile/create_profile.cdc --args-json '[
     ]' --signer nobody
 
 
-# Setup DAAM Accounts
-echo "========= Setup All DAAM Accounts ========="
+# Setup DAAM_Mainnet Accounts
+echo "========= Setup All DAAM_Mainnet Accounts ========="
 # Non-Public Accounts
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer cto
 flow transactions send ./transactions/daam_wallet/setup_daam_account.cdc false --signer admin

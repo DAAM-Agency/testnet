@@ -3,27 +3,27 @@
 
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import MetadataViews    from 0xf8d6e0586b0a20c7
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM_Mainnet             from 0xfd43f9148d4b725d
 
 transaction(creator: Address, mid: UInt64)
 {
-    let minterRef : &DAAM.Minter
+    let minterRef : &DAAMDAAM_Mainnet_Mainnet.Minter
     let mid       : UInt64
-    let metadataRef : &{DAAM.MetadataGeneratorMint}
+    let metadataRef : &{DAAM_Mainnet.MetadataGeneratorMint}
     let receiverRef : &{NonFungibleToken.CollectionPublic}
 
     prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
 
         self.receiverRef  = getAccount(creator)
-            .getCapability(DAAM.collectionPublicPath)
+            .getCapability(DAAM_Mainnet.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()!
 
 
         self.metadataRef = getAccount(creator)
-            .getCapability(DAAM.metadataPublicPath)
-            .borrow<&{DAAM.MetadataGeneratorMint}>()!
+            .getCapability(DAAM_Mainnet.metadataPublicPath)
+            .borrow<&{DAAM_Mainnet.MetadataGeneratorMint}>()!
     }
 
     execute {

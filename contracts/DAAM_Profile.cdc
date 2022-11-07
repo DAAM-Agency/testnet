@@ -1,10 +1,10 @@
 // Based on Verses Profile. Needed a Profile without Wallet Solution
-// A Basic Profile. web: DAAM.Agency
+// A Basic Profile. web: DAAM_Mainnet.Agency
 // Ami Rajpal
 
 import MetadataViews from 0xf8d6e0586b0a20c7
 
-pub contract DAAM_Profile {
+pub contract DAAM_Mainnet_Profile {
     // Storage:
     pub let publicPath  : PublicPath
     pub let storagePath : StoragePath
@@ -214,7 +214,7 @@ pub contract DAAM_Profile {
 
     // Initialization
     init() {
-        let defaultPath = "DAAM_Profile"
+        let defaultPath = "DAAM_Mainnet_Profile"
         self.publicPath  = PublicPath(identifier : defaultPath)!
         self.storagePath = StoragePath(identifier: defaultPath)!
         emit ContractInitialized()

@@ -2,7 +2,7 @@
 // Answer the invitation to be an Agent.
 // Answer the invitation to be a Minter. Typically only for Auctions & Marketplaces
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xfd43f9148d4b725d
 
 transaction(submit: Bool) {
     let signer: AuthAccount
@@ -12,27 +12,27 @@ transaction(submit: Bool) {
     }
 
     execute {
-        let agent  <- DAAM.answerAgentInvite(newAgent: self.signer, submit: submit)
+        let agent  <- DAAM_Mainnet.answerAgentInvite(newAgent: self.signer, submit: submit)
 
         if agent != nil && submit {
-            let old_admin <- self.signer.load<@AnyResource>(from: DAAM.adminStoragePath)
-            self.signer.save<@DAAM.Admin{DAAM.Agent}>(<- agent!, to: DAAM.adminStoragePath)!
-            let agentRef = self.signer.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+            let old_admin <- self.signer.load<@AnyResource>(from: DAAM_Mainnet.adminStoragePath)
+            self.signer.save<@DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(<- agent!, to: DAAM_Mainnet.adminStoragePath)!
+            let agentRef = self.signer.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
             destroy old_admin
 
-            let old_request <- self.signer.load<@AnyResource>(from: DAAM.requestStoragePath)
+            let old_request <- self.signer.load<@AnyResource>(from: DAAM_Mainnet.requestStoragePath)
             let requestGen <- agentRef.newRequestGenerator()!
-            self.signer.save<@DAAM.RequestGenerator>(<- requestGen, to: DAAM.requestStoragePath)!
+            self.signer.save<@DAAM_Mainnet.RequestGenerator>(<- requestGen, to: DAAM_Mainnet.requestStoragePath)!
             destroy old_request
 
-            log("You are now a DAAM.Agent: ".concat(self.signer.address.toString()) )
+            log("You are now a DAAM_Mainnet.Agent: ".concat(self.signer.address.toString()) )
             
             // Minter
-            if DAAM.isMinter(self.signer.address) == false { // Received Minter Invitation
-                let old_minter <- self.signer.load<@AnyResource>(from: DAAM.minterStoragePath)
-                let minter  <- DAAM.answerMinterInvite(newMinter: self.signer, submit: submit)
-                self.signer.save<@DAAM.Minter>(<- minter!, to: DAAM.minterStoragePath)
-                log("You are now a DAAM.Minter: ".concat(self.signer.address.toString()) )
+            if DAAM_Mainnet.isMinter(self.signer.address) == false { // Received Minter Invitation
+                let old_minter <- self.signer.load<@AnyResource>(from: DAAM_Mainnet.minterStoragePath)
+                let minter  <- DAAM_Mainnet.answerMinterInvite(newMinter: self.signer, submit: submit)
+                self.signer.save<@DAAM_Mainnet.Minter>(<- minter!, to: DAAM_Mainnet.minterStoragePath)
+                log("You are now a DAAM_Mainnet.Minter: ".concat(self.signer.address.toString()) )
                 destroy old_minter
             }
             

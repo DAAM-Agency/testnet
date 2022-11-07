@@ -1,18 +1,18 @@
 // delete_agent.cdc
 
-import DAAM from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xfd43f9148d4b725d
 
 transaction() {
     prepare(agent: AuthAccount) {
-        let agentRes   <- agent.load<@DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)
-        let requestRes <- agent.load<@DAAM.RequestGenerator>(from: DAAM.requestStoragePath)
-        let minterRes  <- agent.load<@DAAM.Minter>(from: DAAM.minterStoragePath)
+        let agentRes   <- agent.load<@DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)
+        let requestRes <- agent.load<@DAAM_Mainnet.RequestGenerator>(from: DAAM_Mainnet.requestStoragePath)
+        let minterRes  <- agent.load<@DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)
         destroy agentRes
         destroy requestRes
         destroy minterRes
-        agent.unlink(DAAM.adminPrivatePath)
-        agent.unlink(DAAM.requestPrivatePath)
-        agent.unlink(DAAM.minterPrivatePath)
+        agent.unlink(DAAM_Mainnet.adminPrivatePath)
+        agent.unlink(DAAM_Mainnet.requestPrivatePath)
+        agent.unlink(DAAM_Mainnet.minterPrivatePath)
         log("Agent & Minter Removed")
     } 
 }

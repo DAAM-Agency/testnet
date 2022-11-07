@@ -1,8 +1,8 @@
 // create_profile.cdc
 
 import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM_Profile  from 0x192440c99cb17282
-import DAAM          from 0xfd43f9148d4b725d
+import DAAM_Mainnet_Profile  from 0x192440c99cb17282
+import DAAM_Mainnet          from 0xfd43f9148d4b725d
 
 // Returns correct MetadataViews.File deping on type of data. Pic, Http, ipfs
 pub fun setFile(type: String, data: String, path: String?): AnyStruct{MetadataViews.File} {
@@ -11,7 +11,7 @@ pub fun setFile(type: String, data: String, path: String?): AnyStruct{MetadataVi
         case "http"  : return MetadataViews.HTTPFile(url: data)
         case "https" : return MetadataViews.HTTPFile(url: data)
         case "ipfs"  : return MetadataViews.IPFSFile(cid: data, path: path!)
-        default: return DAAM.OnChain(file: data)
+        default: return DAAM_Mainnet.OnChain(file: data)
     }
 }
 
@@ -61,15 +61,15 @@ transaction(name: String, emailName: String?, emailAt:String?, emailDot: String?
     }
 
     execute {
-        let profile <- DAAM_Profile.createProfile(
+        let profile <- DAAM_Mainnet_Profile.createProfile(
             name:self.name, about:self.about, description:self.description, web:self.web, social:self.social,
             avatar:self.avatar, heroImage:self.heroImage, notes:self.notes
         )
         profile.setEmail(name: self.emailName, at: self.emailAt, dot: self.emailDot)
         
-        self.signer.save<@DAAM_Profile.User>(<-profile, to: DAAM_Profile.storagePath)
-        self.signer.link<&DAAM_Profile.User{DAAM_Profile.Public}>(DAAM_Profile.publicPath, target: DAAM_Profile.storagePath)
-        log("DAAM Profile Created: ".concat(self.signer.address.toString()))
+        self.signer.save<@DAAM_Mainnet_Profile.User>(<-profile, to: DAAM_Mainnet_Profile.storagePath)
+        self.signer.link<&DAAMDAAM_Mainnet_Mainnet_Profile.User{DAAM_Mainnet_Profile.Public}>(DAAM_Mainnet_Profile.publicPath, target: DAAM_Mainnet_Profile.storagePath)
+        log("DAAM_Mainnet Profile Created: ".concat(self.signer.address.toString()))
     }
 }
  

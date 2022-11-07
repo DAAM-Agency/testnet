@@ -1,17 +1,17 @@
 // auctions_infos.cdc
 // Return all auctions in Auction Wallet. Identified by AuctionIDs
 
-import DAAM         from 0xfd43f9148d4b725d
+import DAAM_Mainnet         from 0xfd43f9148d4b725d
 import AuctionHouse from 0x045a1763c93006ca
 
-pub fun main(auction: Address): {UInt64 : DAAM.MetadataHolder?}
+pub fun main(auction: Address): {UInt64 : DAAM_Mainnet.MetadataHolder?}
 {    
     let auctionHouse = getAccount(auction)
         .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>(AuctionHouse.auctionPublicPath)
         .borrow()!
 
     let auctions =  auctionHouse.getAuctions()
-    var data: {UInt64 : DAAM.MetadataHolder?} = {}
+    var data: {UInt64 : DAAM_Mainnet.MetadataHolder?} = {}
 
     for aid in auctions {
         let mRef = auctionHouse.item(aid) as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}?

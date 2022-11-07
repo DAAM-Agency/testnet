@@ -3,7 +3,7 @@
 
 //import NonFungibleToken from 0xf8d6e0586b0a20c7
 import MetadataViews    from 0xf8d6e0586b0a20c7
-import DAAM             from 0xfd43f9148d4b725d
+import DAAM_Mainnet             from 0xfd43f9148d4b725d
 
 pub fun compareArray(_ mids: [UInt64], _ features: [UInt64]) {
     for f in features {
@@ -13,29 +13,29 @@ pub fun compareArray(_ mids: [UInt64], _ features: [UInt64]) {
 
 transaction(creator: Address, mid: [UInt64], name: String, feature: [UInt64])
 {
-    let minterRef : &DAAM.Minter
+    let minterRef : &DAAMDAAM_Mainnet_Mainnet.Minter
     let mid       : [UInt64]
     let feature   : [UInt64]
     let name      : String
-    let metadataRef  : &{DAAM.MetadataGeneratorMint}
-    let collectionRef: &DAAM.Collection{DAAM.CollectionPublic}
-    let agentRef     : &DAAM.Admin{DAAM.Agent}
+    let metadataRef  : &{DAAM_Mainnet.MetadataGeneratorMint}
+    let collectionRef: &DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}
+    let agentRef     : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     prepare(minter: AuthAccount) {
         compareArray(mid, feature)
-        self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
         self.feature   = feature
 
         self.collectionRef  = getAccount(creator)
-            .getCapability(DAAM.collectionPublicPath)
-            .borrow<&DAAM.Collection{DAAM.CollectionPublic}>()!
+            .getCapability(DAAM_Mainnet.collectionPublicPath)
+            .borrow<&DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}>()!
 
         self.metadataRef = getAccount(creator)
-            .getCapability(DAAM.metadataPublicPath)
-            .borrow<&{DAAM.MetadataGeneratorMint}>()!
+            .getCapability(DAAM_Mainnet.metadataPublicPath)
+            .borrow<&{DAAM_Mainnet.MetadataGeneratorMint}>()!
         
-        self.agentRef = minter.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
+        self.agentRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.name = name
     }
