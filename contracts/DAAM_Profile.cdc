@@ -4,7 +4,7 @@
 
 import MetadataViews from 0xf8d6e0586b0a20c7
 
-pub contract DAAM_Mainnet_Profile {
+pub contract DAAM_Profile {
     // Storage:
     pub let publicPath  : PublicPath
     pub let storagePath : StoragePath
@@ -214,7 +214,7 @@ pub contract DAAM_Mainnet_Profile {
 
     // Initialization
     init() {
-        let defaultPath = "DAAM_Mainnet_Profile"
+        let defaultPath = "DAAM_Profile"
         self.publicPath  = PublicPath(identifier : defaultPath)!
         self.storagePath = StoragePath(identifier: defaultPath)!
         emit ContractInitialized()

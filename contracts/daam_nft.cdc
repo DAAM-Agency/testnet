@@ -1,10 +1,10 @@
 // daam_nft.cdc
 
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import FungibleToken    from 0xee82856bf20e2aa6 
-import MetadataViews    from 0xf8d6e0586b0a20c7
-import DAAM_Mainnet_Profile     from 0x192440c99cb17282
-import Categories       from 0xfd43f9148d4b725d
+import NonFungibleToken     from 0xf8d6e0586b0a20c7
+import FungibleToken        from 0xee82856bf20e2aa6 
+import MetadataViews        from 0xf8d6e0586b0a20c7
+import DAAM_Profile from 0x192440c99cb17282
+import Categories           from 0xfd43f9148d4b725d
 
 /************************************************************************/
 pub contract DAAM_Mainnet: NonFungibleToken {
@@ -810,7 +810,7 @@ pub resource Admin: Agent
                 DAAM_Mainnet.creators[admin] == nil : "A Admin can not use the same address as an Creator."
                 DAAM_Mainnet.agents[admin] == nil   : "A Admin can not use the same address as an Agent."
                 DAAM_Mainnet.admins[admin] == nil   : "They're already sa DAAM_Mainnet Admin!!!"
-                DAAM_Mainnet_Profile.check(admin) : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile! Go make one Fool!!"
+                DAAM_Profile.check(admin) : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile! Go make one Fool!!"
             }
             post { DAAM_Mainnet.admins[admin] == false : "Illegal Operaion: inviteAdmin" }
 
@@ -827,7 +827,7 @@ pub resource Admin: Agent
                 DAAM_Mainnet.admins[agent] == nil   : "A Agent can not use the same address as an Admin."
                 DAAM_Mainnet.creators[agent] == nil : "A Agent can not use the same address as an Creator."
                 DAAM_Mainnet.agents[agent] == nil   : "They're already a DAAM_Mainnet Agent!!!"
-                DAAM_Mainnet_Profile.check(agent) : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile! Go make one Fool!!"
+                DAAM_Profile.check(agent) : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile! Go make one Fool!!"
             }
 
             post {
@@ -850,7 +850,7 @@ pub resource Admin: Agent
                 DAAM_Mainnet.admins[creator]   == nil : "A Creator can not use the same address as an Admin."
                 DAAM_Mainnet.agents[creator]   == nil : "A Creator can not use the same address as an Agent."
                 DAAM_Mainnet.creators[creator] == nil : "They're already a DAAM_Mainnet Creator!!!"
-                DAAM_Mainnet_Profile.check(creator)        : "You can't be a DAAM_Mainnet Creator without a DAAM_Mainnet Profile! Go make one Fool!!"
+                DAAM_Profile.check(creator)        : "You can't be a DAAM_Mainnet Creator without a DAAM_Mainnet Profile! Go make one Fool!!"
             }
             post { DAAM_Mainnet.isCreator(creator) == false : "Illegal Operaion: inviteCreator" }
             let agent: Address = DAAM_Mainnet.isAgent(self.owner!.address)==true ? self.owner!.address : DAAM_Mainnet.company.receiver.address 
@@ -1287,7 +1287,7 @@ pub resource MinterAccess
             self.isAgent(newAdmin.address)   == nil : "Account: ".concat(newAdmin.address.toString()).concat(" A Admin can not use the same address as an Agent.")
             self.isCreator(newAdmin.address) == nil : "Account: ".concat(newAdmin.address.toString()).concat(" A Admin can not use the same address as an Creator.")
             self.isAdmin(newAdmin.address) == false : "Account: ".concat(newAdmin.address.toString()).concat(" You got no DAAM_Mainnet Admin invite.")
-            DAAM_Mainnet_Profile.check(newAdmin.address)  : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
+            DAAM_Profile.check(newAdmin.address)  : "You can't be a DAAM_Mainnet Admin without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
         }
         let newAdminAddress:Address = newAdmin.address
 
@@ -1310,7 +1310,7 @@ pub resource MinterAccess
             self.isAdmin(newAgent.address)   == nil   : "Account: ".concat(newAgent.address.toString()).concat(" An Agent can not use the same address as an Admin.")
             self.isCreator(newAgent.address) == nil   : "Account: ".concat(newAgent.address.toString()).concat("A Agent can not use the same address as an Creator.")
             self.isAgent(newAgent.address)   == false : "Account: ".concat(newAgent.address.toString()).concat(" You got no DAAM_Mainnet Agent invite.")
-            DAAM_Mainnet_Profile.check(newAgent.address) : "You can't be a DAAM_Mainnet Agent without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
+            DAAM_Profile.check(newAgent.address) : "You can't be a DAAM_Mainnet Agent without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
         }
         let newAgentAddress:Address = newAgent.address
 
@@ -1336,7 +1336,7 @@ pub resource MinterAccess
             self.isAdmin(newCreator.address) == nil : "Account: ".concat(newCreator.address.toString()).concat(" A Creator can not use the same address as an Admin.")
             self.isAgent(newCreator.address) == nil : "Account: ".concat(newCreator.address.toString()).concat(" A Creator can not use the same address as an Agent.")
             self.isCreator(newCreator.address) == false : "Account: ".concat(newCreator.address.toString()).concat(" You got no DAAM_Mainnet Creator invite.")
-            DAAM_Mainnet_Profile.check(newCreator.address)  : "You can't be a DAAM_Mainnet Creator without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
+            DAAM_Profile.check(newCreator.address)  : "You can't be a DAAM_Mainnet Creator without a DAAM_Mainnet Profile first. Go make a DAAM_Mainnet Profile first."
         }
         let newCreatorAddress:Address = newCreator.address
 
