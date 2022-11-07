@@ -4,12 +4,12 @@
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM_Mainnet             from 0xfd43f9148d4b725d
 import FUSD             from 0x192440c99cb17282
-import AuctionHouse     from 0x045a1763c93006ca
+import AuctionHouse_Mainnet     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
-    let auctionHouse     : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
+    let auctionHouse     : &AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}
     let metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
     let agent       : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
     let mid         : UInt64
@@ -32,8 +32,8 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
             (DAAM_Mainnet.metadataPublicPath)
 
         self.auctionHouse = getAccount(creator)
-            .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
-            (AuctionHouse.auctionPublicPath)
+            .getCapability<&AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}>
+            (AuctionHouse_Mainnet.auctionPublicPath)
             .borrow()!
         
         self.mid              = mid

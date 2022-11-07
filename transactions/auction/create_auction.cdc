@@ -1,7 +1,7 @@
 // create_auction.cdc
 // Used to create an auction for an NFT
 
-import AuctionHouse     from 0x045a1763c93006ca
+import AuctionHouse_Mainnet     from 0x045a1763c93006ca
 import NonFungibleToken from 0xf8d6e0586b0a20c7
 import DAAM_Mainnet             from 0xfd43f9148d4b725d
 import FUSD             from 0x192440c99cb17282
@@ -11,7 +11,7 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   reserve: UFix64, buyNow: UFix64, reprint: UInt64?)
 {
 
-  let auctionHouse : &AuctionHouse.AuctionWallet
+  let auctionHouse : &AuctionHouse_Mainnet.AuctionWallet
   let nftCollection: &DAAMDAAM_Mainnet_Mainnet.Collection
   let metadataCap  : Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>?
 
@@ -29,7 +29,7 @@ transaction(isMetadata: Bool, id: UInt64, start: UFix64, length: UFix64, isExten
   let reprint     : UInt64?
 
   prepare(auctioneer: AuthAccount) {
-    self.auctionHouse  = auctioneer.borrow<&AuctionHouse.AuctionWallet>(from: AuctionHouse.auctionStoragePath)!
+    self.auctionHouse  = auctioneer.borrow<&AuctionHouse_Mainnet.AuctionWallet>(from: AuctionHouse_Mainnet.auctionStoragePath)!
     self.nftCollection = auctioneer.borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)!
     self.metadataCap  = (isMetadata) ? auctioneer.getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>(DAAM_Mainnet.metadataPublicPath) : nil
 

@@ -249,7 +249,7 @@ flow transactions send ./transactions/init_DAAM_Mainnet_Agency.cdc --signer daam
 flow accounts update-contract DAAM_Mainnet ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
-flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
+flow accounts add-contract AuctionHouse_Mainnet ./contracts/auction.cdc --signer marketplace
 
 echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM_Mainnet, Profile, AuctionWallet  ==========" 
 
@@ -617,23 +617,23 @@ flow transactions send ./transactions/answer/answer_admin_invite.cdc true --sign
 flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder4
 flow transactions send ./transactions/answer/answer_admin_invite.cdc true --signer founder5 
 
-# Setup AuctionHouse Minter Key
+# Setup AuctionHouse_Mainnet Minter Key
 echo "Verify Minter Status: nil"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
-echo "Send AuctionHouse Minter Key."
+echo "Send AuctionHouse_Mainnet Minter Key."
 flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
 
-echo "AuctionHouse Declines Minter Key."
+echo "AuctionHouse_Mainnet Declines Minter Key."
 flow transactions send ./transactions/answer/answer_minter_invite.cdc false --signer marketplace
 
 echo "Verify Minter Status: false"
 flow scripts execute ./scripts/is_minter.cdc $MARKETPLACE
 
-echo "Re-Send AuctionHouse Minter Key."
+echo "Re-Send AuctionHouse_Mainnet Minter Key."
 flow transactions send ./transactions/admin/invite_minter.cdc $MARKETPLACE --signer cto
 
-echo "AuctionHouse Accepted Minter Key."
+echo "AuctionHouse_Mainnet Accepted Minter Key."
 flow transactions send ./transactions/answer/answer_minter_invite.cdc true --signer marketplace
 
 echo "Verify Minter Status: true"

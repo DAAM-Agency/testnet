@@ -1,7 +1,7 @@
 // delete_admin.cdc
 // Debugging Tool
 import DAAM_Mainnet         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse from 0x1837e15023c9249
+import AuctionHouse_Mainnet from 0x1837e15023c9249
 
 transaction() {
     prepare(signer: AuthAccount) {
@@ -21,10 +21,10 @@ transaction() {
         signer.unlink(DAAM_Mainnet.metadataPublicPath)
         log("Creator Removed")
 
-        let auctionRes  <- signer.load<@AnyResource>(from: AuctionHouse.auctionStoragePath)
+        let auctionRes  <- signer.load<@AnyResource>(from: AuctionHouse_Mainnet.auctionStoragePath)
         destroy auctionRes
-        signer.unlink(AuctionHouse.auctionPublicPath)
-        log("AuctionHouse.cleared.")
+        signer.unlink(AuctionHouse_Mainnet.auctionPublicPath)
+        log("AuctionHouse_Mainnet.cleared.")
 
         let collection = signer.borrow<&AnyResource> (from: DAAM_Mainnet.collectionStoragePath)
         let nfts = collection?.getIDs()

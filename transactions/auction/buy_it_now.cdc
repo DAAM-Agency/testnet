@@ -3,13 +3,13 @@
 
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse_Mainnet  from 0x045a1763c93006ca
 import DAAM_Mainnet          from 0xfd43f9148d4b725d
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
     let bidder          : Address
-    let auctionHouse    : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
+    let auctionHouse    : &AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}
     let fusdStoragePath : StoragePath
     let collection      : &{DAAM_Mainnet.CollectionPublic}
     let vaultRef        : &FUSD.Vault{FungibleToken.Provider}
@@ -22,8 +22,8 @@ transaction(auction: Address, aid: UInt64, bid: UFix64)
         self.vaultRef   = bidder.borrow<&FUSD.Vault{FungibleToken.Provider}>(from: self.fusdStoragePath)!
         self.collection = bidder.borrow<&{DAAM_Mainnet.CollectionPublic}>(from: DAAM_Mainnet.collectionStoragePath)!
         self.auctionHouse = getAccount(auction)
-            .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
-            (AuctionHouse.auctionPublicPath)
+            .getCapability<&AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}>
+            (AuctionHouse_Mainnet.auctionPublicPath)
             .borrow()!
 
         self.aid = aid

@@ -4,7 +4,7 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import FUSD          from 0x192440c99cb17282
 import DAAM_Mainnet          from 0xfd43f9148d4b725d
-import AuctionHouse  from 0x045a1763c93006ca
+import AuctionHouse_Mainnet  from 0x045a1763c93006ca
 
 
 transaction()
@@ -22,7 +22,7 @@ transaction()
 
     execute {
         let vault <-FUSD.createEmptyVault()
-        AuctionHouse.addCrypto(crypto: &vault as &FungibleToken.Vault, path: self.path, permission: self.admin)
+        AuctionHouse_Mainnet.addCrypto(crypto: &vault as &FungibleToken.Vault, path: self.path, permission: self.admin)
         destroy vault
     }
 }

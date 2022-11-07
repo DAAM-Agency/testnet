@@ -7,7 +7,7 @@ import FUSD             from 0x192440c99cb17282
 import MetadataViews    from 0xf8d6e0586b0a20c7
 import Categories       from 0xfd43f9148d4b725d
 import DAAM_Mainnet             from 0xfd43f9148d4b725d
-import AuctionHouse     from 0x045a1763c93006ca
+import AuctionHouse_Mainnet     from 0x045a1763c93006ca
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -43,7 +43,7 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
     let file        : {String : MetadataViews.Media}
 
     // Auction
-    let auctionHouse    : &AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}
+    let auctionHouse    : &AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}
     let metadataCap     : Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
     let metadataGen     : &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}
     let start           : UFix64
@@ -85,8 +85,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
         self.agent = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.auctionHouse = getAccount(creator)
-            .getCapability<&AuctionHouse.AuctionWallet{AuctionHouse.AuctionWalletPublic}>
-            (AuctionHouse.auctionPublicPath)
+            .getCapability<&AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}>
+            (AuctionHouse_Mainnet.auctionPublicPath)
             .borrow()!
         
         self.start            = start
