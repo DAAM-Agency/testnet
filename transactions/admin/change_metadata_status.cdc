@@ -1,7 +1,7 @@
 // change_metadata_status.cdc
 // Used for Admin / Agents to Approve/Disapprove Metadata via MID. True = Approved, False = Disapproved
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64, status: Bool)
 {

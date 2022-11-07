@@ -1,7 +1,7 @@
 // change_creator_status.cdc
 // Used for Admin / Agents to change Creator status. True = active, False = frozen
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, status: Bool) {
     let admin  : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}

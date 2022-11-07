@@ -1,6 +1,6 @@
 // remove_mid_from_collection.cdc
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, name: String) {
     let collectionRef : &DAAMDAAM_Mainnet_Mainnet.Collection

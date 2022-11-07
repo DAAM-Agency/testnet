@@ -2,7 +2,7 @@
 // Answer the invitation to be an Agent.
 // Answer the invitation to be a Minter. Typically only for Auctions & Marketplaces
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount

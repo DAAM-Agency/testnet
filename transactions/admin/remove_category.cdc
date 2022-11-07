@@ -1,8 +1,8 @@
 // remove_category.cdc
 // Remove a new category to contract Category
 
-import Categories from 0xfd43f9148d4b725d
-import DAAM_Mainnet       from 0xfd43f9148d4b725d
+import Categories from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet       from 0xa4ad5ea5c0bd2fba
 
 transaction(category: String) {
     let category: String

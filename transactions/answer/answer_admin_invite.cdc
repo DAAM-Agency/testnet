@@ -1,7 +1,7 @@
 // answer_admin_invite.cdc
 // Answer the invitation to be an Admin.
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
     let signer: AuthAccount

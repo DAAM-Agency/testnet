@@ -2,9 +2,9 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 
 import FungibleToken from 0x9a0766d93b6608b7 
-import Categories    from 0xfd43f9148d4b725d
+import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_Mainnet          from 0xfd43f9148d4b725d
+import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 

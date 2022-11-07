@@ -1,7 +1,7 @@
 // creator_bargin.cdc
 // Used for Creator to respond to a bargin neogation
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64)
 {

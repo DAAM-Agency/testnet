@@ -2,7 +2,7 @@
 // Used for Admin / Agent to invite a Creator.
 // The invitee Must have a DAAM_Mainnet_Profile before receiving or accepting this Invitation
 
-import DAAM_Mainnet from 0xfd43f9148d4b725d
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address)
 {

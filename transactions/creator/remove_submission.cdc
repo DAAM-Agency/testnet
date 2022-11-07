@@ -2,7 +2,7 @@
 // Creator can remove Metadata submission
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_Mainnet             from 0xfd43f9148d4b725d
+import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64)
 {    
