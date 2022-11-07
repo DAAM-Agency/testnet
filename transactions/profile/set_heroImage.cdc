@@ -1,6 +1,6 @@
 // set_heroImage.cdc
 
-import MetadataViews from 0xf8d6e0586b0a20c7
+import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_Mainnet_Profile  from 0x192440c99cb17282
 import DAAM_Mainnet          from 0xfd43f9148d4b725d
 

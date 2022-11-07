@@ -2,7 +2,7 @@
 // A Basic Profile. web: DAAM_Mainnet.Agency
 // Ami Rajpal
 
-import MetadataViews from 0xf8d6e0586b0a20c7
+import MetadataViews from 0x631e88ae7f1d7c20
 
 pub contract DAAM_Profile {
     // Storage:

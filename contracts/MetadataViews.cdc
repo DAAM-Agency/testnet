@@ -1,4 +1,4 @@
-import NonFungibleToken from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0xee82856bf20e2aa6 
 
 /// This contract implements the metadata standard proposed

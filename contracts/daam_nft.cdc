@@ -1,10 +1,10 @@
-// daam_nft.cdc
+// DAAM_Mainnet.cdc
 
-import NonFungibleToken     from 0xf8d6e0586b0a20c7
-import FungibleToken        from 0xee82856bf20e2aa6 
-import MetadataViews        from 0xf8d6e0586b0a20c7
-import DAAM_Profile from 0x192440c99cb17282
-import Categories           from 0xfd43f9148d4b725d
+import NonFungibleToken from 0x631e88ae7f1d7c20
+import FungibleToken    from 0xee82856bf20e2aa6 
+import MetadataViews    from 0x631e88ae7f1d7c20
+import DAAM_Profile     from 0x192440c99cb17282
+import Categories       from 0xfd43f9148d4b725d
 
 /************************************************************************/
 pub contract DAAM_Mainnet: NonFungibleToken {
