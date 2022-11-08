@@ -16,7 +16,7 @@ pub struct DirectHistory {
 
     init(creator:Address, mid: UInt64) {
         let metadataRef = getAccount(creator)
-			.getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
+			.getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
 		let metadata = metadataRef.viewMetadata(mid: mid)!
 		
 		self.mid  = metadata.mid!

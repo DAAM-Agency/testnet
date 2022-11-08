@@ -6,7 +6,7 @@ import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 transaction()
 {
     prepare(acct: AuthAccount) {
-        if acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath) != nil {
+        if acct.borrow<&DAAM_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath) != nil {
             acct.unlink(DAAM_Mainnet.collectionPublicPath)
             log("DAAM_Mainnet Account Created, you now have a Non-Public DAAM_Mainnet .Collection to store NFTs'")
         } else {

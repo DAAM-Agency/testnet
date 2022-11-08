@@ -24,7 +24,7 @@ pub contract AuctionHouse_Mainnet {
     pub let auctionPublicPath : PublicPath
 
     // Variables; *Note: Do not confuse (Token)ID with MID
-    access(contract) var metadataGen     : {UInt64 : Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}> }
+    access(contract) var metadataGen     : {UInt64 : Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}> }
     access(contract) var auctionCounter  : UInt64               // Incremental counter used for AID (Auction ID)
     access(contract) var currentAuctions : {Address : [UInt64]} // {Auctioneer Address : [list of Auction IDs (AIDs)] }  // List of all auctions
     access(contract) var fee             : {UInt64 : UFix64}    // { MID : Fee precentage, 1.025 = 0.25% }
@@ -121,7 +121,7 @@ pub struct AuctionHolder {
         pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
 
-        pub fun deposit(agent: &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}, metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+        pub fun deposit(agent: &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}, metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
     }
@@ -151,7 +151,7 @@ pub struct AuctionHolder {
         // buyNow: To amount to purchase an item directly. Note: 0.0 = OFF
         // reprintSeries: to duplicate the current auction, with a reprint (Next Mint os Series)
         // *** new is defines as "never sold", age is not a consideration. ***
-        pub fun createAuction(metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>?, nft: @DAAM_Mainnet.NFT?, id: UInt64, start: UFix64,
+        pub fun createAuction(metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>?, nft: @DAAM_Mainnet.NFT?, id: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
@@ -167,13 +167,13 @@ pub struct AuctionHolder {
             return aid
         }
 
-        pub fun deposit(agent: &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}, metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
+        pub fun deposit(agent: &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}, metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): UInt64
         {
             pre { DAAM_Mainnet.isAgent(agent.grantee) == true : "Not a DAAM_Mainnet Agent." }
 
-            let metadataRef = metadataGenerator!.borrow()! as &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint} // Get MetadataHolder
+            let metadataRef = metadataGenerator!.borrow()! as &DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint} // Get MetadataHolder
             let creatorAgent   = metadataRef.viewMetadata(mid : mid)!.creatorInfo.agent
             assert(agent.grantee == creatorAgent, message: "You are not a DAAM_Mainnet Agent.")
             
@@ -202,7 +202,7 @@ pub struct AuctionHolder {
             }
         }
 
-        priv fun createAuctionResource(metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>?, nft: @DAAM_Mainnet.NFT?, id: UInt64, start: UFix64,
+        priv fun createAuctionResource(metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>?, nft: @DAAM_Mainnet.NFT?, id: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
             startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?): @Auction
         {
@@ -218,7 +218,7 @@ pub struct AuctionHolder {
                 assert(DAAM_Mainnet.getCopyright(mid: id) != DAAM_Mainnet.CopyrightStatus.CLAIM, message: "This submission has been flaged for a Copyright Claim.")
 
                 AuctionHouse_Mainnet.metadataGen.insert(key: id, metadataGenerator!) // add access to Creators' Metadata
-                let metadataRef = metadataGenerator!.borrow()! as &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint} // Get MetadataHolder
+                let metadataRef = metadataGenerator!.borrow()! as &DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint} // Get MetadataHolder
                 let minterAccess <- AuctionHouse_Mainnet.minterAccess(mid: id)
                 let metadata <-! metadataRef.generateMetadata(minter: <- minterAccess)      // Create MetadataHolder
                 // Create Auctions
@@ -401,7 +401,7 @@ pub struct AuctionHolder {
             self.reserve = reserve
             self.price = buyNow
             
-            let ref = (nft != nil) ? &nft?.metadata! as &DAAMDAAM_Mainnet_Mainnet.MetadataHolder : &metadata?.getHolder()! as &DAAMDAAM_Mainnet_Mainnet.MetadataHolder
+            let ref = (nft != nil) ? &nft?.metadata! as &DAAM_Mainnet.MetadataHolder : &metadata?.getHolder()! as &DAAM_Mainnet.MetadataHolder
             self.creatorInfo = ref.creatorInfo
 
             if ref.edition.max != nil && reprintSeries == nil { // if there is max and reprint is set to nil ...
@@ -414,7 +414,7 @@ pub struct AuctionHolder {
             
             self.mid = ref.mid! // Metadata ID            
             if metadata != nil && !AuctionHouse_Mainnet.history.containsKey(self.mid) { // is Metadata and first Auction of Metadata
-                let metadataHolder =  metadata?.getHolder()! //as &DAAMDAAM_Mainnet_Mainnet.MetadataHolder
+                let metadataHolder =  metadata?.getHolder()! //as &DAAM_Mainnet.MetadataHolder
                 AuctionHouse_Mainnet.history.insert(key: self.mid, {0 : SaleHistory(metadata: metadataHolder)} ) // Element 0 if for data gathering of Metadata/Auction Holder through History.
             }
 
@@ -594,7 +594,7 @@ pub struct AuctionHolder {
                 let receiver = self.owner!.address   // set receiver from leader to auctioneer 
                 if self.auctionMetadata != nil { // return Metadata to Creator
                     let metadata <- self.auctionMetadata <- nil
-                    let ref = getAccount(receiver!).getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
+                    let ref = getAccount(receiver!).getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
                     ref.returnMetadata(metadata: <- metadata!)
                     self.returnFunds()              // return funds to all bidders
                     log("Item: Returned")                   
@@ -977,7 +977,7 @@ pub struct AuctionHolder {
 
     // Sets NFT to 'not new' 
     access(contract) fun notNew(tokenID: UInt64) {
-        let minter = self.account.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
+        let minter = self.account.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         minter.notNew(tokenID: tokenID) // Set to not new
     }
 
@@ -988,14 +988,14 @@ pub struct AuctionHolder {
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM_Mainnet.Metadata): @DAAM_Mainnet.NFT {
-        let minterRef = self.account.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)! // get Minter Reference
+        let minterRef = self.account.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)! // get Minter Reference
         let nft <- minterRef.mintNFT(metadata: <-metadata)! // Mint NFT
         return <- nft                                    // Return NFT
     }
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun minterAccess(mid: UInt64): @DAAM_Mainnet.MinterAccess {
-        let minterRef = self.account.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)! // get Minter Reference
+        let minterRef = self.account.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)! // get Minter Reference
         let minter_access <- minterRef.createMinterAccess(mid: mid)
         return <- minter_access                                  // Return NFT
     }
@@ -1036,12 +1036,12 @@ pub struct AuctionHolder {
         return (self.fee[mid] == nil) ? 0.025 : self.fee[mid]!
     }
 
-    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun addFee(mid: UInt64, fee: UFix64, permission: &DAAM_Mainnet.Admin) {
         pre { DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.fee[mid] = fee
     }
 
-    pub fun removeFee(mid: UInt64, fee: UFix64, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun removeFee(mid: UInt64, fee: UFix64, permission: &DAAM_Mainnet.Admin) {
         pre {
             DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied"
             self.fee[mid] != nil : "No set Fee for this MID."
@@ -1053,12 +1053,12 @@ pub struct AuctionHolder {
         return (self.agencyFirstSale[mid] == nil) ? 0.15 : self.agencyFirstSale[mid]!
     }
 
-    pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun addAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM_Mainnet.Admin) {
         pre { DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         self.agencyFirstSale[mid] = fee
     }
 
-    pub fun removeAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun removeAgencyFirstSale(mid: UInt64, fee: UFix64, permission: &DAAM_Mainnet.Admin) {
         pre {
             DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied"
             self.fee[mid] != nil : "No set Fee for this MID."
@@ -1066,14 +1066,14 @@ pub struct AuctionHolder {
         self.agencyFirstSale.remove(key: mid)
     }
 
-    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun addCrypto(crypto: &FungibleToken.Vault, path: PublicPath, permission: &DAAM_Mainnet.Admin) {
         pre { DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied" }
         let type = crypto.getType()
         let identifier = type.identifier
         self.crypto.insert(key: identifier, path)
     }
 
-    pub fun removeCrypto(crypto: String, permission: &DAAMDAAM_Mainnet_Mainnet.Admin) {
+    pub fun removeCrypto(crypto: String, permission: &DAAM_Mainnet.Admin) {
         pre {
             DAAM_Mainnet.isAdmin(permission.owner!.address) == true : "Permission Denied"
             self.crypto[crypto] != nil : "This Crypto is not accepted.."
@@ -1101,7 +1101,7 @@ pub struct AuctionHolder {
         self.auctionStoragePath = /storage/DAAM_Mainnet_Auction
         self.auctionPublicPath  = /public/DAAM_Mainnet_Auction
         // init accepted cryptos
-        self.crypto = {"A.192440c99cb17282.FUSD.Vault" : /public/fusdReceiver}
+        self.crypto = {"A.0bb80b2a4cb38cdf.FUSD.Vault" : /public/fusdReceiver}
         self.crypto .insert(key: "A.ec4809cd812aee0a.TokenA.Vault", /public/tokenAReceiver)
     }
 }

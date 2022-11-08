@@ -4,14 +4,14 @@
 import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(minter: Address, status: Bool) {
-    let admin   : &DAAMDAAM_Mainnet_Mainnet.Admin
+    let admin   : &DAAM_Mainnet.Admin
     let minter : Address
     let status  : Bool
 
     prepare(agent: AuthAccount) {
         self.minter = minter  
         self.status  = status
-        self.admin = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath)!
+        self.admin = agent.borrow<&DAAM_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath)!
     }
 
     pre { DAAM_Mainnet.isMinter(minter) != nil : minter.toString().concat(" is not a Minter.") }

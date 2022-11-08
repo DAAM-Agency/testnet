@@ -7,7 +7,7 @@ import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
 import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
 import AuctionHouse_Mainnet  from 0x045a1763c93006ca
-import FUSD          from 0x192440c99cb17282
+import FUSD          from 0x0bb80b2a4cb38cdf
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -37,9 +37,9 @@ transaction(
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64, reserve: UFix64, buyNow: UFix64, reprint: UInt64?
     )
 {    
-    let requestGen  : &DAAMDAAM_Mainnet_Mainnet.RequestGenerator
-    let metadataGen : &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator
-    let metadataCap : Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+    let requestGen  : &DAAM_Mainnet.RequestGenerator
+    let metadataGen : &DAAM_Mainnet.MetadataGenerator
+    let metadataCap : Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
     let auctionHouse: &AuctionHouse_Mainnet.AuctionWallet
 
     let name        : String
@@ -65,10 +65,10 @@ transaction(
     let reprint     : UInt64?
 
     prepare(creator: AuthAccount) {
-        self.metadataGen  = creator.borrow<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
-        self.requestGen   = creator.borrow<&DAAMDAAM_Mainnet_Mainnet.RequestGenerator>( from: DAAM_Mainnet.requestStoragePath)!
+        self.metadataGen  = creator.borrow<&DAAM_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
+        self.requestGen   = creator.borrow<&DAAM_Mainnet.RequestGenerator>( from: DAAM_Mainnet.requestStoragePath)!
         self.auctionHouse = creator.borrow<&AuctionHouse_Mainnet.AuctionWallet>(from: AuctionHouse_Mainnet.auctionStoragePath)!
-        self.metadataCap  = creator.getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>(DAAM_Mainnet.metadataPublicPath)!
+        self.metadataCap  = creator.getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>(DAAM_Mainnet.metadataPublicPath)!
         
         self.name         = name
         self.max          = max

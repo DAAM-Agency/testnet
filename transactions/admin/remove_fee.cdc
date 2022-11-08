@@ -7,11 +7,11 @@ import AuctionHouse_Mainnet from 0x045a1763c93006ca
 transaction(mid: UInt64)
 {
     let mid: UInt64
-    let admin: &DAAMDAAM_Mainnet_Mainnet.Admin
+    let admin: &DAAM_Mainnet.Admin
 
     prepare(admin: AuthAccount) {
         self.mid = mid
-        self.admin = admin.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath) ?? panic("You are not an Admin.")
+        self.admin = admin.borrow<&DAAM_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath) ?? panic("You are not an Admin.")
     }
 
     execute {

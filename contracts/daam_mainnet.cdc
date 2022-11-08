@@ -3,7 +3,7 @@
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import FungibleToken    from 0x9a0766d93b6608b7 
 import MetadataViews    from 0x631e88ae7f1d7c20
-import DAAM_Profile     from 0x192440c99cb17282
+import DAAM_Profile     from 0x0bb80b2a4cb38cdf
 import Categories       from 0xa4ad5ea5c0bd2fba
 
 /************************************************************************/
@@ -588,7 +588,7 @@ pub struct OnChain: MetadataViews.File {
 /************************************************************************/
 // Wallet Public standards. For Public access only
 pub resource interface CollectionPublic {
-    pub fun borrowDAAM_Mainnet(id: UInt64): &DAAMDAAM_Mainnet_Mainnet.NFT // Get NFT as DAAM_Mainnet.NFT
+    pub fun borrowDAAM_Mainnet(id: UInt64): &DAAM_Mainnet.NFT // Get NFT as DAAM_Mainnet.NFT
     pub fun getCollection(): {String: NFTCollectionDisplay{CollectionDisplay}}
     pub fun depositByAgent(token: @NonFungibleToken.NFT, name: String, feature: Bool, permission: &Admin{Agent})
 }
@@ -701,7 +701,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
                     publicPath: DAAM_Mainnet.collectionPublicPath,
                     providerPath: DAAM_Mainnet.collectionPrivatePath,
                     publicCollection: Type<@DAAM_Mainnet.Collection>(),
-                    publicLinkedType: Type<&DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
+                    publicLinkedType: Type<&DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(),
                     providerLinkedType: ?????, // TODO  ???
                     createEmptyCollectionFunction: (DAAM_Mainnet.createEmptyCollection() : @DAAM_Mainnet.Collection) // TODO ???
                 )*/
@@ -716,7 +716,7 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     pub fun borrowViewResolver(id: UInt64): &{MetadataViews.Resolver} {
         pre { self.ownedNFTs.containsKey(id) : "TokenID: ".concat(id.toString().concat(" is not in this collection.")) }
         let mRef = &self.ownedNFTs[id] as &NonFungibleToken.NFT?
-        return mRef as! &DAAMDAAM_Mainnet_Mainnet.NFT{MetadataViews.Resolver}
+        return mRef as! &DAAM_Mainnet.NFT{MetadataViews.Resolver}
     }
 
     // withdraw removes an NFT from the collection and moves it to the caller
@@ -754,10 +754,10 @@ pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, N
     }
 
     // borrowDAAM_Mainnet gets a reference to an DAAM_Mainnet.NFT
-    pub fun borrowDAAM_Mainnet(id: UInt64): &DAAMDAAM_Mainnet_Mainnet.NFT {
+    pub fun borrowDAAM_Mainnet(id: UInt64): &DAAM_Mainnet.NFT {
         pre { self.ownedNFTs[id] != nil : "Invalid TokenID" }
         let ref = (&self.ownedNFTs[id] as! auth &NonFungibleToken.NFT?)!
-        let daam = ref as! &DAAMDAAM_Mainnet_Mainnet.NFT
+        let daam = ref as! &DAAM_Mainnet.NFT
         return daam
     }
 
@@ -1092,7 +1092,7 @@ pub resource Admin: Agent
                 !DAAM_Mainnet.getRequestValidity(mid: mid) : "Request already is settled."
                 DAAM_Mainnet.getAgentCreators(agent: self.owner!.address)!.contains(creator): "This is not your Creator."
             }
-            let ref = &DAAMDAAM_Mainnet_Mainnet.request[mid] as &Request?
+            let ref = &DAAM_Mainnet.request[mid] as &Request?
 
             let royalties    = [ MetadataViews.Royalty(
             receiver: getAccount(creator).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
@@ -1161,7 +1161,7 @@ pub struct CreatorInfo {
 
             !DAAM_Mainnet.getRequestValidity(mid: mid) : "Request already is settled."
         }
-            let ref = &DAAMDAAM_Mainnet_Mainnet.request[mid] as &Request?
+            let ref = &DAAM_Mainnet.request[mid] as &Request?
             let royalties    = [ MetadataViews.Royalty(
                 receiver: getAccount(self.grantee).getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),
                 cut: percentage,
@@ -1200,7 +1200,7 @@ pub struct CreatorInfo {
             }
 
             let mid = metadata.mid               // Get MID
-            let nft <- create NFT(metadata: <- metadata, request: &DAAMDAAM_Mainnet_Mainnet.request[mid] as &Request?) // Create NFT
+            let nft <- create NFT(metadata: <- metadata, request: &DAAM_Mainnet.request[mid] as &Request?) // Create NFT
 
             // Update Request, if last remove.
             if isLast {
@@ -1424,7 +1424,7 @@ pub resource MinterAccess
             mid !=0 && mid <= DAAM_Mainnet.metadataCounterID : "Illegal Operation: validate"
             DAAM_Mainnet.request.containsKey(mid) : "Invalid MID"
         }
-        let request = &DAAMDAAM_Mainnet_Mainnet.request[mid] as &Request?
+        let request = &DAAM_Mainnet.request[mid] as &Request?
         let royalty = request!.royalty!
         return royalty
     } 

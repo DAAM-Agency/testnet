@@ -8,7 +8,7 @@ import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 transaction(recipient: Address, withdrawID: UInt64) {
 
     /// Reference to the withdrawer's collection
-    let withdrawRef: &DAAMDAAM_Mainnet_Mainnet.Collection
+    let withdrawRef: &DAAM_Mainnet.Collection
 
     /// Reference of the collection to deposit the NFT to
     let depositRef: &{NonFungibleToken.CollectionPublic}
@@ -16,7 +16,7 @@ transaction(recipient: Address, withdrawID: UInt64) {
     prepare(signer: AuthAccount) {
         // borrow a reference to the signer's NFT collection
         self.withdrawRef = signer
-            .borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)
+            .borrow<&DAAM_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)
             ?? panic("Account does not store an object at the specified path")
 
         // get the recipients public account object

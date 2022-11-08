@@ -3,15 +3,15 @@
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
 import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
-import FUSD             from 0x192440c99cb17282
+import FUSD             from 0x0bb80b2a4cb38cdf
 import AuctionHouse_Mainnet     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
     let auctionHouse     : &AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}
-    let metadataGenerator: Capability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
-    let agent       : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
+    let metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+    let agent       : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
     let mid         : UInt64
     let start       : UFix64
     let length      : UFix64
@@ -25,10 +25,10 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
     let reprintSeries   : UInt64?
 
     prepare(agent: AuthAccount) {
-        self.agent = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
+        self.agent = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.metadataGenerator  = getAccount(creator)
-            .getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+            .getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
             (DAAM_Mainnet.metadataPublicPath)
 
         self.auctionHouse = getAccount(creator)

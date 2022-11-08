@@ -5,11 +5,11 @@ import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(exCreator: Address)
 {
-    let admin   : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
+    let admin   : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
     let creator : Address
 
     prepare(agent: AuthAccount) {
-        self.admin   = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath) ?? panic(exCreator.toString().concat(" is not a Creator."))
+        self.admin   = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath) ?? panic(exCreator.toString().concat(" is not a Creator."))
         self.creator = exCreator
     }
 

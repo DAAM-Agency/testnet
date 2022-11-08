@@ -17,12 +17,12 @@ transaction(submit: Bool) {
         if creator != nil {
             let old_creator <- self.signer.load<@AnyResource>(from: DAAM_Mainnet.creatorStoragePath)
             self.signer.save<@DAAM_Mainnet.Creator>(<- creator!, to: DAAM_Mainnet.creatorStoragePath)
-            let creatorRef = self.signer.borrow<&DAAMDAAM_Mainnet_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
+            let creatorRef = self.signer.borrow<&DAAM_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
             destroy old_creator
 
             let old_mg <- self.signer.load<@AnyResource>(from: DAAM_Mainnet.metadataStoragePath)
             let metadataGen <- creatorRef.newMetadataGenerator()
-            self.signer.link<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath, target: DAAM_Mainnet.metadataStoragePath)
+            self.signer.link<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath, target: DAAM_Mainnet.metadataStoragePath)
             self.signer.save<@DAAM_Mainnet.MetadataGenerator>(<- metadataGen, to: DAAM_Mainnet.metadataStoragePath)
             destroy old_mg
 

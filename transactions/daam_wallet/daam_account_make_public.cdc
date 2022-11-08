@@ -13,7 +13,7 @@ transaction()
     }
 
     execute {
-        self.acct.link<&DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_Mainnet.collectionPublicPath, target: DAAM_Mainnet.collectionStoragePath)
+        self.acct.link<&DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, MetadataViews.Resolver}>(DAAM_Mainnet.collectionPublicPath, target: DAAM_Mainnet.collectionStoragePath)
         log("DAAM_Mainnet Account Created, you now have a Public DAAM_Mainnet Collection to store NFTs'")
     }
 }

@@ -13,29 +13,29 @@ pub fun compareArray(_ mids: [UInt64], _ features: [UInt64]) {
 
 transaction(creator: Address, mid: [UInt64], name: String, feature: [UInt64])
 {
-    let minterRef : &DAAMDAAM_Mainnet_Mainnet.Minter
+    let minterRef : &DAAM_Mainnet.Minter
     let mid       : [UInt64]
     let feature   : [UInt64]
     let name      : String
     let metadataRef  : &{DAAM_Mainnet.MetadataGeneratorMint}
-    let collectionRef: &DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}
-    let agentRef     : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
+    let collectionRef: &DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}
+    let agentRef     : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     prepare(minter: AuthAccount) {
         compareArray(mid, feature)
-        self.minterRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
         self.feature   = feature
 
         self.collectionRef  = getAccount(creator)
             .getCapability(DAAM_Mainnet.collectionPublicPath)
-            .borrow<&DAAMDAAM_Mainnet_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}>()!
+            .borrow<&DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}>()!
 
         self.metadataRef = getAccount(creator)
             .getCapability(DAAM_Mainnet.metadataPublicPath)
             .borrow<&{DAAM_Mainnet.MetadataGeneratorMint}>()!
         
-        self.agentRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
+        self.agentRef = minter.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.name = name
     }

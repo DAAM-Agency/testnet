@@ -7,13 +7,13 @@ import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64)
 {
-    let minterRef : &DAAMDAAM_Mainnet_Mainnet.Minter
+    let minterRef : &DAAM_Mainnet.Minter
     let mid       : UInt64
     let metadataRef : &{DAAM_Mainnet.MetadataGeneratorMint}
     let receiverRef : &{NonFungibleToken.CollectionPublic}
 
     prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAMDAAM_Mainnet_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
 
         self.receiverRef  = getAccount(creator)

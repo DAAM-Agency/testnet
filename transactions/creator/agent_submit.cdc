@@ -23,8 +23,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
     interact: AnyStruct?)
 {    
     let creator     : Address   
-    let metadataGen : &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}
-    let agent       : &DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}
+    let metadataGen : &DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}
+    let agent       : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     let name        : String
     let max         : UInt64?
@@ -38,8 +38,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
     prepare(agent: AuthAccount) {
         self.creator      = creator
         self.metadataGen  = getAccount(self.creator)
-            .getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
-        self.agent        = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
+            .getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
+        self.agent        = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
         self.name         = name
         self.max          = max
         self.description  = description

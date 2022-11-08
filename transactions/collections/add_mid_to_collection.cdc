@@ -3,17 +3,17 @@
 import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, feature: Bool, name: String) {
-    let collectionRef : &DAAMDAAM_Mainnet_Mainnet.Collection
-    let creatorRef    : &DAAMDAAM_Mainnet_Mainnet.Creator
+    let collectionRef : &DAAM_Mainnet.Collection
+    let creatorRef    : &DAAM_Mainnet.Creator
     let mid           : UInt64
     let feature       : Bool
     var name          : String
 
     prepare(acct: AuthAccount) {
-        self.creatorRef = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
-        let metadataGen = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
+        self.creatorRef = acct.borrow<&DAAM_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
+        let metadataGen = acct.borrow<&DAAM_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
         // Borrow a reference from the stored collection
-        self.collectionRef = acct.borrow<&DAAMDAAM_Mainnet_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)
+        self.collectionRef = acct.borrow<&DAAM_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
         self.mid     = mid
         self.feature = feature

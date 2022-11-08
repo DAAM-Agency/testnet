@@ -8,15 +8,15 @@ import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
 transaction(mid: UInt64, percentage: UFix64) {
     let mid         : UInt64
     let percentage  : UFix64
-    let requestGen  : &DAAMDAAM_Mainnet_Mainnet.RequestGenerator
-    let metadataGen : &DAAMDAAM_Mainnet_Mainnet.MetadataGenerator
+    let requestGen  : &DAAM_Mainnet.RequestGenerator
+    let metadataGen : &DAAM_Mainnet.MetadataGenerator
     let royalties   : MetadataViews.Royalties
 
     prepare(creator: AuthAccount) {
         self.mid     = mid
         self.percentage  = percentage
-        self.requestGen  = creator.borrow<&DAAMDAAM_Mainnet_Mainnet.RequestGenerator>( from: DAAM_Mainnet.requestStoragePath)!
-        self.metadataGen = creator.borrow<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_Mainnet.RequestGenerator>( from: DAAM_Mainnet.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
 
         let royalties    = [ MetadataViews.Royalty(
             receiver: creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath()),

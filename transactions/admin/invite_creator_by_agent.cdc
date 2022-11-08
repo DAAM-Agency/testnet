@@ -11,7 +11,7 @@ transaction(creator: Address, agentCut: UFix64)
     let agentCut: UFix64?
 
     prepare(agent: AuthAccount) {
-        self.admin   = agent.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
+        self.admin   = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
         self.creator = creator
         self.agentCut = agentCut
     }

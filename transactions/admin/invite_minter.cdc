@@ -4,11 +4,11 @@
 import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(newMinter: Address) {
-    let admin     : &DAAMDAAM_Mainnet_Mainnet.Admin
+    let admin     : &DAAM_Mainnet.Admin
     let newMinter : Address
 
     prepare(admin: AuthAccount) {
-        self.admin     = admin.borrow<&DAAMDAAM_Mainnet_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath)!
+        self.admin     = admin.borrow<&DAAM_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath)!
         self.newMinter = newMinter
     }
 

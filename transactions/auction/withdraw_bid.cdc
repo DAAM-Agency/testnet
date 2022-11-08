@@ -2,7 +2,7 @@
 // Used to withdraw bid made on item. Must not be lead bidder
 
 import FungibleToken from 0x9a0766d93b6608b7
-import FUSD          from 0x192440c99cb17282
+import FUSD          from 0x0bb80b2a4cb38cdf
 import AuctionHouse_Mainnet  from 0x045a1763c93006ca
 
 transaction(auction: Address, aid: UInt64)

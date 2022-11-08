@@ -9,7 +9,7 @@ pub fun main(): {Address: [DAAM_Mainnet.MetadataHolder]}
 
     for creator in creators.keys {
         let metadataRef = getAccount(creator)
-        .getCapability<&DAAMDAAM_Mainnet_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath)
+        .getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath)
         .borrow()!
 
         list.insert(key: creator, metadataRef.viewMetadatas())

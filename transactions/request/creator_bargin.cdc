@@ -5,12 +5,12 @@ import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64)
 {
-    let creator    : &DAAMDAAM_Mainnet_Mainnet.Creator
+    let creator    : &DAAM_Mainnet.Creator
     let mid        : UInt64
     let percentage : UFix64
 
     prepare(creator: AuthAccount) {
-        self.creator    = creator.borrow<&DAAMDAAM_Mainnet_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
+        self.creator    = creator.borrow<&DAAM_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
         self.mid        = mid
         self.percentage = percentage
     }
