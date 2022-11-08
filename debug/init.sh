@@ -234,7 +234,7 @@ flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --
 echo "========== Publish Supporting Contracts: NonFungibleToken & Profile"
 flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
 flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
-flow accounts add-contract DAAM_Mainnet_Profile ./contracts/DAAM_Mainnet_Profile.cdc --signer profile
+flow accounts add-contract DAAM_Profile ./contracts/DAAM_Profile.cdc --signer profile
 
 echo "========= Publish DAAM_Mainnet Contracts =========="
 # Categories

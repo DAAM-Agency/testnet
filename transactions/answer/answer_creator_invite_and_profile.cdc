@@ -1,7 +1,7 @@
 // answer_creator_invite.cdc
 // Answer the invitation to be a Creator.
 
-import DAAM_Mainnet_Profile from 0x0bb80b2a4cb38cdf
+import DAAM_Profile from 0x0bb80b2a4cb38cdf
 import DAAM_Mainnet         from 0xa4ad5ea5c0bd2fba
 
 transaction(submit: Bool) {
@@ -14,10 +14,10 @@ transaction(submit: Bool) {
     }
 
     execute {
-        if !DAAM_Mainnet_Profile.check(self.signer.address) {
-            let daamProfile = DAAM_Mainnet_Profile.createProfile()
-            self.signer.save(<- daamProfile, to: DAAM_Mainnet_Profile.storagePath)
-            self.signer.link<&DAAM_Mainnet_Profile.User{DAAM_Mainnet_Profile.Public}>(DAAM_Mainnet_Profile.publicPath, target: DAAM_Mainnet_Profile.storagePath)
+        if !DAAM_Profile.check(self.signer.address) {
+            let daamProfile = DAAM_Profile.createProfile()
+            self.signer.save(<- daamProfile, to: DAAM_Profile.storagePath)
+            self.signer.link<&DAAM_Profile.User{DAAM_Profile.Public}>(DAAM_Profile.publicPath, target: DAAM_Profile.storagePath)
         }
 
         let creator <- DAAM_Mainnet.answerCreatorInvite(newCreator: self.signer, submit: self.submit)
@@ -45,5 +45,5 @@ transaction(submit: Bool) {
         }
     }
 
-    post { DAAM_Mainnet_Profile.check(self.signer.address): "Account was not initialized" }
+    post { DAAM_Profile.check(self.signer.address): "Account was not initialized" }
 }

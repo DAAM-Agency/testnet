@@ -1,6 +1,6 @@
 // invite_creator.cdc
 // Used for Admin / Agent to invite a Creator.
-// The invitee Must have a DAAM_Mainnet_Profile before receiving or accepting this Invitation
+// The invitee Must have a DAAM_Profile before receiving or accepting this Invitation
 
 import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
