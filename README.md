@@ -3,12 +3,9 @@
 daam.agency[https://daam.agency]
 
 ## About
-Daam Agency is a multi-tiered, NFT certification and management platform powered by FLOW blockchain technology. Our platform transforms physical art and other classic “real-world” assets into NFTs for the digital asset marketplace. We work hand-in-hand with creators, galleries, institutions + private collectors, to realize their NFT goals. 
+We work hand-in-hand with creators, galleries, institutions + private collectors, to realize their NFT goals. We choose Flow over Ethereum due to Ethereums the size limts, transfer time and rates issues regarding the NFT Market, despite the Solidity experience in house. We created an agency to bridge the gap between seller, creators, and the general public. While exposing our DAAM NFTs at selected events.
 
-We choose Flow over Ethereum due to Ethereums the size limts, transfer time and rates issues regarding the NFT Market, despite the Solidity experience in house. We created an agency to bridge the gap between seller, creators, and the general public. While exposing our DAAM NFTs at selected events.
-
-The DAAM Auction House and DAAM NFT are written in Cadence for the Flow blockchain. 
-For more information on Flow and Cadence visit the at [https://docs.onflow.org/] 
+The DAAM Auction House and DAAM NFT are written in Cadence for the Flow blockchain. For more information on Flow and Cadence visit the at [https://docs.onflow.org/] 
 
 ## Files
 The two contracts are ./contracts/daam.cdc and ./contracts/auction.cdc. The NFT data structure, Agency, Collection, Minter, Creator, Admin, Founder, etc resources and interfaces are found in the daam.cdc file
