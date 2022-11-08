@@ -1,6 +1,6 @@
 // get_creators.cdc
-// Get List of Creators
+// Get List of Creators and their Agent
 
-import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
-pub fun main(): {Address: DAAM_V23.CreatorInfo} { return DAAM_V23.getCreators() }
+pub fun main(): {Address: DAAM_Mainnet.CreatorInfo} { return DAAM_Mainnet.getCreators() }

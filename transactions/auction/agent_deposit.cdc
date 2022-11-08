@@ -2,16 +2,16 @@
 // Used for Agent deposit Auction for Creator Approval/Disapproval
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V23         from 0xa4ad5ea5c0bd2fba
-import FUSD             from 0xe223d8a629e49c68
-import AuctionHouse_V16 from 0x01837e15023c9249
+import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
+import FUSD             from 0x0bb80b2a4cb38cdf
+import AuctionHouse_Mainnet     from 0x045a1763c93006ca
 
 transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExtended: Bool, extendedTime: UFix64, /*vault: @FungibleToken.Vault,*/
     incrementByPrice: Bool, incrementAmount: UFix64, startingBid: UFix64?, reserve: UFix64, buyNow: UFix64, reprintSeries: UInt64?)
 {
-    let auctionHouse     : &AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}
-    let metadataGenerator: Capability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
-    let agent       : &DAAM_V23.Admin{DAAM_V23.Agent}
+    let auctionHouse     : &AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}
+    let metadataGenerator: Capability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+    let agent       : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
     let mid         : UInt64
     let start       : UFix64
     let length      : UFix64
@@ -25,15 +25,15 @@ transaction(creator: Address, mid: UInt64, start: UFix64, length: UFix64, isExte
     let reprintSeries   : UInt64?
 
     prepare(agent: AuthAccount) {
-        self.agent = agent.borrow<&DAAM_V23.Admin{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)!
+        self.agent = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
 
         self.metadataGenerator  = getAccount(creator)
-            .getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint}>
-            (DAAM_V23.metadataPublicPath)
+            .getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint}>
+            (DAAM_Mainnet.metadataPublicPath)
 
         self.auctionHouse = getAccount(creator)
-            .getCapability<&AuctionHouse_V16.AuctionWallet{AuctionHouse_V16.AuctionWalletPublic}>
-            (AuctionHouse_V16.auctionPublicPath)
+            .getCapability<&AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}>
+            (AuctionHouse_Mainnet.auctionPublicPath)
             .borrow()!
         
         self.mid              = mid

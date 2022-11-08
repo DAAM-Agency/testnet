@@ -3,33 +3,33 @@
 
 //import NonFungibleToken from 0x631e88ae7f1d7c20
 import MetadataViews    from 0x631e88ae7f1d7c20
-import DAAM_V23             from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
 
-transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
+transaction(creator: Address, mid: UInt64, name: String, feature: Bool)
 {
-    let minterRef : &DAAM.Minter
+    let minterRef : &DAAM_Mainnet.Minter
     let mid       : UInt64
-    let index     : Int?
+    let name      : String
     let feature   : Bool
-    let metadataRef  : &{DAAM.MetadataGeneratorMint}
-    let collectionRef  : &DAAM.Collection{DAAM.CollectionPublic}
-    let agentRef     : &DAAM.Admin{DAAM.Agent}
+    let metadataRef  : &{DAAM_Mainnet.MetadataGeneratorMint}
+    let collectionRef: &DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}
+    let agentRef     : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAM.Minter>(from: DAAM_V23.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
-        self.index     = index
+        self.name      = name
         self.feature   = feature
 
-        self.collectionRef  = getAccount(creator)
-            .getCapability(DAAM.collectionPublicPath)
-            .borrow<&DAAM.Collection{DAAM.CollectionPublic}>()!
+        self.collectionRef = getAccount(creator)
+            .getCapability(DAAM_Mainnet.collectionPublicPath)
+            .borrow<&DAAM_Mainnet.Collection{DAAM_Mainnet.CollectionPublic}>()!
 
         self.metadataRef = getAccount(creator)
-            .getCapability(DAAM.metadataPublicPath)
-            .borrow<&{DAAM.MetadataGeneratorMint}>()!
+            .getCapability(DAAM_Mainnet.metadataPublicPath)
+            .borrow<&{DAAM_Mainnet.MetadataGeneratorMint}>()!
         
-        self.agentRef = minter.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM_V23.adminStoragePath)!
+        self.agentRef = minter.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
     }
 
     execute
@@ -37,7 +37,7 @@ transaction(creator: Address, mid: UInt64, index: Int?, feature: Bool)
         let minterAccess <- self.minterRef.createMinterAccess(mid: self.mid)
         let metadata <- self.metadataRef.generateMetadata(minter: <-minterAccess)
         let nft <- self.minterRef.mintNFT(metadata: <-metadata)
-        self.collectionRef.depositByAgent(token: <-nft, index: self.index!, feature: self.feature, permission: self.agentRef)
+        self.collectionRef.depositByAgent(token: <-nft, name: self.name, feature: self.feature, permission: self.agentRef)
         
         log("Minted & Transfered")
     }

@@ -2,9 +2,9 @@
 // Creator uses to submit Metadata & Approve Rpyalty
 
 import FungibleToken from 0x9a0766d93b6608b7 
-import MetadataViews from 0x631e88ae7f1d7c20
 import Categories    from 0xa4ad5ea5c0bd2fba
-import DAAM_V23      from 0xa4ad5ea5c0bd2fba
+import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -14,7 +14,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM_V23.OnChain(file: string_cid)
+        default: return DAAM_Mainnet.OnChain(file: string_cid)
     }
 }
 
@@ -25,8 +25,8 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
                                                                                 // within default range, then accept default can be used.
 {    
     let creatorCap  : Capability<&AnyResource{FungibleToken.Receiver}>
-    let requestGen  : &DAAM_V23.RequestGenerator
-    let metadataGen : &DAAM_V23.MetadataGenerator
+    let requestGen  : &DAAM_Mainnet.RequestGenerator
+    let metadataGen : &DAAM_Mainnet.MetadataGenerator
 
     let name        : String
     let max         : UInt64?
@@ -40,8 +40,8 @@ transaction(name: String, max: UInt64?, categories: [String], description: Strin
 
     prepare(creator: AuthAccount) {
         self.creatorCap  = creator.getCapability<&AnyResource{FungibleToken.Receiver}>(MetadataViews.getRoyaltyReceiverPublicPath())
-        self.metadataGen = creator.borrow<&DAAM_V23.MetadataGenerator>(from: DAAM_V23.metadataStoragePath)!
-        self.requestGen  = creator.borrow<&DAAM_V23.RequestGenerator>( from: DAAM_V23.requestStoragePath)!
+        self.metadataGen = creator.borrow<&DAAM_Mainnet.MetadataGenerator>(from: DAAM_Mainnet.metadataStoragePath)!
+        self.requestGen  = creator.borrow<&DAAM_Mainnet.RequestGenerator>( from: DAAM_Mainnet.requestStoragePath)!
 
         self.name         = name
         self.max          = max

@@ -1,16 +1,16 @@
 // creator_bargin.cdc
 // Used for Creator to respond to a bargin neogation
 
-import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(mid: UInt64, percentage: UFix64)
 {
-    let creator    : &DAAM_V23.Creator
+    let creator    : &DAAM_Mainnet.Creator
     let mid        : UInt64
     let percentage : UFix64
 
     prepare(creator: AuthAccount) {
-        self.creator    = creator.borrow<&DAAM_V23.Creator>(from: DAAM_V23.creatorStoragePath)!
+        self.creator    = creator.borrow<&DAAM_Mainnet.Creator>(from: DAAM_Mainnet.creatorStoragePath)!
         self.mid        = mid
         self.percentage = percentage
     }

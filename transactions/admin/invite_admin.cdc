@@ -1,23 +1,23 @@
 // invite_admin.cdc
 // Used for Admin to invite another Admin.
-// The invitee Must have a Profile before receiving or accepting this Invitation
+// The invitee Must have a DAAM_Mainnet_Profile before receiving or accepting this Invitation
 
-import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(newAdmin: Address)
 {
-    let admin    : &DAAM_V23.Admin
+    let admin    : &DAAM_Mainnet.Admin
     let newAdmin : Address 
 
     prepare(admin: AuthAccount) {
-        self.admin    = admin.borrow<&DAAM_V23.Admin>(from: DAAM_V23.adminStoragePath)!
+        self.admin    = admin.borrow<&DAAM_Mainnet.Admin>(from: DAAM_Mainnet.adminStoragePath)!
         self.newAdmin = newAdmin
     }
 
     pre {
-        DAAM_V23.isAdmin(newAdmin) == nil   : newAdmin.toString().concat(" is already an Admin.")
-        DAAM_V23.isAgent(newAdmin) == nil   : newAdmin.toString().concat(" is already an Agent.")
-        DAAM_V23.isCreator(newAdmin) == nil : newAdmin.toString().concat(" is already an Creator.")
+        DAAM_Mainnet.isAdmin(newAdmin) == nil   : newAdmin.toString().concat(" is already an Admin.")
+        DAAM_Mainnet.isAgent(newAdmin) == nil   : newAdmin.toString().concat(" is already an Agent.")
+        DAAM_Mainnet.isCreator(newAdmin) == nil : newAdmin.toString().concat(" is already an Creator.")
     }
     
     execute {

@@ -1,9 +1,9 @@
 // agent_submit.cdc
-// Creator uses to submit Metadata
+// Agent uses to submit Metadata for their Creator
 
 import Categories    from 0xa4ad5ea5c0bd2fba
 import MetadataViews from 0x631e88ae7f1d7c20
-import DAAM_V23      from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
@@ -13,7 +13,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     if ipfs { return MetadataViews.IPFSFile(cid: string_cid, path: type_path) }
     switch type_path! {
         case "http": return MetadataViews.HTTPFile(url: string_cid)
-        default: return DAAM_V23.OnChain(file: string_cid)
+        default: return DAAM_Mainnet.OnChain(file: string_cid)
     }
 }
 
@@ -23,8 +23,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
     interact: AnyStruct?)
 {    
     let creator     : Address   
-    let metadataGen : &DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint, DAAM_V23.MetadataGeneratorPublic}
-    let agent       : &DAAM_V23.Admin{DAAM_V23.Agent}
+    let metadataGen : &DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}
+    let agent       : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
 
     let name        : String
     let max         : UInt64?
@@ -38,8 +38,8 @@ transaction(creator: Address, name: String, max: UInt64?, categories: [String], 
     prepare(agent: AuthAccount) {
         self.creator      = creator
         self.metadataGen  = getAccount(self.creator)
-            .getCapability<&DAAM_V23.MetadataGenerator{DAAM_V23.MetadataGeneratorMint, DAAM_V23.MetadataGeneratorPublic}>(DAAM_V23.metadataPublicPath).borrow()!
-        self.agent        = agent.borrow<&DAAM_V23.Admin{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)!
+            .getCapability<&DAAM_Mainnet.MetadataGenerator{DAAM_Mainnet.MetadataGeneratorMint, DAAM_Mainnet.MetadataGeneratorPublic}>(DAAM_Mainnet.metadataPublicPath).borrow()!
+        self.agent        = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
         self.name         = name
         self.max          = max
         self.description  = description

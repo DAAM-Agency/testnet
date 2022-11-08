@@ -1,17 +1,18 @@
 // bargin.cdc
 // Used for Admin / Agent to respond to a bargin neogation
 
-import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+//import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction(creator: Address, mid: UInt64, percentage: UFix64)
 {
-    let admin      : &DAAM_V23.Admin{DAAM_V23.Agent}
+    let admin      : &DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}
     let mid        : UInt64
     let percentage : UFix64
     let creator    : Address
 
     prepare(agent: AuthAccount) {
-        self.admin      = agent.borrow<&DAAM_V23.Admin{DAAM_V23.Agent}>(from: DAAM_V23.adminStoragePath)!
+        self.admin      = agent.borrow<&DAAM_Mainnet.Admin{DAAM_Mainnet.Agent}>(from: DAAM_Mainnet.adminStoragePath)!
         self.mid        = mid
         self.percentage = percentage
         self.creator    = creator

@@ -1,17 +1,16 @@
 // daam_account_make_non_public.cdc
-// Make DAAM Wallet Non-Public
+// Make DAAM_Mainnet Wallet Non-Public
 
-import DAAM_V23 from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet from 0xa4ad5ea5c0bd2fba
 
 transaction()
 {
     prepare(acct: AuthAccount) {
-        if acct.borrow<&{DAAM_V23.CollectionPublic}>(from: DAAM_V23.collectionStoragePath) != nil {
-            acct.unlink(DAAM_V23.collectionPublicPath)
-            log("DAAM_V23 Account Created, you now have a Non-Public DAAM_V23 .Collection to store NFTs'")
+        if acct.borrow<&DAAM_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath) != nil {
+            acct.unlink(DAAM_Mainnet.collectionPublicPath)
+            log("DAAM_Mainnet Account Created, you now have a Non-Public DAAM_Mainnet .Collection to store NFTs'")
         } else {
             log("You do not have an Account. Make one first.")
         }
     }
 }
- 

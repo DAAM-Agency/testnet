@@ -2,26 +2,28 @@
 // Used for Admin / Agent to mint on behalf in their Creator
 
 import NonFungibleToken from 0x631e88ae7f1d7c20
-import DAAM_V23         from 0xa4ad5ea5c0bd2fba
+import MetadataViews    from 0x631e88ae7f1d7c20
+import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
 
-transaction(creator: Address, mid: UInt64) {
-    let minterRef : &DAAM_V23.Minter
+transaction(creator: Address, mid: UInt64)
+{
+    let minterRef : &DAAM_Mainnet.Minter
     let mid       : UInt64
-    let metadataRef : &{DAAM_V23.MetadataGeneratorMint}
+    let metadataRef : &{DAAM_Mainnet.MetadataGeneratorMint}
     let receiverRef : &{NonFungibleToken.CollectionPublic}
 
     prepare(minter: AuthAccount) {
-        self.minterRef = minter.borrow<&DAAM_V23.Minter>(from: DAAM_V23.minterStoragePath)!
+        self.minterRef = minter.borrow<&DAAM_Mainnet.Minter>(from: DAAM_Mainnet.minterStoragePath)!
         self.mid       = mid
 
-        self.receiverRef  = getAccount(self.creator)
-            .getCapability(DAAM_V23.collectionPublicPath)
+        self.receiverRef  = getAccount(creator)
+            .getCapability(DAAM_Mainnet.collectionPublicPath)
             .borrow<&{NonFungibleToken.CollectionPublic}>()!
 
 
-        self.metadataRef = getAccount(self.creator)
-            .getCapability(DAAM_V23.metadataPublicPath)
-            .borrow<&{DAAM_V23.MetadataGeneratorMint}>()!
+        self.metadataRef = getAccount(creator)
+            .getCapability(DAAM_Mainnet.metadataPublicPath)
+            .borrow<&{DAAM_Mainnet.MetadataGeneratorMint}>()!
     }
 
     execute {
