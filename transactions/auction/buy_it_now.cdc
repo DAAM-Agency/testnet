@@ -1,10 +1,10 @@
 // but_it_now.cdc
 // Used for direct purchases
 
-import FungibleToken from 0x9a0766d93b6608b7
-import FUSD          from 0x0bb80b2a4cb38cdf
-import AuctionHouse_Mainnet  from 0x045a1763c93006ca
-import DAAM_Mainnet          from 0xa4ad5ea5c0bd2fba
+import FungibleToken        from 0x9a0766d93b6608b7
+import FUSD                 from 0xe223d8a629e49c68
+import AuctionHouse_Mainnet from 0x045a1763c93006ca
+import DAAM_Mainnet         from 0xa4ad5ea5c0bd2fba
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {

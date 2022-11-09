@@ -1,9 +1,9 @@
 // deposit_bid.cdc
 // Used to make bids on item. Is accumulative with each bid. 
 
-import FungibleToken from 0x9a0766d93b6608b7
-import FUSD          from 0x0bb80b2a4cb38cdf
-import AuctionHouse_Mainnet  from 0x045a1763c93006ca
+import FungibleToken        from 0x9a0766d93b6608b7
+import FUSD                 from 0xe223d8a629e49c68
+import AuctionHouse_Mainnet from 0x045a1763c93006ca
 
 transaction(auction: Address, aid: UInt64, bid: UFix64)
 {
