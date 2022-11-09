@@ -2,12 +2,12 @@
 // Agent uses to submit Metadata for their Creator and then creates an Auction on their behalf
 // Note: Still requires Creator to accept Auction see: manage_deposot.cdc
 
-import NonFungibleToken from 0x631e88ae7f1d7c20
-import FUSD             from 0x0bb80b2a4cb38cdf
-import MetadataViews    from 0x631e88ae7f1d7c20
-import Categories       from 0xa4ad5ea5c0bd2fba
-import DAAM_Mainnet             from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_Mainnet     from 0x045a1763c93006ca
+import NonFungibleToken     from 0x631e88ae7f1d7c20
+import FUSD                 from 0xe223d8a629e49c68
+import MetadataViews        from 0x631e88ae7f1d7c20
+import Categories           from 0xa4ad5ea5c0bd2fba
+import DAAM_Mainnet         from 0xa4ad5ea5c0bd2fba
+import AuctionHouse_Mainnet from 0x045a1763c93006ca
 
 // argument have two modes:
 // when ipfs = true; first arument is cid, second argument is path 
