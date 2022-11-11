@@ -5,8 +5,8 @@
 import NonFungibleToken   from 0x631e88ae7f1d7c20
 import FungibleToken      from 0x9a0766d93b6608b7
 import MetadataViews      from 0x631e88ae7f1d7c20
-import MultiFungibleToken from 0xfa1c6cfe182ee46b
-import DAAM_Mainnet               from 0xa4ad5ea5c0bd2fba
+import MultiFungibleToken from 0xf0653a06e7de7dbd
+import DAAM_Mainnet       from 0xa4ad5ea5c0bd2fba
 
 transaction(public: Bool)
 {
@@ -18,14 +18,14 @@ transaction(public: Bool)
     prepare(acct: AuthAccount) {
         if acct.borrow<&DAAM_Mainnet.Collection>(from: DAAM_Mainnet.collectionStoragePath) != nil {
             self.have_collection = true
-            panic("You already have a DAAM_Mainnet Collection.")
+            //panic("You already have a DAAM_Mainnet Collection.")
         } else {
             self.have_collection = false
         }
 
         if acct.borrow<&MultiFungibleToken.MultiFungibleTokenManager{MultiFungibleToken.MultiFungibleTokenBalance}>(from: MultiFungibleToken.MultiFungibleTokenStoragePath) != nil {
             self.have_mft = true
-            panic("You already have a Multi-FungibleToken-Manager.")
+            //panic("You already have a Multi-FungibleToken-Manager.")
         } else {
             self.have_mft = false
         }
@@ -62,3 +62,4 @@ transaction(public: Bool)
         }
     }
 }
+ 
