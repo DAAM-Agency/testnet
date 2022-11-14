@@ -1,9 +1,9 @@
 // create_profile_short.cdc
 // Used to create a DAAM_Profile. This is the same as create_profile.cdc but only name and email.
 
-import MetadataViews from 0xf8d6e0586b0a20c7
-import DAAM_Profile  from 0x192440c99cb17282
-import DAAM          from 0xfd43f9148d4b725d
+import MetadataViews from 0x631e88ae7f1d7c20
+import DAAM_Profile  from 0x0bb80b2a4cb38cdf
+import DAAM_Mainnet  from 0xa4ad5ea5c0bd2fba
 
 transaction(name: String, emailName: String?, emailAt:String?, emailDot: String?)
 {
