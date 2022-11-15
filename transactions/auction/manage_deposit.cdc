@@ -1,7 +1,7 @@
 // manage_auction.cdc
 // Used to Approve / Disapprove an Auction made by an Agent
 
-import AuctionHouse_Mainnet  from 0x045a1763c93006ca
+import AuctionHouse_Mainnet  from 0x01837e15023c9249
 
 transaction(aid: UInt64, approve: Bool)
 {
