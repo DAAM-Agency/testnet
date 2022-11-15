@@ -2,7 +2,7 @@
 // Return all auctions in Auction Wallet. Identified by AuctionIDs
 
 import DAAM_Mainnet         from 0xa4ad5ea5c0bd2fba
-import AuctionHouse_Mainnet from 0x045a1763c93006ca
+import AuctionHouse_Mainnet from 0x01837e15023c9249
 
 pub fun main(auction: Address): {UInt64 : DAAM_Mainnet.MetadataHolder?}
 {    
