@@ -18,6 +18,7 @@ pub fun setFile(ipfs: Bool, string_cid: String, type_path: String?): {MetadataVi
     switch type_path! {
         case "text": return DAAM_Mainnet.OnChain(file: string_cid)
         case "jpg": return DAAM_Mainnet.OnChain(file: string_cid)
+        case "jpeg": return DAAM_Mainnet.OnChain(file: string_cid)
         case "png": return DAAM_Mainnet.OnChain(file: string_cid)
         case "bmp": return DAAM_Mainnet.OnChain(file: string_cid)
         case "gif": return DAAM_Mainnet.OnChain(file: string_cid)
@@ -123,3 +124,4 @@ transaction(
     }
 }
 
+ 
