@@ -852,8 +852,11 @@ pub struct AuctionHolder {
                     (MetadataViews.getRoyaltyReceiverPublicPath()!)
                     .borrow()! // get Seller FUSD Wallet Capability
                 let agentCut <-! self.auctionVault.withdraw(amount: agentAmount) // Calcuate actual amount
-                agent.deposit(from: <-agentCut ) // deposit amount                
-                self.payRoyalty(price: fee, royalties: DAAM_Mainnet.agency.getRoyalties() ) // Fee Payment
+                let feeInHouseAmount = fee * inHouse
+                let feeAgencyAmount = fee - feeInHouseAmount
+                agent.deposit(from: <-agentCut ) // deposit amount  
+                self.payRoyalty(price: feeInHouseAmount, royalties: DAAM_Mainnet.company.getRoyalties() ) // Fee Payment
+                self.payRoyalty(price: feeAgencyAmount, royalties: DAAM_Mainnet.agency.getRoyalties() ) // Fee Payment
                 self.payRoyalty(price: self.auctionVault.balance, royalties: creatorRoyalties) // Royalty
             }           
             assert(self.auctionVault.balance==0.0, message: self.auctionVault.balance.toString().concat(" fee: ").concat(fee.toString()) )
