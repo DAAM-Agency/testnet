@@ -42,7 +42,10 @@ pub fun main(creator: Address): [MetadataHolderPrice] {
     for mid in midList {
         let metadata = metadataRef.viewMetadata(mid: mid)!
         let aid = findAID(auctionHouse, mid)
-        if aid == nil { continue }
+        if aid == nil {
+            metadataHolderPriceList.append(MetadataHolderPrice(metadata, nil))
+            continue
+        }
         let auctionRef = auctionHouse.item(aid!)! as &AuctionHouse.Auction{AuctionHouse.AuctionPublic}
         let auctionInfo = auctionRef!.auctionInfo()
         metadataHolderPriceList.append(MetadataHolderPrice(metadata, auctionInfo))
