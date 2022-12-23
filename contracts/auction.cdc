@@ -116,9 +116,9 @@ pub struct AuctionHolder {
 /************************************************************************/
     pub resource interface AuctionWalletPublic {
         // Public Interface for AuctionWallet
-        pub fun getAuctions()     : [UInt64]                 // MIDs in Auctions
+        pub fun getAuctions()     : [UInt64]                 // AIDs in Auctions
         pub fun getAgentAuctions(): [UInt64]                 // Returns the Auctions deposited by Agent 
-        pub fun item(_ id: UInt64): &Auction{AuctionPublic}? // item(Token ID) will return the apporiate auction.
+        pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? // item(AID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
 
         pub fun deposit(agent: &DAAM.Admin{DAAM.Agent}, metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
