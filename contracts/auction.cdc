@@ -120,7 +120,7 @@ pub struct AuctionHolder {
         pub fun getAgentAuctions(): [UInt64]                 // Returns the Auctions deposited by Agent 
         pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? // item(AID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
-        pub fun closeAuction(_ auctionID: UInt64)                              // Close all finilise auctions
+        pub fun closeAuction(_ auctionID: UInt64)            // Close auction by AID
 
         pub fun deposit(agent: &DAAM.Admin{DAAM.Agent}, metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
