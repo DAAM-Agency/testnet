@@ -120,6 +120,7 @@ pub struct AuctionHolder {
         pub fun getAgentAuctions(): [UInt64]                 // Returns the Auctions deposited by Agent 
         pub fun item(_ aid: UInt64): &Auction{AuctionPublic}? // item(AID) will return the apporiate auction.
         pub fun closeAuctions()                              // Close all finilise auctions
+        pub fun closeAuction(_ auctionID: UInt64)                              // Close all finilise auctions
 
         pub fun deposit(agent: &DAAM.Admin{DAAM.Agent}, metadataGenerator: Capability<&DAAM.MetadataGenerator{DAAM.MetadataGeneratorMint}>, mid: UInt64, start: UFix64,
             length: UFix64, isExtended: Bool, extendedTime: UFix64, vault: @FungibleToken.Vault, incrementByPrice: Bool, incrementAmount: UFix64,
@@ -235,7 +236,7 @@ pub struct AuctionHolder {
         }    
 
         // Resolves all Auctions. Closes ones that have been ended or restarts them due to being a reprintSeries auctions.
-        // This allows the auctioneer to close auctions to auctions that have ended, returning funds and appropriating items accordingly
+        // This allows the anyone to close auctions that have ended, returning funds and appropriating items accordingly
         // even in instances where the Winner has not claimed their item.
         pub fun closeAuctions()
         {
@@ -258,6 +259,27 @@ pub struct AuctionHolder {
                     emit AuctionClosed(auctionID: auctionID)
                 }
             }
+        }
+
+        pub fun closeAuction(_ auctionID: UInt64)
+        {
+            pre { self.currentAuctions.containsKey(auctionID) : "AID is not in your Wallet." }
+            let current_status = self.currentAuctions[auctionID]?.updateStatus() // status may have been changed in verifyReservePrive() called by seriesMinter()
+            assert(current_status==false, message: "Auction has not ended.");
+                
+            log("Closing Token ID: ")
+            if self.currentAuctions[auctionID]?.auctionNFT != nil || self.currentAuctions[auctionID]?.auctionMetadata != nil { // Winner has not yet collected
+                self.currentAuctions[auctionID]?.verifyReservePrice()! // Winner has not claimed their item. Verify they have meet the reserve price?
+            }
+
+            if self.currentAuctions[auctionID]?.status == true { // Series Minter is minting another Metadata to NFT. Auction Restarting.
+                return
+            }  
+
+            self.removeAuction(auctionID)
+
+            log("Auction Closed: ".concat(auctionID.toString()) )                    
+            emit AuctionClosed(auctionID: auctionID)
         }
 
         priv fun removeAuction(_ auctionID: UInt64) {
@@ -374,7 +396,7 @@ pub struct AuctionHolder {
                 startingBid == nil && buyNow != 0.0 || startingBid != nil : "Direct Purchase requires BuyItNow amount"
             }
             let metadataHolder: DAAM.MetadataHolder = (metadata != nil) ? metadata?.getHolder()! : nft?.metadata!
-            if reprintSeries != nil && metadataHolder.edition.max != nil { assert(reprintSeries! <= metadataHolder.edition.max!, message: "") }
+            if reprintSeries != nil && metadataHolder.edition.max != nil { assert(reprintSeries! <= metadataHolder.edition.max!, message: "Reprint must be less then or equal to max edition.") }
             // Verify starting bid is lower then the reserve price
             if startingBid != nil { assert(reserve > startingBid!, message: "The Reserve must be greater then your Starting Bid") }
                      
