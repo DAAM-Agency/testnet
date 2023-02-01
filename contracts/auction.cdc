@@ -1009,6 +1009,25 @@ pub struct AuctionHolder {
     pub fun getCurrentAuctions(): {Address:[UInt64]} {
         return self.currentAuctions
     }    
+    
+    // Get current auctions { Address : [AID] }
+    pub fun getCurrentAuctionsStatus(_ status: Bool?): {Address:[UInt64]} {
+        let currentAuctions = self.currentAuctions
+        let selectedAuction: {Address:[UInt64]} = {}
+        for seller in currentAuctions.keys {
+            let auctionHouse = getAccount(seller).getCapability<&AuctionHouse_Mainnet.AuctionWallet{AuctionHouse_Mainnet.AuctionWalletPublic}>
+                (AuctionHouse_Mainnet.auctionPublicPath).borrow()!
+            let aids = currentAuctions[seller]!
+            let list: [UInt64] = []
+            for aid in aids {
+                let mRef = auctionHouse.item(aid) as &AuctionHouse_Mainnet.Auction{AuctionHouse_Mainnet.AuctionPublic}?
+                let current_status = mRef!.getStatus()
+                if status == current_status { list.append(aid) }
+            }
+            if list.length > 0 { selectedAuction.insert(key: seller, list)}
+        }
+        return selectedAuction
+    }    
 
     // Requires Minter Key // Minter function to mint
     access(contract) fun mintNFT(metadata: @DAAM_Mainnet.Metadata): @DAAM_Mainnet.NFT {
