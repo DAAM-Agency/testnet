@@ -1,0 +1,15 @@
+[submodule "DAAM_Profile"]
+	path = DAAM_Profile
+	url = https://github.com/DAAM-Agency/DAAM_Profile.git
+[submodule "MultiFungibleToken"]
+	path = MultiFungibleToken
+	url = https://github.com/DAAM-Agency/MultiFungibleToken.git
+[submodule "AuctionHouse"]
+	path = AuctionHouse
+	url = https://github.com/DAAM-Agency/AuctionHouse.git
+[submodule "Categories"]
+	path = Categories
+	url = https://github.com/DAAM-Agency/Categories.git
+[submodule "DAAM"]
+	path = DAAM
+	url = https://github.com/DAAM-Agency/DAAM.git
