@@ -8,8 +8,10 @@ transaction(creator: Address)
 {
     let admin   : &{DAAM.Agent}
     let creator : Address
+    let standardCut : UFix64
 
     prepare(agent: AuthAccount) {
+        self.standardCut = 0.15
         self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
         self.creator = creator
     }
@@ -21,9 +23,10 @@ transaction(creator: Address)
     }
     
     execute {
-        self.admin.inviteCreator(self.creator, agentCut: nil)
+        self.admin.inviteCreator(self.creator, agentCut: self.standardCut)
         log("Creator Invited")
     }
 
     post { DAAM.isCreator(self.creator) != nil : self.creator.toString().concat(" invitation has not been sent.") }
 }
+ 

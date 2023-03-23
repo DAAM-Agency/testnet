@@ -8,7 +8,7 @@ transaction(creator: Address, agentCut: UFix64)
 {
     let admin   : &{DAAM.Agent}
     let creator : Address
-    let agentCut: UFix64?
+    let agentCut: UFix64
 
     prepare(agent: AuthAccount) {
         self.admin   = agent.borrow<&DAAM.Admin{DAAM.Agent}>(from: DAAM.adminStoragePath)!
@@ -29,3 +29,4 @@ transaction(creator: Address, agentCut: UFix64)
 
     post { DAAM.isCreator(self.creator) != nil : self.creator.toString().concat(" invitation has not been sent.") }
 }
+ 

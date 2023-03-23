@@ -12,7 +12,7 @@ do
     if [ $(($mid == $1)) == 1 ]; then
         echo "DISAPPROVED Metadata"
         DISAPPROVED_METADTA=$1
-        flow transactions send ./transactions/admin/change_metadata_status.cdc $CREATOR mid false --signer cto  # MID x
+        flow transactions send ./transactions/admin/change_metadata_status.cdc $CREATOR $mid false --signer cto  # MID x
     else
         echo "APPROVED Metadata"
         flow transactions send ./transactions/admin/change_metadata_status.cdc $CREATOR $mid true --signer cto
