@@ -28,6 +28,12 @@
 				"testnet": "0x631e88ae7f1d7c20",
 				"mainnet": "0x1d7e57aa55817448"
 			}
+		},
+		"FUSD": {
+			"source": "./contracts/FUSD.cdc"
+		},
+		"DAAM": {
+			"source": "./contracts/DAAM.cdc"
 		}
 	},
 	"networks": {
@@ -136,6 +142,9 @@
 	"deployments": {
 		"emulator": {
 			"emulator-account": ["NonFungibleToken"]
+		},
+		"emulator": {
+			"profile": ["FUSD"]
 		}
 	}
 }

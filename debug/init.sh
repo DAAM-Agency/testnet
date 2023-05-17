@@ -176,7 +176,7 @@ flow transactions send ./transactions/send_flow_em.cdc 200.0 $TOKENB
 
 # FUSD Enulator Contract
 echo "========== Publish Test FUSD Contract =========="
-flow accounts add-contract FUSD ./contracts/FUSD.cdc --signer profile
+flow accounts add-contract ./contracts/FUSD.cdc --signer profile
 flow transactions send ./transactions/fusd/setup_fusd_vault.cdc --signer cto
 flow transactions send ./transactions/fusd/setup_fusd.cdc 100000000.0 $CTO --signer profile
 
@@ -232,24 +232,24 @@ flow transactions send ./transactions/fusd/transfer_fusd.cdc 100000.0 $AGENT2 --
 
 # Emulator Contracts
 echo "========== Publish Supporting Contracts: NonFungibleToken & Profile"
-flow accounts add-contract NonFungibleToken ./contracts/NonFungibleToken.cdc
-flow accounts add-contract MetadataViews ./contracts/MetadataViews.cdc
-flow accounts add-contract DAAM_Profile ./contracts/DAAM_Profile.cdc --signer profile
+flow accounts add-contract ./contracts/NonFungibleToken.cdc
+flow accounts add-contract ./contracts/MetadataViews.cdc
+flow accounts add-contract ./contracts/DAAM_Profile.cdc --signer profile
 
 echo "========= Publish DAAM Contracts =========="
 # Categories
-flow accounts add-contract Categories ./contracts/categories.cdc --signer daam_nft
-flow accounts add-contract MultiFungibleToken ./contracts/MultiFungibleToken.cdc --signer mft
+flow accounts add-contract ./contracts/categories.cdc --signer daam_nft
+flow accounts add-contract ./contracts/MultiFungibleToken.cdc --signer mft
 
 flow transactions send ./transactions/send_flow_em.cdc --args-json \
 '[{"type": "UFix64", "value": "11.0"}, {"type": "Address", "value": "0x0f7025fa05b578e3"}]'
 
 # NFT
 flow transactions send ./transactions/init_DAAM_Agency.cdc --signer daam_nft
-flow accounts update-contract DAAM ./contracts/daam_nft.cdc --signer daam_nft
+#flow accounts update-contract ./contracts/daam_nft.cdc --signer daam_nft
 
 #Auction
-flow accounts add-contract AuctionHouse ./contracts/auction.cdc --signer marketplace
+flow accounts add-contract ./contracts/auction.cdc --signer marketplace
 
 echo "========== SETUP ALL TYPES OF ACCOUNTS: DAAM, Profile, AuctionWallet  ==========" 
 
