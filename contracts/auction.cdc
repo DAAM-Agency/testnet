@@ -342,6 +342,7 @@ pub struct AuctionHolder {
         pub fun getAuctionLog(): {Address:UFix64}
         pub fun getStatus(): Bool?
         pub fun itemInfo(): DAAM_Mainnet.MetadataHolder?
+        pub fun getDisplay(): {String : MetadataViews.Media}
         pub fun timeLeft(): UFix64?
     }
 /************************************************************************/
@@ -757,6 +758,10 @@ pub struct AuctionHolder {
 
         pub fun itemInfo(): DAAM_Mainnet.MetadataHolder? { // returns the metadata of the item NFT.
             return (self.auctionNFT != nil) ? self.auctionNFT?.metadata! : self.auctionMetadata?.getHolder()
+        }
+
+        pub fun getDisplay(): {String : MetadataViews.Media} {
+            return (self.auctionNFT != nil) ? self.auctionNFT?.file! : self.auctionMetadata?.file!
         }
 
         pub fun timeLeft(): UFix64? { // returns time left, nil = not started yet.
